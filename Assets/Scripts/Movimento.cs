@@ -16,6 +16,9 @@ public class Movimento : MonoBehaviour
     public float velocidadeDash = 30f;
     private bool estaComDash = false;
     private Animator animator;
+    public Transform checadorDeChao; 
+    public float raioChecagem = 0.2f;
+    public LayerMask camadaChao;     
 
 
     void Start()
@@ -25,13 +28,25 @@ public class Movimento : MonoBehaviour
 
     void Update()
     {
-         bool isFalling = rb.linearVelocity.y < 0;
-         if (rb.linearVelocity.y < 0)
-            {
-                animator.SetBool("IsJump", false);
-                animator.SetBool("IsFall", isFalling);
-                Debug.Log($"VelY: {rb.linearVelocity.y} | isGrounded: | isFalling: {isFalling}");
+        estaNoChao = Physics2D.OverlapCircle(checadorDeChao.position, raioChecagem, camadaChao);
+        if(estaNoChao != true)
+        {
+            if(rb.linearVelocity.y > 0)
+            {animator.SetBool("IsJump", true);
+                animator.SetBool("IsFall", false);
             }
+         if (rb.linearVelocity.y < 0){
+                animator.SetBool("IsJump", false);
+                animator.SetBool("IsFall", true);
+            }
+        }
+        else
+        {
+            animator.SetBool("IsJump", false);
+            animator.SetBool("IsFall", false);
+        }
+
+         
 
         float lado = Input.GetAxisRaw("Horizontal");
         if (estaComDash == false)
@@ -83,27 +98,8 @@ public class Movimento : MonoBehaviour
         float escalaY = pequeno ? escalaAgachado : escalaBase;
         transform.localScale = new Vector3(direcao * escalaBase, escalaY, escalaBase);
     }
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-
-            animator.SetBool("IsJump", false);
-            estaNoChao = true;
-            animator.SetBool("IsFall", false);
-        }
-    }
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-       
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            animator.SetBool("IsJump", true);
-            estaNoChao = false;
-            
-
-        }
-    }
+    
+    
 
     System.Collections.IEnumerator Dash()
     {
