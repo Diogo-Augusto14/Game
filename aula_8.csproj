@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- o console nao compila o territorio da Unity -->
+    <Compile Remove="Assets/**" />
+    <Compile Include="Assets/Scripts/Motor/**/*.cs" />
+    <Compile Remove="Packages/**" />
+    <Compile Remove="ProjectSettings/**" />
+    <Compile Remove="Temp/**" />
+    <Compile Remove="Library/**" />
+    <Compile Remove="Logs/**" />
+  </ItemGroup>
+
+</Project>
