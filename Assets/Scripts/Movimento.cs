@@ -10,81 +10,59 @@ public class Movimento : MonoBehaviour
 
     private float direcao = 1f;
     private bool pequeno = false;
-    public float escalaBase = 4f;
-    public float escalaAgachado = 2f;
+    public float escalaBase = 1f;
+    public float escalaAgachado = 0.5f;
     public float distanciaDash = 2f;
     public float velocidadeDash = 30f;
     private bool estaComDash = false;
     private Animator animator;
-    public Transform checadorDeChao; 
+    public Transform checadorDeChao;
     public float raioChecagem = 0.2f;
-    public LayerMask camadaChao;     
-
+    public LayerMask camadaChao;
 
     void Start()
-    { animator = GetComponent<Animator>(); }
-
-
+    {
+        animator = GetComponent<Animator>();
+    }
 
     void Update()
     {
+
+        
         estaNoChao = Physics2D.OverlapCircle(checadorDeChao.position, raioChecagem, camadaChao);
-        if(estaNoChao != true)
-        {
-            if(rb.linearVelocity.y > 0)
-            {animator.SetBool("IsJump", true);
-                animator.SetBool("IsFall", false);
-            }
-         if (rb.linearVelocity.y < 0){
-                animator.SetBool("IsJump", false);
-                animator.SetBool("IsFall", true);
-            }
-        }
-        else
-        {
-            animator.SetBool("IsJump", false);
-            animator.SetBool("IsFall", false);
-        }
 
-         
-
+        animator.SetBool("IsChao", estaNoChao);
         float lado = Input.GetAxisRaw("Horizontal");
-        if (estaComDash == false)
-        { rb.linearVelocity = new Vector2(velocidade * lado, rb.linearVelocity.y); }
+
+        if (!estaComDash)
+        {
+            rb.linearVelocity = new Vector2(velocidade * lado, rb.linearVelocity.y);
+        }
+
         if (Input.GetButtonDown("Jump") && estaNoChao)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, forcaPulo);
             estaNoChao = false;
         }
 
-
-        if (Input.GetButtonUp("Jump") && rb.linearVelocity.y > 0)
+        // Corrigido: corta a altura do pulo quando solta o botão NO AR (antes pedia estaNoChao == true, que nunca acontecia nesse momento)
+        if (Input.GetButtonUp("Jump") && !estaNoChao)
         {
+            animator.SetBool("IsJump", true);
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * 0.5f);
         }
 
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-
             StartCoroutine(Dash());
-
         }
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        bool isMoving = horizontal != 0;
-        if (estaNoChao != false)
-        {
-            animator.SetBool("isRunning", isMoving);
-        }
-        else
-        { animator.SetBool("isRunning", false); }
 
+        bool isMoving = lado != 0;
+        animator.SetBool("isRunning", isMoving); // Removido if/else redundante
 
         if (lado > 0)
-
             direcao = 1f;
-
         else if (lado < 0)
-
             direcao = -1f;
 
         if (Input.GetKeyDown(KeyCode.S))
@@ -95,23 +73,62 @@ public class Movimento : MonoBehaviour
         {
             pequeno = false;
         }
+
         float escalaY = pequeno ? escalaAgachado : escalaBase;
         transform.localScale = new Vector3(direcao * escalaBase, escalaY, escalaBase);
     }
-    
-    
 
     System.Collections.IEnumerator Dash()
     {
         estaComDash = true;
-        rb.linearVelocity = new Vector2(velocidadeDash * direcao, 0f);
+        animator.SetBool("Dash", estaComDash);
+        float velocidadeYAntesDoDash = rb.linearVelocity.y; // Preserva o Y para não cancelar a gravidade/queda durante o dash
+        rb.linearVelocity = new Vector2(velocidadeDash * direcao, velocidadeYAntesDoDash);
         yield return new WaitForSeconds(0.2f);
-        rb.linearVelocity = Vector2.zero;
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         estaComDash = false;
+        animator.SetBool("Dash", estaComDash);
     }
 
 
+    void FixedUpdate()
+    {
+        float vy = rb.linearVelocity.y;
+        float threshold = 1f; // ajuste conforme necessário
 
+        animator.SetBool("jumpPico", false);
 
+        if (vy > threshold)
+        {
+            animator.SetBool("IsJump", true);
+            animator.SetBool("IsFall", false);
+            animator.SetBool("jumpPico", false);
+        }
+        else if (vy < -threshold * 3 && !estaNoChao)
+        {
+            animator.SetBool("IsJump", false);
+            animator.SetBool("IsFall", true);
+            animator.SetBool("jumpPico", false);
+        }
+        else if (vy < -threshold && !estaNoChao)
+        {
+            animator.SetBool("IsJump", false);
+            animator.SetBool("IsFall", false);
+            animator.SetBool("jumpPico", true);
+        }
+        else if (estaNoChao)
+        {
+            animator.SetBool("IsJump", false);
+            animator.SetBool("IsFall", false);
+            animator.SetBool("jumpPico", false);
+        }
+    }
 
+    void OnDrawGizmosSelected()
+    {
+        if (checadorDeChao == null) return;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(checadorDeChao.position, raioChecagem);
+    }
 }

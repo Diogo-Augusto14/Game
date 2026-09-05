@@ -9,7 +9,7 @@ public class Cameramov : MonoBehaviour
     {
         Vector3 destino = new Vector3(alvo.position.x + deslocamento.x, alvo.position.y + deslocamento.y,
         transform.position.z);
-        transform.position = Vector3.Lerp(transform.position, destino, suavidade * time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, destino, suavidade * Time.deltaTime);
 
     }
     
