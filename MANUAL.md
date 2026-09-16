@@ -264,6 +264,112 @@ Bateu dúvida em casa? Procura aqui antes de procurar em outro lugar.
 
 ---
 
+## Animação
+
+### Onde mora a animação — quadro a quadro × osso
+*(16/09/2026 — a conversa de por que este projeto não usa Animator)*
+
+- **As duas famílias:** em **quadro a quadro** (*frame by frame*) a animação mora
+  **no desenho** — alguém desenhou 20 poses da corrida e o jogo só troca a
+  imagem. Muita imagem, animação pronta. Em **rigging** ela mora **no esqueleto**
+  — uma imagem cortada em partes, ossos dentro dela, e eu animo girando osso.
+  Pouca imagem, animação feita por mim.
+- **O que decide NÃO é 2D × 3D, é o estilo da arte:** arte pintada ou vetorial
+  deforma bem → osso brilha. **Pixel art não deforma** — girar e esticar pixel
+  quebra a grade de pixels, e fica borrado ou serrilhado.
+- **Onde tá no meu projeto:** quadro a quadro. 43 folhas em `Assets/player`,
+  51 clipes gerados. Osso está fora porque é pixel art — não por ser 2D.
+
+### Animator / Mecanim — a máquina de estados visual (e de onde ela veio)
+*(16/09/2026)*
+
+- **O que é:** o componente `Animator` + um asset `AnimatorController`: uma
+  máquina de estados DESENHADA, com estados (um clipe cada) e transições
+  disparadas por parâmetros (`SetBool`, `SetTrigger`, `SetFloat`).
+- **Pra que serve:** é o caminho oficial e documentado — todo tutorial usa. É
+  visual, então artista e designer ajustam sem tocar em código. E faz o que o meu
+  animador não faz: blend entre animações, layers, máscaras, root motion, animar
+  QUALQUER propriedade (cor, posição, um campo do meu script), e é quem a
+  Timeline dirige.
+- **De onde ele veio:** nasceu pra humanoide 3D. A lista do que ele tem de mais
+  pesado — Avatar, *retargeting*, root motion, IK, máscara de avatar, layers,
+  blend tree — é toda de conceito de esqueleto 3D. Usando ele só pra trocar
+  sprite, eu uso a máquina de estados e **ignoro uns 80% do resto**.
+- **Pegadinha (a que pesou aqui):** com a lógica já sendo uma máquina de estados
+  em C#, o Animator vira uma SEGUNDA máquina que tem que concordar com a
+  primeira, sincronizada por parâmetro. É daí que nasce o bug clássico: "o
+  parâmetro existe, mas a transição tem exit time e o clipe sai atrasado".
+- **Pegadinha 2 — Animation Event:** marcar evento no clipe (ligar/desligar
+  hitbox) é na mão, clipe por clipe. E se o clipe é CORTADO no meio, o evento que
+  **desliga** não dispara → a hitbox fica ligada.
+- **Onde tá no meu projeto:** não está. Quem anima é o `AnimadorDeSprites`, que
+  pede o clipe pelo nome e sabe o quadro exato e o progresso de 0 a 1. Se sobrar
+  um `Animator` no mesmo objeto, ele o desliga sozinho e avisa no Console — os
+  dois escrevem em `SpriteRenderer.sprite` e brigariam a cada quadro.
+
+### Rigging 2D com osso — o Skinning Editor
+*(16/09/2026)*
+
+- **O que é:** pacote `com.unity.2d.animation`. Acrescenta o **Skinning Editor**
+  dentro do Sprite Editor, com três passos: criar os ossos (*Create Bone*), gerar
+  a malha (*Auto Geometry*) e pintar os pesos (*Auto Weights* = quanto cada osso
+  puxa cada pedaço da malha). O objeto ganha um `SpriteSkin` e uma penca de
+  Transform de osso como filhos.
+- **Como anima:** eu animo os **Transforms de osso** na janela Animation → sai um
+  `.anim` → tocado por um **Animator**. Ou seja: osso termina no Animator.
+- **Pra que serve:** criar animação nova SEM desenhar arte nova; interpolação
+  suave de verdade (é animação de transform, então blend passa a fazer sentido);
+  IK (o pé grudar no chão, a mão apontar pro alvo); reaproveitar o mesmo
+  esqueleto em personagens diferentes.
+- **O que pede:** arte em PARTES separadas, com sobra atrás das juntas. Sprite
+  achatado de 46×55 não rigga.
+- **Pegadinha:** esse pacote (e o `com.unity.2d.psdimporter`, que é o par dele pra
+  trazer PSD em camadas) vem instalado **por padrão no template 2D**. Estar
+  instalado não quer dizer nada sobre eu dever usar.
+- **Quando valeria pra mim:** um chefe grande com poucos desenhos que precisa se
+  mexer muito, ou um braço que segue a direção da mira.
+
+### Timeline — a régua da cutscene
+*(16/09/2026)*
+
+- **O que é:** pacote `com.unity.timeline`. Um editor de linha de tempo igual ao
+  de programa de vídeo: régua, cursor tocando e faixas empilhadas. Um asset de
+  Timeline + um `PlayableDirector` na cena que toca ele.
+- **As faixas:** *Animation* (toca num `Animator`), *Activation* (liga/desliga
+  objeto na hora marcada), *Audio* (som na hora exata), *Signal/Marker* (dispara
+  evento = **chama um método meu**), *Control* (aninha outra Timeline, controla
+  partícula).
+- **Pra que serve:** cutscene e momento roteirizado — a porta abre, o chefe cai do
+  teto, a câmera passeia, o controle volta pra mim. Coisa com começo, meio e fim
+  que acontece sempre igual. **Não** é pra gameplay.
+- **Não tem nada de 3D:** é sequenciador, não sabe nem se a cena tem profundidade.
+  Cutscene 2D usa igual.
+- **Conviver com o meu animador:** a Animation Track não conhece o
+  `AnimadorDeSprites`. Saída: faixa de **Signal** chamando
+  `Tocar("nome_do_clipe")`, que é público e recebe string. Perco a
+  pré-visualização dentro da Timeline (fica um marcador em vez do bloco), mas
+  funciona.
+- **Pegadinha:** pra sequência curta, uma coroutine em C# resolve com menos peça
+  móvel. Timeline começa a valer quando várias coisas acontecem em PARALELO e eu
+  quero VER o encaixe, em vez de contar segundos no código.
+
+### Os três grupos de peças da Unity — como ler qualquer tutorial
+*(16/09/2026 — o modelo mental que decidiu a discussão acima)*
+
+- **Feitas para 2D:** Sprite Renderer, Sprite Editor, Tilemap, SpriteShape,
+  física 2D, luzes 2D do URP.
+- **Feitas para 3D, que o 2D reaproveita:** Animator/Mecanim, rigging com osso.
+- **Neutras:** Timeline, Playables, Input System, UI.
+- **Pra que serve saber:** quando um tutorial recomendar algo do grupo **do meio**,
+  a pergunta certa é "o que dessa ferramenta eu vou realmente usar?". Se a
+  resposta for "só a máquina de estados — e eu já tenho uma em C#", o custo dela
+  continua de pé e o benefício não.
+- **E o contrário também vale:** "isso é coisa de 3D" seria conclusão errada e
+  larga — muito jogo 2D usa Mecanim e está tudo bem. A conclusão certa é
+  estreita: *pra sprite quadro a quadro, as forças do Mecanim ficam paradas.*
+
+---
+
 ## Ferramentas (VS Code)
 
 ### O ponto que aceita sugestão sozinho
