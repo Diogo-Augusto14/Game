@@ -1,59 +1,49 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// Cura no estilo Hollow Knight: segure a tecla parado no chão por alguns instantes
-/// pra gastar um frasco e recuperar vida. Apanhar, andar, pular, dar dash ou atacar
-/// cancela — e o frasco não é gasto.
+/// Cura no estilo Hollow Knight: segure a tecla, parado no chao, por alguns instantes pra
+/// gastar um frasco e recuperar vida. Apanhar, andar, pular, dar dash ou atacar cancela —
+/// e o frasco NAO e gasto. E essa troca (vida por ficar exposto) que faz a cura ser uma
+/// decisao em vez de um botao.
 ///
-/// Coloque no boneco, junto com Vida e Movimento.
+/// Coloque no boneco, junto com Vida, Movimento e Entrada.
 /// </summary>
 [RequireComponent(typeof(Vida))]
 [DisallowMultipleComponent]
 public class Cura : MonoBehaviour
 {
     [Header("Regras")]
-    [Tooltip("Tecla que precisa ficar segurada. Não mexe no Input Manager")]
-    [SerializeField] private KeyCode teclaDeCura = KeyCode.E;
-
-    [Tooltip("Segundos segurando até a cura acontecer")]
-    [SerializeField, Min(0.05f)] private float tempoParaCurar = 0.9f;
+    [Tooltip("Segundos segurando ate a cura acontecer")]
+    [SerializeField, Min(0.05f)] private float tempoParaCurar = 0.85f;
 
     [Tooltip("Quanto de vida cada frasco recupera")]
-    [SerializeField, Min(1f)] private float quantidadeCurada = 25f;
+    [SerializeField, Min(1f)] private float quantidadeCurada = 34f;
 
-    [Tooltip("Frascos disponíveis")]
+    [Tooltip("Frascos disponiveis")]
     [SerializeField, Min(0)] private int frascosMaximos = 3;
 
-    [Tooltip("Só cura com os dois pés no chão")]
+    [Tooltip("So cura com os dois pes no chao")]
     [SerializeField] private bool precisaEstarNoChao = true;
 
     [Tooltip("Andar cancela a cura")]
     [SerializeField] private bool andarCancela = true;
 
-    [Header("Animação (opcional — só escreve se o parâmetro existir)")]
-    [SerializeField] private Animator animator;
-
-    [Tooltip("Bool ligado enquanto está se curando. Vazio = não anima")]
-    [SerializeField] private string boolDoAnimator = "IsHealing";
-
     [Header("Eventos")]
-    public UnityEvent AoComecar;
-    public UnityEvent AoCurar;
-    public UnityEvent AoCancelar;
+    public UnityEvent AoComecar = new UnityEvent();
+    public UnityEvent AoCurar = new UnityEvent();
+    public UnityEvent AoCancelar = new UnityEvent();
     [Tooltip("Disparado quando a quantidade de frascos muda — bom pra UI")]
-    public UnityEvent AoMudarFrascos;
+    public UnityEvent AoMudarFrascos = new UnityEvent();
 
-    // ---------- estado ----------
+    // ---------------- estado ----------------
     private Vida vida;
     private Movimento movimento;
     private Ataque ataque;
-    private readonly HashSet<int> parametrosDoAnimator = new HashSet<int>();
-    private int hashBool;
+    private Entrada entrada;
     private float progresso;
 
-    /// <summary>True enquanto a tecla está sendo segurada e a cura é válida.</summary>
+    /// <summary>True enquanto a tecla esta segurada e a cura continua valendo.</summary>
     public bool Curando { get; private set; }
 
     /// <summary>Frascos que restam.</summary>
@@ -61,32 +51,18 @@ public class Cura : MonoBehaviour
 
     public int FrascosMaximos => frascosMaximos;
 
-    /// <summary>Progresso de 0 a 1 — pronto pra uma barra circular na UI.</summary>
+    /// <summary>Progresso de 0 a 1 — pronto pra uma barra na UI.</summary>
     public float Progresso => tempoParaCurar <= 0f ? 0f : Mathf.Clamp01(progresso / tempoParaCurar);
 
-    // ---------- ciclo de vida ----------
-    private void Reset()
-    {
-        animator = GetComponent<Animator>();
-    }
-
+    // ---------------- ciclo de vida ----------------
     private void Awake()
     {
         vida = GetComponent<Vida>();
         movimento = GetComponent<Movimento>();
         ataque = GetComponent<Ataque>();
+        entrada = GetComponent<Entrada>();
+
         Frascos = frascosMaximos;
-
-        if (animator == null)
-            animator = GetComponentInChildren<Animator>();
-
-        if (animator != null)
-        {
-            foreach (AnimatorControllerParameter p in animator.parameters)
-                parametrosDoAnimator.Add(p.nameHash);
-        }
-
-        hashBool = string.IsNullOrEmpty(boolDoAnimator) ? 0 : Animator.StringToHash(boolDoAnimator);
     }
 
     private void OnEnable()
@@ -102,12 +78,13 @@ public class Cura : MonoBehaviour
 
     private void Update()
     {
-        bool segurando = Input.GetKey(teclaDeCura);
+        bool segurando = entrada != null && entrada.CuraSegurada;
 
         if (!Curando)
         {
             if (segurando && PodeComecar())
                 Comecar();
+
             return;
         }
 
@@ -118,17 +95,19 @@ public class Cura : MonoBehaviour
         }
 
         progresso += Time.deltaTime;
+
         if (progresso >= tempoParaCurar)
             Concluir();
     }
 
-    // ---------- lógica ----------
+    // ---------------- logica ----------------
     private bool PodeComecar()
     {
         if (Frascos <= 0) return false;
         if (vida.EstaMorto) return false;
         if (vida.VidaAtual >= vida.VidaMaxima) return false;
         if (ataque != null && ataque.EstaAtacando) return false;
+
         return ContinuaValido();
     }
 
@@ -137,9 +116,11 @@ public class Cura : MonoBehaviour
         if (movimento == null)
             return true;
 
+        if (movimento.Morto || movimento.Atordoado) return false;
         if (precisaEstarNoChao && !movimento.NoChao) return false;
-        if (movimento.Dashando || movimento.Pendurado) return false;
-        if (andarCancela && Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1f) return false;
+        if (movimento.Dashando || movimento.Esquivando || movimento.Escorregando) return false;
+        if (movimento.Pendurado || movimento.SubindoBeirada || movimento.NaEscada) return false;
+        if (andarCancela && Mathf.Abs(movimento.LadoPedido) > 0.1f) return false;
 
         return true;
     }
@@ -148,7 +129,6 @@ public class Cura : MonoBehaviour
     {
         Curando = true;
         progresso = 0f;
-        Animar(true);
         AoComecar?.Invoke();
     }
 
@@ -159,13 +139,12 @@ public class Cura : MonoBehaviour
 
         Curando = false;
         progresso = 0f;
-        Animar(false);
 
         AoCurar?.Invoke();
         AoMudarFrascos?.Invoke();
     }
 
-    /// <summary>Interrompe a cura sem gastar frasco. Público pra outros scripts e UnityEvents.</summary>
+    /// <summary>Interrompe a cura sem gastar frasco. Publico pra outros scripts e UnityEvents.</summary>
     public void Cancelar()
     {
         if (!Curando)
@@ -173,7 +152,6 @@ public class Cura : MonoBehaviour
 
         Curando = false;
         progresso = 0f;
-        Animar(false);
         AoCancelar?.Invoke();
     }
 
@@ -187,11 +165,5 @@ public class Cura : MonoBehaviour
     private void AoLevarGolpe(DanoInfo info)
     {
         Cancelar();
-    }
-
-    private void Animar(bool valor)
-    {
-        if (animator != null && hashBool != 0 && parametrosDoAnimator.Contains(hashBool))
-            animator.SetBool(hashBool, valor);
     }
 }

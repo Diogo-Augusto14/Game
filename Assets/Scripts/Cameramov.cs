@@ -1,80 +1,113 @@
 using UnityEngine;
 
 /// <summary>
-/// Câmera 2D de plataforma. Segue o alvo com zona morta, suavização separada
-/// por eixo, antecipação na direção da corrida e limites da fase.
-/// Coloque este componente na Main Camera (ortográfica).
+/// Camera 2D de plataforma: segue o alvo com zona morta, suavizacao separada por eixo,
+/// antecipacao na direcao da corrida, limites da fase e tremida no impacto.
+///
+/// A zona morta e o detalhe que mais muda a sensacao do jogo: sem ela a camera reage a
+/// cada pulinho e da embrulho no estomago. Com ela, andar pouco nao mexe nada.
+///
+/// Coloque na Main Camera (ortografica).
 /// </summary>
 [RequireComponent(typeof(Camera))]
 [DisallowMultipleComponent]
 public class Cameramov : MonoBehaviour
 {
     [Header("Alvo")]
-    [Tooltip("O personagem que a câmera vai seguir")]
+    [Tooltip("Quem a camera segue. Vazio = acha o jogador sozinho")]
     [SerializeField] private Transform alvo;
 
-    [Tooltip("Rigidbody2D do alvo. Só é usado pra antecipação — pode ficar vazio")]
+    [Tooltip("Rigidbody2D do alvo. Usado so pra antecipacao — pode ficar vazio")]
     [SerializeField] private Rigidbody2D alvoRb;
 
-    [Tooltip("Deslocamento em relação ao alvo (ex: um pouco acima da cabeça)")]
-    [SerializeField] private Vector2 deslocamento = new Vector2(0f, 1f);
+    [Tooltip("Deslocamento em relacao ao alvo (ex.: um pouco acima da cabeca)")]
+    [SerializeField] private Vector2 deslocamento = new Vector2(0f, 0.35f);
 
-    [Header("Suavização (segundos até alcançar o alvo)")]
-    [Tooltip("Horizontal. Menor = mais rápida/seca")]
+    [Header("Suavizacao (segundos ate alcancar o alvo)")]
+    [Tooltip("Horizontal. Menor = mais seca")]
     [SerializeField, Min(0f)] private float tempoSuavizacaoX = 0.12f;
 
-    [Tooltip("Vertical. Em plataforma costuma ser maior que o X pra câmera não acompanhar cada pulo")]
-    [SerializeField, Min(0f)] private float tempoSuavizacaoY = 0.30f;
+    [Tooltip("Vertical. Em plataforma costuma ser maior que o X, pra nao acompanhar cada pulo")]
+    [SerializeField, Min(0f)] private float tempoSuavizacaoY = 0.24f;
 
     [Header("Zona morta")]
-    [Tooltip("Largura/altura (em unidades do mundo) que o alvo pode andar sem a câmera se mover. 0 = desliga")]
-    [SerializeField] private Vector2 zonaMorta = new Vector2(1.5f, 1.0f);
+    [Tooltip("Quanto o alvo pode andar sem a camera se mover (unidades do mundo). 0 = desliga")]
+    [SerializeField] private Vector2 zonaMorta = new Vector2(0.45f, 0.5f);
 
-    [Header("Antecipação (look-ahead)")]
-    [Tooltip("Quanto a câmera desliza na direção da corrida. 0 = desliga")]
-    [SerializeField, Min(0f)] private float antecipacaoX = 2f;
+    [Header("Antecipacao (look-ahead)")]
+    [Tooltip("Quanto a camera desliza na direcao da corrida. 0 = desliga")]
+    [SerializeField, Min(0f)] private float antecipacaoX = 0.7f;
 
-    [Tooltip("Velocidade horizontal mínima do alvo pra antecipação ligar (evita ativar em micro-movimentos)")]
-    [SerializeField, Min(0f)] private float velocidadeMinimaAntecipacao = 0.5f;
+    [Tooltip("Velocidade horizontal minima do alvo pra antecipacao ligar")]
+    [SerializeField, Min(0f)] private float velocidadeMinimaAntecipacao = 0.6f;
 
-    [Tooltip("Quão rápido a antecipação entra e sai. Maior = mais rápida")]
+    [Tooltip("Quao rapido a antecipacao entra e sai")]
     [SerializeField, Min(0.01f)] private float velocidadeAntecipacao = 4f;
 
     [Header("Limites da fase")]
-    [Tooltip("Se ligado, a borda da câmera nunca passa do retângulo abaixo")]
+    [Tooltip("Se ligado, a borda da camera nunca passa do retangulo abaixo")]
     [SerializeField] private bool usarLimites = false;
 
-    [Tooltip("Canto inferior-esquerdo da fase (mundo)")]
     [SerializeField] private Vector2 limiteMinimo = new Vector2(-20f, -10f);
 
-    [Tooltip("Canto superior-direito da fase (mundo)")]
     [SerializeField] private Vector2 limiteMaximo = new Vector2(20f, 10f);
 
-    // ---------- estado interno ----------
+    [Header("Tremida")]
+    [Tooltip("Quanto tempo uma tremida leva pra sumir")]
+    [SerializeField, Min(0.01f)] private float duracaoDaTremida = 0.18f;
+
+    [Tooltip("Tremida maxima em unidades do mundo (segura o exagero)")]
+    [SerializeField, Min(0f)] private float tremidaMaxima = 0.25f;
+
+    // ---------------- estado ----------------
+    private static Cameramov instancia;
+
     private Camera cam;
 
-    // Ponto que a câmera "quer" enquadrar. Só muda quando o alvo sai da zona morta.
+    // Ponto que a camera "quer" enquadrar. So muda quando o alvo sai da zona morta.
     private Vector2 pontoDeInteresse;
 
-    // Velocidades que o SmoothDamp usa pra lembrar o movimento entre quadros.
     private float velocidadeX;
     private float velocidadeY;
-
-    // Antecipação suavizada (vai de -antecipacaoX a +antecipacaoX).
     private float antecipacaoAtual;
 
-    // ---------- ciclo de vida ----------
+    private float tremidaForca;
+    private float tremidaRestante;
+
+    /// <summary>
+    /// A Camera deste objeto, resolvida sob demanda. Nao fica so no Awake porque
+    /// ferramentas de editor chamam DefinirLimites/PosicionarImediatamente fora do Play,
+    /// onde o Awake nunca rodou — e AplicarLimites precisa da camera pra saber o
+    /// tamanho do enquadramento.
+    /// </summary>
+    private Camera Cam
+    {
+        get
+        {
+            if (cam == null)
+                cam = GetComponent<Camera>();
+
+            return cam;
+        }
+    }
+
+    // ---------------- ciclo de vida ----------------
     private void Awake()
     {
         cam = GetComponent<Camera>();
+        instancia = this;
+    }
 
-        if (alvo != null && alvoRb == null)
-            alvoRb = alvo.GetComponent<Rigidbody2D>();
+    private void OnDestroy()
+    {
+        if (instancia == this)
+            instancia = null;
     }
 
     private void Start()
     {
-        // Começa exatamente em cima do alvo — sem "voo" no primeiro quadro.
+        GarantirAlvo();
+
         if (alvo != null)
             PosicionarImediatamente();
     }
@@ -82,7 +115,12 @@ public class Cameramov : MonoBehaviour
     private void LateUpdate()
     {
         if (alvo == null)
-            return;
+        {
+            GarantirAlvo();
+
+            if (alvo == null)
+                return;
+        }
 
         AtualizarPontoDeInteresse();
         AtualizarAntecipacao();
@@ -95,12 +133,23 @@ public class Cameramov : MonoBehaviour
         Vector3 pos = transform.position;
         pos.x = Mathf.SmoothDamp(pos.x, destino.x, ref velocidadeX, tempoSuavizacaoX);
         pos.y = Mathf.SmoothDamp(pos.y, destino.y, ref velocidadeY, tempoSuavizacaoY);
+
+        pos += (Vector3)CalcularTremida();
+
         transform.position = pos;
     }
 
-    // ---------- lógica ----------
+    private void GarantirAlvo()
+    {
+        if (alvo == null && Player.Atual != null)
+            alvo = Player.Atual.transform;
 
-    /// Move o ponto de interesse só quando o alvo sai da zona morta.
+        if (alvo != null && alvoRb == null)
+            alvoRb = alvo.GetComponent<Rigidbody2D>();
+    }
+
+    // ---------------- logica ----------------
+    /// <summary>Move o ponto de interesse so quando o alvo sai da zona morta.</summary>
     private void AtualizarPontoDeInteresse()
     {
         Vector2 alvoPos = (Vector2)alvo.position + deslocamento;
@@ -114,44 +163,61 @@ public class Cameramov : MonoBehaviour
             pontoDeInteresse.y += diferenca.y - Mathf.Sign(diferenca.y) * metade.y;
     }
 
-    /// Desliza a câmera na direção em que o alvo está correndo.
+    /// <summary>Desliza a camera na direcao em que o alvo esta correndo.</summary>
     private void AtualizarAntecipacao()
     {
-        float alvoAntecipacao = 0f;
+        float desejada = 0f;
 
         if (antecipacaoX > 0f && alvoRb != null)
         {
             float vx = alvoRb.linearVelocity.x;
+
             if (Mathf.Abs(vx) > velocidadeMinimaAntecipacao)
-                alvoAntecipacao = Mathf.Sign(vx) * antecipacaoX;
+                desejada = Mathf.Sign(vx) * antecipacaoX;
         }
 
-        // Interpolação exponencial: independente de framerate e nunca ultrapassa.
+        // Interpolacao exponencial: independente de framerate e nunca ultrapassa.
         float t = 1f - Mathf.Exp(-velocidadeAntecipacao * Time.deltaTime);
-        antecipacaoAtual = Mathf.Lerp(antecipacaoAtual, alvoAntecipacao, t);
+        antecipacaoAtual = Mathf.Lerp(antecipacaoAtual, desejada, t);
     }
 
-    /// Garante que a borda da câmera não passe dos limites da fase.
+    private Vector2 CalcularTremida()
+    {
+        if (tremidaRestante <= 0f)
+            return Vector2.zero;
+
+        tremidaRestante -= Time.deltaTime;
+
+        if (tremidaRestante <= 0f)
+            return Vector2.zero;
+
+        float forca = tremidaForca * (tremidaRestante / duracaoDaTremida);
+        return Random.insideUnitCircle * forca;
+    }
+
+    /// <summary>Garante que a borda da camera nao passe dos limites da fase.</summary>
     private Vector2 AplicarLimites(Vector2 destino)
     {
-        float metadeAltura = cam.orthographicSize;
-        float metadeLargura = metadeAltura * cam.aspect;
+        if (Cam == null)
+            return destino;
+
+        float metadeAltura = Cam.orthographicSize;
+        float metadeLargura = metadeAltura * Cam.aspect;
 
         float minX = limiteMinimo.x + metadeLargura;
         float maxX = limiteMaximo.x - metadeLargura;
         float minY = limiteMinimo.y + metadeAltura;
         float maxY = limiteMaximo.y - metadeAltura;
 
-        // Se a fase é menor que a câmera num eixo, centraliza nesse eixo.
+        // Fase menor que a camera num eixo: centraliza nesse eixo.
         destino.x = minX > maxX ? (minX + maxX) * 0.5f : Mathf.Clamp(destino.x, minX, maxX);
         destino.y = minY > maxY ? (minY + maxY) * 0.5f : Mathf.Clamp(destino.y, minY, maxY);
 
         return destino;
     }
 
-    // ---------- API pública (pra outros scripts usarem) ----------
-
-    /// Troca o alvo. Com imediato = true a câmera pula direto pra ele (útil em respawn/troca de sala).
+    // ---------------- API publica ----------------
+    /// <summary>Troca o alvo. Com imediato = true a camera pula direto pra ele.</summary>
     public void DefinirAlvo(Transform novoAlvo, bool imediato = false)
     {
         alvo = novoAlvo;
@@ -161,7 +227,7 @@ public class Cameramov : MonoBehaviour
             PosicionarImediatamente();
     }
 
-    /// Define os limites da fase a partir de um Bounds (ex: BoxCollider2D da sala).
+    /// <summary>Define os limites da fase a partir de um Bounds (ex.: o retangulo da sala).</summary>
     public void DefinirLimites(Bounds limites)
     {
         usarLimites = true;
@@ -169,9 +235,12 @@ public class Cameramov : MonoBehaviour
         limiteMaximo = limites.max;
     }
 
-    /// Coloca a câmera exatamente no alvo, zerando toda a suavização.
+    /// <summary>Coloca a camera exatamente no alvo, zerando toda a suavizacao.</summary>
     public void PosicionarImediatamente()
     {
+        if (alvo == null)
+            return;
+
         pontoDeInteresse = (Vector2)alvo.position + deslocamento;
         antecipacaoAtual = 0f;
         velocidadeX = 0f;
@@ -181,11 +250,27 @@ public class Cameramov : MonoBehaviour
         transform.position = new Vector3(destino.x, destino.y, transform.position.z);
     }
 
-    // ---------- visualização no editor ----------
+    /// <summary>Sacode a camera. Chamado pela hitbox ao acertar, por explosao, por queda.</summary>
+    public void Sacudir(float forca)
+    {
+        tremidaForca = Mathf.Min(Mathf.Max(tremidaForca, forca), tremidaMaxima);
+        tremidaRestante = duracaoDaTremida;
+    }
+
+    /// <summary>
+    /// Atalho estatico pra quem nao tem referencia da camera (a hitbox, por exemplo).
+    /// Nao reclama se nao houver camera na cena — feedback visual nunca deve quebrar o jogo.
+    /// </summary>
+    public static void Tremer(float forca)
+    {
+        if (instancia != null)
+            instancia.Sacudir(forca);
+    }
+
+    // ---------------- editor ----------------
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        // Zona morta (amarelo) em volta do ponto de interesse.
         Vector2 centro = Application.isPlaying
             ? pontoDeInteresse
             : (alvo != null ? (Vector2)alvo.position + deslocamento : (Vector2)transform.position);
@@ -193,7 +278,6 @@ public class Cameramov : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(centro, new Vector3(zonaMorta.x, zonaMorta.y, 0f));
 
-        // Limites da fase (ciano).
         if (usarLimites)
         {
             Gizmos.color = Color.cyan;

@@ -2,79 +2,150 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Hitbox permanente da espada. Fica como filho do boneco com o collider DESLIGADO;
-/// o Ataque liga e desliga nos momentos certos. Zero Instantiate/Destroy.
-/// Aplica dano uma única vez por golpe em cada alvo que implementa IDanificavel.
+/// Hitbox de golpe. Fica como filho de quem bate, com o collider DESLIGADO; quem liga e
+/// desliga nos momentos certos e o <see cref="Ataque"/> (ou o <see cref="Inimigo"/>).
+/// Zero Instantiate/Destroy: a hitbox e permanente, entao nao gera lixo de memoria no
+/// meio do combate.
+///
+/// Aplica dano uma unica vez por golpe em cada alvo que implementa IDanificavel — mesmo
+/// que o alvo tenha varios colliders, ou que os colliders se cruzem de novo no mesmo golpe.
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 [DisallowMultipleComponent]
 public class Espada : MonoBehaviour
 {
-    [Header("Golpe")]
-    [Tooltip("Dano aplicado a cada alvo atingido")]
-    [SerializeField, Min(0f)] private float dano = 5f;
+    [Header("Golpe (valores padrao)")]
+    [Tooltip("Dano de cada alvo atingido. O Ataque pode mandar outro valor por golpe do combo")]
+    [SerializeField, Min(0f)] private float dano = 12f;
 
-    [Tooltip("Força do empurrão no alvo (impulso). 0 = não empurra")]
-    [SerializeField, Min(0f)] private float forcaEmpurrao = 6f;
+    [Tooltip("Forca do empurrao no alvo. 0 = nao empurra")]
+    [SerializeField, Min(0f)] private float forcaEmpurrao = 4f;
 
-    [Header("Referências")]
-    [Tooltip("Quem dá o golpe. Vazio = o pai deste objeto (o boneco)")]
+    [Tooltip("Peso padrao do golpe")]
+    [SerializeField] private PesoDoGolpe peso = PesoDoGolpe.Leve;
+
+    [Header("Referencias")]
+    [Tooltip("Quem da o golpe. Vazio = o pai deste objeto")]
     [SerializeField] private Transform dono;
 
-    // Quem já levou dano neste golpe. Evita acertar duas vezes o mesmo alvo
-    // quando ele tem mais de um collider ou quando os colliders se cruzam de novo.
+    [Tooltip("Camadas que este golpe machuca. Vazio = tudo, menos quem esta na MESMA camada do dono " +
+             "(e o que impede inimigo de matar inimigo e o boneco de se cortar sozinho)")]
+    [SerializeField] private LayerMask alvos;
+
+    [Header("Efeito")]
+    [Tooltip("Tremida de camera ao acertar. 0 = nada")]
+    [SerializeField, Min(0f)] private float tremorAoAcertar = 0.12f;
+
+    // Quem ja levou dano NESTE golpe.
     private readonly HashSet<IDanificavel> jaAtingidos = new HashSet<IDanificavel>();
 
     private Collider2D col;
+    private float danoAtual;
+    private float empurraoAtual;
+    private PesoDoGolpe pesoAtual;
 
-    /// <summary>True enquanto a hitbox está ligada.</summary>
+    /// <summary>True enquanto a hitbox esta ligada.</summary>
     public bool Ativa => col != null && col.enabled;
+
+    /// <summary>Quantos alvos este golpe acertou. Zera a cada Ligar().</summary>
+    public int Acertos { get; private set; }
+
+    public Transform Dono => dono;
 
     private void Awake()
     {
         col = GetComponent<Collider2D>();
 
         if (!col.isTrigger)
-            Debug.LogWarning($"{name}: o Collider2D da espada precisa estar com 'Is Trigger' marcado.", this);
+        {
+            // Sem trigger a hitbox empurraria o inimigo fisicamente em vez de machucar.
+            col.isTrigger = true;
+            Debug.LogWarning($"[Espada] {name}: marquei Is Trigger no collider.", this);
+        }
 
         if (dono == null)
             dono = transform.parent != null ? transform.parent : transform;
 
-        // Começa sempre desligada. Só o Ataque liga.
-        col.enabled = false;
+        danoAtual = dano;
+        empurraoAtual = forcaEmpurrao;
+        pesoAtual = peso;
+
+        col.enabled = false;   // comeca sempre desligada
     }
 
     private void OnDisable()
     {
-        // Se o objeto for desativado no meio do golpe, não deixa a hitbox presa ligada.
         if (col != null)
             col.enabled = false;
     }
 
-    /// <summary>Liga a hitbox e zera a lista de atingidos (começo do golpe).</summary>
+    /// <summary>Liga a hitbox com os valores padrao do Inspector.</summary>
     public void Ligar()
     {
-        jaAtingidos.Clear();
-        col.enabled = true;
+        Ligar(dano, forcaEmpurrao, peso);
     }
 
-    /// <summary>Desliga a hitbox (fim do golpe).</summary>
+    /// <summary>
+    /// Liga a hitbox com valores proprios deste golpe. E assim que o terceiro hit do
+    /// combo dói mais que o primeiro sem precisar de tres hitboxes diferentes.
+    /// </summary>
+    public void Ligar(float danoDoGolpe, float empurraoDoGolpe, PesoDoGolpe pesoDoGolpe)
+    {
+        jaAtingidos.Clear();
+        Acertos = 0;
+
+        danoAtual = danoDoGolpe;
+        empurraoAtual = empurraoDoGolpe;
+        pesoAtual = pesoDoGolpe;
+
+        if (col != null)
+            col.enabled = true;
+    }
+
+    /// <summary>Desliga a hitbox (fim da janela do golpe).</summary>
     public void Desligar()
     {
-        col.enabled = false;
+        if (col != null)
+            col.enabled = false;
     }
 
     private void OnTriggerEnter2D(Collider2D outro)
     {
+        if (!AlvoValido(outro))
+            return;
+
         IDanificavel alvo = EncontrarDanificavel(outro);
+
         if (alvo == null)
             return;
 
-        // Add retorna false se já estava na lista — já foi atingido neste golpe.
+        // Add devolve false se ja estava na lista: ja foi atingido neste golpe.
         if (!jaAtingidos.Add(alvo))
             return;
 
         alvo.TomarDano(MontarDano(outro));
+        Acertos++;
+
+        if (tremorAoAcertar > 0f)
+            Cameramov.Tremer(tremorAoAcertar);
+    }
+
+    /// <summary>
+    /// Filtro de quem pode levar o golpe. Sem ele, a hitbox do inimigo mataria os outros
+    /// inimigos e a do jogador machucaria o proprio jogador — os dois bugs classicos de
+    /// hitbox por trigger.
+    /// </summary>
+    private bool AlvoValido(Collider2D outro)
+    {
+        // Nao bate em si mesmo nem nos proprios filhos.
+        if (dono != null && outro.transform.IsChildOf(dono))
+            return false;
+
+        if (alvos.value != 0)
+            return (alvos.value & (1 << outro.gameObject.layer)) != 0;
+
+        // Sem lista de alvos: qualquer um que nao esteja no mesmo time (mesma camada).
+        return dono == null || outro.gameObject.layer != dono.gameObject.layer;
     }
 
     private DanoInfo MontarDano(Collider2D outro)
@@ -82,21 +153,20 @@ public class Espada : MonoBehaviour
         Vector2 origem = dono.position;
         Vector2 centroDoAlvo = outro.bounds.center;
 
-        // Direção do boneco pro alvo. Se estiverem no mesmo ponto, usa pra onde o boneco olha.
         Vector2 direcao = centroDoAlvo - origem;
+
         if (direcao.sqrMagnitude < 0.0001f)
             direcao = Vector2.right * Mathf.Sign(dono.localScale.x);
-        direcao.Normalize();
 
         Vector2 pontoDeImpacto = col.ClosestPoint(centroDoAlvo);
 
-        return new DanoInfo(dano, direcao, forcaEmpurrao, pontoDeImpacto, dono.gameObject);
+        return new DanoInfo(danoAtual, direcao, empurraoAtual, pontoDeImpacto, dono.gameObject, pesoAtual);
     }
 
     private static IDanificavel EncontrarDanificavel(Collider2D outro)
     {
-        // Procura no objeto atingido; se o collider for de um filho (ex: hitbox da cabeça),
-        // procura no Rigidbody2D, que é o "dono" real do collider.
+        // Procura no objeto atingido; se o collider for de um filho, procura no
+        // Rigidbody2D, que e o dono real do collider.
         if (outro.TryGetComponent(out IDanificavel direto))
             return direto;
 
@@ -107,14 +177,15 @@ public class Espada : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         Collider2D c = col != null ? col : GetComponent<Collider2D>();
+
         if (c == null)
             return;
 
-        // Vermelho quando ligada, cinza quando desligada.
-        Gizmos.color = c.enabled ? new Color(1f, 0.2f, 0.2f, 0.9f) : new Color(0.6f, 0.6f, 0.6f, 0.6f);
+        // Vermelho cheio quando ligada, cinza vazio quando desligada.
+        Gizmos.color = c.enabled ? new Color(1f, 0.2f, 0.2f, 0.9f) : new Color(0.6f, 0.6f, 0.6f, 0.4f);
         Gizmos.DrawWireCube(c.bounds.center, c.bounds.size);
     }
 #endif

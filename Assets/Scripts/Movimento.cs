@@ -1,492 +1,688 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// Movimento.cs — controlador de plataforma 2D (versão 3, 08/09/2026).
+/// Movimento.cs — controlador de plataforma 2D completo (versao 4).
 ///
-/// Compatível com a cena atual: mesmos nomes de campos públicos (os valores do Inspector continuam),
-/// mesmos filhos (GroundCheck / WallCheck), mesmas layers, mesmos apelidos de input ("Horizontal",
-/// "Vertical", "Jump") e mesmos parâmetros do Animator (dJump, IsSliding, xVelocity, yVelocity,
-/// IsGround, IsTop). Parâmetros NOVOS do Animator são opcionais: IsDashing, IsCrouching, IsHanging.
+/// Mecanicas: andar · correr · agachar · escorregar · pular · pulo duplo · corte do pulo ·
+///            coyote time · wall slide · wall jump · dash no chao e no ar · esquiva pra tras ·
+///            pendurar e subir beirada · subir escada · escorregar na escada ·
+///            pouso rolado · atordoamento ao levar golpe · morte.
 ///
-/// Mecânicas: andar · pulo (buffer, coyote, corte) · pulo duplo · wall slide / wall jump ·
-///            DASH · AGACHAR · PENDURAR NA BEIRADA.
+/// Arquitetura — tres regras que valem pro arquivo inteiro:
 ///
-/// NOVO NA VERSÃO 3 — ponte com o sistema de dano (Vida / Espada / Inimigo). São 3 adições,
-/// todas marcadas com "NOVO (v3)" no arquivo, e nada do que já existia mudou:
-///   1. implementa IControladorDeMovimento;
-///   2. propriedade IgnorandoDano (o Vida usa pra respeitar a invencibilidade do dash);
-///   3. método AplicarImpulsoExterno (empurrão do dano usando a mesma trava do wall jump).
+///   1. UM estado manda por quadro. O enum <see cref="Estado"/> diz quem, e cada estado
+///      tem o seu Atualizar…(dt). Nenhuma mecanica precisa saber da outra, e e por isso
+///      que dash, agachar, beirada e escada nao brigam entre si.
+///   2. Entrada e lida pelo componente <see cref="Entrada"/> (no Update) e consumida aqui
+///      (no FixedUpdate). Nada de aperto perdido entre um quadro de fisica e outro.
+///   3. Outros scripts so LEEM (NoChao, EstadoAtual, Invencivel…) ou escutam os eventos.
+///      Quem mexe na velocidade deste Rigidbody e este arquivo, e mais ninguem — com uma
+///      unica porta de entrada pra empurroes de fora: <see cref="AplicarImpulsoExterno"/>.
 ///
-/// Arquitetura:
-///   • Input é lido no Update e consumido no FixedUpdate (nunca perde um aperto).
-///   • Um enum Estado diz quem manda: Normal, Agachado, Dash, Pendurado. Cada estado tem o seu
-///     Atualizar…(); os outros nem rodam. Sem briga entre mecânicas.
-///   • Outros scripts só LEEM (Invencivel, EstadoAtual…) ou se inscrevem nos eventos (aoPular, aoPousar…).
-///   • Reset() preenche as referências sozinho ao adicionar o componente; OnValidate() impede valor inválido.
+/// A animacao NAO e decidida aqui. Quem traduz estado em clipe e o AnimacaoDoJogador,
+/// que so le esta vitrine. Movimento cuida de fisica; animacao cuida de desenho.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Animator))]
 [DisallowMultipleComponent]
-public class Movimento : MonoBehaviour, IControladorDeMovimento   // NOVO (v3): interface
+public class Movimento : MonoBehaviour, IControladorDeMovimento
 {
-    /// <summary>Quem está no comando neste quadro. Outros scripts podem ler <see cref="EstadoAtual"/>.</summary>
-    public enum Estado { Normal, Agachado, Dash, Pendurado }
+    /// <summary>Quem esta no comando neste quadro.</summary>
+    public enum Estado
+    {
+        Normal,
+        Agachado,
+        Escorregando,
+        Dash,
+        EsquivaTras,
+        ParedeDeslizando,
+        Pendurado,
+        SubindoBeirada,
+        Escada,
+        Atordoado,
+        Morto
+    }
 
-    // ------------------------------------------------------------------ caixinhas (Inspector)
-    [Header("Andar")]
-    [Tooltip("Velocidade de caminhada do personagem")]
-    public float velocidadeMaxima = 6f;
-    public float aceleracao = 20f;
-    [Tooltip("Quão rápido ele PARA ao soltar a tecla ou inverter o lado (0 = usa a aceleração)")]
-    public float desaceleracao = 40f;
-    [Range(0f, 1f), Tooltip("Fração da aceleração que vale no ar (1 = igual ao chão)")]
-    public float controleNoAr = 0.75f;
+    // ================================================================ andar
+    [Header("Andar e correr")]
+    [Tooltip("Velocidade de corrida (a padrao). Segurar a tecla de andar devagar usa a de baixo")]
+    public float velocidadeMaxima = 3.2f;
 
-    [Header("pular")]
-    [Tooltip("Velocidade do pulo do personagem")]
-    public float Jump = 5f;
-    [Tooltip("Pulos por 'ciclo' contando o do chão: 1 = sem pulo duplo, 2 = pulo duplo")]
-    public int maximoDePulo = 1;
-    [Range(0f, 1f), Tooltip("Soltou o botão ainda subindo → a subida é multiplicada por isso (pulinho × pulão)")]
-    public float corteDoPulo = 0.5f;
-    [Tooltip("Segundos de tolerância pra pular DEPOIS de sair da beirada")]
+    [Tooltip("Velocidade segurando a tecla de andar devagar")]
+    public float velocidadeDeCaminhada = 1.4f;
+
+    [Tooltip("Quao rapido ele chega na velocidade alvo")]
+    public float aceleracao = 26f;
+
+    [Tooltip("Quao rapido ele PARA ao soltar a tecla ou inverter o lado (0 = usa a aceleracao)")]
+    public float desaceleracao = 42f;
+
+    [Range(0f, 1f), Tooltip("Fracao da aceleracao que vale no ar (1 = igual ao chao)")]
+    public float controleNoAr = 0.8f;
+
+    // ================================================================ pulo
+    [Header("Pulo")]
+    [Tooltip("Velocidade vertical do pulo")]
+    public float Jump = 6.5f;
+
+    [Tooltip("Pulos por ciclo contando o do chao: 1 = sem pulo duplo, 2 = pulo duplo")]
+    public int maximoDePulo = 2;
+
+    [Range(0f, 1f), Tooltip("Soltou o botao ainda subindo -> a subida e multiplicada por isso (pulinho x pulao)")]
+    public float corteDoPulo = 0.45f;
+
+    [Tooltip("Segundos de tolerancia pra pular DEPOIS de sair da beirada")]
     public float coyoteTime = 0.1f;
-    [Tooltip("Segundos que um aperto de pular fica guardado esperando o chão chegar")]
-    public float jumpBuffer = 0.12f;
-    [Tooltip("Multiplica a gravidade enquanto cai (1 = igual à subida; 1.6 = queda mais seca)")]
-    public float gravidadeNaQueda = 1.6f;
-    [Tooltip("Velocidade máxima de queda (0 = sem limite)")]
-    public float velocidadeMaximaDeQueda = 18f;
 
-    [Header("Chão")]
-    public Transform groundCheck;      // filho GroundCheck (Reset acha pelo nome)
-    public float raioChecagem = 0.2f;  // tamanho do círculo de detecção
-    public LayerMask chaoLayer;        // qual layer conta como "chão"
-    private bool estaNoChao;
+    [Tooltip("Multiplica a gravidade enquanto cai (1 = igual a subida; 1.6 = queda mais seca)")]
+    public float gravidadeNaQueda = 1.5f;
+
+    [Tooltip("Velocidade maxima de queda (0 = sem limite)")]
+    public float velocidadeMaximaDeQueda = 14f;
+
+    [Tooltip("Caiu mais que esta altura (em unidades) -> pousa rolando")]
+    public float alturaDoPousoRolado = 2.2f;
+
+    // ================================================================ chao e parede
+    [Header("Chao")]
+    [Tooltip("Filho GroundCheck, nos pes. O Bootstrap cria se faltar")]
+    public Transform groundCheck;
+    public float raioChecagem = 0.09f;
+    [Tooltip("Vazio = usa as camadas de chao conhecidas (Chao / Ground / ground)")]
+    public LayerMask chaoLayer;
 
     [Header("Parede")]
-    public Transform WallCheck;        // filho WallCheck, na frente, altura do peito (Reset acha pelo nome)
-    public float raioCheck = 0.2f;     // tamanho do círculo de detecção (também usado pelo LedgeCheck)
-    public LayerMask paredeLayer;      // qual layer conta como "parede"
-    private bool estaNaParede;
-    private bool estaDeslizando;
-    public float velocidadeDeslizada = 2f;
-    [Tooltip("Pulo na parede")]
-    public float wallJumpForcaX = 8f;
-    public float wallJumpForcaY = 6f;
-    [Tooltip("Segundos sem controle horizontal depois do wall jump (senão segurar pra parede cancela o pulo)")]
-    public float travaAposWallJump = 0.15f;
-    [Tooltip("Wall jump devolve os pulos no ar (só faz diferença com pulo duplo)")]
+    [Tooltip("Filho WallCheck, na frente, na altura do peito")]
+    public Transform WallCheck;
+    [Tooltip("Tamanho do circulo do WallCheck e do LedgeCheck")]
+    public float raioCheck = 0.08f;
+    [Tooltip("Vazio = usa as camadas de parede conhecidas (Parede / Wall)")]
+    public LayerMask paredeLayer;
+
+    [Tooltip("Velocidade de descida grudado na parede")]
+    public float velocidadeDeslizada = 1.6f;
+
+    [Tooltip("Pulo na parede: forca pro lado")]
+    public float wallJumpForcaX = 4.5f;
+
+    [Tooltip("Pulo na parede: forca pra cima")]
+    public float wallJumpForcaY = 6.2f;
+
+    [Tooltip("Segundos sem controle horizontal depois do wall jump (senao segurar pra parede cancela o pulo)")]
+    public float travaAposWallJump = 0.16f;
+
+    [Tooltip("Wall jump devolve os pulos no ar")]
     public bool wallJumpRecarregaPulos = true;
 
+    // ================================================================ dash
     [Header("Dash (arrancada)")]
-    [Tooltip("Tecla do dash. LeftShift = Shift esquerdo. Não precisa mexer no Input Manager")]
-    public KeyCode teclaDash = KeyCode.LeftShift;
     [Tooltip("Velocidade FIXA durante o dash (linha reta, sem gravidade)")]
-    public float dashVelocidade = 18f;
+    public float dashVelocidade = 7.5f;
+
     [Tooltip("Quanto tempo o dash dura, em segundos")]
-    public float dashDuracao = 0.15f;
-    [Tooltip("Segundos de espera até poder dar outro dash")]
-    public float dashRecarga = 0.4f;
-    [Tooltip("Segundos que um aperto de dash fica guardado (apertou um tiquinho antes de pousar / da recarga acabar → sai mesmo assim)")]
-    public float dashBuffer = 0.1f;
-    [Tooltip("Dashes permitidos no ar antes de tocar o chão de novo (0 = dash só no chão)")]
+    public float dashDuracao = 0.16f;
+
+    [Tooltip("Segundos de espera ate poder dar outro dash")]
+    public float dashRecarga = 0.35f;
+
+    [Tooltip("Dashes permitidos no ar antes de tocar o chao de novo (0 = dash so no chao)")]
     public int dashesNoAr = 1;
-    [Tooltip("Bateu numa parede no meio do dash → o dash termina na hora (em vez de ficar 'empurrando')")]
+
+    [Tooltip("Bateu numa parede no meio do dash -> o dash termina na hora")]
     public bool dashParaNaParede = true;
-    [Tooltip("Durante o dash, outros scripts leem 'Invencivel' = true (dano ignorado)")]
+
+    [Tooltip("Durante o dash, outros scripts leem Invencivel = true (dano ignorado)")]
     public bool dashInvencivel = true;
-    [Tooltip("Layers que o boneco ATRAVESSA fisicamente durante o dash (ex.: Inimigo, Projetil). Vazio = não atravessa nada")]
+
+    [Tooltip("Camadas que o boneco ATRAVESSA durante o dash (ex.: Inimigo). Vazio = nao atravessa nada")]
     public LayerMask dashAtravessa;
 
-    [Header("Agachar")]
-    [Range(0.3f, 0.9f), Tooltip("Altura agachado como fração da altura em pé (0.5 = metade)")]
-    public float alturaAgachado = 0.5f;
-    [Range(0f, 1f), Tooltip("Fração da velocidadeMaxima enquanto anda agachado")]
-    public float velocidadeAgachado = 0.5f;
+    [Header("Esquiva pra tras")]
+    [Tooltip("Dash segurando a direcao CONTRARIA a que ele olha -> esquiva pra tras")]
+    public bool esquivaAtivada = true;
 
+    public float esquivaVelocidade = 5.5f;
+    public float esquivaDuracao = 0.22f;
+
+    // ================================================================ agachar e escorregar
+    [Header("Agachar")]
+    [Range(0.3f, 0.9f), Tooltip("Altura agachado como fracao da altura em pe")]
+    public float alturaAgachado = 0.55f;
+
+    [Range(0f, 1f), Tooltip("Fracao da velocidade enquanto anda agachado")]
+    public float velocidadeAgachado = 0.45f;
+
+    [Header("Escorregar")]
+    [Tooltip("Dash correndo e segurando pra baixo -> escorrega por baixo das coisas")]
+    public bool escorregarAtivado = true;
+
+    public float escorregarVelocidade = 6.5f;
+    public float escorregarDuracao = 0.38f;
+
+    // ================================================================ beirada
     [Header("Beirada (ledge grab)")]
-    [Tooltip("Filho NOVO: na frente do boneco (mesmo X do WallCheck), na altura da cabeça. Vazio = beirada desligada")]
+    [Tooltip("Filho LedgeCheck: na frente, na altura da cabeca. Vazio = beirada desligada")]
     public Transform ledgeCheck;
-    [Tooltip("Só agarra se estiver segurando a direção da parede (desligado = agarra automaticamente ao cair perto)")]
+
+    [Tooltip("So agarra se estiver segurando a direcao da parede")]
     public bool precisaSegurarParaAgarrar = false;
-    [Tooltip("Segundos pendurado antes de subir sozinho. 0 = só sobe com Pular ou com um Animation Event chamando SubirAgora()")]
-    public float tempoPendurado = 0.25f;
-    [Tooltip("Quanto o boneco avança pra frente ao subir (deixe maior que metade da largura do colisor)")]
-    public float avancoSubida = 0.4f;
-    [Tooltip("Segundos sem poder agarrar de novo depois de soltar/subir (evita grudar no mesmo lugar)")]
+
+    [Tooltip("Quanto o boneco avanca pra frente ao subir (maior que metade da largura do colisor)")]
+    public float avancoSubida = 0.22f;
+
+    [Tooltip("Segundos sem poder agarrar de novo depois de soltar/subir")]
     public float semAgarrarAposSoltar = 0.3f;
 
-    [Header("Referências")]
-    [Tooltip("Preenchido sozinho ao adicionar o componente (Reset) ou no Awake")]
+    [Tooltip("Segundos que a subida da beirada leva. Deixe igual a duracao do clipe de subir")]
+    public float duracaoDaSubida = 0.45f;
+
+    // ================================================================ escada
+    [Header("Escada")]
+    [Tooltip("Velocidade subindo/descendo a escada")]
+    public float escadaVelocidade = 1.8f;
+
+    [Tooltip("Velocidade escorregando pela escada (segurando baixo + dash)")]
+    public float escadaVelocidadeEscorregando = 5f;
+
+    // ================================================================ referencias
+    [Header("Referencias (preenchidas sozinhas)")]
     public Rigidbody2D rb;
-    [Tooltip("BoxCollider2D do boneco (acha sozinho). Sem ele, só o agachar fica desligado")]
+
+    [Tooltip("BoxCollider2D do boneco. Sem ele, agachar e escorregar ficam desligados")]
     public BoxCollider2D colisor;
-    private Animator animator;
 
-    [Header("Eventos (arraste partículas, sons, câmera…)")]
-    public UnityEvent aoPular          = new UnityEvent();
-    public UnityEvent aoPousar         = new UnityEvent();
-    public UnityEvent aoIniciarDash    = new UnityEvent();
-    public UnityEvent aoTerminarDash   = new UnityEvent();
+    [SerializeField] private Entrada entrada;
+
+    // ================================================================ eventos
+    [Header("Eventos (arraste sons, particulas, camera...)")]
+    public UnityEvent aoPular = new UnityEvent();
+    public UnityEvent aoPousar = new UnityEvent();
+    public UnityEvent aoPousarRolando = new UnityEvent();
+    public UnityEvent aoIniciarDash = new UnityEvent();
+    public UnityEvent aoTerminarDash = new UnityEvent();
+    public UnityEvent aoEscorregar = new UnityEvent();
+    public UnityEvent aoEsquivar = new UnityEvent();
+    public UnityEvent aoPularDaParede = new UnityEvent();
     public UnityEvent aoAgarrarBeirada = new UnityEvent();
-    public UnityEvent aoSubirBeirada   = new UnityEvent();
+    public UnityEvent aoSubirBeirada = new UnityEvent();
 
-    // Guarda o último lado olhado (+1 direita, -1 esquerda) pra não "esquecer"
-    // pra onde olha quando a tecla é solta (viraria 0 e o boneco sumiria)
+    /// <summary>Ultimo lado olhado: +1 direita, -1 esquerda.</summary>
     [HideInInspector] public float direcao = 1f;
 
-    // ------------------------------------------------------------------ vitrine (outros scripts só LEEM)
-    /// <summary>Estado que está no comando neste quadro.</summary>
+    // ================================================================ vitrine (so leitura)
     public Estado EstadoAtual { get; private set; } = Estado.Normal;
-    /// <summary>True durante o dash quando <see cref="dashInvencivel"/> está ligado. Inimigo/Dano: <c>if (mov.Invencivel) return;</c></summary>
-    public bool Invencivel => EstadoAtual == Estado.Dash && dashInvencivel;
-    public bool Dashando   => EstadoAtual == Estado.Dash;
-    public bool Agachado   => EstadoAtual == Estado.Agachado;
-    public bool Pendurado  => EstadoAtual == Estado.Pendurado;
-    public bool NoChao     => estaNoChao;
-    public bool Deslizando => estaDeslizando;
 
-    // NOVO (v3): é isto que o Vida lê antes de descontar vida. Mesmo valor do Invencivel,
-    // só que com o nome que a interface pede — o Vida não precisa conhecer esta classe.
+    public bool NoChao { get; private set; }
+
+    public bool NaParede { get; private set; }
+
+    public bool Dashando => EstadoAtual == Estado.Dash;
+
+    public bool Agachado => EstadoAtual == Estado.Agachado;
+
+    public bool Escorregando => EstadoAtual == Estado.Escorregando;
+
+    public bool Esquivando => EstadoAtual == Estado.EsquivaTras;
+
+    public bool Pendurado => EstadoAtual == Estado.Pendurado;
+
+    public bool SubindoBeirada => EstadoAtual == Estado.SubindoBeirada;
+
+    public bool NaEscada => EstadoAtual == Estado.Escada;
+
+    public bool Atordoado => EstadoAtual == Estado.Atordoado;
+
+    public bool Morto => EstadoAtual == Estado.Morto;
+
+    public bool Deslizando => EstadoAtual == Estado.ParedeDeslizando;
+
+    /// <summary>True enquanto um dash/esquiva invencivel esta rolando.</summary>
+    public bool Invencivel => dashInvencivel && (Dashando || Esquivando || Escorregando);
+
+    /// <summary>E isto que o Vida le antes de descontar vida (IControladorDeMovimento).</summary>
     public bool IgnorandoDano => Invencivel;
 
-    // ------------------------------------------------------------------ gavetas (só este script)
-    private float escalaBase;          // tamanho original em X, pra virar sem crescer/encolher
-    private float gravidadeBase;       // Gravity Scale do Inspector, lido uma vez no Awake
-    private float ladoInput;           // input lido no Update, consumido no FixedUpdate
-    private float verticalInput;       // idem, eixo "Vertical" (S / seta pra baixo = agachar / soltar beirada)
-    private bool soltouPulo;           // GetButtonUp guardado pro FixedUpdate
-    private int pulos = 0;             // pulos já dados neste ciclo (0 = nenhum)
-    private bool estavaNoChao;         // quadro anterior, pra disparar aoPousar uma vez só
+    /// <summary>Velocidade horizontal, sempre positiva. Pra escolher parado/andar/correr.</summary>
+    public float VelocidadeHorizontal => rb != null ? Mathf.Abs(rb.linearVelocity.x) : 0f;
 
-    // dash
-    private float dashDirecao;         // +1 / -1, fixa durante o dash
-    private float dashRestante;        // segundos que faltam do dash atual
-    private float dashRecargaRestante; // segundos até liberar outro
-    private float dashBufferRestante;  // aperto de dash guardado
-    private int dashesUsadosNoAr;      // zera ao tocar o chão
-    private LayerMask excludeBase;     // Exclude Layers original do colisor (devolvido ao fim do dash)
+    public float VelocidadeVertical => rb != null ? rb.linearVelocity.y : 0f;
 
-    // agachar
-    private Vector2 tamanhoEmPe;       // size / offset do BoxCollider2D como estavam no Inspector
+    /// <summary>True quando o jogador esta pedindo pra correr solto (nao devagar).</summary>
+    public bool CorrendoSolto => entrada != null && !entrada.AndarDevagar && Mathf.Abs(LadoPedido) > 0.1f;
+
+    /// <summary>Lado que o teclado pede agora (-1, 0, +1).</summary>
+    public float LadoPedido => entrada != null ? entrada.Lado : 0f;
+
+    /// <summary>Pulos ja gastados neste ciclo. 0 = nenhum, 2 = usou o pulo duplo.</summary>
+    public int PulosUsados => pulos;
+
+    /// <summary>True se o ultimo pulo foi o segundo (pra escolher o clipe de pulo duplo).</summary>
+    public bool UltimoPuloFoiDuplo { get; private set; }
+
+    /// <summary>True no quadro em que o boneco pousa de uma queda alta.</summary>
+    public bool PousouRolando { get; private set; }
+
+    /// <summary>Progresso de 0 a 1 da subida da beirada.</summary>
+    public float ProgressoDaSubida => duracaoDaSubida <= 0f ? 1f : 1f - (subidaRestante.Restante / duracaoDaSubida);
+
+    /// <summary>Escada em que ele esta encostado agora (null = nenhuma).</summary>
+    public Escada EscadaEncostada { get; private set; }
+
+    /// <summary>True enquanto ele escorrega pra baixo na escada.</summary>
+    public bool EscorregandoNaEscada { get; private set; }
+
+    // ================================================================ gavetas
+    private float escalaBase;
+    private float gravidadeBase;
+    private bool estavaNoChao;
+    private float alturaMaximaNoAr;
+
+    private int pulos;
+
+    private Cronometro coyote;
+    private Cronometro trava;              // sem controle horizontal (wall jump, empurrao)
+    private Cronometro gracaAposPulo;      // ignora o circulo do chao logo depois de pular
+    private Cronometro dashRestante;
+    private Cronometro dashRecargaRestante;
+    private Cronometro semAgarrar;
+    private Cronometro subidaRestante;
+    private Cronometro atordoamento;
+
+    private float dashDirecao;
+    private int dashesUsadosNoAr;
+    private LayerMask excludeBase;
+
+    private Vector2 tamanhoEmPe;
     private Vector2 offsetEmPe;
+    private bool colisorEncolhido;
 
-    // beirada
-    private bool beiradaAtiva;         // false se não existe LedgeCheck
-    private float penduradoRestante;   // segundos até subir sozinho
-    private float semAgarrarRestante;  // não agarra de novo enquanto > 0
+    private bool beiradaAtiva;
+    private float topoDaBeirada;
 
-    // timers (segundos restantes) — descem todo FixedUpdate
-    private float bufferRestante;      // aperto de pular guardado
-    private float coyoteRestante;      // tolerância depois da beirada
-    private float travaRestante;       // sem controle horizontal (wall jump E empurrão de dano)
-    private float gracaRestante;       // logo após pular, ignora o círculo do chão
+    private const float GRACA_APOS_PULO = 0.08f;
+    private const float FOLGA_SUBIDA = 0.02f;
 
-    private const float GRACA_APOS_PULO = 0.1f;
-    private const float FOLGA_SUBIDA    = 0.02f;   // pés ficam este tanto acima do topo ao subir
-
-    // parâmetros do Animator por hash (mesmos nomes; só evita comparar string todo quadro)
-    private static readonly int hDJump       = Animator.StringToHash("dJump");
-    private static readonly int hIsSliding   = Animator.StringToHash("IsSliding");
-    private static readonly int hXVel        = Animator.StringToHash("xVelocity");
-    private static readonly int hYVel        = Animator.StringToHash("yVelocity");
-    private static readonly int hIsGround    = Animator.StringToHash("IsGround");
-    private static readonly int hIsTop       = Animator.StringToHash("IsTop");
-    private static readonly int hIsDashing   = Animator.StringToHash("IsDashing");   // opcional
-    private static readonly int hIsCrouching = Animator.StringToHash("IsCrouching"); // opcional
-    private static readonly int hIsHanging   = Animator.StringToHash("IsHanging");   // opcional
-
-    // Lista do que EXISTE no Animator Controller — os parâmetros novos só são escritos se você criou
-    private readonly HashSet<int> parametrosDoAnimator = new HashSet<int>();
-
-    // ------------------------------------------------------------------ editor (só roda na Unity, fora do Play)
-    /// <summary>Chamado ao adicionar o componente ou clicar em ⋮ → Reset: preenche as referências pelo nome dos filhos.</summary>
-    void Reset()
+    // ================================================================ editor
+    private void Reset()
     {
-        rb          = GetComponent<Rigidbody2D>();
-        colisor     = GetComponent<BoxCollider2D>();
+        rb = GetComponent<Rigidbody2D>();
+        colisor = GetComponent<BoxCollider2D>();
+        entrada = GetComponent<Entrada>();
         groundCheck = transform.Find("GroundCheck");
-        WallCheck   = transform.Find("WallCheck");
-        ledgeCheck  = transform.Find("LedgeCheck");
+        WallCheck = transform.Find("WallCheck");
+        ledgeCheck = transform.Find("LedgeCheck");
     }
 
-    /// <summary>Roda toda vez que um valor muda no Inspector: impede valores que quebrariam a física.</summary>
-    void OnValidate()
+    private void OnValidate()
     {
-        velocidadeMaxima       = Mathf.Max(0f, velocidadeMaxima);
-        aceleracao             = Mathf.Max(0.01f, aceleracao);
-        desaceleracao          = Mathf.Max(0f, desaceleracao);
-        maximoDePulo           = Mathf.Max(1, maximoDePulo);
-        coyoteTime             = Mathf.Max(0f, coyoteTime);
-        jumpBuffer             = Mathf.Max(0f, jumpBuffer);
-        gravidadeNaQueda       = Mathf.Max(0f, gravidadeNaQueda);
+        velocidadeMaxima = Mathf.Max(0f, velocidadeMaxima);
+        velocidadeDeCaminhada = Mathf.Clamp(velocidadeDeCaminhada, 0f, velocidadeMaxima);
+        aceleracao = Mathf.Max(0.01f, aceleracao);
+        desaceleracao = Mathf.Max(0f, desaceleracao);
+        maximoDePulo = Mathf.Max(1, maximoDePulo);
+        coyoteTime = Mathf.Max(0f, coyoteTime);
+        gravidadeNaQueda = Mathf.Max(0f, gravidadeNaQueda);
         velocidadeMaximaDeQueda = Mathf.Max(0f, velocidadeMaximaDeQueda);
-        raioChecagem           = Mathf.Max(0.01f, raioChecagem);
-        raioCheck              = Mathf.Max(0.01f, raioCheck);
-        dashVelocidade         = Mathf.Max(0f, dashVelocidade);
-        dashDuracao            = Mathf.Max(0.01f, dashDuracao);
-        dashRecarga            = Mathf.Max(0f, dashRecarga);
-        dashBuffer             = Mathf.Max(0f, dashBuffer);
-        dashesNoAr             = Mathf.Max(0, dashesNoAr);
-        tempoPendurado         = Mathf.Max(0f, tempoPendurado);
-        avancoSubida           = Mathf.Max(0f, avancoSubida);
-        semAgarrarAposSoltar   = Mathf.Max(0f, semAgarrarAposSoltar);
+        raioChecagem = Mathf.Max(0.01f, raioChecagem);
+        raioCheck = Mathf.Max(0.01f, raioCheck);
+        dashVelocidade = Mathf.Max(0f, dashVelocidade);
+        dashDuracao = Mathf.Max(0.01f, dashDuracao);
+        dashRecarga = Mathf.Max(0f, dashRecarga);
+        dashesNoAr = Mathf.Max(0, dashesNoAr);
+        avancoSubida = Mathf.Max(0f, avancoSubida);
+        semAgarrarAposSoltar = Mathf.Max(0f, semAgarrarAposSoltar);
+        duracaoDaSubida = Mathf.Max(0.05f, duracaoDaSubida);
+        escadaVelocidade = Mathf.Max(0f, escadaVelocidade);
     }
 
-    // ------------------------------------------------------------------ ciclo de vida
-    void Awake()
+    // ================================================================ ciclo de vida
+    private void Awake()
     {
         if (rb == null) rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();          // busca UMA vez só, igual ao rb
-        escalaBase = Mathf.Abs(transform.localScale.x);
-        gravidadeBase = rb.gravityScale;
-
-        // Segunda chance pelo nome dos filhos (caso o Reset não tenha rodado)
-        if (groundCheck == null) groundCheck = transform.Find("GroundCheck");
-        if (WallCheck   == null) WallCheck   = transform.Find("WallCheck");
-        if (ledgeCheck  == null) ledgeCheck  = transform.Find("LedgeCheck");
-
-        // Erro claro no Console em vez de NullReferenceException a cada quadro
-        if (groundCheck == null || WallCheck == null)
-        {
-            Debug.LogError($"[Movimento] {name}: crie os filhos GroundCheck e WallCheck (ou arraste nas caixinhas do Inspector).", this);
-            enabled = false;
-            return;
-        }
-
-        // Agachar: guarda o tamanho "em pé" do colisor pra devolver depois
         if (colisor == null) colisor = GetComponent<BoxCollider2D>();
+        if (entrada == null) entrada = GetComponent<Entrada>();
+
+        if (entrada == null)
+            entrada = gameObject.AddComponent<Entrada>();
+
+        escalaBase = Mathf.Abs(transform.localScale.x);
+        if (escalaBase < 0.0001f) escalaBase = 1f;
+
+        gravidadeBase = rb.gravityScale;
+        if (gravidadeBase <= 0f) gravidadeBase = 1f;
+
+        // Camada vazia no Inspector = usa as conhecidas do projeto. Assim o componente
+        // funciona mesmo recem-adicionado, sem ninguem marcar as caixinhas.
+        //
+        // Chao inclui as paredes de proposito: da pra FICAR EM PE em cima de um bloco de
+        // parede (o topo do bloco da beirada, por exemplo). O contrario nao vale — a
+        // checagem de parede usa so a camada de parede, senao ele grudaria no chao.
+        if (chaoLayer.value == 0) chaoLayer = Camadas.MascaraDeSolido;
+        if (paredeLayer.value == 0) paredeLayer = Camadas.MascaraDeParede;
+
+        GarantirSensores();
+
         if (colisor != null)
         {
             tamanhoEmPe = colisor.size;
-            offsetEmPe  = colisor.offset;
+            offsetEmPe = colisor.offset;
             excludeBase = colisor.excludeLayers;
         }
-        else
-        {
-            Debug.LogWarning($"[Movimento] {name}: sem BoxCollider2D — o agachar fica desligado (o resto funciona).", this);
-        }
 
-        // Beirada: só liga se o filho existe
         beiradaAtiva = ledgeCheck != null;
-        if (!beiradaAtiva)
-            Debug.LogWarning($"[Movimento] {name}: sem LedgeCheck — pendurar na beirada fica desligado (o resto funciona).", this);
-
-        // Descobre quais parâmetros o Animator Controller tem (evita aviso de parâmetro inexistente)
-        foreach (AnimatorControllerParameter p in animator.parameters)
-            parametrosDoAnimator.Add(p.nameHash);
     }
 
-    void OnDisable()
+    /// <summary>
+    /// Cria os filhos de sensor que faltarem em vez de desligar o script. O projeto tinha
+    /// um "GoundCheck " (com erro de digitacao e espaco no fim) que fazia o Movimento se
+    /// desligar inteiro no Awake — um jogo que nao anda por causa de uma letra.
+    /// </summary>
+    private void GarantirSensores()
     {
-        // Se o script for desligado no meio de um dash / pendurado, devolve a física ao normal
+        if (groundCheck == null) groundCheck = AcharFilhoParecido("GroundCheck", "GoundCheck");
+        if (WallCheck == null) WallCheck = AcharFilhoParecido("WallCheck", "WalCheck");
+        if (ledgeCheck == null) ledgeCheck = AcharFilhoParecido("LedgeCheck");
+
+        float meiaLargura = colisor != null ? colisor.size.x * 0.5f : 0.12f;
+        float altura = colisor != null ? colisor.size.y : 0.55f;
+
+        if (groundCheck == null)
+            groundCheck = CriarSensor("GroundCheck", new Vector3(0f, 0f, 0f));
+
+        if (WallCheck == null)
+            WallCheck = CriarSensor("WallCheck", new Vector3(meiaLargura + 0.02f, altura * 0.5f, 0f));
+
+        if (ledgeCheck == null)
+            ledgeCheck = CriarSensor("LedgeCheck", new Vector3(meiaLargura + 0.02f, altura, 0f));
+    }
+
+    private Transform AcharFilhoParecido(params string[] nomes)
+    {
+        foreach (Transform filho in transform)
+        {
+            string nome = filho.name.Trim();
+
+            for (int i = 0; i < nomes.Length; i++)
+            {
+                if (string.Equals(nome, nomes[i], System.StringComparison.OrdinalIgnoreCase))
+                    return filho;
+            }
+        }
+
+        return null;
+    }
+
+    private Transform CriarSensor(string nome, Vector3 posicaoLocal)
+    {
+        GameObject novo = new GameObject(nome);
+        novo.transform.SetParent(transform, false);
+        novo.transform.localPosition = posicaoLocal;
+        return novo.transform;
+    }
+
+    private void OnDisable()
+    {
+        // Desligar no meio de um dash/pendurado nao pode deixar a fisica torta.
         if (rb != null)
         {
             rb.bodyType = RigidbodyType2D.Dynamic;
             rb.gravityScale = gravidadeBase;
         }
+
         if (colisor != null)
         {
             colisor.excludeLayers = excludeBase;
-            if (EstadoAtual == Estado.Agachado) { colisor.size = tamanhoEmPe; colisor.offset = offsetEmPe; }
+            EncolherColisor(false);
         }
-        EstadoAtual = Estado.Normal;
+
+        if (EstadoAtual != Estado.Morto)
+            EstadoAtual = Estado.Normal;
     }
 
-    void Update()
+    private void Update()
     {
-        // Só LEITURA de input aqui (GetButtonDown/Up/KeyDown só valem por um quadro — no FixedUpdate perderia apertos)
-        ladoInput     = Input.GetAxisRaw("Horizontal");
-        verticalInput = Input.GetAxisRaw("Vertical");
-        if (Input.GetButtonDown("Jump")) bufferRestante     = jumpBuffer;   // guarda o aperto por um instante
-        if (Input.GetButtonUp("Jump"))   soltouPulo         = true;
-        if (Input.GetKeyDown(teclaDash)) dashBufferRestante = dashBuffer;
+        // Virar e visual: acontece no Update pra responder na hora do aperto.
+        bool podeVirar = !trava.Ativo
+                      && EstadoAtual != Estado.Dash
+                      && EstadoAtual != Estado.EsquivaTras
+                      && EstadoAtual != Estado.Escorregando
+                      && EstadoAtual != Estado.Pendurado
+                      && EstadoAtual != Estado.SubindoBeirada
+                      && EstadoAtual != Estado.Atordoado
+                      && EstadoAtual != Estado.Morto;
 
-        // após wall jump não vira pra parede de novo; no dash e pendurado o lado fica travado
-        bool podeVirar = travaRestante <= 0f && EstadoAtual != Estado.Dash && EstadoAtual != Estado.Pendurado;
-        if (podeVirar) Virar(ladoInput);
+        if (podeVirar)
+            Virar(LadoPedido);
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         float dt = Time.fixedDeltaTime;
 
-        // --- timers
-        bufferRestante      -= dt;
-        coyoteRestante      -= dt;
-        travaRestante       -= dt;
-        gracaRestante       -= dt;
-        dashRecargaRestante -= dt;
-        dashBufferRestante  -= dt;
-        semAgarrarRestante  -= dt;
+        coyote.Contar(dt);
+        trava.Contar(dt);
+        gracaAposPulo.Contar(dt);
+        dashRestante.Contar(dt);
+        dashRecargaRestante.Contar(dt);
+        semAgarrar.Contar(dt);
+        subidaRestante.Contar(dt);
+        atordoamento.Contar(dt);
+
+        PousouRolando = false;
 
         LerSensores();
 
-        // --- quem manda neste quadro
         switch (EstadoAtual)
         {
-            case Estado.Pendurado: AtualizarPendurado(dt); break;
-            case Estado.Dash:      AtualizarDash(dt);      break;
-            default:               AtualizarNormal(dt);    break;   // Normal e Agachado
+            case Estado.Morto: AtualizarMorto(); break;
+            case Estado.Atordoado: AtualizarAtordoado(); break;
+            case Estado.SubindoBeirada: AtualizarSubindoBeirada(); break;
+            case Estado.Pendurado: AtualizarPendurado(); break;
+            case Estado.Escada: AtualizarEscada(dt); break;
+            case Estado.Dash: AtualizarDash(); break;
+            case Estado.EsquivaTras: AtualizarEsquiva(); break;
+            case Estado.Escorregando: AtualizarEscorregar(); break;
+            case Estado.ParedeDeslizando: AtualizarParede(dt); break;
+            default: AtualizarNormal(dt); break;    // Normal e Agachado
         }
-
-        AtualizarAnimator();
     }
 
-    // ------------------------------------------------------------------ NOVO (v3): ponte com o dano
-    /// <summary>
-    /// Empurrão vindo de fora: dano, explosão, vento. Chamado pelo Vida quando este boneco leva golpe.
-    ///
-    /// Por que precisa da trava: o Andar() puxa a velocidade horizontal de volta pro que o teclado
-    /// pede, com a desaceleracao (40 por padrão). Sem travar, o impulso do empurrão seria comido em
-    /// poucos quadros e o golpe não teria peso nenhum. É a mesma trava que o wall jump já usa.
-    /// </summary>
-    public void AplicarImpulsoExterno(Vector2 impulso, float travaSegundos)
+    // ================================================================ sensores
+    private void LerSensores()
     {
-        if (rb == null) return;
+        bool tocaChao = groundCheck != null
+                     && Physics2D.OverlapCircle(groundCheck.position, raioChecagem, chaoLayer);
 
-        // Levou golpe pendurado na beirada → solta. Levou no meio do dash (com dashInvencivel
-        // desligado) → o dash é cortado. Os dois já devolvem bodyType e gravidade ao normal.
-        if (EstadoAtual == Estado.Pendurado) SoltarAgora();
-        else if (EstadoAtual == Estado.Dash) TerminarDash(false);
+        NoChao = tocaChao && !gracaAposPulo.Ativo;
 
-        rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.gravityScale = gravidadeBase;
-        rb.linearVelocity = Vector2.zero;          // zera pra o empurrão ser sentido por inteiro
-        rb.AddForce(impulso, ForceMode2D.Impulse);
+        NaParede = WallCheck != null
+                && Physics2D.OverlapCircle(WallCheck.position, raioCheck, paredeLayer);
 
-        travaRestante = Mathf.Max(travaRestante, travaSegundos);
-        soltouPulo = false;
-        estaDeslizando = false;
+        if (NoChao)
+        {
+            if (!estavaNoChao)
+                Pousar();
+
+            pulos = 0;
+            dashesUsadosNoAr = 0;
+            coyote.Forcar(coyoteTime);
+            alturaMaximaNoAr = transform.position.y;
+        }
+        else
+        {
+            // Caiu da beirada sem pular: sobra exatamente UM pulo no ar.
+            if (!coyote.Ativo && pulos == 0)
+                pulos = Mathf.Max(0, maximoDePulo - 1);
+
+            alturaMaximaNoAr = Mathf.Max(alturaMaximaNoAr, transform.position.y);
+        }
+
+        estavaNoChao = NoChao;
     }
 
-    // ------------------------------------------------------------------ estado NORMAL / AGACHADO
-    void AtualizarNormal(float dt)
+    private void Pousar()
     {
-        if (TentarPendurar()) return;                                     // agarrou: PARA aqui
+        float queda = alturaMaximaNoAr - transform.position.y;
 
-        AtualizarAgachar();                                               // Normal ↔ Agachado
+        aoPousar.Invoke();
 
-        if (dashBufferRestante > 0f && PodeDash()) { IniciarDash(); return; }
-
-        Andar(ladoInput, dt);
-
-        // --- deslizar na parede (calculado ANTES do pulo, que depende disso)
-        estaDeslizando = estaNaParede && !estaNoChao && ladoInput != 0f && Mathf.Sign(ladoInput) == direcao;
-        animator.SetBool(hIsSliding, estaDeslizando);
-        if (estaDeslizando)
+        if (queda >= alturaDoPousoRolado)
         {
-            Vector2 vel = rb.linearVelocity;
-            vel.y = Mathf.Max(vel.y, -velocidadeDeslizada);
-            rb.linearVelocity = vel;
+            PousouRolando = true;
+            aoPousarRolando.Invoke();
+        }
+    }
+
+    /// <summary>Beirada = parede no peito e NADA na cabeca: o boneco esta na ponta do bloco.</summary>
+    private bool CabecaLivre()
+    {
+        return beiradaAtiva
+            && !Physics2D.OverlapCircle(ledgeCheck.position, raioCheck, paredeLayer);
+    }
+
+    // ================================================================ estado NORMAL / AGACHADO
+    private void AtualizarNormal(float dt)
+    {
+        if (TentarEntrarNaEscada()) return;
+        if (TentarPendurar()) return;
+        if (TentarDash()) return;
+
+        AtualizarAgachar();
+
+        Andar(LadoPedido, dt);
+
+        // Grudou na parede caindo? Vira estado de parede (que tem o seu proprio pulo).
+        if (!NoChao && NaParede && EstadoAtual == Estado.Normal && rb.linearVelocity.y <= 0.1f
+            && Mathf.Abs(LadoPedido) > 0.1f && Mathf.Approximately(Mathf.Sign(LadoPedido), direcao))
+        {
+            EntrarNaParede();
+            return;
         }
 
-        // --- pulo (o aperto guardado no buffer vale por alguns instantes; agachado não pula)
-        if (bufferRestante > 0f && EstadoAtual == Estado.Normal)
-        {
-            bool puloDoChao = estaNoChao || coyoteRestante > 0f;
-
-            if (estaDeslizando)
-            {
-                PularDaParede();
-                ConsumirPulo();
-            }
-            else if (puloDoChao)
-            {
-                Pular();
-                pulos = 1;
-                animator.SetInteger(hDJump, pulos);
-                ConsumirPulo();
-            }
-            else if (pulos < maximoDePulo)                 // pulo no ar (só se sobrou)
-            {
-                Pular();
-                pulos += 1;
-                animator.SetInteger(hDJump, pulos);
-                ConsumirPulo();
-            }
-            // sem pulo disponível: o buffer continua vivo até expirar (pousou → pula sozinho)
-        }
-
-        // --- corte do pulo (soltou cedo enquanto sobe → pulinho)
-        if (soltouPulo)
-        {
-            Vector2 vel = rb.linearVelocity;
-            if (vel.y > 0f) { vel.y *= corteDoPulo; rb.linearVelocity = vel; }
-            soltouPulo = false;
-        }
-
+        TentarPular();
+        AplicarCorteDoPulo();
         AplicarGravidadeDeQueda();
     }
 
-    void Andar(float lado, float dt)
+    private void Andar(float lado, float dt)
     {
-        if (travaRestante > 0f) return;   // wall jump / empurrão em andamento: teclado não manda no X
+        if (trava.Ativo)
+            return;
 
         Vector2 vel = rb.linearVelocity;
-        float velocidadeAlvo = velocidadeMaxima * lado;
-        if (EstadoAtual == Estado.Agachado) velocidadeAlvo *= velocidadeAgachado;
 
-        // parar / inverter usa a desaceleração (mais forte); acelerar usa a aceleração
-        bool freando = lado == 0f || (vel.x != 0f && Mathf.Sign(lado) != Mathf.Sign(vel.x));
+        float alvo = VelocidadeAlvo() * lado;
+
+        bool freando = Mathf.Approximately(lado, 0f)
+                    || (!Mathf.Approximately(vel.x, 0f) && !Mathf.Approximately(Mathf.Sign(lado), Mathf.Sign(vel.x)));
+
         float taxa = (freando && desaceleracao > 0f) ? desaceleracao : aceleracao;
-        if (!estaNoChao) taxa *= controleNoAr;
 
-        vel.x = Mathf.MoveTowards(vel.x, velocidadeAlvo, taxa * dt);
+        if (!NoChao)
+            taxa *= controleNoAr;
+
+        vel.x = Mathf.MoveTowards(vel.x, alvo, taxa * dt);
         rb.linearVelocity = vel;
     }
 
-    void Virar(float lado)
+    private float VelocidadeAlvo()
     {
-        if (lado != 0f) direcao = Mathf.Sign(lado);
+        if (EstadoAtual == Estado.Agachado)
+            return velocidadeMaxima * velocidadeAgachado;
+
+        if (entrada != null && entrada.AndarDevagar)
+            return velocidadeDeCaminhada;
+
+        return velocidadeMaxima;
+    }
+
+    private void Virar(float lado)
+    {
+        if (!Mathf.Approximately(lado, 0f))
+            direcao = Mathf.Sign(lado);
+
         AplicarEscala();
     }
 
-    void AplicarEscala()
+    private void AplicarEscala()
     {
-        transform.localScale = new Vector3(direcao * escalaBase, transform.localScale.y, 1f);
+        Vector3 escala = transform.localScale;
+        escala.x = direcao * escalaBase;
+        transform.localScale = escala;
     }
 
-    void Pular()
+    // ---------------- pulo ----------------
+    private void TentarPular()
+    {
+        if (EstadoAtual == Estado.Agachado)
+        {
+            // Agachado num lugar apertado: pular levanta primeiro; se nao cabe, nao faz nada.
+            if (entrada != null && entrada.PuloPedido && !TetoBloqueado())
+            {
+                EncolherColisor(false);
+                EstadoAtual = Estado.Normal;
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        if (entrada == null || !entrada.PuloPedido)
+            return;
+
+        bool podeDoChao = NoChao || coyote.Ativo;
+
+        if (podeDoChao)
+        {
+            entrada.ConsumirPulo();
+            Pular(false);
+            pulos = 1;
+        }
+        else if (pulos < maximoDePulo)
+        {
+            entrada.ConsumirPulo();
+            Pular(true);
+            pulos++;
+        }
+        // Sem pulo sobrando: o aperto continua guardado e sai sozinho ao pousar.
+    }
+
+    private void Pular(bool noAr)
     {
         Vector2 vel = rb.linearVelocity;
         vel.y = Jump;
         rb.linearVelocity = vel;
+
+        UltimoPuloFoiDuplo = noAr;
+        coyote.Zerar();
+        gracaAposPulo.Forcar(GRACA_APOS_PULO);
+
+        if (entrada != null)
+            entrada.ConsumirPuloSoltou();
+
         aoPular.Invoke();
     }
 
-    void PularDaParede()
+    private void AplicarCorteDoPulo()
     {
-        direcao = -direcao;                 // passa a olhar pra longe da parede
-        AplicarEscala();
+        if (entrada == null || !entrada.ConsumirPuloSoltou())
+            return;
 
         Vector2 vel = rb.linearVelocity;
-        vel.x = wallJumpForcaX * direcao;   // empurra pra longe da parede
-        vel.y = wallJumpForcaY;
-        rb.linearVelocity = vel;
 
-        travaRestante = travaAposWallJump;  // por um instante, segurar pra parede não cancela o pulo
-        if (wallJumpRecarregaPulos) pulos = Mathf.Max(0, maximoDePulo - 1);
-        aoPular.Invoke();
+        if (vel.y > 0f)
+        {
+            vel.y *= corteDoPulo;
+            rb.linearVelocity = vel;
+        }
     }
 
-    // Um pulo aconteceu: zera o que não pode valer duas vezes
-    void ConsumirPulo()
-    {
-        bufferRestante = 0f;
-        coyoteRestante = 0f;
-        gracaRestante  = GRACA_APOS_PULO;
-        soltouPulo     = false;
-    }
-
-    // Queda mais seca que a subida + teto de velocidade de queda
-    void AplicarGravidadeDeQueda()
+    private void AplicarGravidadeDeQueda()
     {
         Vector2 vel = rb.linearVelocity;
-        bool caindo = vel.y < 0f && !estaNoChao && !estaDeslizando;
+
+        bool caindo = vel.y < 0f && !NoChao;
         rb.gravityScale = caindo ? gravidadeBase * gravidadeNaQueda : gravidadeBase;
 
         if (velocidadeMaximaDeQueda > 0f && vel.y < -velocidadeMaximaDeQueda)
@@ -496,285 +692,748 @@ public class Movimento : MonoBehaviour, IControladorDeMovimento   // NOVO (v3): 
         }
     }
 
-    // ------------------------------------------------------------------ sensores
-    void LerSensores()
+    // ---------------- agachar ----------------
+    private void AtualizarAgachar()
     {
-        bool tocaChao = Physics2D.OverlapCircle(groundCheck.position, raioChecagem, chaoLayer);
-        estaNoChao   = tocaChao && gracaRestante <= 0f;   // no 1º instante do pulo o círculo ainda toca o chão: ignorar
-        estaNaParede = Physics2D.OverlapCircle(WallCheck.position, raioCheck, paredeLayer);
+        if (colisor == null || entrada == null)
+            return;
 
-        if (estaNoChao)
-        {
-            pulos = 0;
-            dashesUsadosNoAr = 0;
-            coyoteRestante = coyoteTime;
-            animator.SetInteger(hDJump, pulos);
-            if (!estavaNoChao) aoPousar.Invoke();          // uma vez por pouso
-        }
-        else if (coyoteRestante <= 0f && pulos == 0)
-        {
-            // Caiu da beirada sem pular: sobra exatamente UM pulo no ar
-            // (com maximoDePulo = 1 sobra 1; com pulo duplo ligado, sobra 1 também — não 2)
-            pulos = Mathf.Max(0, maximoDePulo - 1);
-        }
-        estavaNoChao = estaNoChao;
-    }
-
-    // beirada = tem parede no peito (WallCheck) e NÃO tem parede na cabeça (LedgeCheck)
-    bool LivreAcimaDaParede()
-    {
-        return beiradaAtiva && !Physics2D.OverlapCircle(ledgeCheck.position, raioCheck, paredeLayer);
-    }
-
-    // ------------------------------------------------------------------ estado DASH
-    bool PodeDash()
-    {
-        if (dashRecargaRestante > 0f) return false;        // ainda recarregando
-        if (EstadoAtual == Estado.Agachado) return false;  // agachado num túnel não pode arrancar em pé
-        bool noChao = estaNoChao || coyoteRestante > 0f;
-        return noChao || dashesUsadosNoAr < dashesNoAr;    // no ar só se ainda sobrou
-    }
-
-    void IniciarDash()
-    {
-        // direção: pra onde a tecla aponta; sem tecla, pra onde o boneco olha
-        dashDirecao = ladoInput != 0f ? Mathf.Sign(ladoInput) : direcao;
-        direcao = dashDirecao;
-        AplicarEscala();
-
-        EstadoAtual        = Estado.Dash;
-        dashRestante       = dashDuracao;
-        dashBufferRestante = 0f;
-        if (!(estaNoChao || coyoteRestante > 0f)) dashesUsadosNoAr += 1;
-
-        estaDeslizando = false;
-        animator.SetBool(hIsSliding, false);
-        soltouPulo = false;
-
-        if (colisor != null) colisor.excludeLayers = excludeBase.value | dashAtravessa.value;   // atravessa inimigos etc.
-
-        AplicarVelocidadeDoDash();
-        aoIniciarDash.Invoke();
-    }
-
-    void AtualizarDash(float dt)
-    {
-        dashRestante -= dt;
-        AplicarVelocidadeDoDash();                         // todo quadro: linha reta, velocidade fixa
-
-        bool bateuNaParede = dashParaNaParede && estaNaParede;
-        if (dashRestante <= 0f || bateuNaParede) TerminarDash(bateuNaParede);
-    }
-
-    void AplicarVelocidadeDoDash()
-    {
-        rb.gravityScale   = 0f;                            // sem gravidade = linha reta de verdade
-        rb.linearVelocity = new Vector2(dashDirecao * dashVelocidade, 0f);
-    }
-
-    void TerminarDash(bool bateuNaParede)
-    {
-        EstadoAtual = Estado.Normal;
-        dashRecargaRestante = dashRecarga;
-        rb.gravityScale = gravidadeBase;
-        if (colisor != null) colisor.excludeLayers = excludeBase;
-
-        // sai do dash já na velocidade de corrida (sem "freada"); bateu na parede → para
-        Vector2 vel = rb.linearVelocity;
-        vel.x = bateuNaParede ? 0f : dashDirecao * velocidadeMaxima;
-        rb.linearVelocity = vel;
-        aoTerminarDash.Invoke();
-    }
-
-    // ------------------------------------------------------------------ estado AGACHADO
-    void AtualizarAgachar()
-    {
-        if (colisor == null) return;
-
-        // quer agachar: segurando pra baixo, no chão, e sem pulo pedido (pular levanta antes)
-        bool quer = verticalInput < -0.5f && estaNoChao && bufferRestante <= 0f;
+        bool quer = entrada.PedindoBaixo && NoChao && !entrada.PuloPedido;
 
         if (quer && EstadoAtual == Estado.Normal)
-            SetAgachado(true);
+        {
+            EstadoAtual = Estado.Agachado;
+            EncolherColisor(true);
+        }
         else if (!quer && EstadoAtual == Estado.Agachado && !TetoBloqueado())
-            SetAgachado(false);                            // só levanta se cabe
+        {
+            EstadoAtual = Estado.Normal;
+            EncolherColisor(false);
+        }
     }
 
-    void SetAgachado(bool valor)
+    private void EncolherColisor(bool encolher)
     {
-        EstadoAtual = valor ? Estado.Agachado : Estado.Normal;
-        if (valor)
+        if (colisor == null || encolher == colisorEncolhido)
+            return;
+
+        colisorEncolhido = encolher;
+
+        if (encolher)
         {
             float alturaNova = tamanhoEmPe.y * alturaAgachado;
-            colisor.size   = new Vector2(tamanhoEmPe.x, alturaNova);
-            // desce o centro pra metade da diferença: o PÉ fica no mesmo lugar, encolhe por cima
+            colisor.size = new Vector2(tamanhoEmPe.x, alturaNova);
+            // Desce o centro metade da diferenca: o PE fica no mesmo lugar, encolhe por cima.
             colisor.offset = new Vector2(offsetEmPe.x, offsetEmPe.y - (tamanhoEmPe.y - alturaNova) * 0.5f);
         }
         else
         {
-            colisor.size   = tamanhoEmPe;
+            colisor.size = tamanhoEmPe;
             colisor.offset = offsetEmPe;
         }
     }
 
-    // Caixa exatamente na região da "cabeça" (entre o topo agachado e o topo em pé). Tem chão/parede ali? Não levanta.
-    bool TetoBloqueado()
+    /// <summary>Tem chao/parede na altura da cabeca? Entao nao levanta.</summary>
+    private bool TetoBloqueado()
     {
+        if (colisor == null)
+            return false;
+
         CaixaDaCabeca(out Vector2 centro, out Vector2 tamanho);
         return Physics2D.OverlapBox(centro, tamanho, 0f, chaoLayer.value | paredeLayer.value);
     }
 
-    void CaixaDaCabeca(out Vector2 centro, out Vector2 tamanho)
+    private void CaixaDaCabeca(out Vector2 centro, out Vector2 tamanho)
     {
         Vector2 pes = transform.TransformPoint(offsetEmPe + Vector2.down * (tamanhoEmPe.y * 0.5f));
         float ex = Mathf.Abs(transform.lossyScale.x);
         float ey = Mathf.Abs(transform.lossyScale.y);
-        float alturaEmPe   = tamanhoEmPe.y * ey;
-        float alturaBaixo  = alturaEmPe * alturaAgachado;
+
+        float alturaEmPe = tamanhoEmPe.y * ey;
+        float alturaBaixo = alturaEmPe * alturaAgachado;
         float alturaCabeca = alturaEmPe - alturaBaixo;
 
-        centro  = pes + Vector2.up * (alturaBaixo + alturaCabeca * 0.5f);
-        tamanho = new Vector2(tamanhoEmPe.x * ex * 0.9f, alturaCabeca * 0.95f);   // um pouco menor pra não pegar as bordas
+        centro = pes + Vector2.up * (alturaBaixo + alturaCabeca * 0.5f);
+        tamanho = new Vector2(tamanhoEmPe.x * ex * 0.9f, alturaCabeca * 0.9f);
     }
 
-    // ------------------------------------------------------------------ estado PENDURADO (ledge grab)
-    bool TentarPendurar()
+    // ================================================================ estado PAREDE
+    private void EntrarNaParede()
     {
-        if (!beiradaAtiva || semAgarrarRestante > 0f) return false;
-        if (estaNoChao || EstadoAtual != Estado.Normal) return false;
-        if (!estaNaParede || !LivreAcimaDaParede()) return false;         // parede no peito + nada na cabeça = ponta do bloco
-        if (rb.linearVelocity.y > 0.5f) return false;                     // subindo passa direto; só agarra parando/caindo
-        if (precisaSegurarParaAgarrar && ladoInput * direcao <= 0f) return false;
+        EstadoAtual = Estado.ParedeDeslizando;
+        pulos = 0;
+        dashesUsadosNoAr = 0;
+    }
+
+    private void AtualizarParede(float dt)
+    {
+        // Saiu da parede, pousou, ou soltou a direcao: volta pro normal.
+        bool segurandoParaParede = Mathf.Abs(LadoPedido) > 0.1f
+                                && Mathf.Approximately(Mathf.Sign(LadoPedido), direcao);
+
+        if (!NaParede || NoChao || !segurandoParaParede)
+        {
+            EstadoAtual = Estado.Normal;
+            rb.gravityScale = gravidadeBase;
+            return;
+        }
+
+        if (TentarPendurar())
+            return;
+
+        // Wall jump: pula pra longe e trava o controle por um instante.
+        if (entrada != null && entrada.ConsumirPulo())
+        {
+            PularDaParede();
+            return;
+        }
+
+        if (TentarDash())
+            return;
+
+        Vector2 vel = rb.linearVelocity;
+        vel.y = Mathf.Max(vel.y, -velocidadeDeslizada);
+        rb.linearVelocity = vel;
+        rb.gravityScale = gravidadeBase;
+    }
+
+    private void PularDaParede()
+    {
+        EstadoAtual = Estado.Normal;
+
+        direcao = -direcao;
+        AplicarEscala();
+
+        rb.linearVelocity = new Vector2(wallJumpForcaX * direcao, wallJumpForcaY);
+
+        trava.Forcar(travaAposWallJump);
+        gracaAposPulo.Forcar(GRACA_APOS_PULO);
+        UltimoPuloFoiDuplo = false;
+
+        pulos = wallJumpRecarregaPulos ? Mathf.Max(0, maximoDePulo - 1) : maximoDePulo;
+
+        if (entrada != null)
+            entrada.ConsumirPuloSoltou();
+
+        aoPular.Invoke();
+        aoPularDaParede.Invoke();
+    }
+
+    // ================================================================ estado DASH / ESQUIVA / ESCORREGAR
+    private bool PodeDash()
+    {
+        if (dashRecargaRestante.Ativo)
+            return false;
+
+        bool noChao = NoChao || coyote.Ativo;
+        return noChao || dashesUsadosNoAr < dashesNoAr;
+    }
+
+    /// <summary>
+    /// Um aperto de dash pode virar tres coisas diferentes. A escolha e aqui, num lugar so:
+    /// segurando pra baixo correndo = escorregar; segurando pra tras = esquiva; resto = dash.
+    /// </summary>
+    private bool TentarDash()
+    {
+        if (entrada == null || !entrada.DashPedido || !PodeDash())
+            return false;
+
+        float lado = LadoPedido;
+
+        if (escorregarAtivado && NoChao && entrada.PedindoBaixo && colisor != null)
+        {
+            entrada.ConsumirDash();
+            IniciarEscorregar();
+            return true;
+        }
+
+        if (esquivaAtivada && NoChao && Mathf.Abs(lado) > 0.1f && !Mathf.Approximately(Mathf.Sign(lado), direcao))
+        {
+            entrada.ConsumirDash();
+            IniciarEsquiva();
+            return true;
+        }
+
+        entrada.ConsumirDash();
+        IniciarDash();
+        return true;
+    }
+
+    private void IniciarDash()
+    {
+        dashDirecao = Mathf.Abs(LadoPedido) > 0.1f ? Mathf.Sign(LadoPedido) : direcao;
+        direcao = dashDirecao;
+        AplicarEscala();
+
+        EstadoAtual = Estado.Dash;
+        dashRestante.Forcar(dashDuracao);
+
+        if (!(NoChao || coyote.Ativo))
+            dashesUsadosNoAr++;
+
+        EncolherColisor(false);
+        AtravessarNoDash(true);
+        AplicarVelocidadeReta(dashDirecao * dashVelocidade);
+
+        aoIniciarDash.Invoke();
+    }
+
+    private void AtualizarDash()
+    {
+        AplicarVelocidadeReta(dashDirecao * dashVelocidade);
+
+        bool bateu = dashParaNaParede && NaParede;
+
+        if (!dashRestante.Ativo || bateu)
+            TerminarArrancada(bateu, dashDirecao * velocidadeMaxima);
+    }
+
+    private void IniciarEsquiva()
+    {
+        // Esquiva anda pra TRAS: ele continua olhando pra frente.
+        dashDirecao = -direcao;
+
+        EstadoAtual = Estado.EsquivaTras;
+        dashRestante.Forcar(esquivaDuracao);
+
+        EncolherColisor(false);
+        AtravessarNoDash(true);
+        AplicarVelocidadeReta(dashDirecao * esquivaVelocidade);
+
+        aoEsquivar.Invoke();
+    }
+
+    private void AtualizarEsquiva()
+    {
+        AplicarVelocidadeReta(dashDirecao * esquivaVelocidade);
+
+        if (!dashRestante.Ativo || (dashParaNaParede && NaParede))
+            TerminarArrancada(true, 0f);
+    }
+
+    private void IniciarEscorregar()
+    {
+        dashDirecao = Mathf.Abs(LadoPedido) > 0.1f ? Mathf.Sign(LadoPedido) : direcao;
+        direcao = dashDirecao;
+        AplicarEscala();
+
+        EstadoAtual = Estado.Escorregando;
+        dashRestante.Forcar(escorregarDuracao);
+
+        // Escorregar passa por baixo: o colisor precisa ficar baixo o tempo todo.
+        EncolherColisor(true);
+        AtravessarNoDash(true);
+
+        aoEscorregar.Invoke();
+    }
+
+    private void AtualizarEscorregar()
+    {
+        // Diferente do dash: a gravidade continua valendo, senao ele "voa" numa rampa.
+        Vector2 vel = rb.linearVelocity;
+        vel.x = dashDirecao * escorregarVelocidade;
+        rb.linearVelocity = vel;
+
+        bool bateu = NaParede;
+        bool acabou = !dashRestante.Ativo;
+
+        if (!acabou && !bateu)
+            return;
+
+        // So levanta se cabe. Preso num tunel? continua escorregando/agachado.
+        AtravessarNoDash(false);
+        dashRecargaRestante.Forcar(dashRecarga);
+
+        if (TetoBloqueado())
+        {
+            EstadoAtual = Estado.Agachado;
+        }
+        else
+        {
+            EncolherColisor(false);
+            EstadoAtual = Estado.Normal;
+        }
+
+        vel = rb.linearVelocity;
+        vel.x = bateu ? 0f : dashDirecao * velocidadeMaxima;
+        rb.linearVelocity = vel;
+
+        aoTerminarDash.Invoke();
+    }
+
+    private void AplicarVelocidadeReta(float velocidadeX)
+    {
+        rb.gravityScale = 0f;
+        rb.linearVelocity = new Vector2(velocidadeX, 0f);
+    }
+
+    private void TerminarArrancada(bool bateuNaParede, float velocidadeDeSaida)
+    {
+        EstadoAtual = Estado.Normal;
+        dashRecargaRestante.Forcar(dashRecarga);
+        rb.gravityScale = gravidadeBase;
+
+        AtravessarNoDash(false);
+
+        Vector2 vel = rb.linearVelocity;
+        vel.x = bateuNaParede ? 0f : velocidadeDeSaida;
+        rb.linearVelocity = vel;
+
+        aoTerminarDash.Invoke();
+    }
+
+    private void AtravessarNoDash(bool atravessar)
+    {
+        if (colisor == null)
+            return;
+
+        colisor.excludeLayers = atravessar
+            ? (LayerMask)(excludeBase.value | dashAtravessa.value)
+            : excludeBase;
+    }
+
+    // ================================================================ estado PENDURADO / SUBINDO
+    private bool TentarPendurar()
+    {
+        if (!beiradaAtiva || semAgarrar.Ativo) return false;
+        if (NoChao) return false;
+        if (!NaParede || !CabecaLivre()) return false;
+        if (rb.linearVelocity.y > 0.5f) return false;                 // subindo passa direto
+        if (precisaSegurarParaAgarrar && LadoPedido * direcao <= 0f) return false;
+        if (!EncontrarTopoDaBeirada(out topoDaBeirada)) return false;
 
         EstadoAtual = Estado.Pendurado;
-        penduradoRestante = tempoPendurado;
 
-        // Kinematic = a física não empurra nem puxa; fica cravado no lugar sem zerar velocidade todo quadro
+        // Kinematic: a fisica para de empurrar e ele fica cravado, sem zerar velocidade todo quadro.
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Kinematic;
 
-        bufferRestante = 0f;                  // um pulo apertado antes não vira subida instantânea
-        soltouPulo     = false;
-        estaDeslizando = false;
-        animator.SetBool(hIsSliding, false);
-
-        // pendurado recupera tudo, como se fosse chão
         pulos = 0;
         dashesUsadosNoAr = 0;
-        animator.SetInteger(hDJump, pulos);
 
-        // encosta as "mãos" (LedgeCheck) exatamente no topo do bloco, pra animação bater
-        if (EncontrarTopoDaBeirada(out float topoY))
-        {
-            float maosParaPivo = transform.position.y - ledgeCheck.position.y;
-            Vector2 pos = rb.position;
-            pos.y = topoY + maosParaPivo;
-            rb.position = pos;
-            transform.position = pos;
-        }
+        if (entrada != null)
+            entrada.Esquecer();
+
+        // Encosta as maos (LedgeCheck) no topo do bloco pra animacao bater com o cenario.
+        float maosParaPivo = transform.position.y - ledgeCheck.position.y;
+        Vector2 pos = rb.position;
+        pos.y = topoDaBeirada + maosParaPivo;
+        rb.position = pos;
+        transform.position = pos;
 
         aoAgarrarBeirada.Invoke();
         return true;
     }
 
-    void AtualizarPendurado(float dt)
+    private void AtualizarPendurado()
     {
-        penduradoRestante -= dt;
+        if (entrada == null)
+            return;
 
-        if (verticalInput < -0.5f)                          { SoltarAgora(); return; }   // baixo = solta
-        if (bufferRestante > 0f)                            { SubirAgora();  return; }   // pular = sobe já
-        if (tempoPendurado > 0f && penduradoRestante <= 0f) { SubirAgora();  return; }   // tempo acabou = sobe sozinho
-        // tempoPendurado = 0 → espera Pular ou um Animation Event chamar SubirAgora()
+        if (entrada.PedindoBaixo)
+        {
+            SoltarBeirada();
+            return;
+        }
+
+        if (entrada.ConsumirPulo() || entrada.PedindoCima)
+            ComecarSubida();
     }
 
-    /// <summary>Solta a beirada e cai. Público pra Animation Event / outros scripts.</summary>
-    public void SoltarAgora()
+    /// <summary>Solta a beirada e cai. Publico pra outros scripts / UnityEvent.</summary>
+    public void SoltarBeirada()
     {
-        if (EstadoAtual != Estado.Pendurado) return;
+        if (EstadoAtual != Estado.Pendurado)
+            return;
+
         EstadoAtual = Estado.Normal;
         rb.bodyType = RigidbodyType2D.Dynamic;
         rb.gravityScale = gravidadeBase;
-        semAgarrarRestante = semAgarrarAposSoltar;
-        coyoteRestante = coyoteTime;          // soltou e apertou pular logo em seguida? ainda vale um pulo
+        semAgarrar.Forcar(semAgarrarAposSoltar);
+        coyote.Forcar(coyoteTime);
     }
 
-    /// <summary>Sobe pra cima do bloco. Público pra Animation Event (último quadro da animação de subir) / outros scripts.</summary>
-    public void SubirAgora()
+    private void ComecarSubida()
     {
-        if (EstadoAtual != Estado.Pendurado) return;
+        EstadoAtual = Estado.SubindoBeirada;
+        subidaRestante.Forcar(duracaoDaSubida);
+        rb.linearVelocity = Vector2.zero;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+    }
+
+    private void AtualizarSubindoBeirada()
+    {
+        // A subida e um teletransporte curto no FIM da animacao: durante o clipe ele fica
+        // parado onde estava, e o desenho e que mostra o movimento. Teletransportar no
+        // comeco faria o boneco aparecer em cima antes de ter subido.
+        if (subidaRestante.Ativo)
+            return;
+
+        TerminarSubida();
+    }
+
+    /// <summary>Coloca o boneco em cima do bloco. Publico: da pra chamar do fim do clipe.</summary>
+    public void TerminarSubida()
+    {
+        if (EstadoAtual != Estado.SubindoBeirada && EstadoAtual != Estado.Pendurado)
+            return;
+
         EstadoAtual = Estado.Normal;
         rb.bodyType = RigidbodyType2D.Dynamic;
         rb.gravityScale = gravidadeBase;
-        bufferRestante = 0f;
-        semAgarrarRestante = semAgarrarAposSoltar;
-        gracaRestante = 0f;
 
-        // pés → pivô: quanto o transform fica acima da base do colisor (ou do GroundCheck)
-        float baseY = colisor != null ? colisor.bounds.min.y : groundCheck.position.y;
+        semAgarrar.Forcar(semAgarrarAposSoltar);
+        subidaRestante.Zerar();
+
+        float baseY = colisor != null ? colisor.bounds.min.y : (groundCheck != null ? groundCheck.position.y : transform.position.y);
         float pesParaPivo = transform.position.y - baseY;
 
-        float destinoX = WallCheck.position.x + direcao * avancoSubida;
-        float topo     = EncontrarTopoDaBeirada(out float topoY) ? topoY : ledgeCheck.position.y;
-        Vector2 destino = new Vector2(destinoX, topo + pesParaPivo + FOLGA_SUBIDA);
+        float destinoX = (WallCheck != null ? WallCheck.position.x : transform.position.x) + direcao * avancoSubida;
+        Vector2 destino = new Vector2(destinoX, topoDaBeirada + pesParaPivo + FOLGA_SUBIDA);
 
-        rb.position = destino;                // teletransporte curto: pés em cima do bloco
+        rb.position = destino;
         transform.position = destino;
         rb.linearVelocity = Vector2.zero;
+
+        alturaMaximaNoAr = destino.y;
+
         aoSubirBeirada.Invoke();
     }
 
-    // Raio pra baixo, um pouco à frente do LedgeCheck: onde ele bate é o topo do bloco
-    bool EncontrarTopoDaBeirada(out float topoY)
+    /// <summary>Raio pra baixo um pouco a frente do LedgeCheck: onde bate e o topo do bloco.</summary>
+    private bool EncontrarTopoDaBeirada(out float topoY)
     {
+        topoY = 0f;
+
+        if (ledgeCheck == null || WallCheck == null)
+            return false;
+
         Vector2 origem = new Vector2(ledgeCheck.position.x + direcao * avancoSubida, ledgeCheck.position.y + 0.05f);
-        float distancia = (ledgeCheck.position.y - WallCheck.position.y) + 0.1f;
+        float distancia = (ledgeCheck.position.y - WallCheck.position.y) + 0.15f;
+
         RaycastHit2D hit = Physics2D.Raycast(origem, Vector2.down, distancia, paredeLayer.value | chaoLayer.value);
-        topoY = hit.collider != null ? hit.point.y : 0f;
-        return hit.collider != null;
+
+        if (hit.collider == null)
+            return false;
+
+        topoY = hit.point.y;
+        return true;
     }
 
-    // ------------------------------------------------------------------ animator
-    // Mesmos parâmetros e mesmos valores de sempre — só escritos num lugar só, por último
-    void AtualizarAnimator()
+    // ================================================================ estado ESCADA
+    private bool TentarEntrarNaEscada()
     {
+        if (EscadaEncostada == null || entrada == null)
+            return false;
+
+        bool pedindo = entrada.PedindoCima || (entrada.PedindoBaixo && !NoChao);
+
+        if (!pedindo)
+            return false;
+
+        EstadoAtual = Estado.Escada;
+        EscorregandoNaEscada = false;
+
+        rb.gravityScale = 0f;
+        rb.linearVelocity = Vector2.zero;
+
+        // Centraliza no degrau: subir escada torto fica estranho e engancha no colisor.
+        Vector2 pos = rb.position;
+        pos.x = EscadaEncostada.CentroX;
+        rb.position = pos;
+        transform.position = new Vector3(pos.x, pos.y, transform.position.z);
+
+        return true;
+    }
+
+    private void AtualizarEscada(float dt)
+    {
+        if (EscadaEncostada == null)
+        {
+            SairDaEscada(false);
+            return;
+        }
+
+        // Pular na escada = desgrudar e pular.
+        if (entrada != null && entrada.ConsumirPulo())
+        {
+            SairDaEscada(false);
+            Pular(false);
+            pulos = 1;
+            return;
+        }
+
+        float vertical = entrada != null ? entrada.Vertical : 0f;
+
+        // Escorregar: segurar baixo + dash desce rapido, como bombeiro no cano.
+        EscorregandoNaEscada = entrada != null && entrada.PedindoBaixo && entrada.DashPedido;
+
+        if (EscorregandoNaEscada)
+        {
+            entrada.ConsumirDash();
+            rb.linearVelocity = new Vector2(0f, -escadaVelocidadeEscorregando);
+        }
+        else
+        {
+            rb.linearVelocity = new Vector2(0f, vertical * escadaVelocidade);
+        }
+
+        // Chegou no topo andando pra cima -> sobe pro chao de cima.
+        if (vertical > 0.5f && transform.position.y >= EscadaEncostada.TopoY)
+        {
+            SairDaEscada(true);
+            return;
+        }
+
+        // Chegou no pe da escada descendo -> volta a andar.
+        if (vertical < -0.5f && NoChao)
+            SairDaEscada(false);
+    }
+
+    private void SairDaEscada(bool porCima)
+    {
+        EstadoAtual = Estado.Normal;
+        EscorregandoNaEscada = false;
+        rb.gravityScale = gravidadeBase;
+
+        if (!porCima || EscadaEncostada == null)
+            return;
+
+        float topo = EscadaEncostada.TopoY;
+        float pesParaPivo = colisor != null ? transform.position.y - colisor.bounds.min.y : 0f;
+
+        Vector2 destino = new Vector2(AcharPisoNoTopoDaEscada(topo), topo + pesParaPivo + FOLGA_SUBIDA);
+
+        rb.position = destino;
+        transform.position = new Vector3(destino.x, destino.y, transform.position.z);
+        rb.linearVelocity = Vector2.zero;
+        alturaMaximaNoAr = destino.y;
+    }
+
+    /// <summary>
+    /// Em que X o boneco pisa ao sair pelo topo da escada.
+    ///
+    /// Uma escada raramente tem chao exatamente em cima dela — o normal e o piso ficar do
+    /// lado. Aqui a gente tenta sair no lugar e, se nao houver piso ali, da um passo pra
+    /// cada lado ate achar um lugar onde caiba de pe. Sem isso o boneco chega no topo,
+    /// nao acha chao e cai de volta.
+    /// </summary>
+    private float AcharPisoNoTopoDaEscada(float topo)
+    {
+        float xAtual = transform.position.x;
+        float passo = (colisor != null ? colisor.size.x : 0.26f) + 0.05f;
+
+        float[] tentativas = { 0f, passo, -passo, passo * 2f, -passo * 2f };
+
+        for (int i = 0; i < tentativas.Length; i++)
+        {
+            float x = xAtual + tentativas[i];
+
+            bool temPiso = Physics2D.OverlapCircle(new Vector2(x, topo - 0.05f), 0.06f, chaoLayer);
+
+            if (!temPiso)
+                continue;
+
+            if (colisor == null)
+                return x;
+
+            // O corpo tem que caber em pe nesse ponto (nada de aparecer dentro da parede).
+            Vector2 centro = new Vector2(x, topo + colisor.size.y * 0.5f + FOLGA_SUBIDA);
+            bool bloqueado = Physics2D.OverlapBox(centro, colisor.size * 0.85f, 0f, chaoLayer.value | paredeLayer.value);
+
+            if (!bloqueado)
+                return x;
+        }
+
+        return xAtual;
+    }
+
+    private void OnTriggerEnter2D(Collider2D outro)
+    {
+        if (outro.TryGetComponent(out Escada escada))
+            EscadaEncostada = escada;
+    }
+
+    private void OnTriggerExit2D(Collider2D outro)
+    {
+        if (outro.TryGetComponent(out Escada escada) && EscadaEncostada == escada)
+        {
+            EscadaEncostada = null;
+
+            if (EstadoAtual == Estado.Escada)
+                SairDaEscada(false);
+        }
+    }
+
+    // ================================================================ estado ATORDOADO / MORTO
+    private void AtualizarAtordoado()
+    {
+        if (atordoamento.Ativo)
+        {
+            AplicarGravidadeDeQueda();
+            return;
+        }
+
+        EstadoAtual = Estado.Normal;
+    }
+
+    private void AtualizarMorto()
+    {
+        // Morto continua caindo (ele nao flutua), mas nao anda nem pula.
         Vector2 vel = rb.linearVelocity;
-        animator.SetFloat(hXVel, vel.x);
-        animator.SetFloat(hYVel, vel.y);
-        animator.SetBool(hIsGround, estaNoChao);
-        animator.SetBool(hIsTop, ladoInput == 0f);
-
-        // novos: só escreve se o parâmetro existir no Animator Controller
-        SetBoolSeguro(hIsDashing,   EstadoAtual == Estado.Dash);
-        SetBoolSeguro(hIsCrouching, EstadoAtual == Estado.Agachado);
-        SetBoolSeguro(hIsHanging,   EstadoAtual == Estado.Pendurado);
+        vel.x = Mathf.MoveTowards(vel.x, 0f, desaceleracao * Time.fixedDeltaTime);
+        rb.linearVelocity = vel;
     }
 
-    void SetBoolSeguro(int hash, bool valor)
+    // ================================================================ ponte com o dano
+    /// <summary>
+    /// Empurrao de fora: dano, explosao, vento. Quem chama e o Vida.
+    ///
+    /// Por que precisa da trava: o Andar() puxa a velocidade horizontal de volta pro que o
+    /// teclado pede, com a desaceleracao. Sem travar, o impulso seria comido em poucos
+    /// quadros e o golpe nao teria peso nenhum.
+    /// </summary>
+    public void AplicarImpulsoExterno(Vector2 impulso, float travaSegundos)
     {
-        if (parametrosDoAnimator.Contains(hash)) animator.SetBool(hash, valor);
+        if (rb == null || EstadoAtual == Estado.Morto)
+            return;
+
+        // Levou golpe pendurado/subindo/na escada: solta. No meio do dash: o dash e cortado.
+        switch (EstadoAtual)
+        {
+            case Estado.Pendurado:
+                SoltarBeirada();
+                break;
+
+            case Estado.SubindoBeirada:
+            case Estado.Escada:
+                EstadoAtual = Estado.Normal;
+                rb.bodyType = RigidbodyType2D.Dynamic;
+                break;
+
+            case Estado.Dash:
+            case Estado.EsquivaTras:
+            case Estado.Escorregando:
+                AtravessarNoDash(false);
+                break;
+        }
+
+        EncolherColisor(false);
+
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.gravityScale = gravidadeBase;
+        rb.linearVelocity = Vector2.zero;       // zera pra o empurrao ser sentido por inteiro
+        rb.AddForce(impulso, ForceMode2D.Impulse);
+
+        EstadoAtual = Estado.Atordoado;
+        atordoamento.Forcar(Mathf.Max(0.01f, travaSegundos));
+        trava.Forcar(travaSegundos);
+
+        if (entrada != null)
+            entrada.Esquecer();
     }
 
-    // ------------------------------------------------------------------ gizmos
-    // Círculos na Scene com o Boneco selecionado — pra ajustar raio e posição sem chutar
-    void OnDrawGizmosSelected()
+    /// <summary>
+    /// Avanco curto pra frente de um golpe. Diferente do <see cref="AplicarImpulsoExterno"/>:
+    /// nao atordoa e nao troca de estado — so empurra e segura o controle horizontal pelo
+    /// tempo do avanco, pra o Andar() nao comer o deslocamento no quadro seguinte.
+    /// </summary>
+    public void AplicarAvancoDeGolpe(float velocidadeX, float travaSegundos)
+    {
+        if (rb == null || Morto || Atordoado)
+            return;
+
+        // No meio de um dash/escorregada quem manda na velocidade e o proprio dash.
+        if (Dashando || Esquivando || Escorregando || Pendurado || SubindoBeirada || NaEscada)
+            return;
+
+        Vector2 vel = rb.linearVelocity;
+        vel.x = velocidadeX;
+        rb.linearVelocity = vel;
+
+        trava.Armar(travaSegundos);
+    }
+
+    /// <summary>Empurrao vertical seco (mergulho de ataque, mola, trampolim).</summary>
+    public void ImpulsoVertical(float velocidadeY)
+    {
+        if (rb == null || Morto)
+            return;
+
+        if (NaEscada || Pendurado || SubindoBeirada)
+        {
+            EstadoAtual = Estado.Normal;
+            rb.bodyType = RigidbodyType2D.Dynamic;
+            rb.gravityScale = gravidadeBase;
+        }
+
+        Vector2 vel = rb.linearVelocity;
+        vel.y = velocidadeY;
+        rb.linearVelocity = vel;
+    }
+
+    /// <summary>Liga/desliga o estado de morto. Quem chama e o Player.</summary>
+    public void DefinirMorto(bool morto)
+    {
+        if (morto)
+        {
+            EstadoAtual = Estado.Morto;
+            EncolherColisor(false);
+            AtravessarNoDash(false);
+
+            if (rb != null)
+            {
+                rb.bodyType = RigidbodyType2D.Dynamic;
+                rb.gravityScale = gravidadeBase;
+                rb.linearVelocity = Vector2.zero;
+            }
+
+            if (entrada != null)
+                entrada.Esquecer();
+
+            return;
+        }
+
+        EstadoAtual = Estado.Normal;
+        pulos = 0;
+        dashesUsadosNoAr = 0;
+        atordoamento.Zerar();
+        trava.Zerar();
+        dashRestante.Zerar();
+        dashRecargaRestante.Zerar();
+        alturaMaximaNoAr = transform.position.y;
+    }
+
+    /// <summary>Zera a velocidade e os cronometros. Usado no teletransporte do renascimento.</summary>
+    public void Parar()
+    {
+        if (rb != null)
+            rb.linearVelocity = Vector2.zero;
+
+        alturaMaximaNoAr = transform.position.y;
+    }
+
+    // ================================================================ gizmos
+    private void OnDrawGizmosSelected()
     {
         if (groundCheck != null)
         {
-            Gizmos.color = Color.yellow;                   // amarelo = pés
+            Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(groundCheck.position, raioChecagem);
         }
+
         if (WallCheck != null)
         {
-            Gizmos.color = Color.cyan;                     // azul = peito (parede)
+            Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(WallCheck.position, raioCheck);
         }
+
         if (ledgeCheck != null)
         {
-            Gizmos.color = Color.magenta;                  // rosa = cabeça (beirada)
+            Gizmos.color = Color.magenta;
             Gizmos.DrawWireSphere(ledgeCheck.position, raioCheck);
         }
 
-        // caixa vermelha = região da cabeça checada antes de levantar (só quando a cena roda)
         if (Application.isPlaying && colisor != null)
         {
             CaixaDaCabeca(out Vector2 centro, out Vector2 tamanho);

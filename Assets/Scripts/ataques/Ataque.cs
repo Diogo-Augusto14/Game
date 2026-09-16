@@ -1,235 +1,433 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.Events;
 
 /// <summary>
-/// Ataque corpo a corpo do jogador. Escolhe entre o golpe do chão e o golpe do ar,
-/// liga a hitbox certa nos momentos certos — de preferência por Animation Events do
-/// clip, ou por tempo enquanto os eventos não estiverem marcados.
+/// Ataque corpo a corpo do jogador, com combo.
 ///
-/// Conversa com o Movimento (não ataca em dash nem pendurado) e com a Cura
-/// (não ataca enquanto está se curando). Andar e pular durante o golpe continua
-/// liberado, estilo Hollow Knight.
+/// Como funciona o combo: cada golpe tem uma janela de cancelamento perto do fim. Apertar
+/// de novo dentro dela emenda no golpe seguinte da sequencia; deixar passar volta pro
+/// primeiro. Como o aperto fica guardado no <see cref="Entrada"/>, apertar um tiquinho
+/// cedo tambem emenda — e por isso que o combo "nunca falha" nos jogos bons.
 ///
-/// Coloque no mesmo objeto que o Animator, o Movimento e o Vida.
+/// Os tempos de cada golpe NAO sao digitados na mao: sao fracoes de 0 a 1 da duracao do
+/// clipe, que o proprio animador informa. Mudar o fps de uma animacao ajusta a janela do
+/// golpe junto, sozinho — que e o erro classico de sincronizar hitbox com animacao.
+///
+/// Sequencias: combo de 3 no chao, combo de 2 no ar, golpe de dash e golpe de mergulho
+/// (no ar, segurando pra baixo).
 /// </summary>
 [DisallowMultipleComponent]
 public class Ataque : MonoBehaviour
 {
-    /// <summary>Um tipo de golpe: qual hitbox, qual animação e os tempos dele.</summary>
-    [System.Serializable]
+    /// <summary>Um golpe: qual clipe, quanto dói, onde e quando a hitbox abre.</summary>
+    [Serializable]
     public class Golpe
     {
-        [Tooltip("Só pra você se achar no Inspector")]
+        [Tooltip("So pra se achar no Inspector")]
         public string nome = "Golpe";
 
-        [Tooltip("A hitbox deste golpe (objeto filho do boneco com o componente Espada)")]
-        public Espada hitbox;
+        [Tooltip("Nome do clipe na biblioteca (veja NomesDeAnimacao)")]
+        public string clipe = NomesDeAnimacao.Ataque1;
 
-        [Tooltip("Nome do Trigger no Animator Controller. Vazio = não anima")]
-        public string triggerDoAnimator = "Attack";
+        [Min(0f)] public float dano = 12f;
 
-        [Tooltip("(Só sem Animation Events) Tempo até a hitbox ligar — a preparação")]
-        [Min(0f)] public float atrasoAntesDoGolpe = 0.05f;
+        [Min(0f)] public float empurrao = 3.5f;
 
-        [Tooltip("(Só sem Animation Events) Quanto tempo a hitbox fica ligada")]
-        [Min(0.01f)] public float duracaoDoGolpe = 0.15f;
+        public PesoDoGolpe peso = PesoDoGolpe.Leve;
 
-        [Tooltip("(Só sem Animation Events) Tempo até o ataque terminar — a recuperação")]
-        [Min(0f)] public float recuperacao = 0.15f;
+        [Header("Janela da hitbox (fracao do clipe)")]
+        [Tooltip("Quando a hitbox LIGA. 0 = primeiro quadro, 1 = ultimo")]
+        [Range(0f, 1f)] public float inicioDaJanela = 0.3f;
 
-        [Tooltip("Espera depois que este golpe termina antes de poder atacar de novo")]
-        [Min(0f)] public float intervaloDepois = 0.1f;
+        [Tooltip("Quando a hitbox DESLIGA")]
+        [Range(0f, 1f)] public float fimDaJanela = 0.6f;
 
-        [HideInInspector] public int hashDoTrigger;
+        [Tooltip("A partir daqui, apertar de novo emenda no golpe seguinte")]
+        [Range(0f, 1f)] public float inicioDoCancelamento = 0.55f;
+
+        [Header("Geometria da hitbox")]
+        [Tooltip("Centro da hitbox em relacao ao boneco (X positivo = na frente)")]
+        public Vector2 centroDaHitbox = new Vector2(0.28f, 0.28f);
+
+        public Vector2 tamanhoDaHitbox = new Vector2(0.45f, 0.35f);
+
+        [Header("Deslocamento")]
+        [Tooltip("Empurrao pra frente ao soltar o golpe (0 = golpeia parado)")]
+        public float avanco = 1.4f;
+
+        [Tooltip("Segundos sem controle horizontal durante o avanco")]
+        [Min(0f)] public float travaDoAvanco = 0.1f;
+
+        [Tooltip("Velocidade do clipe. 1 = normal, 1.2 = golpe mais seco")]
+        [Min(0.1f)] public float velocidadeDoClipe = 1f;
     }
 
-    [Header("Golpes")]
-    [SerializeField] private Golpe golpeNoChao = new Golpe
+    [Header("Combo no chao (1 -> 2 -> 3)")]
+    [SerializeField]
+    private Golpe[] comboNoChao =
     {
-        nome = "Chão", triggerDoAnimator = "Attack",
-        atrasoAntesDoGolpe = 0.05f, duracaoDoGolpe = 0.15f, recuperacao = 0.15f
+        new Golpe { nome = "Corte 1", clipe = NomesDeAnimacao.Ataque1, dano = 12f, empurrao = 3f },
+        new Golpe { nome = "Corte 2", clipe = NomesDeAnimacao.Ataque2, dano = 14f, empurrao = 3.5f },
+        new Golpe
+        {
+            nome = "Corte 3", clipe = NomesDeAnimacao.Ataque3, dano = 22f, empurrao = 6f,
+            peso = PesoDoGolpe.Forte, avanco = 2.2f,
+            centroDaHitbox = new Vector2(0.34f, 0.28f), tamanhoDaHitbox = new Vector2(0.6f, 0.45f)
+        }
     };
 
-    [Tooltip("Golpe usado quando o boneco não está no chão. Sem hitbox aqui, ele usa o do chão")]
-    [SerializeField] private Golpe golpeNoAr = new Golpe
+    [Header("Combo no ar (1 -> 2)")]
+    [SerializeField]
+    private Golpe[] comboNoAr =
     {
-        nome = "Ar", triggerDoAnimator = "AttackAir",
-        atrasoAntesDoGolpe = 0.04f, duracaoDoGolpe = 0.16f, recuperacao = 0.1f
+        new Golpe { nome = "Ar 1", clipe = NomesDeAnimacao.AtaqueAr1, dano = 12f, empurrao = 3f, avanco = 0.8f },
+        new Golpe { nome = "Ar 2", clipe = NomesDeAnimacao.AtaqueAr2, dano = 16f, empurrao = 4.5f, avanco = 0.8f }
     };
 
-    [Header("Referências (vazio = procura sozinho)")]
-    [SerializeField] private Animator animator;
+    [Header("Golpe de dash (aperta golpe durante a arrancada)")]
+    [SerializeField]
+    private Golpe[] golpesDeDash =
+    {
+        new Golpe
+        {
+            nome = "Dash 1", clipe = NomesDeAnimacao.AtaqueDash1, dano = 16f, empurrao = 4f,
+            avanco = 3.2f, travaDoAvanco = 0.18f, inicioDaJanela = 0.15f, fimDaJanela = 0.5f
+        },
+        new Golpe
+        {
+            nome = "Dash 2", clipe = NomesDeAnimacao.AtaqueDash2, dano = 20f, empurrao = 5.5f,
+            peso = PesoDoGolpe.Forte, avanco = 3.4f, travaDoAvanco = 0.2f,
+            inicioDaJanela = 0.15f, fimDaJanela = 0.55f
+        }
+    };
+
+    [Header("Mergulho (no ar, segurando pra baixo)")]
+    [SerializeField] private bool mergulhoAtivado = true;
+
+    [SerializeField]
+    private Golpe golpeDeMergulho = new Golpe
+    {
+        nome = "Mergulho", clipe = NomesDeAnimacao.AtaqueMergulho, dano = 24f, empurrao = 5f,
+        peso = PesoDoGolpe.Forte, avanco = 0f, inicioDaJanela = 0.25f, fimDaJanela = 1f,
+        centroDaHitbox = new Vector2(0.1f, 0.12f), tamanhoDaHitbox = new Vector2(0.5f, 0.4f)
+    };
+
+    [Tooltip("Velocidade da descida do mergulho")]
+    [SerializeField, Min(0f)] private float velocidadeDoMergulho = 12f;
+
+    [Header("Ritmo")]
+    [Tooltip("Espera depois do combo terminar antes de poder atacar de novo")]
+    [SerializeField, Min(0f)] private float esperaDepoisDoCombo = 0.12f;
+
+    [Tooltip("Segundos sem apertar que zeram o combo de volta pro primeiro golpe")]
+    [SerializeField, Min(0.1f)] private float tempoParaZerarCombo = 0.8f;
+
+    [Header("Referencias (vazio = procura sozinho)")]
+    [SerializeField] private Espada hitbox;
+    [SerializeField] private AnimadorDeSprites animador;
     [SerializeField] private Movimento movimento;
     [SerializeField] private Cura cura;
+    [SerializeField] private Entrada entrada;
 
-    [Header("Como ligar/desligar a hitbox")]
-    [Tooltip("LIGADO: o clip de ataque chama AtivarGolpe / DesativarGolpe / TerminarAtaque.\n" +
-             "DESLIGADO: usa os tempos de cada golpe (modo provisório)")]
-    [SerializeField] private bool usarEventosDeAnimacao = false;
+    [Header("Eventos")]
+    public UnityEvent<int> AoGolpear = new UnityEvent<int>();
+    public UnityEvent AoTerminarCombo = new UnityEvent();
 
-    [Header("Input")]
-    [Tooltip("Nome da Action no Input Actions asset (Edit > Project Settings > Input System Package)")]
-    [SerializeField] private string acaoDeAtaque = "Attack";
-
-    // ---------- estado interno ----------
-    // Mesma proteção do Movimento: só escreve no Animator o que existe de verdade.
-    private readonly HashSet<int> parametrosDoAnimator = new HashSet<int>();
-
-    private InputAction ataqueAction;
-    private Golpe golpeAtual;
+    // ---------------- estado ----------------
+    private Golpe[] sequenciaAtual;
+    private Golpe[] ultimaSequencia;
+    private Golpe[] sequenciaDeMergulho;
+    private int indiceNaSequencia = -1;
+    private float tempoDoGolpe;
+    private float duracaoDoGolpe;
+    private bool janelaAberta;
+    private bool mergulhando;
     private float proximoAtaquePermitido;
-    private Coroutine rotinaPorTempo;
+    private float ultimoAtaqueEm = -99f;
+    private BoxCollider2D caixaDaHitbox;
 
-    /// <summary>Outros scripts podem ler isso (Cura, som, UI, IA de inimigo).</summary>
-    public bool EstaAtacando { get; private set; }
+    /// <summary>True enquanto um golpe esta rolando.</summary>
+    public bool EstaAtacando => sequenciaAtual != null;
 
-    /// <summary>Qual golpe está rolando agora (null se nenhum).</summary>
-    public Golpe GolpeAtual => golpeAtual;
+    /// <summary>Clipe que o golpe atual pede (string vazia se nao esta atacando).</summary>
+    public string ClipeAtual => GolpeAtual != null ? GolpeAtual.clipe : "";
 
-    // ---------- ciclo de vida ----------
+    /// <summary>Velocidade do clipe pedida pelo golpe atual.</summary>
+    public float VelocidadeDoClipe => GolpeAtual != null ? GolpeAtual.velocidadeDoClipe : 1f;
+
+    /// <summary>O golpe rolando agora, ou null.</summary>
+    public Golpe GolpeAtual =>
+        sequenciaAtual != null && indiceNaSequencia >= 0 && indiceNaSequencia < sequenciaAtual.Length
+            ? sequenciaAtual[indiceNaSequencia]
+            : null;
+
+    /// <summary>Progresso de 0 a 1 do golpe atual.</summary>
+    public float Progresso => duracaoDoGolpe <= 0f ? 0f : Mathf.Clamp01(tempoDoGolpe / duracaoDoGolpe);
+
+    /// <summary>True durante o mergulho (queda com a lamina pra baixo).</summary>
+    public bool Mergulhando => mergulhando;
+
+    // ---------------- ciclo de vida ----------------
     private void Reset()
     {
-        animator  = GetComponent<Animator>();
+        animador = GetComponentInChildren<AnimadorDeSprites>();
         movimento = GetComponent<Movimento>();
-        cura      = GetComponent<Cura>();
+        cura = GetComponent<Cura>();
+        entrada = GetComponent<Entrada>();
+        hitbox = GetComponentInChildren<Espada>(true);
     }
 
     private void Awake()
     {
-        if (animator == null)  animator  = GetComponent<Animator>();
+        if (animador == null) animador = GetComponentInChildren<AnimadorDeSprites>();
         if (movimento == null) movimento = GetComponent<Movimento>();
-        if (cura == null)      cura      = GetComponent<Cura>();
+        if (cura == null) cura = GetComponent<Cura>();
+        if (entrada == null) entrada = GetComponent<Entrada>();
+        if (hitbox == null) hitbox = GetComponentInChildren<Espada>(true);
 
-        ataqueAction = InputSystem.actions.FindAction(acaoDeAtaque);
-        if (ataqueAction == null)
-            Debug.LogError($"[Ataque] {name}: action \"{acaoDeAtaque}\" não encontrada nas " +
-                           "Project-wide Actions. Confira o nome em Project Settings > Input System Package.", this);
+        if (hitbox != null)
+            caixaDaHitbox = hitbox.GetComponent<BoxCollider2D>();
 
-        golpeNoChao.hashDoTrigger = Hash(golpeNoChao.triggerDoAnimator);
-        golpeNoAr.hashDoTrigger   = Hash(golpeNoAr.triggerDoAnimator);
-
-        if (golpeNoChao.hitbox == null)
-            golpeNoChao.hitbox = GetComponentInChildren<Espada>(true);
-
-        if (golpeNoChao.hitbox == null)
-            Debug.LogError($"[Ataque] {name}: nenhuma hitbox no golpe do chão. " +
-                           "Rode Tools > Combate > Montar hitboxes no boneco.", this);
-
-        if (animator != null)
-        {
-            foreach (AnimatorControllerParameter p in animator.parameters)
-                parametrosDoAnimator.Add(p.nameHash);
-        }
-    }
-
-    private static int Hash(string nome)
-    {
-        return string.IsNullOrEmpty(nome) ? 0 : Animator.StringToHash(nome);
-    }
-
-    private void Update()
-    {
-        if (ataqueAction != null && ataqueAction.WasPressedThisFrame() && PodeAtacar())
-            Atacar();
+        if (hitbox == null)
+            Debug.LogError($"[Ataque] {name}: sem hitbox (componente Espada num filho). O golpe nao vai machucar ninguem.", this);
     }
 
     private void OnDisable()
     {
-        CancelarAtaque();
+        Cancelar();
     }
 
-    // ---------- lógica ----------
+    private void Update()
+    {
+        if (EstaAtacando)
+        {
+            AtualizarGolpe();
+            return;
+        }
+
+        if (entrada != null && entrada.AtaquePedido && PodeAtacar())
+        {
+            entrada.ConsumirAtaque();
+            Comecar(EscolherSequencia());
+        }
+    }
+
+    // ---------------- decisao ----------------
     private bool PodeAtacar()
     {
-        if (EstaAtacando) return false;
-        if (Time.time < proximoAtaquePermitido) return false;
+        if (Time.time < proximoAtaquePermitido)
+            return false;
 
-        // Dash é linha reta e invencível; pendurado ele está com as duas mãos na beirada.
-        if (movimento != null && (movimento.Dashando || movimento.Pendurado)) return false;
+        if (movimento == null)
+            return true;
 
-        // Curando: o golpe cancela a cura em vez de sair junto.
+        // Pendurado ele esta com as duas maos na beirada; na escada, so uma; morto, nenhuma.
+        if (movimento.Pendurado || movimento.SubindoBeirada || movimento.NaEscada
+            || movimento.Atordoado || movimento.Morto || movimento.Escorregando)
+            return false;
+
+        // Curando: o golpe cancela a cura em vez de sair junto com ela.
         if (cura != null && cura.Curando)
         {
             cura.Cancelar();
             return false;
         }
 
-        return EscolherGolpe().hitbox != null;
+        return true;
     }
 
-    private Golpe EscolherGolpe()
+    /// <summary>
+    /// Qual sequencia o contexto pede. A ordem das perguntas importa: dash ganha do ar,
+    /// e mergulho ganha do combo aereo normal.
+    /// </summary>
+    private Golpe[] EscolherSequencia()
     {
         bool noAr = movimento != null && !movimento.NoChao;
-        if (noAr && golpeNoAr.hitbox != null)
-            return golpeNoAr;
-        return golpeNoChao;
+
+        if (movimento != null && (movimento.Dashando || movimento.Esquivando) && TemGolpes(golpesDeDash))
+            return golpesDeDash;
+
+        if (noAr && mergulhoAtivado && entrada != null && entrada.PedindoBaixo)
+        {
+            // Guardado num campo: montar o array a cada golpe geraria lixo de memoria.
+            sequenciaDeMergulho ??= new[] { golpeDeMergulho };
+            return sequenciaDeMergulho;
+        }
+
+        if (noAr && TemGolpes(comboNoAr))
+            return comboNoAr;
+
+        return comboNoChao;
     }
 
-    private void Atacar()
+    private static bool TemGolpes(Golpe[] sequencia) => sequencia != null && sequencia.Length > 0;
+
+    // ---------------- execucao ----------------
+    private void Comecar(Golpe[] sequencia)
     {
-        golpeAtual = EscolherGolpe();
-        EstaAtacando = true;
+        if (!TemGolpes(sequencia))
+            return;
 
-        if (animator != null && golpeAtual.hashDoTrigger != 0
-            && parametrosDoAnimator.Contains(golpeAtual.hashDoTrigger))
-            animator.SetTrigger(golpeAtual.hashDoTrigger);
+        // Emendou rapido na MESMA sequencia? continua o combo. Senao (outra sequencia,
+        // demorou demais, ou o combo ja acabou inteiro) volta pro primeiro golpe.
+        bool continuandoCombo = sequencia == ultimaSequencia
+                             && indiceNaSequencia >= 0
+                             && indiceNaSequencia + 1 < sequencia.Length
+                             && Time.time - ultimoAtaqueEm <= tempoParaZerarCombo;
 
-        if (!usarEventosDeAnimacao)
-            rotinaPorTempo = StartCoroutine(GolpePorTempo(golpeAtual));
+        sequenciaAtual = sequencia;
+        ultimaSequencia = sequencia;
+        indiceNaSequencia = continuandoCombo ? indiceNaSequencia + 1 : 0;
+
+        IniciarGolpeAtual();
     }
 
-    private IEnumerator GolpePorTempo(Golpe g)
+    private void IniciarGolpeAtual()
     {
-        yield return new WaitForSeconds(g.atrasoAntesDoGolpe);
-        AtivarGolpe();
-        yield return new WaitForSeconds(g.duracaoDoGolpe);
-        DesativarGolpe();
-        yield return new WaitForSeconds(g.recuperacao);
-        TerminarAtaque();
+        Golpe g = GolpeAtual;
+
+        if (g == null)
+        {
+            Terminar();
+            return;
+        }
+
+        mergulhando = sequenciaAtual == sequenciaDeMergulho;
+
+        tempoDoGolpe = 0f;
+        janelaAberta = false;
+        ultimoAtaqueEm = Time.time;
+
+        AjustarHitbox(g);
+
+        if (animador != null)
+        {
+            animador.Velocidade = g.velocidadeDoClipe;
+            animador.Tocar(g.clipe, true);
+
+            duracaoDoGolpe = animador.DuracaoDe(g.clipe) / Mathf.Max(0.1f, g.velocidadeDoClipe);
+        }
+
+        // Sem clipe na biblioteca a duracao seria 0 e o golpe nem apareceria.
+        if (duracaoDoGolpe <= 0.01f)
+            duracaoDoGolpe = 0.35f;
+
+        AplicarDeslocamento(g);
+
+        AoGolpear?.Invoke(indiceNaSequencia);
     }
 
-    // ---------- chamados por Animation Events (ou pela rotina por tempo) ----------
-
-    /// <summary>Liga a hitbox. Marque no quadro em que a espada está esticada.</summary>
-    public void AtivarGolpe()
+    private void AplicarDeslocamento(Golpe g)
     {
-        if (golpeAtual?.hitbox != null)
-            golpeAtual.hitbox.Ligar();
+        if (movimento == null)
+            return;
+
+        if (mergulhando)
+        {
+            movimento.ImpulsoVertical(-velocidadeDoMergulho);
+            return;
+        }
+
+        if (g.avanco > 0f)
+            movimento.AplicarAvancoDeGolpe(movimento.direcao * g.avanco, g.travaDoAvanco);
     }
 
-    /// <summary>Desliga a hitbox. Marque no quadro em que a espada começa a recolher.</summary>
-    public void DesativarGolpe()
+    private void AtualizarGolpe()
     {
-        if (golpeAtual?.hitbox != null)
-            golpeAtual.hitbox.Desligar();
+        Golpe g = GolpeAtual;
+
+        if (g == null)
+        {
+            Terminar();
+            return;
+        }
+
+        tempoDoGolpe += Time.deltaTime;
+        float t = Progresso;
+
+        // --- janela da hitbox
+        bool deveEstarAberta = t >= g.inicioDaJanela && t <= g.fimDaJanela;
+
+        if (deveEstarAberta && !janelaAberta)
+        {
+            janelaAberta = true;
+            hitbox?.Ligar(g.dano, g.empurrao, g.peso);
+        }
+        else if (!deveEstarAberta && janelaAberta)
+        {
+            janelaAberta = false;
+            hitbox?.Desligar();
+        }
+
+        // --- mergulho: acaba quando encosta no chao, nao quando o clipe termina
+        if (mergulhando)
+        {
+            if (movimento != null && movimento.NoChao)
+                Terminar();
+
+            return;
+        }
+
+        // --- emenda no golpe seguinte
+        bool podeEmendar = t >= g.inicioDoCancelamento && indiceNaSequencia < sequenciaAtual.Length - 1;
+
+        if (podeEmendar && entrada != null && entrada.AtaquePedido && PodeAtacar())
+        {
+            entrada.ConsumirAtaque();
+            FecharJanela();
+            indiceNaSequencia++;
+            IniciarGolpeAtual();
+            return;
+        }
+
+        if (t >= 1f)
+            Terminar();
     }
 
-    /// <summary>Encerra o ataque e libera o próximo. Marque no último quadro do clip.</summary>
-    public void TerminarAtaque()
+    private void AjustarHitbox(Golpe g)
     {
-        float intervalo = golpeAtual != null ? golpeAtual.intervaloDepois : 0.1f;
+        if (hitbox == null)
+            return;
 
-        rotinaPorTempo = null;
-        EstaAtacando = false;
-        golpeAtual = null;
-        proximoAtaquePermitido = Time.time + intervalo;
+        hitbox.transform.localPosition = new Vector3(g.centroDaHitbox.x, g.centroDaHitbox.y, 0f);
+
+        if (caixaDaHitbox != null)
+            caixaDaHitbox.size = g.tamanhoDaHitbox;
     }
 
-    /// <summary>Interrompe o ataque na hora (ex: o boneco apanhou). Ligável em UnityEvent.</summary>
-    public void CancelarAtaque()
+    private void FecharJanela()
+    {
+        janelaAberta = false;
+        hitbox?.Desligar();
+    }
+
+    private void Terminar()
+    {
+        FecharJanela();
+
+        bool eraUltimo = sequenciaAtual == null || indiceNaSequencia >= sequenciaAtual.Length - 1;
+
+        mergulhando = false;
+        sequenciaAtual = null;
+        tempoDoGolpe = 0f;
+        duracaoDoGolpe = 0f;
+
+        if (animador != null)
+            animador.Velocidade = 1f;
+
+        proximoAtaquePermitido = Time.time + (eraUltimo ? esperaDepoisDoCombo : 0f);
+
+        AoTerminarCombo?.Invoke();
+    }
+
+    /// <summary>Interrompe o golpe na hora (ex.: o boneco apanhou). Ligavel em UnityEvent.</summary>
+    public void Cancelar()
     {
         if (!EstaAtacando)
             return;
 
-        if (rotinaPorTempo != null)
-        {
-            StopCoroutine(rotinaPorTempo);
-            rotinaPorTempo = null;
-        }
-
-        DesativarGolpe();
-        TerminarAtaque();
+        Terminar();
+        indiceNaSequencia = -1;
     }
 }

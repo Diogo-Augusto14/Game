@@ -1,9 +1,12 @@
 using UnityEngine;
 
 /// <summary>
-/// Faísca / hit fx no ponto exato onde o golpe encostou. Escuta o Vida deste objeto
-/// e reaproveita um punhado de instâncias em vez de criar e destruir a cada acerto
-/// — mesma razão da Espada ser permanente: nada de lixo de memória no meio do combate.
+/// Faisca no ponto exato onde o golpe encostou. Escuta o Vida deste objeto e reaproveita
+/// um punhado de instancias em vez de criar e destruir a cada acerto — mesma razao da
+/// hitbox ser permanente: nada de lixo de memoria no meio do combate.
+///
+/// Nao precisa de prefab: as faiscas sao montadas na hora com os clipes de FX da
+/// biblioteca. E o que permite o Bootstrap ligar o efeito sem ninguem arrastar nada.
 ///
 /// Coloque no mesmo objeto que o Vida (no inimigo e no boneco).
 /// </summary>
@@ -12,53 +15,39 @@ using UnityEngine;
 public class EfeitoDeImpacto : MonoBehaviour
 {
     [Header("Efeito")]
-    [Tooltip("Prefab da faísca: um objeto com SpriteRenderer + Animator (ou ParticleSystem)")]
-    [SerializeField] private GameObject prefabDoEfeito;
+    [Tooltip("Clipe da faisca de golpe leve")]
+    [SerializeField] private string clipeLeve = NomesDeAnimacao.FxImpacto1;
 
-    [Tooltip("Quantas cópias ficam prontas. 4 a 6 dá e sobra pra um combate normal")]
+    [Tooltip("Clipe da faisca de golpe forte")]
+    [SerializeField] private string clipeForte = NomesDeAnimacao.FxImpacto2;
+
+    [Tooltip("Quantas copias ficam prontas. 4 a 6 da e sobra pra um combate normal")]
     [SerializeField, Min(1)] private int tamanhoDoPool = 5;
 
-    [Tooltip("Segundos até a faísca sumir. Deixe igual (ou um tiquinho maior) que o clip da animação")]
-    [SerializeField, Min(0.05f)] private float duracao = 0.35f;
+    [Tooltip("Ordem de desenho da faisca (acima do boneco)")]
+    [SerializeField] private int ordemNaCamada = 20;
 
-    [Header("Posição")]
-    [Tooltip("Empurra a faísca um pouco na direção de quem bateu, pra não ficar dentro do corpo")]
-    [SerializeField] private float afastamento = 0.1f;
+    [Header("Posicao")]
+    [Tooltip("Empurra a faisca um pouco na direcao de quem bateu, pra nao ficar dentro do corpo")]
+    [SerializeField] private float afastamento = 0.06f;
 
-    [Tooltip("Espelha a faísca conforme o lado de onde veio o golpe")]
+    [Tooltip("Espelha a faisca conforme o lado de onde veio o golpe")]
     [SerializeField] private bool virarComOGolpe = true;
 
-    [Tooltip("Gira a faísca na direção do golpe (bom pra faíscas alongadas)")]
-    [SerializeField] private bool girarComOGolpe = false;
+    [Tooltip("Prefab proprio. Vazio = a faisca e montada na hora com os clipes acima")]
+    [SerializeField] private GameObject prefabDoEfeito;
 
-    // ---------- estado ----------
+    // ---------------- estado ----------------
     private Vida vida;
-    private GameObject[] pool;
-    private float[] desligarEm;
+    private EfeitoAnimado[] pool;
     private Transform recipiente;
     private int proximo;
 
-    // ---------- ciclo de vida ----------
+    // ---------------- ciclo de vida ----------------
     private void Awake()
     {
         vida = GetComponent<Vida>();
-
-        if (prefabDoEfeito == null)
-            return;
-
-        // As faíscas ficam num objeto solto na cena, não como filhas deste — senão
-        // elas andariam junto com quem apanhou, e a faísca tem que ficar onde bateu.
-        GameObject raiz = new GameObject($"EfeitosDeImpacto ({name})");
-        recipiente = raiz.transform;
-
-        pool = new GameObject[tamanhoDoPool];
-        desligarEm = new float[tamanhoDoPool];
-
-        for (int i = 0; i < tamanhoDoPool; i++)
-        {
-            pool[i] = Instantiate(prefabDoEfeito, recipiente);
-            pool[i].SetActive(false);
-        }
+        MontarPool();
     }
 
     private void OnEnable()
@@ -77,43 +66,74 @@ public class EfeitoDeImpacto : MonoBehaviour
             Destroy(recipiente.gameObject);
     }
 
-    private void Update()
+    private void MontarPool()
     {
-        if (pool == null)
-            return;
+        // As faiscas ficam num objeto solto na cena, nao como filhas deste — senao elas
+        // andariam junto com quem apanhou, e a faisca tem que ficar onde bateu.
+        GameObject raiz = new GameObject($"Faiscas ({name})");
+        recipiente = raiz.transform;
 
-        for (int i = 0; i < pool.Length; i++)
-        {
-            if (pool[i].activeSelf && Time.time >= desligarEm[i])
-                pool[i].SetActive(false);
-        }
+        pool = new EfeitoAnimado[tamanhoDoPool];
+
+        for (int i = 0; i < tamanhoDoPool; i++)
+            pool[i] = CriarFaisca(i);
     }
 
-    // ---------- uso ----------
-    /// <summary>Toca a faísca. Também pode ser ligado à mão num UnityEvent.</summary>
+    private EfeitoAnimado CriarFaisca(int indice)
+    {
+        GameObject obj;
+
+        if (prefabDoEfeito != null)
+        {
+            obj = Instantiate(prefabDoEfeito, recipiente);
+        }
+        else
+        {
+            obj = new GameObject($"Faisca {indice}");
+            obj.transform.SetParent(recipiente, false);
+        }
+
+        SpriteRenderer sr = obj.GetComponent<SpriteRenderer>();
+
+        if (sr == null)
+            sr = obj.AddComponent<SpriteRenderer>();
+
+        sr.sortingOrder = ordemNaCamada;
+
+        EfeitoAnimado efeito = obj.GetComponent<EfeitoAnimado>();
+
+        if (efeito == null)
+            efeito = obj.AddComponent<EfeitoAnimado>();
+
+        obj.SetActive(false);
+        return efeito;
+    }
+
+    // ---------------- uso ----------------
+    /// <summary>Toca a faisca. Tambem pode ser ligado a mao num UnityEvent.</summary>
     public void Tocar(DanoInfo info)
     {
         if (pool == null || pool.Length == 0)
             return;
 
-        int indice = proximo;
-        GameObject efeito = pool[indice];
+        EfeitoAnimado efeito = pool[proximo];
         proximo = (proximo + 1) % pool.Length;
 
-        Vector2 posicao = info.PontoDeImpacto - info.Direcao * afastamento;
-        efeito.transform.position = posicao;
+        if (efeito == null)
+            return;
 
-        Vector3 escala = efeito.transform.localScale;
+        Transform t = efeito.transform;
+
+        t.position = info.PontoDeImpacto - info.Direcao * afastamento;
+
+        Vector3 escala = t.localScale;
         escala.x = Mathf.Abs(escala.x) * (virarComOGolpe && info.Direcao.x < 0f ? -1f : 1f);
-        efeito.transform.localScale = escala;
+        t.localScale = escala;
 
-        efeito.transform.rotation = girarComOGolpe
-            ? Quaternion.Euler(0f, 0f, Mathf.Atan2(info.Direcao.y, info.Direcao.x) * Mathf.Rad2Deg)
-            : Quaternion.identity;
+        efeito.Clipe = info.Peso == PesoDoGolpe.Forte ? clipeForte : clipeLeve;
 
-        // Desliga e liga pra a animação recomeçar do primeiro quadro.
-        efeito.SetActive(false);
-        efeito.SetActive(true);
-        desligarEm[indice] = Time.time + duracao;
+        // Desliga e liga: o OnEnable do EfeitoAnimado reinicia o clipe do primeiro quadro.
+        efeito.gameObject.SetActive(false);
+        efeito.gameObject.SetActive(true);
     }
 }
