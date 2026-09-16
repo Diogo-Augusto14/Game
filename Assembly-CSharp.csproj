@@ -49,12 +49,20 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\combate\IControladorDeMovimento.cs" />
     <Compile Include="Assets\Scripts\ataques\Ataque.cs" />
     <Compile Include="Assets\Scripts\Cameramov.cs" />
     <Compile Include="Assets\Scripts\Movimento.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
-    <Compile Include="Assets\Scripts\Monstron\Inimigo.cs" />
+    <Compile Include="Assets\Bandits - Pixel Art\Demo\Bandit.cs" />
+    <Compile Include="Assets\Bandits - Pixel Art\Demo\Sensor_Bandit.cs" />
+    <Compile Include="Assets\Scripts\combate\Vida.cs" />
+    <Compile Include="Assets\Scripts\Inimigo.cs" />
+    <Compile Include="Assets\Scripts\combate\EfeitoDeImpacto.cs" />
+    <Compile Include="Assets\Scripts\combate\IDanificavel.cs" />
+    <Compile Include="Assets\Scripts\Cura.cs" />
     <Compile Include="Assets\Scripts\ataques\Espada.cs" />
+    <Compile Include="Assets\Scripts\combate\DanoInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\fourSeasonsPlatformer_ [tileset, version 2.0]\- READ ME -.txt" />
