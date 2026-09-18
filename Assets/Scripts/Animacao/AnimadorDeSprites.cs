@@ -26,6 +26,10 @@ public class AnimadorDeSprites : MonoBehaviour
     [Tooltip("Clipe tocado no Start. Vazio = nenhum")]
     [SerializeField] private string clipeInicial = "";
 
+    [Header("Arte")]
+    [Tooltip("Marque quando os PNGs foram desenhados olhando pra ESQUERDA. O jogo inteiro trata +X como 'olhando pra direita'; isto espelha SO o desenho, sem mexer em direcao, hitbox, empurrao ou sensor")]
+    [SerializeField] private bool arteOlhaParaEsquerda;
+
     [Header("Eventos")]
     [Tooltip("Disparado no fim de um clipe sem loop (uma vez so). Manda o nome do clipe")]
     public UnityEvent<string> AoTerminar = new UnityEvent<string>();
@@ -75,12 +79,33 @@ public class AnimadorDeSprites : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Espelha o desenho quando a folha de sprites foi feita olhando pra esquerda.
+    /// Mexe so no flipX do SpriteRenderer: a logica continua achando que +X e a direita,
+    /// entao hitbox, empurrao e sensores seguem certos.
+    /// </summary>
+    public bool ArteOlhaParaEsquerda
+    {
+        get => arteOlhaParaEsquerda;
+        set
+        {
+            arteOlhaParaEsquerda = value;
+            AplicarLadoDaArte();
+        }
+    }
+
     public BibliotecaDeAnimacoes Biblioteca => biblioteca;
 
     // ---------------- ciclo de vida ----------------
     private void Reset()
     {
         renderizador = GetComponentInChildren<SpriteRenderer>();
+        AplicarLadoDaArte();
+    }
+
+    private void OnValidate()
+    {
+        AplicarLadoDaArte();
     }
 
     private void Awake()
@@ -95,6 +120,7 @@ public class AnimadorDeSprites : MonoBehaviour
         if (biblioteca == null)
             biblioteca = BibliotecaDeAnimacoes.Padrao;
 
+        AplicarLadoDaArte();
         DesligarAnimatorConcorrente();
     }
 
@@ -116,6 +142,19 @@ public class AnimadorDeSprites : MonoBehaviour
             renderizador = GetComponentInChildren<SpriteRenderer>();
 
         return renderizador != null;
+    }
+
+    /// <summary>
+    /// Espelhar aqui, e nao no localScale do objeto, e de proposito: o localScale da raiz
+    /// e o que o resto do codigo le pra saber o lado (a Espada, por exemplo, faz
+    /// Sign(localScale.x)). Virar o desenho por ali quebraria o golpe junto.
+    /// </summary>
+    private void AplicarLadoDaArte()
+    {
+        if (!GarantirRenderizador())
+            return;
+
+        renderizador.flipX = arteOlhaParaEsquerda;
     }
 
     private void Start()

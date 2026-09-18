@@ -79,6 +79,11 @@ public static class Construtor
         SpriteRenderer sr = CriarVisual(raiz.transform, Camadas.Jogador, 10);
         AnimadorDeSprites animador = sr.gameObject.AddComponent<AnimadorDeSprites>();
 
+        // As folhas de Assets/player foram desenhadas olhando pra ESQUERDA, e o codigo todo
+        // trata +X como "olhando pra direita". Espelhamos o desenho aqui; a direcao logica
+        // (localScale da raiz, hitbox, empurrao, sensores) continua como sempre foi.
+        animador.ArteOlhaParaEsquerda = true;
+
         // --- sensores (os nomes sao procurados pelo Movimento; nao renomeie)
         CriarFilho(raiz.transform, "GroundCheck", new Vector3(0f, 0f, 0f));
         CriarFilho(raiz.transform, "WallCheck", new Vector3(LARGURA_DO_JOGADOR * 0.5f + 0.03f, ALTURA_DO_JOGADOR * 0.5f, 0f));
