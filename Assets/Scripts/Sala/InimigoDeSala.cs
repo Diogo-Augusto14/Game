@@ -88,6 +88,12 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
     public bool IgnorandoDano => false;
 
+    /// <summary>
+    /// Ligado: golpe nao atordoa nem empurra (chefe). Senao cada lagrima interromperia o
+    /// ataque no meio e o chefe viveria sendo jogado contra a parede.
+    /// </summary>
+    protected virtual bool Imparavel => false;
+
     // ---------------- ciclo de vida ----------------
     protected virtual void Awake()
     {
@@ -283,6 +289,9 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         if (EstadoAtual == Estado.Dormindo)
             AoAcordar?.Invoke();
 
+        if (Imparavel)
+            return;
+
         EstadoAtual = Estado.Atordoado;
         atordoamento.Forcar(info.Peso == PesoDoGolpe.Forte ? tempoAtordoadoForte : tempoAtordoadoLeve);
     }
@@ -293,7 +302,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     /// </summary>
     public void AplicarImpulsoExterno(Vector2 impulso, float travaSegundos)
     {
-        if (EstadoAtual == Estado.Morto)
+        if (EstadoAtual == Estado.Morto || Imparavel)
             return;
 
         Vector2 direcao = vida.UltimoGolpe.Direcao;
