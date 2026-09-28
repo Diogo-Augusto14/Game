@@ -182,6 +182,14 @@ public class Vida : MonoBehaviour, IDanificavel
         AoMudarVida?.Invoke();
     }
 
+    /// <summary>Aumenta (ou diminui) a vida maxima e cura o tanto que aumentou (itens de coracao).</summary>
+    public void AumentarVidaMaxima(float quanto)
+    {
+        vidaMaxima = Mathf.Max(1f, vidaMaxima + quanto);
+        VidaAtual = Mathf.Clamp(VidaAtual + Mathf.Max(0f, quanto), 0f, vidaMaxima);
+        AoMudarVida?.Invoke();
+    }
+
     /// <summary>Volta com a vida cheia e um instante de invencibilidade. Usado no renascimento.</summary>
     public void Reviver(float invencibilidadeInicial = 1f)
     {

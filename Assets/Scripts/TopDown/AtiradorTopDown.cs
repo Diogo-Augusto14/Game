@@ -5,8 +5,8 @@ using UnityEngine;
 /// A direcao do tiro nao depende de pra onde o boneco anda — da pra fugir pra um lado
 /// atirando pro outro. So as quatro direcoes retas, como no jogo original.
 ///
-/// Os tres numeros que definem a "arma" ficam aqui: dano, alcance e cadencia. Itens
-/// no futuro so precisam mexer neles (via <see cref="Configurar"/>).
+/// Os tres numeros que definem a "arma" ficam aqui: dano, alcance e cadencia. Os itens
+/// mexem neles por <see cref="Configurar"/> e <see cref="ConfigurarLagrima"/>.
 ///
 /// Precisa de <see cref="Entrada"/> no mesmo objeto. Se tiver <see cref="MovimentoTopDown"/>,
 /// a lagrima herda um pouco da velocidade do boneco.
@@ -29,6 +29,12 @@ public class AtiradorTopDown : MonoBehaviour
 
     [Tooltip("Quanto da velocidade do boneco a lagrima herda (0 = nada, 1 = tudo)")]
     [SerializeField, Range(0f, 1f)] private float herancaDaVelocidade = 0.35f;
+
+    [Tooltip("Lagrimas por disparo. Mais de uma sai em leque (itens tipo olho triplo)")]
+    [SerializeField, Min(1)] private int lagrimasPorDisparo = 1;
+
+    [Tooltip("Graus entre uma lagrima e a vizinha quando sai mais de uma")]
+    [SerializeField, Range(0f, 45f)] private float aberturaDoLeque = 10f;
 
     [Tooltip("Empurrao que a lagrima da em quem acerta")]
     [SerializeField, Min(0f)] private float forcaEmpurrao = 2.5f;
@@ -65,6 +71,12 @@ public class AtiradorTopDown : MonoBehaviour
     public float Alcance => alcance;
 
     public float TirosPorSegundo => tirosPorSegundo;
+
+    public float VelocidadeDoTiro => velocidadeDoTiro;
+
+    public float Tamanho => tamanho;
+
+    public int LagrimasPorDisparo => lagrimasPorDisparo;
 
     /// <summary>Pra onde o boneco olha: o tiro manda, senao o andar.</summary>
     public Vector2 Olhando => olhando;
@@ -105,7 +117,10 @@ public class AtiradorTopDown : MonoBehaviour
     }
 
     // ---------------- tiro ----------------
-    /// <summary>Solta uma lagrima na direcao pedida. Publico pra dar pra testar/roteirizar.</summary>
+    /// <summary>
+    /// Solta as lagrimas de um disparo na direcao pedida (uma so, ou um leque se algum item
+    /// deu lagrimas extras). Devolve a do meio. Publico pra dar pra testar/roteirizar.
+    /// </summary>
     public Lagrima Atirar(Vector2 direcao)
     {
         direcao = direcao.sqrMagnitude > 0.0001f ? direcao.normalized : Vector2.down;
@@ -115,16 +130,23 @@ public class AtiradorTopDown : MonoBehaviour
         olhoDireito = !olhoDireito;
 
         Vector2 origem = (Vector2)transform.position + direcao * distanciaDoCorpo + lado;
+        Vector2 heranca = movimento != null ? movimento.Velocidade * herancaDaVelocidade : Vector2.zero;
 
-        Vector2 velocidade = direcao * velocidadeDoTiro;
+        Lagrima doMeio = null;
+        float primeiroAngulo = -aberturaDoLeque * (lagrimasPorDisparo - 1) * 0.5f;
 
-        if (movimento != null)
-            velocidade += movimento.Velocidade * herancaDaVelocidade;
+        for (int i = 0; i < lagrimasPorDisparo; i++)
+        {
+            Vector2 rumo = Quaternion.Euler(0f, 0f, primeiroAngulo + aberturaDoLeque * i) * direcao;
 
-        Lagrima lagrima = CriarLagrima(origem);
-        lagrima.Disparar(gameObject, velocidade, dano, alcance, forcaEmpurrao);
+            Lagrima lagrima = CriarLagrima(origem);
+            lagrima.Disparar(gameObject, rumo * velocidadeDoTiro + heranca, dano, alcance, forcaEmpurrao);
 
-        return lagrima;
+            if (i == lagrimasPorDisparo / 2)
+                doMeio = lagrima;
+        }
+
+        return doMeio;
     }
 
     private Lagrima CriarLagrima(Vector2 posicao)
@@ -153,6 +175,14 @@ public class AtiradorTopDown : MonoBehaviour
         dano = Mathf.Max(0f, novoDano);
         alcance = Mathf.Max(0.1f, novoAlcance);
         tirosPorSegundo = Mathf.Max(0.1f, novaCadencia);
+    }
+
+    /// <summary>Troca como a lagrima sai (itens). Valores fora do limite sao ajustados.</summary>
+    public void ConfigurarLagrima(float novaVelocidade, float novoTamanho, int quantasPorDisparo)
+    {
+        velocidadeDoTiro = Mathf.Max(0.1f, novaVelocidade);
+        tamanho = Mathf.Max(0.05f, novoTamanho);
+        lagrimasPorDisparo = Mathf.Max(1, quantasPorDisparo);
     }
 
     /// <summary>Aponta o filho que mostra a direcao do olhar.</summary>

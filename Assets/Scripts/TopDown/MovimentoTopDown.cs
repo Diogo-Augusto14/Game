@@ -38,6 +38,9 @@ public class MovimentoTopDown : MonoBehaviour, IControladorDeMovimento
     /// <summary>Velocidade atual do corpo. O tiro herda um pouco dela.</summary>
     public Vector2 Velocidade => rb != null ? rb.linearVelocity : Vector2.zero;
 
+    /// <summary>Velocidade maxima de andar. Itens mexem nela por <see cref="DefinirVelocidadeMaxima"/>.</summary>
+    public float VelocidadeMaxima => velocidade;
+
     public bool Andando => entrada != null && entrada.Andar != Vector2.zero;
 
     // ---------------- IControladorDeMovimento ----------------
@@ -92,6 +95,12 @@ public class MovimentoTopDown : MonoBehaviour, IControladorDeMovimento
 
         if (pedido != Vector2.zero)
             UltimaDirecao = pedido;
+    }
+
+    /// <summary>Troca a velocidade maxima (itens). Nunca fica abaixo de 1.</summary>
+    public void DefinirVelocidadeMaxima(float nova)
+    {
+        velocidade = Mathf.Max(1f, nova);
     }
 
     /// <summary>Para na hora e esquece o empurrao. Usado ao renascer / trocar de sala.</summary>
