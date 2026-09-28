@@ -1,0 +1,129 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// Os itens passivos que o jogador ja pegou, e o que eles fazem com os numeros dele.
+///
+/// Guarda os numeros de BASE (os que o boneco tinha antes de qualquer item) e recalcula
+/// tudo do zero a cada item novo: soma primeiro, multiplica depois. Assim um
+/// multiplicador pego antes de uma soma vale o mesmo que pego depois.
+///
+/// Fica no jogador. Se nao tiver, o <see cref="Pedestal"/> poe na hora de dar o item.
+/// </summary>
+[DisallowMultipleComponent]
+public class EstatisticasDoJogador : MonoBehaviour
+{
+    [Header("Limites")]
+    [SerializeField, Min(0.1f)] private float danoMinimo = 0.5f;
+    [SerializeField, Min(0.1f)] private float cadenciaMinima = 0.8f;
+    [SerializeField, Min(1f)] private float velocidadeMinima = 2f;
+    [SerializeField, Min(1)] private int lagrimasMaximas = 5;
+
+    private readonly List<ItemPassivo> itens = new List<ItemPassivo>();
+    private AtiradorTopDown atirador;
+    private MovimentoTopDown movimento;
+    private Vida vida;
+    private Inventario inventario;
+    private bool temBase;
+
+    private float danoBase, alcanceBase, cadenciaBase, velocidadeDoTiroBase, tamanhoBase, velocidadeBase;
+    private int lagrimasBase;
+
+    public IReadOnlyList<ItemPassivo> Itens => itens;
+
+    /// <summary>Pegou um item. O HUD escuta pra mostrar o nome na tela.</summary>
+    public event System.Action<ItemPassivo> AoPegarItem;
+
+    private void Awake()
+    {
+        atirador = GetComponent<AtiradorTopDown>();
+        movimento = GetComponent<MovimentoTopDown>();
+        vida = GetComponent<Vida>();
+        inventario = GetComponent<Inventario>();
+    }
+
+    private void GuardarBase()
+    {
+        if (temBase)
+            return;
+
+        temBase = true;
+
+        if (atirador != null)
+        {
+            danoBase = atirador.Dano;
+            alcanceBase = atirador.Alcance;
+            cadenciaBase = atirador.TirosPorSegundo;
+            velocidadeDoTiroBase = atirador.VelocidadeDoTiro;
+            tamanhoBase = atirador.Tamanho;
+            lagrimasBase = atirador.LagrimasPorDisparo;
+        }
+
+        if (movimento != null)
+            velocidadeBase = movimento.VelocidadeMaxima;
+    }
+
+    /// <summary>Da o item ao jogador: numeros, vida maxima e os brindes de uma vez so.</summary>
+    public void Pegar(ItemPassivo item)
+    {
+        if (item == null)
+            return;
+
+        GuardarBase();
+        itens.Add(item);
+        Recalcular();
+
+        // Vida maxima e brindes nao sao "de base": aplicam uma vez, na hora de pegar.
+        if (vida != null && !Mathf.Approximately(item.somaVidaMaxima, 0f))
+            vida.AumentarVidaMaxima(item.somaVidaMaxima);
+
+        if (inventario == null)
+            inventario = GetComponent<Inventario>();
+
+        if (inventario != null)
+        {
+            inventario.Adicionar(TipoDeColetavel.Moeda, item.moedas);
+            inventario.Adicionar(TipoDeColetavel.Chave, item.chaves);
+            inventario.Adicionar(TipoDeColetavel.Bomba, item.bombas);
+        }
+
+        Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
+        AoPegarItem?.Invoke(item);
+    }
+
+    private void Recalcular()
+    {
+        float somaDano = 0f, multDano = 1f, somaCadencia = 0f, multCadencia = 1f;
+        float somaAlcance = 0f, somaVelTiro = 0f, somaTamanho = 0f, somaVelocidade = 0f;
+        int extras = 0;
+
+        foreach (ItemPassivo i in itens)
+        {
+            somaDano += i.somaDano;
+            multDano *= i.multiplicaDano;
+            somaCadencia += i.somaCadencia;
+            multCadencia *= i.multiplicaCadencia;
+            somaAlcance += i.somaAlcance;
+            somaVelTiro += i.somaVelocidadeDoTiro;
+            somaTamanho += i.somaTamanhoDaLagrima;
+            somaVelocidade += i.somaVelocidade;
+            extras += i.lagrimasExtras;
+        }
+
+        if (atirador != null)
+        {
+            atirador.Configurar(
+                Mathf.Max(danoMinimo, (danoBase + somaDano) * multDano),
+                alcanceBase + somaAlcance,
+                Mathf.Max(cadenciaMinima, (cadenciaBase + somaCadencia) * multCadencia));
+
+            atirador.ConfigurarLagrima(
+                Mathf.Max(3f, velocidadeDoTiroBase + somaVelTiro),
+                tamanhoBase + somaTamanho,
+                Mathf.Min(lagrimasMaximas, lagrimasBase + extras));
+        }
+
+        if (movimento != null)
+            movimento.DefinirVelocidadeMaxima(Mathf.Max(velocidadeMinima, velocidadeBase + somaVelocidade));
+    }
+}

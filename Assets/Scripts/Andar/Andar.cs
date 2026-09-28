@@ -43,6 +43,16 @@ public class Andar : MonoBehaviour
     [Tooltip("Inimigo nao nasce mais perto que isto de uma porta")]
     [SerializeField, Min(0f)] private float distanciaDasPortas = 3f;
 
+    [Header("Itens e coletaveis")]
+    [Tooltip("Chance de cada inimigo soltar coracao, moeda, bomba ou chave ao morrer")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeDropDoInimigo = 0.15f;
+
+    [Tooltip("Chance de cair um premio no meio da sala quando ela e limpa")]
+    [SerializeField, Range(0f, 1f)] private float chanceDePremioDaSala = 0.5f;
+
+    [Tooltip("A partir deste andar a porta da sala do item fica trancada (precisa de chave)")]
+    [SerializeField, Min(1)] private int trancarItemAPartirDoAndar = 2;
+
     [Header("Jogador")]
     [Tooltip("Sem ninguem com a tag Player na cena, monta o jogador top-down (WASD anda, setas atiram)")]
     [SerializeField] private bool criarJogador = true;
@@ -68,7 +78,7 @@ public class Andar : MonoBehaviour
     [SerializeField] private Color corDoBatenteDoChefe = new Color(0.8f, 0.15f, 0.15f);
 
     private const string CONTROLES =
-        "W A S D  andar    Setas  atirar\n" +
+        "W A S D  andar    Setas  atirar    E  bomba\n" +
         "Limpe a sala pra abrir as portas";
 
     // ---------------- estado ----------------
@@ -81,6 +91,9 @@ public class Andar : MonoBehaviour
     private Coroutine transicao;
     private Vector2 gravidadeAnterior;
     private bool mexeuNaGravidade;
+
+    // Itens que ja apareceram nesta partida: o proximo pedestal sorteia outro.
+    private readonly HashSet<ItemPassivo> itensQueJaSairam = new HashSet<ItemPassivo>();
 
     public static Andar Atual { get; private set; }
 
@@ -314,8 +327,17 @@ public class Andar : MonoBehaviour
         jogador = encontrado.transform;
         corpoDoJogador = encontrado.GetComponent<Rigidbody2D>();
 
+        if (encontrado.GetComponent<Inventario>() == null)
+            encontrado.AddComponent<Inventario>();
+
+        if (encontrado.GetComponent<EstatisticasDoJogador>() == null)
+            encontrado.AddComponent<EstatisticasDoJogador>();
+
         if (montarHud && FindAnyObjectByType<Hud>() == null)
             new GameObject("Hud").AddComponent<Hud>().Configurar(encontrado.GetComponent<Vida>(), null, CONTROLES);
+
+        if (montarHud && FindAnyObjectByType<HudDoInventario>() == null)
+            HudDoInventario.Criar(encontrado);
     }
 
     // ---------------- montagem das salas ----------------
@@ -341,6 +363,7 @@ public class Andar : MonoBehaviour
 
         PintarChao(sala, casa.Tipo);
         Povoar(sala, casa);
+        PorPremios(sala, casa);
         return sala;
     }
 
@@ -363,9 +386,61 @@ public class Andar : MonoBehaviour
         for (int i = 0; i < quantos; i++)
         {
             TipoDeInimigo tipo = UnityEngine.Random.value < 0.35f ? TipoDeInimigo.Atirador : TipoDeInimigo.Perseguidor;
-            sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
+            InimigoDeSala inimigo = sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
+
+            if (inimigo != null && chanceDeDropDoInimigo > 0f)
+                inimigo.gameObject.AddComponent<SoltaColetavel>().Configurar(chanceDeDropDoInimigo, sala.transform);
         }
     }
+
+    // ---------------- itens e coletaveis ----------------
+    /// <summary>
+    /// O que cada tipo de sala guarda, como no Isaac:
+    ///   Item   -> pedestal com um item passivo no meio (porta trancada a partir do andar 2)
+    ///   Chefe  -> pedestal com item quando a sala e limpa
+    ///   Normal -> chance de um coletavel no meio quando a sala e limpa
+    ///   Inicio -> uma chave de brinde nos andares com sala do item trancada
+    /// </summary>
+    private void PorPremios(Sala sala, SalaDoAndar casa)
+    {
+        Vector2 centro = sala.transform.position;
+
+        switch (casa.Tipo)
+        {
+            case TipoDeSala.Item:
+                Pedestal.Criar(CatalogoDeItens.Sortear(itensQueJaSairam), centro, sala.transform);
+                break;
+
+            case TipoDeSala.Chefe:
+                // Sorteia ja na montagem, pra semente do andar decidir o item e nao a hora da luta.
+                ItemPassivo doChefe = CatalogoDeItens.Sortear(itensQueJaSairam);
+                sala.AoLimpar.AddListener(() => Pedestal.Criar(doChefe, centro, sala.transform));
+                break;
+
+            case TipoDeSala.Normal:
+                sala.AoLimpar.AddListener(() => TabelaDeDrops.TalvezSoltar(chanceDePremioDaSala, centro, sala.transform));
+                break;
+
+            case TipoDeSala.Inicio:
+                if (ItemTrancado)
+                    Coletavel.Criar(TipoDeColetavel.Chave, centro + Vector2.down * 1.5f, sala.transform);
+                break;
+        }
+
+        // A porta da sala vizinha que leva ao item ganha um cadeado.
+        if (ItemTrancado && casa.Tipo != TipoDeSala.Item)
+        {
+            foreach (Porta porta in sala.Portas)
+            {
+                SalaDoAndar vizinha = porta.Existe ? Mapa.Vizinha(casa, ParaDirecao(porta.Lado)) : null;
+
+                if (vizinha != null && vizinha.Tipo == TipoDeSala.Item)
+                    Tranca.Criar(porta);
+            }
+        }
+    }
+
+    private bool ItemTrancado => numeroDoAndar >= trancarItemAPartirDoAndar;
 
     /// <summary>Ponto livre da sala longe de toda porta, pra ninguem nascer em cima de quem entra.</summary>
     private Vector2 PontoLongeDasPortas(Sala sala)
