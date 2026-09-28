@@ -37,9 +37,6 @@ public class Andar : MonoBehaviour
     [Tooltip("Inimigos numa sala comum: sorteado entre o minimo e o maximo")]
     [SerializeField] private Vector2Int inimigosPorSala = new Vector2Int(2, 4);
 
-    [Tooltip("Enquanto nao existe chefe de verdade, a sala do chefe tem este tanto de inimigos")]
-    [SerializeField, Min(1)] private int inimigosNaSalaDoChefe = 6;
-
     [Tooltip("Inimigo nao nasce mais perto que isto de uma porta")]
     [SerializeField, Min(0f)] private float distanciaDasPortas = 3f;
 
@@ -377,8 +374,10 @@ public class Andar : MonoBehaviour
                 quantos = UnityEngine.Random.Range(inimigosPorSala.x, inimigosPorSala.y + 1);
                 break;
             case TipoDeSala.Chefe:
-                quantos = inimigosNaSalaDoChefe;
-                break;
+                // No meio da sala, longe de todas as portas. O pedestal do premio nasce no
+                // mesmo lugar quando ele morre (PorPremios).
+                sala.CriarInimigo(TipoDeInimigo.Chefe, Vector2.zero);
+                return;
             default:
                 return; // inicio e item: sala tranquila, como no Isaac
         }

@@ -3,7 +3,8 @@ using UnityEngine;
 public enum TipoDeInimigo
 {
     Perseguidor,
-    Atirador
+    Atirador,
+    Chefe
 }
 
 /// <summary>
@@ -19,6 +20,11 @@ public static class FabricaDeInimigos
     {
         switch (tipo)
         {
+            case TipoDeInimigo.Chefe:
+                ChefeDoAndar chefe = Montar<ChefeDoAndar>("Chefe", posicao, pai, 0.75f, new Color(0.55f, 0.12f, 0.16f), 120f);
+                chefe.Enfeitar(0.75f);
+                return chefe;
+
             case TipoDeInimigo.Atirador:
                 return Montar<InimigoAtirador>("Atirador", posicao, pai, 0.32f, new Color(0.62f, 0.35f, 0.85f), 30f);
 

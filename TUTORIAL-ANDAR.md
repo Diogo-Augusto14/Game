@@ -17,7 +17,7 @@ top-down (`BootstrapTopDown.CriarJogador`), e também uma HUD com a vida.
 
 As salas são as da pasta `Sala/` (`Sala.Criar`): cada casa do andar vira uma `Sala`
 com porta só nos lados que têm vizinha. Salas comuns ganham de 2 a 4 inimigos e a do
-chefe ganha 6, até existir um chefe de verdade. A sala inicial e a do item ficam vazias.
+chefe ganha o chefe (veja `TUTORIAL-CHEFE.md`). A sala inicial e a do item ficam vazias.
 Ao entrar numa sala com inimigo vivo as portas trancam, e abrem quando o último morre.
 
 ## Como o andar é sorteado
