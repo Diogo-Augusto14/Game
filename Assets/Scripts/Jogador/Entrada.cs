@@ -38,6 +38,10 @@ public class Entrada : MonoBehaviour
     [Tooltip("Quanto tempo um aperto de ataque fica guardado (e o que faz o combo nao falhar)")]
     [SerializeField, Min(0f)] private float bufferDoAtaque = 0.2f;
 
+    [Header("Top-down (estilo Isaac)")]
+    [Tooltip("Liga a leitura separada: WASD anda, setas atiram. Desligado, nada muda no plataforma")]
+    [SerializeField] private bool modoTopDown = false;
+
     // ---------------- estado ----------------
     private Cronometro puloGuardado;
     private Cronometro dashGuardado;
@@ -67,6 +71,32 @@ public class Entrada : MonoBehaviour
 
     public bool PedindoCima => Vertical > 0.5f;
 
+    /// <summary>
+    /// Top-down: direcao de andar, SO pelo WASD (as setas sao do tiro). Normalizada, entao
+    /// andar na diagonal nao e mais rapido que andar reto. Zero fora do modo top-down.
+    /// </summary>
+    public Vector2 Andar { get; private set; }
+
+    /// <summary>
+    /// Top-down: direcao do tiro pelas setas — so uma das quatro, nunca diagonal. Se duas
+    /// setas estao seguradas, vale a ULTIMA apertada (como no Isaac). Zero = nao atirando.
+    /// </summary>
+    public Vector2 Tiro { get; private set; }
+
+    public bool Atirando => Tiro != Vector2.zero;
+
+    // Ultima seta apertada: e ela que manda enquanto continuar segurada.
+    private KeyCode ultimaSeta = KeyCode.None;
+
+    private static readonly KeyCode[] Setas = { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow };
+
+    /// <summary>Liga/desliga a leitura top-down por codigo (o Bootstrap top-down usa).</summary>
+    public bool ModoTopDown
+    {
+        get => modoTopDown;
+        set => modoTopDown = value;
+    }
+
     // ---------------- ciclo de vida ----------------
     private void Update()
     {
@@ -94,6 +124,50 @@ public class Entrada : MonoBehaviour
 
         if (Input.GetKeyDown(teclaAtaque) || Input.GetMouseButtonDown(0))
             ataqueGuardado.Forcar(bufferDoAtaque);
+
+        if (modoTopDown)
+            LerTopDown();
+    }
+
+    private void LerTopDown()
+    {
+        // Direto nas teclas, e nao no eixo "Horizontal": o eixo padrao junta WASD com as
+        // setas, e aqui as setas tem outro trabalho.
+        float x = (Input.GetKey(KeyCode.D) ? 1f : 0f) - (Input.GetKey(KeyCode.A) ? 1f : 0f);
+        float y = (Input.GetKey(KeyCode.W) ? 1f : 0f) - (Input.GetKey(KeyCode.S) ? 1f : 0f);
+        Andar = new Vector2(x, y).normalized;
+
+        for (int i = 0; i < Setas.Length; i++)
+        {
+            if (Input.GetKeyDown(Setas[i]))
+                ultimaSeta = Setas[i];
+        }
+
+        // Soltou a ultima? Passa pra qualquer outra que ainda esteja segurada.
+        if (ultimaSeta != KeyCode.None && !Input.GetKey(ultimaSeta))
+        {
+            ultimaSeta = KeyCode.None;
+
+            for (int i = 0; i < Setas.Length; i++)
+            {
+                if (Input.GetKey(Setas[i]))
+                    ultimaSeta = Setas[i];
+            }
+        }
+
+        Tiro = DirecaoDaSeta(ultimaSeta);
+    }
+
+    private static Vector2 DirecaoDaSeta(KeyCode seta)
+    {
+        switch (seta)
+        {
+            case KeyCode.UpArrow: return Vector2.up;
+            case KeyCode.DownArrow: return Vector2.down;
+            case KeyCode.LeftArrow: return Vector2.left;
+            case KeyCode.RightArrow: return Vector2.right;
+            default: return Vector2.zero;
+        }
     }
 
     // ---------------- consumo ----------------
@@ -130,5 +204,8 @@ public class Entrada : MonoBehaviour
         dashGuardado.Zerar();
         ataqueGuardado.Zerar();
         puloSoltou = false;
+        ultimaSeta = KeyCode.None;
+        Andar = Vector2.zero;
+        Tiro = Vector2.zero;
     }
 }
