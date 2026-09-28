@@ -42,7 +42,7 @@ public static class CenaDoAndar
         bootstrap.Ativo = false;
 
         EditorSceneManager.SaveScene(cena, CAMINHO);
-        Debug.Log($"[Andar] cena criada em {CAMINHO}. Aperte Play e ande com WASD.");
+        Debug.Log($"[Andar] cena criada em {CAMINHO}. Aperte Play: WASD anda, setas atiram.");
     }
 }
 #endif

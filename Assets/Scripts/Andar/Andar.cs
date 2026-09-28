@@ -1,21 +1,23 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Monta um andar inteiro no estilo do Isaac: sorteia a grade de salas
-/// (<see cref="GeradorDeAndar"/>), constroi cada sala no mundo com chao, paredes e portas,
-/// poe o jogador na sala inicial e cuida da troca de sala e da camera.
+/// (<see cref="GeradorDeAndar"/>), cria uma <see cref="Sala"/> por casa com porta onde ha
+/// vizinha, povoa as salas com inimigos, poe o jogador na sala inicial e cuida da troca
+/// de sala e da camera.
 ///
 /// COMO AS SALAS FICAM NO MUNDO: cada casa da grade vira uma sala de verdade, lado a lado,
-/// com as paredes coladas. Onde ha porta, as duas paredes tem um vao alinhado, entao o
-/// jogador atravessa andando mesmo, sem trigger nenhum. O Andar so percebe que o jogador
-/// cruzou a linha do meio do vao, empurra ele pra dentro da sala nova (como o Isaac faz)
-/// e desliza a camera ate o centro dela.
+/// com as paredes coladas e os vaos das portas alinhados. A sala e as portas sao da pasta
+/// Sala: a sala tranca as portas sozinha quando o jogador entra com inimigo vivo, e cada
+/// porta avisa em <see cref="Porta.AoAtravessar"/> quando o jogador passa. O Andar escuta
+/// esse aviso, poe o jogador na porta oposta da sala vizinha e desliza a camera ate la.
 ///
 /// Pra usar: um objeto vazio com este componente numa cena sem o Bootstrap de plataforma.
 /// O jeito mais rapido e <c>Tools ▸ Jogo ▸ Andar ▸ Criar cena de teste do andar</c>.
-/// Se a cena nao tiver ninguem com a tag Player, ele cria um jogador de teste (WASD).
+/// Se a cena nao tiver ninguem com a tag Player, ele monta o jogador top-down.
 /// </summary>
 [DisallowMultipleComponent]
 public class Andar : MonoBehaviour
@@ -31,20 +33,24 @@ public class Andar : MonoBehaviour
 
     [SerializeField, Min(3)] private int alturaDaGrade = 8;
 
-    [Header("Tamanho da sala (unidades)")]
-    [Tooltip("Chao da sala, sem as paredes. O Isaac usa 13 x 7")]
-    [SerializeField] private Vector2 interior = new Vector2(13f, 7f);
+    [Header("Inimigos")]
+    [Tooltip("Inimigos numa sala comum: sorteado entre o minimo e o maximo")]
+    [SerializeField] private Vector2Int inimigosPorSala = new Vector2Int(2, 4);
 
-    [SerializeField, Min(0.25f)] private float espessuraDaParede = 1f;
+    [Tooltip("Enquanto nao existe chefe de verdade, a sala do chefe tem este tanto de inimigos")]
+    [SerializeField, Min(1)] private int inimigosNaSalaDoChefe = 6;
 
-    [SerializeField, Min(0.5f)] private float larguraDaPorta = 1.5f;
-
-    [Tooltip("Ao trocar de sala, o jogador aparece esta distancia pra dentro da porta")]
-    [SerializeField, Min(0f)] private float recuoAoEntrar = 0.8f;
+    [Tooltip("Inimigo nao nasce mais perto que isto de uma porta")]
+    [SerializeField, Min(0f)] private float distanciaDasPortas = 3f;
 
     [Header("Jogador")]
-    [Tooltip("Sem ninguem com a tag Player na cena, cria um jogador simples de teste (WASD)")]
-    [SerializeField] private bool criarJogadorDeTeste = true;
+    [Tooltip("Sem ninguem com a tag Player na cena, monta o jogador top-down (WASD anda, setas atiram)")]
+    [SerializeField] private bool criarJogador = true;
+
+    [SerializeField] private Color corDoJogador = new Color(1f, 0.85f, 0.75f);
+
+    [Tooltip("Monta a barra de vida se a cena nao tiver HUD")]
+    [SerializeField] private bool montarHud = true;
 
     [Header("Camera")]
     [Tooltip("Forca ortografica, com zoom pra caber uma sala inteira, e desliga o Cameramov")]
@@ -56,21 +62,25 @@ public class Andar : MonoBehaviour
     [SerializeField] private bool mostrarMinimapa = true;
 
     [Header("Cores")]
-    [SerializeField] private Color corDoChao = new Color(0.27f, 0.22f, 0.18f);
     [SerializeField] private Color corDoChaoDoItem = new Color(0.32f, 0.28f, 0.14f);
     [SerializeField] private Color corDoChaoDoChefe = new Color(0.32f, 0.14f, 0.14f);
-    [SerializeField] private Color corDaParede = new Color(0.45f, 0.38f, 0.32f);
-    [SerializeField] private Color corDaPorta = new Color(0.12f, 0.08f, 0.06f);
-    [SerializeField] private Color corDaPortaDoItem = new Color(0.95f, 0.78f, 0.25f);
-    [SerializeField] private Color corDaPortaDoChefe = new Color(0.8f, 0.15f, 0.15f);
+    [SerializeField] private Color corDoBatenteDoItem = new Color(0.95f, 0.78f, 0.25f);
+    [SerializeField] private Color corDoBatenteDoChefe = new Color(0.8f, 0.15f, 0.15f);
+
+    private const string CONTROLES =
+        "W A S D  andar    Setas  atirar\n" +
+        "Limpe a sala pra abrir as portas";
 
     // ---------------- estado ----------------
-    private SalaNoMundo[,] noMundo;
+    private Sala[,] noMundo;
+    private readonly Dictionary<Sala, SalaDoAndar> salaDoMapa = new Dictionary<Sala, SalaDoAndar>();
     private Transform raizDasSalas;
     private Transform jogador;
     private Rigidbody2D corpoDoJogador;
     private Camera cam;
     private Coroutine transicao;
+    private Vector2 gravidadeAnterior;
+    private bool mexeuNaGravidade;
 
     public static Andar Atual { get; private set; }
 
@@ -83,22 +93,24 @@ public class Andar : MonoBehaviour
     /// <summary>A semente que gerou este andar. Anote quando achar um andar com problema.</summary>
     public int SementeUsada { get; private set; }
 
-    /// <summary>Distancia entre o centro de duas salas vizinhas.</summary>
-    public Vector2 Passo => interior + Vector2.one * (2f * espessuraDaParede);
+    /// <summary>Distancia entre o centro de duas salas vizinhas: o tamanho total de uma sala.</summary>
+    public static Vector2 Passo => Sala.TamanhoPadrao + Vector2.one * 2f;
 
     /// <summary>Um andar novo foi montado (no Play e a cada <see cref="ProximoAndar"/>).</summary>
     public event Action<MapaDoAndar> AoGerar;
 
-    /// <summary>
-    /// O jogador entrou numa sala. E aqui que a sala com inimigos se pendura: tranca as
-    /// portas com <see cref="SalaNoMundo.Trancar"/> e destranca quando limpar.
-    /// </summary>
-    public event Action<SalaNoMundo> AoEntrarNaSala;
+    /// <summary>O jogador entrou numa sala (a propria sala ja tranca as portas se tiver inimigo).</summary>
+    public event Action<Sala> AoEntrarNaSala;
 
     // ---------------- ciclo de vida ----------------
     private void Awake()
     {
         Atual = this;
+
+        // Visto de cima nada cai. A gravidade e global: devolvida no OnDestroy.
+        gravidadeAnterior = Physics2D.gravity;
+        Physics2D.gravity = Vector2.zero;
+        mexeuNaGravidade = true;
 
         if (mostrarMinimapa && GetComponent<Minimapa>() == null)
             gameObject.AddComponent<Minimapa>();
@@ -113,19 +125,9 @@ public class Andar : MonoBehaviour
     {
         if (Atual == this)
             Atual = null;
-    }
 
-    private void LateUpdate()
-    {
-        if (jogador == null || SalaAtual == null)
-            return;
-
-        SalaDoAndar sala = SalaNaPosicao(jogador.position);
-
-        if (sala == null || sala == SalaAtual)
-            return;
-
-        Entrar(sala, DirecaoEntre(SalaAtual, sala));
+        if (mexeuNaGravidade)
+            Physics2D.gravity = gravidadeAnterior;
     }
 
     // ---------------- api ----------------
@@ -138,7 +140,7 @@ public class Andar : MonoBehaviour
     }
 
     /// <summary>A sala montada no mundo que corresponde a esta casa do mapa.</summary>
-    public SalaNoMundo NoMundo(SalaDoAndar sala) => sala != null ? noMundo[sala.X, sala.Y] : null;
+    public Sala NoMundo(SalaDoAndar sala) => sala != null ? noMundo[sala.X, sala.Y] : null;
 
     /// <summary>Sorteia e monta o andar do zero, apagando o anterior.</summary>
     public void Gerar()
@@ -149,9 +151,13 @@ public class Andar : MonoBehaviour
         SementeUsada = semente != 0 ? semente : Environment.TickCount;
         Mapa = GeradorDeAndar.Gerar(numeroDoAndar, SementeUsada, larguraDaGrade, alturaDaGrade);
 
+        // Mesma semente = mesmos inimigos nos mesmos lugares, nao so a mesma planta.
+        UnityEngine.Random.InitState(SementeUsada);
+
         raizDasSalas = new GameObject("Salas").transform;
         raizDasSalas.SetParent(transform, false);
-        noMundo = new SalaNoMundo[Mapa.Largura, Mapa.Altura];
+        noMundo = new Sala[Mapa.Largura, Mapa.Altura];
+        salaDoMapa.Clear();
 
         foreach (SalaDoAndar sala in Mapa.Salas)
             noMundo[sala.X, sala.Y] = MontarSala(sala);
@@ -167,49 +173,73 @@ public class Andar : MonoBehaviour
     }
 
     // ---------------- troca de sala ----------------
-    /// <param name="andouPara">Direcao em que o jogador andou pra chegar aqui. Null = teleporte, fica no centro.</param>
-    private void Entrar(SalaDoAndar sala, Direcao? andouPara)
+    private void AoAtravessar(Porta porta)
+    {
+        if (porta.Sala == null || !salaDoMapa.TryGetValue(porta.Sala, out SalaDoAndar de))
+            return;
+
+        // So vale a porta da sala onde o jogador esta (a vizinha tem uma porta colada nesta).
+        if (de != SalaAtual)
+            return;
+
+        Direcao direcao = ParaDirecao(porta.Lado);
+        SalaDoAndar para = Mapa.Vizinha(de, direcao);
+
+        if (para != null)
+            Entrar(para, porta.Lado);
+    }
+
+    /// <param name="saiuPor">Porta por onde o jogador saiu da sala anterior. Null = comeco do andar, fica no centro.</param>
+    private void Entrar(SalaDoAndar sala, LadoDaPorta? saiuPor)
     {
         SalaAtual = sala;
         Mapa.Visitar(sala);
-        SalaNoMundo destino = NoMundo(sala);
+        Sala destino = NoMundo(sala);
 
         if (jogador != null)
         {
-            Vector2 ponto = andouPara.HasValue
-                ? destino.PontoNaPorta(Direcoes.Oposta(andouPara.Value), recuoAoEntrar)
-                : destino.Centro;
+            Vector2 ponto = saiuPor.HasValue
+                ? destino.PortaEm(saiuPor.Value.Oposto()).PontoDeChegada
+                : (Vector2)destino.transform.position;
 
             Teleportar(ponto);
         }
 
-        MoverCamera(destino.Centro, andouPara.HasValue ? tempoDaTransicao : 0f);
+        MoverCamera(destino.transform.position, saiuPor.HasValue ? tempoDaTransicao : 0f);
         AoEntrarNaSala?.Invoke(destino);
     }
 
     private void Teleportar(Vector2 ponto)
     {
         if (corpoDoJogador != null)
+        {
             corpoDoJogador.position = ponto;
+            corpoDoJogador.linearVelocity = Vector2.zero;
+        }
 
         jogador.position = new Vector3(ponto.x, ponto.y, jogador.position.z);
     }
 
-    private SalaDoAndar SalaNaPosicao(Vector2 posicao)
+    private static Direcao ParaDirecao(LadoDaPorta lado)
     {
-        Vector2 local = posicao - (Vector2)transform.position;
-        int x = Mathf.RoundToInt(local.x / Passo.x);
-        int y = Mathf.RoundToInt(local.y / Passo.y);
-        return Mapa.Em(x, y);
+        switch (lado)
+        {
+            case LadoDaPorta.Cima: return Direcao.Cima;
+            case LadoDaPorta.Baixo: return Direcao.Baixo;
+            case LadoDaPorta.Esquerda: return Direcao.Esquerda;
+            default: return Direcao.Direita;
+        }
     }
 
-    private static Direcao? DirecaoEntre(SalaDoAndar de, SalaDoAndar para)
+    private static LadoDaPorta ParaLado(Direcao direcao)
     {
-        foreach (Direcao d in Direcoes.Todas)
-            if (de.X + Direcoes.Dx(d) == para.X && de.Y + Direcoes.Dy(d) == para.Y)
-                return d;
-
-        return null; // nao sao vizinhas: foi teleporte
+        switch (direcao)
+        {
+            case Direcao.Cima: return LadoDaPorta.Cima;
+            case Direcao.Baixo: return LadoDaPorta.Baixo;
+            case Direcao.Esquerda: return LadoDaPorta.Esquerda;
+            default: return LadoDaPorta.Direita;
+        }
     }
 
     // ---------------- camera ----------------
@@ -226,9 +256,9 @@ public class Andar : MonoBehaviour
             seguidora.enabled = false;
 
         // Cabe a sala inteira, paredes incluidas, na altura e na largura.
-        Vector2 sala = Passo;
         cam.orthographic = true;
-        cam.orthographicSize = Mathf.Max(sala.y * 0.5f, sala.x * 0.5f / Mathf.Max(cam.aspect, 0.1f));
+        cam.orthographicSize = Mathf.Max(Passo.y * 0.5f, Passo.x * 0.5f / Mathf.Max(cam.aspect, 0.1f));
+        cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black;
     }
 
@@ -272,8 +302,8 @@ public class Andar : MonoBehaviour
 
         GameObject encontrado = GameObject.FindWithTag("Player");
 
-        if (encontrado == null && criarJogadorDeTeste)
-            encontrado = JogadorDeTeste.Criar();
+        if (encontrado == null && criarJogador)
+            encontrado = BootstrapTopDown.CriarJogador(transform.position, corDoJogador);
 
         if (encontrado == null)
         {
@@ -283,106 +313,118 @@ public class Andar : MonoBehaviour
 
         jogador = encontrado.transform;
         corpoDoJogador = encontrado.GetComponent<Rigidbody2D>();
+
+        if (montarHud && FindAnyObjectByType<Hud>() == null)
+            new GameObject("Hud").AddComponent<Hud>().Configurar(encontrado.GetComponent<Vida>(), null, CONTROLES);
     }
 
     // ---------------- montagem das salas ----------------
-    private SalaNoMundo MontarSala(SalaDoAndar sala)
+    private Sala MontarSala(SalaDoAndar casa)
     {
-        GameObject raiz = new GameObject($"Sala {sala.Tipo} ({sala.X},{sala.Y})");
-        raiz.transform.SetParent(raizDasSalas, false);
-        raiz.transform.localPosition = new Vector3(sala.X * Passo.x, sala.Y * Passo.y, 0f);
-
-        SalaNoMundo componente = raiz.AddComponent<SalaNoMundo>();
-        componente.Iniciar(sala, interior);
-
-        Bloco(raiz.transform, "Chao", Vector2.zero, interior, CorDoChao(sala.Tipo), -10, false);
+        List<LadoDaPorta> portas = new List<LadoDaPorta>();
 
         foreach (Direcao d in Direcoes.Todas)
-            MontarParede(raiz.transform, componente, sala, d);
+            if (Mapa.TemPorta(casa, d))
+                portas.Add(ParaLado(d));
 
-        return componente;
+        Vector2 centro = (Vector2)transform.position + new Vector2(casa.X * Passo.x, casa.Y * Passo.y);
+        Sala sala = Sala.Criar($"Sala {casa.Tipo} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
+        salaDoMapa[sala] = casa;
+
+        foreach (Porta porta in sala.Portas)
+        {
+            porta.AoAtravessar.AddListener(AoAtravessar);
+
+            if (porta.Existe)
+                MarcarPortaEspecial(porta, casa, Mapa.Vizinha(casa, ParaDirecao(porta.Lado)));
+        }
+
+        PintarChao(sala, casa.Tipo);
+        Povoar(sala, casa);
+        return sala;
+    }
+
+    private void Povoar(Sala sala, SalaDoAndar casa)
+    {
+        int quantos;
+
+        switch (casa.Tipo)
+        {
+            case TipoDeSala.Normal:
+                quantos = UnityEngine.Random.Range(inimigosPorSala.x, inimigosPorSala.y + 1);
+                break;
+            case TipoDeSala.Chefe:
+                quantos = inimigosNaSalaDoChefe;
+                break;
+            default:
+                return; // inicio e item: sala tranquila, como no Isaac
+        }
+
+        for (int i = 0; i < quantos; i++)
+        {
+            TipoDeInimigo tipo = UnityEngine.Random.value < 0.35f ? TipoDeInimigo.Atirador : TipoDeInimigo.Perseguidor;
+            sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
+        }
+    }
+
+    /// <summary>Ponto livre da sala longe de toda porta, pra ninguem nascer em cima de quem entra.</summary>
+    private Vector2 PontoLongeDasPortas(Sala sala)
+    {
+        Vector2 centro = sala.transform.position;
+        Vector2 ponto = sala.PontoLivreAleatorio();
+
+        for (int tentativa = 0; tentativa < 20; tentativa++)
+        {
+            bool longe = true;
+
+            foreach (Porta porta in sala.Portas)
+                if (porta.Existe && Vector2.Distance(centro + ponto, porta.PontoDeChegada) < distanciaDasPortas)
+                    longe = false;
+
+            if (longe)
+                break;
+
+            ponto = sala.PontoLivreAleatorio();
+        }
+
+        return ponto;
+    }
+
+    private void PintarChao(Sala sala, TipoDeSala tipo)
+    {
+        if (tipo != TipoDeSala.Item && tipo != TipoDeSala.Chefe)
+            return;
+
+        Transform chao = sala.transform.Find("Cenario/Chao");
+
+        if (chao != null && chao.TryGetComponent(out SpriteRenderer sr))
+            sr.color = tipo == TipoDeSala.Item ? corDoChaoDoItem : corDoChaoDoChefe;
     }
 
     /// <summary>
-    /// Uma parede inteira ou, se tiver porta, dois pedacos com o vao no meio. As paredes de
-    /// cima e de baixo vao de quina a quina; as laterais cobrem so a altura do chao.
+    /// Porta que leva a (ou sai de) sala do item ou do chefe ganha dois batentes coloridos,
+    /// um de cada lado do vao. O desenho da porta em si e da <see cref="Porta"/>, que muda
+    /// de cor ao trancar, entao o aviso vai em pecas separadas.
     /// </summary>
-    private void MontarParede(Transform pai, SalaNoMundo componente, SalaDoAndar sala, Direcao lado)
+    private void MarcarPortaEspecial(Porta porta, SalaDoAndar casa, SalaDoAndar vizinha)
     {
-        bool horizontal = lado == Direcao.Cima || lado == Direcao.Baixo;
-        float t = espessuraDaParede;
-        float comprimento = horizontal ? interior.x + 2f * t : interior.y;
+        Color cor;
 
-        Vector2 normal = new Vector2(Direcoes.Dx(lado), Direcoes.Dy(lado));
-        Vector2 eixo = horizontal ? Vector2.right : Vector2.up;
-        Vector2 meio = normal * ((horizontal ? interior.y : interior.x) * 0.5f + t * 0.5f);
-
-        SalaDoAndar vizinha = Mapa.Vizinha(sala, lado);
-
-        if (vizinha == null)
-        {
-            Bloco(pai, $"Parede {lado}", meio, Tamanho(horizontal, comprimento), corDaParede, 0, true);
+        if (casa.Tipo == TipoDeSala.Chefe || vizinha.Tipo == TipoDeSala.Chefe)
+            cor = corDoBatenteDoChefe;
+        else if (casa.Tipo == TipoDeSala.Item || vizinha.Tipo == TipoDeSala.Item)
+            cor = corDoBatenteDoItem;
+        else
             return;
-        }
 
-        float pedaco = (comprimento - larguraDaPorta) * 0.5f;
-        float desvio = larguraDaPorta * 0.5f + pedaco * 0.5f;
-        Bloco(pai, $"Parede {lado} A", meio - eixo * desvio, Tamanho(horizontal, pedaco), corDaParede, 0, true);
-        Bloco(pai, $"Parede {lado} B", meio + eixo * desvio, Tamanho(horizontal, pedaco), corDaParede, 0, true);
+        Vector2 eixo = porta.Lado.Horizontal() ? Vector2.right : Vector2.up;
+        const float MEIA_PORTA = 0.75f;
+        const float LADO = 0.4f;
 
-        // O vao da porta: desenho colorido pelo tipo da sala do outro lado + tranca desligada.
-        SpriteRenderer porta = Bloco(pai, $"Porta {lado}", meio, Tamanho(horizontal, larguraDaPorta),
-                                     CorDaPorta(sala, vizinha), -5, true);
-        BoxCollider2D tranca = porta.GetComponent<BoxCollider2D>();
-        tranca.enabled = false;
-        componente.RegistrarPorta(lado, tranca, porta);
-    }
-
-    private Vector2 Tamanho(bool horizontal, float comprimento)
-    {
-        return horizontal ? new Vector2(comprimento, espessuraDaParede) : new Vector2(espessuraDaParede, comprimento);
-    }
-
-    private static SpriteRenderer Bloco(Transform pai, string nome, Vector2 posicao, Vector2 tamanho,
-                                        Color cor, int ordem, bool solido)
-    {
-        GameObject obj = new GameObject(nome);
-        obj.transform.SetParent(pai, false);
-        obj.transform.localPosition = posicao;
-
-        SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = Construtor.SpriteDeBloco();
-        sr.drawMode = SpriteDrawMode.Tiled;
-        sr.tileMode = SpriteTileMode.Continuous;
-        sr.size = tamanho;
-        sr.color = cor;
-        sr.sortingOrder = ordem;
-
-        if (solido)
-            obj.AddComponent<BoxCollider2D>().size = tamanho;
-
-        return sr;
-    }
-
-    private Color CorDoChao(TipoDeSala tipo)
-    {
-        switch (tipo)
+        for (int s = -1; s <= 1; s += 2)
         {
-            case TipoDeSala.Item: return corDoChaoDoItem;
-            case TipoDeSala.Chefe: return corDoChaoDoChefe;
-            default: return corDoChao;
+            Vector2 posicao = eixo * (s * (MEIA_PORTA + LADO * 0.5f));
+            FormasDaSala.Desenho(porta.transform, "Batente", FormasDaSala.Quadrado(), cor, posicao, Vector2.one * LADO, 2);
         }
-    }
-
-    /// <summary>A porta avisa o que tem do outro lado — ou o que e a sala onde voce esta.</summary>
-    private Color CorDaPorta(SalaDoAndar sala, SalaDoAndar vizinha)
-    {
-        if (sala.Tipo == TipoDeSala.Chefe || vizinha.Tipo == TipoDeSala.Chefe)
-            return corDaPortaDoChefe;
-
-        if (sala.Tipo == TipoDeSala.Item || vizinha.Tipo == TipoDeSala.Item)
-            return corDaPortaDoItem;
-
-        return corDaPorta;
     }
 }

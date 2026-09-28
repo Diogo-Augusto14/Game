@@ -146,7 +146,13 @@ public class BootstrapTopDown : MonoBehaviour
     }
 
     // ================================================================ jogador
-    private GameObject MontarJogador(Vector2 posicao)
+    private GameObject MontarJogador(Vector2 posicao) => CriarJogador(posicao, corDoJogador);
+
+    /// <summary>
+    /// Monta o jogador top-down completo (movimento, vida e tiro). Publico pra outras cenas
+    /// montadas por codigo, como o andar, usarem o mesmo boneco.
+    /// </summary>
+    public static GameObject CriarJogador(Vector2 posicao, Color corDoJogador)
     {
         GameObject raiz = new GameObject("Jogador");
         raiz.transform.position = posicao;
