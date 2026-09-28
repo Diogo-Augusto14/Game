@@ -1,20 +1,24 @@
 # Andar com várias salas
 
 Gerador de andar no estilo do Binding of Isaac: uma grade de salas ligadas por portas,
-com sala inicial, sala do item e sala do chefe, troca de sala com a câmera deslizando e
-um minimapa no canto.
+com sala inicial, sala do item e sala do chefe, inimigos que trancam as portas até você
+limpar a sala, troca de sala com a câmera deslizando e um minimapa no canto.
 
 ## Testar
 
 1. `Tools ▸ Jogo ▸ Andar ▸ Criar cena de teste do andar` (cria `Assets/Scenes/Andar.unity`).
-2. Play. Ande com **WASD** ou as setas.
+2. Play. **WASD** anda, **setas** atiram.
 
 A cena já vem com um `Bootstrap` desligado: é a presença dele que impede o Bootstrap de
 plataforma de se instalar sozinho e montar a fase lateral por cima do andar.
 
-Se a cena não tiver ninguém com a tag `Player`, o `Andar` cria um **jogador de teste**
-(um quadradinho sem gravidade). Quando o movimento top-down de verdade existir, basta ele
-estar na cena com a tag `Player` que o andar usa ele.
+Se a cena não tiver ninguém com a tag `Player`, o `Andar` monta o mesmo jogador da cena
+top-down (`BootstrapTopDown.CriarJogador`), e também uma HUD com a vida.
+
+As salas são as da pasta `Sala/` (`Sala.Criar`): cada casa do andar vira uma `Sala`
+com porta só nos lados que têm vizinha. Salas comuns ganham de 2 a 4 inimigos e a do
+chefe ganha 6, até existir um chefe de verdade. A sala inicial e a do item ficam vazias.
+Ao entrar numa sala com inimigo vivo as portas trancam, e abrem quando o último morre.
 
 ## Como o andar é sorteado
 
@@ -38,8 +42,8 @@ O gerador não depende da Unity, então dá para testar fora do editor.
 | Sala onde você está | — | branca |
 | Sala visitada | — | cinza |
 | Vizinha de uma visitada | — | cinza escuro |
-| Sala do item | chão amarelado, porta dourada | ícone dourado |
-| Sala do chefe | chão avermelhado, porta vermelha | ícone vermelho |
+| Sala do item | chão amarelado, batentes dourados na porta | ícone dourado |
+| Sala do chefe | chão avermelhado, batentes vermelhos na porta | ícone vermelho |
 
 ## Onde mexer
 
@@ -47,14 +51,16 @@ O gerador não depende da Unity, então dá para testar fora do editor.
 |---|---|
 | Número do andar, semente, tamanho da grade | Componente `Andar ▸ Geracao` |
 | Repetir sempre o mesmo andar | `Andar ▸ Semente` diferente de 0 (o Console mostra a semente de cada Play) |
-| Tamanho da sala, largura da porta | `Andar ▸ Tamanho da sala` (o padrão 13 × 7 é o do Isaac) |
-| Cores do chão, paredes e portas | `Andar ▸ Cores` |
+| Quantos inimigos por sala | `Andar ▸ Inimigos` |
+| Cores das salas especiais | `Andar ▸ Cores` |
+| Paredes, portas e inimigos em si | Pasta `Sala/` (`Sala`, `Porta`, `FabricaDeInimigos`) |
 | Tamanho e cores do minimapa | Componente `Minimapa` |
 
 ## Ganchos para as outras partes
 
-- `Andar.Atual.AoEntrarNaSala` avisa quando o jogador entra numa sala. A sala com inimigos
-  se pendura aqui: chama `sala.Trancar(true)` ao entrar e `Trancar(false)` quando o último
-  inimigo morrer. Porta trancada vira parede de verdade.
+- `Andar.Atual.AoEntrarNaSala` avisa quando o jogador entra numa `Sala`. Trancar e
+  destrancar as portas é a própria sala que faz; use `sala.AoLimpar` para soltar prêmio.
+- A troca de sala escuta `Porta.AoAtravessar` e põe o jogador em `PontoDeChegada` da
+  porta oposta da sala vizinha.
 - `Andar.Atual.ProximoAndar()` gera o andar seguinte (para o alçapão depois do chefe).
 - `Andar.Atual.Mapa` tem a grade inteira; `SalaAtual` é onde o jogador está.

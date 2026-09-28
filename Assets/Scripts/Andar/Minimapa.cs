@@ -54,7 +54,7 @@ public class Minimapa : MonoBehaviour
         andar.AoEntrarNaSala -= AoEntrar;
     }
 
-    private void AoEntrar(SalaNoMundo sala) => Redesenhar();
+    private void AoEntrar(Sala sala) => Redesenhar();
 
     private void Montar(MapaDoAndar mapa)
     {
