@@ -50,6 +50,13 @@ public class Andar : MonoBehaviour
     [Tooltip("A partir deste andar a porta da sala do item fica trancada (precisa de chave)")]
     [SerializeField, Min(1)] private int trancarItemAPartirDoAndar = 2;
 
+    [Header("Fim do andar")]
+    [Tooltip("Distancia do centro da sala do chefe ate o alcapao, pro lado oposto da porta (o pedestal fica no centro)")]
+    [SerializeField, Min(0f)] private float distanciaDoAlcapao = 2f;
+
+    [Tooltip("Mostra 'Andar N' no meio da tela a cada andar novo")]
+    [SerializeField] private bool avisarAndarNovo = true;
+
     [Header("Jogador")]
     [Tooltip("Sem ninguem com a tag Player na cena, monta o jogador top-down (WASD anda, setas atiram)")]
     [SerializeField] private bool criarJogador = true;
@@ -76,7 +83,7 @@ public class Andar : MonoBehaviour
 
     private const string CONTROLES =
         "W A S D  andar    Setas  atirar    E  bomba\n" +
-        "Limpe a sala pra abrir as portas";
+        "Limpe a sala pra abrir as portas. Venca o chefe e pule no alcapao";
 
     // ---------------- estado ----------------
     private Sala[,] noMundo;
@@ -84,6 +91,7 @@ public class Andar : MonoBehaviour
     private Transform raizDasSalas;
     private Transform jogador;
     private Rigidbody2D corpoDoJogador;
+    private Vida vidaDoJogador;
     private Camera cam;
     private Coroutine transicao;
     private Vector2 gravidadeAnterior;
@@ -112,6 +120,12 @@ public class Andar : MonoBehaviour
     /// <summary>O jogador entrou numa sala (a propria sala ja tranca as portas se tiver inimigo).</summary>
     public event Action<Sala> AoEntrarNaSala;
 
+    /// <summary>O jogador morreu: a partida acabou. A <see cref="TelaDeFimDeJogo"/> aparece sozinha.</summary>
+    public event Action AoMorrerJogador;
+
+    /// <summary>O jogador deste andar (null se a cena nao tiver ninguem com a tag Player).</summary>
+    public Transform Jogador => jogador;
+
     // ---------------- ciclo de vida ----------------
     private void Awake()
     {
@@ -138,12 +152,21 @@ public class Andar : MonoBehaviour
 
         if (mexeuNaGravidade)
             Physics2D.gravity = gravidadeAnterior;
+
+        if (vidaDoJogador != null)
+            vidaDoJogador.AoMorrer.RemoveListener(MorreuOJogador);
     }
 
     // ---------------- api ----------------
-    /// <summary>Desce pro proximo andar: mais salas, semente nova.</summary>
+    /// <summary>
+    /// Desce pro proximo andar: mais salas, semente nova. O jogador continua o mesmo, com a
+    /// vida, os itens e o inventario que tinha. O <see cref="Alcapao"/> chama isto.
+    /// </summary>
     public void ProximoAndar()
     {
+        if (vidaDoJogador != null && vidaDoJogador.EstaMorto)
+            return;
+
         numeroDoAndar++;
         semente = 0;
         Gerar();
@@ -156,7 +179,12 @@ public class Andar : MonoBehaviour
     public void Gerar()
     {
         if (raizDasSalas != null)
+        {
+            // Destroy so apaga no fim do quadro: desliga ja, pra as salas velhas (portas,
+            // sensores, alcapao) nao reagirem ao jogador que acabou de ser teleportado.
+            raizDasSalas.gameObject.SetActive(false);
             Destroy(raizDasSalas.gameObject);
+        }
 
         SementeUsada = semente != 0 ? semente : Environment.TickCount;
         Mapa = GeradorDeAndar.Gerar(numeroDoAndar, SementeUsada, larguraDaGrade, alturaDaGrade);
@@ -180,6 +208,9 @@ public class Andar : MonoBehaviour
         SalaAtual = null;
         AoGerar?.Invoke(Mapa);
         Entrar(Mapa.Inicio, null);
+
+        if (avisarAndarNovo)
+            AvisoDoAndar.Mostrar($"Andar {numeroDoAndar}");
     }
 
     // ---------------- troca de sala ----------------
@@ -323,6 +354,10 @@ public class Andar : MonoBehaviour
 
         jogador = encontrado.transform;
         corpoDoJogador = encontrado.GetComponent<Rigidbody2D>();
+        vidaDoJogador = encontrado.GetComponent<Vida>();
+
+        if (vidaDoJogador != null)
+            vidaDoJogador.AoMorrer.AddListener(MorreuOJogador);
 
         if (encontrado.GetComponent<Inventario>() == null)
             encontrado.AddComponent<Inventario>();
@@ -335,6 +370,28 @@ public class Andar : MonoBehaviour
 
         if (montarHud && FindAnyObjectByType<HudDoInventario>() == null)
             HudDoInventario.Criar(encontrado);
+    }
+
+    /// <summary>
+    /// Fim da partida: o boneco para de obedecer e, depois de um instante pra ver a morte,
+    /// aparece a tela de fim de jogo. O jogador nao renasce: no Isaac morreu, recomeca.
+    /// </summary>
+    private void MorreuOJogador()
+    {
+        if (jogador != null)
+        {
+            if (jogador.TryGetComponent(out Entrada entrada))
+            {
+                entrada.Esquecer();
+                entrada.enabled = false;
+            }
+
+            if (jogador.TryGetComponent(out MovimentoTopDown movimento))
+                movimento.Parar();
+        }
+
+        AoMorrerJogador?.Invoke();
+        TelaDeFimDeJogo.Mostrar(this);
     }
 
     // ---------------- montagem das salas ----------------
@@ -412,8 +469,13 @@ public class Andar : MonoBehaviour
 
             case TipoDeSala.Chefe:
                 // Sorteia ja na montagem, pra semente do andar decidir o item e nao a hora da luta.
+                // O alcapao abre junto, acima do pedestal: pega o item e desce.
                 ItemPassivo doChefe = CatalogoDeItens.Sortear(itensQueJaSairam);
-                sala.AoLimpar.AddListener(() => Pedestal.Criar(doChefe, centro, sala.transform));
+                sala.AoLimpar.AddListener(() =>
+                {
+                    Pedestal.Criar(doChefe, centro, sala.transform);
+                    Alcapao.Criar(centro + LongeDaPorta(sala, distanciaDoAlcapao), sala.transform);
+                });
                 break;
 
             case TipoDeSala.Normal:
@@ -437,6 +499,19 @@ public class Andar : MonoBehaviour
                     Tranca.Criar(porta);
             }
         }
+    }
+
+    /// <summary>
+    /// Ponto a esta distancia do centro, do lado oposto a porta da sala: quem volta pra
+    /// sala do chefe pela porta nao cai no alcapao sem querer ao chegar.
+    /// </summary>
+    private static Vector2 LongeDaPorta(Sala sala, float distancia)
+    {
+        foreach (Porta porta in sala.Portas)
+            if (porta.Existe)
+                return -porta.Lado.Direcao() * distancia;
+
+        return Vector2.up * distancia;
     }
 
     private bool ItemTrancado => numeroDoAndar >= trancarItemAPartirDoAndar;

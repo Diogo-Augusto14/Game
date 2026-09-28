@@ -42,7 +42,21 @@ public static class CenaDoAndar
         bootstrap.Ativo = false;
 
         EditorSceneManager.SaveScene(cena, CAMINHO);
+        PorNoBuild();
         Debug.Log($"[Andar] cena criada em {CAMINHO}. Aperte Play: WASD anda, setas atiram.");
+    }
+
+    /// <summary>Poe a cena no Build Settings: o R da tela de fim de jogo recarrega ela.</summary>
+    private static void PorNoBuild()
+    {
+        var cenas = new System.Collections.Generic.List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
+
+        foreach (EditorBuildSettingsScene c in cenas)
+            if (c.path == CAMINHO)
+                return;
+
+        cenas.Add(new EditorBuildSettingsScene(CAMINHO, true));
+        EditorBuildSettings.scenes = cenas.ToArray();
     }
 }
 #endif
