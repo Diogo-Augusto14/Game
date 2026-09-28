@@ -126,6 +126,12 @@ public class Sala : MonoBehaviour
         return sala;
     }
 
+    /// <summary>Atalho sem nome (o objeto se chama "Sala"). Pensado pro gerador de andar.</summary>
+    public static Sala Criar(Vector2 centro, ICollection<LadoDaPorta> portasExistentes, Transform pai = null)
+    {
+        return Criar("Sala", centro, portasExistentes, pai);
+    }
+
     /// <summary>Poe um inimigo novo na sala, na posicao dada (relativa ao centro da sala).</summary>
     public InimigoDeSala CriarInimigo(TipoDeInimigo tipo, Vector2 posicaoLocal)
     {
