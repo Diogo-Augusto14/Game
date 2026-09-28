@@ -252,3 +252,37 @@ Para cada receita o construtor:
 
 Os valores que o Bootstrap usa ao montar (vida 120 do boneco, vida 55 do inimigo, zoom da
 câmera) estão em `Bootstrap.cs` — são os números do "jogo pronto pra rodar", não um limite.
+
+---
+
+## 7. Sala estilo Isaac (visão de cima)
+
+Pasta `Assets/Scripts/Sala/`. Independe do código de plataforma: nada aqui usa gravidade,
+o `Movimento` ou o `Bootstrap`.
+
+**Testar:** `Tools ▸ Jogo ▸ Sala ▸ Criar cena de teste` e Play. WASD anda, setas atiram.
+Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mais.
+
+| Arquivo | Assunto |
+|---|---|
+| `Sala.cs` | Chão, 4 paredes, portas; fecha ao entrar, abre quando morre o último inimigo |
+| `Porta.cs` | Aberta / fechada / não existe (vira parede); avisa `AoAtravessar` |
+| `InimigoDeSala.cs` | Base: dormir, acordar, dano por encostar, empurrão na direção do golpe |
+| `InimigoPerseguidor.cs` | Vai atrás do jogador em zigue-zague |
+| `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira |
+| `TiroDaSala.cs` | Projétil dos dois lados (inimigo acerta só o jogador e vice-versa) |
+| `FabricaDeInimigos.cs` | Receita de cada inimigo, montada por código |
+| `JogadorDeTeste.cs` | Boneco **provisório**; só nasce se a cena não tiver objeto com tag `Player` |
+| `DemoDaSala.cs` | Cena de teste: uma sala, e troca por outra ao sair pela porta |
+
+Uso por código (é o que o gerador de andar deve chamar):
+
+```csharp
+Sala sala = Sala.Criar("Sala 3", centro, new[] { LadoDaPorta.Cima, LadoDaPorta.Esquerda });
+sala.CriarInimigo(TipoDeInimigo.Atirador, new Vector2(3f, 1f));   // posição relativa ao centro
+sala.PortaEm(LadoDaPorta.Cima).AoAtravessar.AddListener(porta => /* ir pra sala de cima */);
+sala.AoLimpar.AddListener(() => /* soltar prêmio */);
+```
+
+A sala não troca o jogador de sala: ela só avisa. `Porta.PontoDeChegada` é onde pôr o
+jogador quando ele chega por aquela porta.
