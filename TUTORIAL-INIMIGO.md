@@ -369,8 +369,8 @@ inimigos que alertam os vizinhos, sem escrever um script.
 | Vida | vida / defesa | 55 / 1 |
 | | `Destruir Ao Morrer` | ligado, atraso 1.1 |
 
-O código está em [Inimigo.cs](Assets/Scripts/Inimigo.cs) (comportamento) e
-[AnimacaoDoInimigo.cs](Assets/Scripts/Inimigos/AnimacaoDoInimigo.cs) (estado vira desenho).
+O código está em [Inimigo.cs](Assets/Scripts/Plataforma/Inimigo.cs) (comportamento) e
+[AnimacaoDoInimigo.cs](Assets/Scripts/Plataforma/Inimigos/AnimacaoDoInimigo.cs) (estado vira desenho).
 Vida, empurrão, flash e morte não estão lá — são do `Vida`, que é o mesmo componente do
 jogador. É por isso que dá para trocar a arte, a vida ou a animação do inimigo sem mexer
 numa linha de IA.

@@ -31,6 +31,9 @@ public class Vida : MonoBehaviour, IDanificavel
     [Tooltip("Se ligado, o golpe empurra este objeto (precisa de Rigidbody2D Dynamic)")]
     [SerializeField] private bool recebeEmpurrao = true;
 
+    [Tooltip("Top-down: empurra na direcao exata do golpe, sem o 'pra cima' do plataforma")]
+    [SerializeField] private bool empurraoNaDirecaoDoGolpe = false;
+
     [Tooltip("Quanto do empurrao vai pra cima (0 = so pro lado, 1 = 45 graus)")]
     [SerializeField, Range(0f, 1f)] private float componenteVertical = 0.35f;
 
@@ -221,14 +224,29 @@ public class Vida : MonoBehaviour, IDanificavel
         AoMudarVida?.Invoke();
     }
 
+    /// <summary>Segundos de invencibilidade depois de cada golpe. 0 = toma todos (inimigo do Isaac).</summary>
+    public void DefinirInvencibilidade(float segundos)
+    {
+        tempoInvencivel = Mathf.Max(0f, segundos);
+    }
+
+    /// <summary>Liga o empurrao na direcao do golpe (jogo top-down).</summary>
+    public void UsarEmpurraoTopDown(bool ligado = true)
+    {
+        empurraoNaDirecaoDoGolpe = ligado;
+    }
+
     // ---------------- interno ----------------
     private void AplicarEmpurrao(DanoInfo info)
     {
         if (!recebeEmpurrao || info.ForcaEmpurrao <= 0f)
             return;
 
-        // So o lado importa (esquerda/direita) + um pouco pra cima.
-        Vector2 lado = new Vector2(info.LadoDoEmpurrao, componenteVertical).normalized;
+        // Plataforma: so o lado importa (esquerda/direita) + um pouco pra cima.
+        // Top-down: nao existe "cima" fisico, entao vai na direcao do golpe.
+        Vector2 lado = empurraoNaDirecaoDoGolpe
+            ? info.Direcao
+            : new Vector2(info.LadoDoEmpurrao, componenteVertical).normalized;
         Vector2 impulso = lado * info.ForcaEmpurrao;
         float trava = TravaDe(info.Peso);
 

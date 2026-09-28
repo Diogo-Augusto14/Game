@@ -103,6 +103,11 @@ public class Bootstrap : MonoBehaviour
         if (FindAnyObjectByType<Bootstrap>(FindObjectsInactive.Include) != null)
             return;
 
+        // Cena top-down tem o proprio montador: o do plataforma aqui so atrapalharia
+        // (gravidade, chao de emergencia, boneco de plataforma).
+        if (FindAnyObjectByType<BootstrapTopDown>(FindObjectsInactive.Include) != null)
+            return;
+
         GameObject obj = new GameObject("Bootstrap (automatico)");
         obj.AddComponent<Bootstrap>();
     }

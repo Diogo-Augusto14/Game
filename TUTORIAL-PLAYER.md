@@ -483,12 +483,12 @@ As teclas de `Shift`, `J`, `E` e `Ctrl` são campos do componente **Entrada** �
 | Arquivo | Assunto |
 |---|---|
 | [Entrada.cs](Assets/Scripts/Jogador/Entrada.cs) | teclas e buffers |
-| [Movimento.cs](Assets/Scripts/Movimento.cs) | a máquina de estados |
-| [AnimacaoDoJogador.cs](Assets/Scripts/Jogador/AnimacaoDoJogador.cs) | estado vira desenho |
-| [Ataque.cs](Assets/Scripts/ataques/Ataque.cs) | combos e janelas |
-| [Espada.cs](Assets/Scripts/ataques/Espada.cs) | a hitbox |
+| [Movimento.cs](Assets/Scripts/Plataforma/Movimento.cs) | a máquina de estados |
+| [AnimacaoDoJogador.cs](Assets/Scripts/Plataforma/Jogador/AnimacaoDoJogador.cs) | estado vira desenho |
+| [Ataque.cs](Assets/Scripts/Plataforma/ataques/Ataque.cs) | combos e janelas |
+| [Espada.cs](Assets/Scripts/Plataforma/ataques/Espada.cs) | a hitbox |
 | [Vida.cs](Assets/Scripts/combate/Vida.cs) | vida, empurrão, invencibilidade |
-| [Cura.cs](Assets/Scripts/Cura.cs) | frascos |
-| [Player.cs](Assets/Scripts/Player.cs) | morte, renascimento, checkpoint, buraco |
+| [Cura.cs](Assets/Scripts/Plataforma/Cura.cs) | frascos |
+| [Player.cs](Assets/Scripts/Plataforma/Player.cs) | morte, renascimento, checkpoint, buraco |
 
 Lendo nessa ordem, cada arquivo só usa coisas que você já viu no anterior.

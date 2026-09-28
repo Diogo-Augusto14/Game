@@ -268,7 +268,7 @@ centraliza nesse eixo em vez de travar torto.
 ## Passo 8 — O Construtor: a receita compartilhada
 
 O Bootstrap **não sabe** montar um boneco. Quem sabe é
-[Construtor.cs](Assets/Scripts/Bootstrap/Construtor.cs) — uma classe estática, sem estado,
+[Construtor.cs](Assets/Scripts/Plataforma/Bootstrap/Construtor.cs) — uma classe estática, sem estado,
 com três receitas: `MontarJogador`, `MontarInimigo` e `MontarBloco`.
 
 Duas coisas usam essas receitas: o Bootstrap (no Play) e o menu `Montar na cena` (no editor).
@@ -411,8 +411,8 @@ dois tipos de inimigo na mesma fase, o modo manual passou a ser melhor.
 | `Tools ▸ Jogo ▸ Montar na cena ▸ Kit completo` | passa para o modo manual |
 | `Tools ▸ Jogo ▸ Montar na cena ▸ Desligar o Bootstrap desta cena` | só a chave mestra |
 
-O código está em [Bootstrap.cs](Assets/Scripts/Bootstrap/Bootstrap.cs) (o quê e quando) e
-[Construtor.cs](Assets/Scripts/Bootstrap/Construtor.cs) (o como). O menu do editor está em
+O código está em [Bootstrap.cs](Assets/Scripts/Plataforma/Bootstrap/Bootstrap.cs) (o quê e quando) e
+[Construtor.cs](Assets/Scripts/Plataforma/Bootstrap/Construtor.cs) (o como). O menu do editor está em
 [MontadorDeCena.cs](Assets/Editor/MontadorDeCena.cs).
 
 ---

@@ -46,12 +46,28 @@ public class Hud : MonoBehaviour
     private RectTransform raizDosFrascos;
     private int frascosDesenhados = -1;
 
+    // Quem monta a HUD por codigo pode trocar a lista (o top-down tem outras teclas).
+    private string textoDosControles = TEXTO_DOS_CONTROLES;
+
     private const string TEXTO_DOS_CONTROLES =
         "A / D  andar      Ctrl  devagar\n" +
         "Espaco  pular (2x)   no ar + parede = wall jump\n" +
         "Shift  dash    Shift + Baixo  escorregar    Shift + tras  esquiva\n" +
         "J / Mouse  golpe (combo 1-2-3)    no ar + Baixo  mergulho\n" +
         "Baixo  agachar    Cima  escada / subir beirada    E (segurar)  curar";
+
+    /// <summary>
+    /// Aponta a HUD pra uma vida (e frascos, se houver) sem depender do Player do
+    /// plataforma. Chame logo depois do AddComponent, antes do Start.
+    /// </summary>
+    public void Configurar(Vida alvo, Cura frascos = null, string controles = null)
+    {
+        vida = alvo;
+        cura = frascos;
+
+        if (controles != null)
+            textoDosControles = controles;
+    }
 
     // ---------------- ciclo de vida ----------------
     private void Start()
@@ -195,7 +211,7 @@ public class Hud : MonoBehaviour
         if (fonte == null)
         {
             // Sem fonte nao da pra desenhar texto; o Console ainda informa as teclas.
-            Debug.Log("[Hud] controles:\n" + TEXTO_DOS_CONTROLES);
+            Debug.Log("[Hud] controles:\n" + textoDosControles);
             return;
         }
 
@@ -212,7 +228,7 @@ public class Hud : MonoBehaviour
         texto.alignment = TextAnchor.LowerLeft;
         texto.horizontalOverflow = HorizontalWrapMode.Overflow;
         texto.verticalOverflow = VerticalWrapMode.Overflow;
-        texto.text = TEXTO_DOS_CONTROLES;
+        texto.text = textoDosControles;
 
         Esticar((RectTransform)obj.transform, 8f);
     }

@@ -6,6 +6,37 @@ o **código deste jogo**.
 
 ---
 
+## 0. Cena top-down (estilo Isaac)
+
+O jogo está virando um roguelike visto de cima. A cena nova é `Assets/Scenes/TopDown.unity`:
+abra e dê Play. O único objeto dela é o `BootstrapTopDown`, que monta tudo por código — sala
+13 × 7 com paredes e pedras, o jogador, três bonecos de treino, a câmera parada e a HUD.
+Estando na cena, ele impede o `Bootstrap` do plataforma de se instalar.
+
+| Tecla | Ação |
+|---|---|
+| `W A S D` | Andar em 8 direções |
+| `Setas` | Atirar lágrima (só as 4 retas; vale a última seta apertada) |
+
+Andar e atirar são independentes: dá pra fugir pra um lado atirando pro outro.
+
+| Script | O que faz |
+|---|---|
+| `TopDown/MovimentoTopDown.cs` | Andar com aceleração/freio, gravidade zero, recebe empurrão do `Vida` |
+| `TopDown/AtiradorTopDown.cs` | Dano, alcance, cadência, velocidade da lágrima; alterna olho esquerdo/direito |
+| `TopDown/Lagrima.cs` | O projétil: voa até o alcance, bate em `IDanificavel` ou parede e estoura |
+| `TopDown/AlvoDeTreino.cs` | Saco de pancada com barra de vida; morre e volta |
+| `TopDown/BootstrapTopDown.cs` | Monta a cena |
+| `TopDown/FormasTopDown.cs` | Quadrado e círculo gerados por código (até ter arte) |
+
+Reaproveitado do plataforma, sem cópia: `Vida` / `DanoInfo` / `IDanificavel` (dano),
+`Entrada` (com `Modo Top Down` ligado, lê WASD e setas separados) e `Hud`.
+
+O código do plataforma continua inteiro em `Assets/Scripts/Plataforma/`, e a
+`SampleScene` funciona como antes.
+
+---
+
 ## 1. Só dar Play
 
 Não precisa preparar nada. Ao entrar no Play:
@@ -94,7 +125,7 @@ Mais os filhos, com estes nomes exatos: `GroundCheck`, `WallCheck`, `LedgeCheck`
 (`SpriteRenderer` + `AnimadorDeSprites`). No `Vida`, desmarque `Destruir Ao Morrer` — senão
 o boneco é apagado da cena em vez de renascer. Tag `Player`, camada `Player`.
 
-A receita exata está em [Construtor.cs](Assets/Scripts/Bootstrap/Construtor.cs) — é o mesmo
+A receita exata está em [Construtor.cs](Assets/Scripts/Plataforma/Bootstrap/Construtor.cs) — é o mesmo
 arquivo que o Bootstrap e o comando de editor usam, então ele nunca fica desatualizado em
 relação ao que funciona no Play.
 
