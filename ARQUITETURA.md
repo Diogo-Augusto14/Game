@@ -87,6 +87,23 @@ jogador quando ele chega por aquela porta.
 
 ---
 
+### Tema de cada andar
+
+`Andar/TemaDoAndar.cs` dá a cara de cada andar: nome (aparece no aviso "Andar 2: Catacumbas"
+e na pausa), chão, parede, tom, quantos ossos/runas/candelabros enfeitam as salas e a lista
+de inimigos comuns com peso. O `Andar` escolhe o tema antes de montar as salas e
+`ArteGerada.Chao`/`Tijolo` desenham o chão e a parede dele.
+
+| Andar | Tema | Inimigos comuns |
+|---|---|---|
+| 1 | Porão | goblins da tocha, barril, gosmas, bolhas, morcegos, cão infernal, orc, bruxo, minotauro, monstro de sangue |
+| 2 | Catacumbas | saltador, orcs, goblin da dinamite, arqueiro sombrio, lobisomem, esqueletos, cavaleiro do escudo, sentinela |
+| 3 | Cripta | esqueletos (foice, espadão, arqueiro...), vampiro, necromante, fogo-fátuo, cavaleiros, sentinela, urso |
+| último | Abismo | demônios e demônias, monstro de sangue, cão infernal, bolha, fogo-fátuo, orc elite, minotauro, vampiro |
+
+Chefes, salas especiais e desbloqueios não mudam com o tema. A sala de desafio usa a
+lista do tema nas ondas.
+
 ## 8. Arte importada (pacotes)
 
 Imagens de pacote ficam em `Assets/Arte/Resources/` e são lidas por
@@ -104,6 +121,7 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | `Masmorra/Esqueleto`, `EsqueletoFoice`, `Vampiro` | Enemy Animations Set (tiras de 32×32) | Inimigos `Esqueleto`, `EsqueletoFoice` e `Vampiro`, com a própria animação de morte |
 | `Masmorra/Tocha`, `Candelabro`, `Objetos` | 2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon Asset Pack v2.0 | Tochas acesas na parede de cima de toda sala, candelabro num canto, caveira e ossos entre os enfeites de chão |
 | `Masmorra/Chao`, `Parede`, `Portao`, `Espinhos`, `Ladrilhos` | 2D Dungeon Asset Pack v5.2 | Chão e tijolos das salas (a cor do andar só tinge de leve), portão de grade nas portas e na tranca, espinhos, buraco do alçapão. Da folha `Objetos`: frasco (coração), moeda, chave, altar do pedestal, mesas da loja, estandartes das portas especiais, gema do tiro dos inimigos e o ícone de cada item passivo |
+| `Masmorra/Temas` | 2D Pixel Dungeon Asset Pack v2.0 e 2D Dungeon Asset Pack v5.2 (ladrilhos recortados e juntados) | Chão e parede de cada tema de andar (`Andar/TemaDoAndar.cs`): `ChaoPorao`/`ParedePorao` (tijolos marrons do v2.0), `ChaoCripta`/`ParedeCripta` (laje rachada e friso azul do v5.2), `ChaoAbismo`/`ParedeAbismo` (pedra lisa e friso vermelho do v5.2) e a `Runa` vermelha do chão do Abismo. As Catacumbas usam o `Chao`/`Parede` padrão |
 | `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Goblins da tocha e da dinamite, barril de TNT, arqueiro sombrio, flecha, dinamite, explosão (bomba do jogador também), caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`); o jogador é o arqueiro azul (`TopDown/ArqueiroDoJogador.cs`) e atira flechas; pedras das salas; a dinamite é a bomba |
 
 Cada tira de personagem tem quadros de 100×100 com o bicho (uns 20 px) no meio. O

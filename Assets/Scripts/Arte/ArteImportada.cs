@@ -295,14 +295,18 @@ public static class ArteImportada
     /// Um enfeite de chao sorteado, ou null sem a arte: os do Tiny Swords (64 px = 1
     /// ladrilho) e, de vez em quando, uma caveira ou ossos da masmorra.
     /// </summary>
-    public static Sprite EnfeiteAleatorio()
-    {
-        int sorteio = Random.Range(0, Enfeites.Length + 2);
+    public static Sprite EnfeiteAleatorio() => EnfeiteAleatorio(2f / (Enfeites.Length + 2));
 
-        if (sorteio >= Enfeites.Length)
+    /// <summary>
+    /// Como <see cref="EnfeiteAleatorio()"/>, com a chance de sair caveira ou ossos
+    /// escolhida pelo tema do andar.
+    /// </summary>
+    public static Sprite EnfeiteAleatorio(float chanceDeOsso)
+    {
+        if (Random.value < chanceDeOsso)
         {
             // Objetos.png: caveira na coluna 2 da linha 3, ossos na coluna 2 da linha 4.
-            Sprite[] osso = Linha("Masmorra/Objetos", 16, sorteio == Enfeites.Length ? 3 : 4, 1,
+            Sprite[] osso = Linha("Masmorra/Objetos", 16, Random.value < 0.5f ? 3 : 4, 1,
                                   new RectInt(32, 0, 16, 16), new Vector2(40f, 8f), 20f);
 
             if (osso != null)
@@ -353,6 +357,21 @@ public static class ArteImportada
 
     /// <summary>Tijolos da parede (4 ladrilhos lado a lado). Para modo Tiled.</summary>
     public static Sprite ParedeDaMasmorra => Inteira("Masmorra/Parede", PixelsDoLadrilho);
+
+    /// <summary>
+    /// Chao do tema do andar (Masmorra/Temas, montado com ladrilhos dos dois pacotes de
+    /// masmorra), ou null quando o tema usa o chao padrao ou nao ha tema.
+    /// </summary>
+    public static Sprite ChaoDoTema => DoTema(TemaDoAndar.Atual?.Chao);
+
+    /// <summary>Parede do tema do andar, ou null pra parede padrao.</summary>
+    public static Sprite ParedeDoTema => DoTema(TemaDoAndar.Atual?.Parede);
+
+    /// <summary>Runa vermelha pintada no chao (2D Dungeon v5.2), enfeite do Abismo.</summary>
+    public static Sprite Runa => Inteira("Masmorra/Temas/Runa", PixelsDoLadrilho);
+
+    private static Sprite DoTema(string nome)
+        => string.IsNullOrEmpty(nome) ? null : Inteira("Masmorra/Temas/" + nome, PixelsDoLadrilho);
 
     /// <summary>Portao de grade: quadro 0 fechado, 4 aberto (a parte de cima da folha, 16x16).</summary>
     public static Sprite Portao(bool aberto)

@@ -354,8 +354,8 @@ public static class ArteGerada
     /// <summary>True quando o chao e a parede vem do pacote da masmorra (a cor do andar so tinge de leve).</summary>
     public static bool CenarioDoPacote => ArteImportada.ChaoDaMasmorra != null;
 
-    /// <summary>Ladrilho do chao: pedra lisa com pintinhas e uma junta escura. Para modo Tiled.</summary>
-    public static Sprite Chao() => ArteImportada.ChaoDaMasmorra ?? ChaoGerado();
+    /// <summary>Ladrilho do chao: o do tema do andar, o da masmorra ou (sem arte) pedra lisa com pintinhas e uma junta escura. Para modo Tiled.</summary>
+    public static Sprite Chao() => ArteImportada.ChaoDoTema ?? ArteImportada.ChaoDaMasmorra ?? ChaoGerado();
 
     private static Sprite ChaoGerado() => Guardado("chao", () =>
     {
@@ -381,7 +381,7 @@ public static class ArteGerada
     });
 
     /// <summary>Ladrilho da parede: tijolos com rejunte. Para modo Tiled.</summary>
-    public static Sprite Tijolo() => ArteImportada.ParedeDaMasmorra ?? TijoloGerado();
+    public static Sprite Tijolo() => ArteImportada.ParedeDoTema ?? ArteImportada.ParedeDaMasmorra ?? TijoloGerado();
 
     private static Sprite TijoloGerado() => Guardado("tijolo", () =>
     {
