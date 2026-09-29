@@ -5,8 +5,9 @@ using UnityEngine;
 /// As imagens que vieram de pacote (nao desenhadas por codigo), lidas de
 /// <c>Assets/Arte/Resources</c>:
 ///
-///   Personagens/Demonio, Personagens/MonstroDeSangue  (Tiny RPG Character Asset Pack 02)
-///       uma tira por animacao, quadros de 100x100 com o bicho (uns 20 px) no meio
+///   Personagens/...  (Tiny RPG Character Asset Pack 02, os 20 bichos)
+///       uma tira por animacao, quadros de 100x100 com o bicho (uns 20 px) no meio;
+///   Personagens/Projeteis  flecha, bala de canhao, magia e raios desses bichos
 ///   InterfacePixel/00.png ... 07.png  (Pixel UI pack 3)
 ///       coracoes, paineis e barras recortados pelos retangulos la embaixo
 ///   TinySwords/...  (Tiny Swords e Tiny Swords Free Pack, da Pixel Frog)
@@ -27,13 +28,32 @@ public static class ArteImportada
     private const int QuadroDoPersonagem = 100;
 
     /// <summary>
-    /// Pedaco do quadro de 100x100 que vale a pena: o bicho mais o golpe (que sai pro lado).
-    /// Em coordenadas de imagem (y pra baixo): x 20..84, y 20..68.
+    /// Centro do corpo de cada personagem dentro do quadro de 100x100 (imagem, y pra baixo).
+    /// Medido no quadro parado; quem nao esta aqui usa <see cref="CentroPadrao"/>.
     /// </summary>
-    private static readonly RectInt RecorteDoPersonagem = new RectInt(20, 20, 64, 48);
+    private static readonly Dictionary<string, Vector2> CentrosDoCorpo = new Dictionary<string, Vector2>
+    {
+        { "Bolha", new Vector2(53f, 47f) },
+        { "Bruxo", new Vector2(50f, 47f) },
+        { "CaoInfernal", new Vector2(50f, 51f) },
+        { "CavaleiroCanhao", new Vector2(55f, 45f) },
+        { "CavaleiroEscudo", new Vector2(50f, 48f) },
+        { "CavaleiroLanca", new Vector2(51f, 44f) },
+        { "Demonia", new Vector2(49f, 47f) },
+        { "DemoniaFoice", new Vector2(55f, 46f) },
+        { "DemonioArqueiro", new Vector2(52f, 50f) },
+        { "DemonioLaminas", new Vector2(55f, 48f) },
+        { "DemonioMartelo", new Vector2(55f, 47f) },
+        { "DemonioTridente", new Vector2(54f, 46f) },
+        { "FogoFatuo", new Vector2(52f, 43f) },
+        { "Golem", new Vector2(52f, 45f) },
+        { "Gosma", new Vector2(48f, 51f) },
+        { "Minotauro", new Vector2(56f, 49f) },
+        { "Morcego", new Vector2(49f, 46f) },
+        { "Olho", new Vector2(50f, 52f) },
+    };
 
-    /// <summary>Centro do corpo dentro do quadro de 100x100 (imagem, y pra baixo).</summary>
-    private static readonly Vector2 CentroDoCorpo = new Vector2(52f, 50f);
+    private static readonly Vector2 CentroPadrao = new Vector2(52f, 50f);
 
     /// <summary>Paineis e barras sao desenhados 4x maiores na tela (ref. 100 px por unidade do Canvas).</summary>
     public const float PixelsPorUnidadeDaInterface = 25f;
@@ -60,6 +80,7 @@ public static class ArteImportada
             Andando = Tira(pasta, "Walk", pixelsPorUnidade),
             Ataque = Tira(pasta, "Attack01", pixelsPorUnidade),
             AtaqueEspecial = Tira(pasta, "Attack02", pixelsPorUnidade),
+            AtaqueForte = Tira(pasta, "Attack03", pixelsPorUnidade),
             Dor = Tira(pasta, "Hurt", pixelsPorUnidade),
             Morte = Tira(pasta, "Death", pixelsPorUnidade),
         };
@@ -73,7 +94,8 @@ public static class ArteImportada
 
     private static Sprite[] Tira(string pasta, string animacao, float pixelsPorUnidade)
     {
-        Texture2D textura = Textura($"Personagens/{pasta}/{animacao}");
+        // Nem todo bicho tem terceiro ataque: sem aviso quando falta.
+        Texture2D textura = Textura($"Personagens/{pasta}/{animacao}", animacao != "Attack03");
 
         if (textura == null)
             return null;
@@ -81,15 +103,14 @@ public static class ArteImportada
         int quantos = textura.width / QuadroDoPersonagem;
         Sprite[] quadros = new Sprite[quantos];
 
-        // Pivo no centro do corpo, pra o colisor redondo do inimigo cair em cima dele.
-        Vector2 pivo = new Vector2(
-            (CentroDoCorpo.x - RecorteDoPersonagem.x) / RecorteDoPersonagem.width,
-            (RecorteDoPersonagem.yMax - CentroDoCorpo.y) / RecorteDoPersonagem.height);
+        // Pivo no centro do corpo, pra o colisor redondo do inimigo cair em cima dele. O
+        // quadro vai inteiro: golpe de lanca e raio chegam quase na borda.
+        Vector2 centro = CentrosDoCorpo.TryGetValue(pasta, out Vector2 medido) ? medido : CentroPadrao;
+        Vector2 pivo = new Vector2(centro.x / QuadroDoPersonagem, 1f - centro.y / QuadroDoPersonagem);
 
         for (int i = 0; i < quantos; i++)
         {
-            Rect recorte = Recorte(textura, i * QuadroDoPersonagem + RecorteDoPersonagem.x, RecorteDoPersonagem.y,
-                                   RecorteDoPersonagem.width, RecorteDoPersonagem.height);
+            Rect recorte = Recorte(textura, i * QuadroDoPersonagem, 0, QuadroDoPersonagem, QuadroDoPersonagem);
 
             quadros[i] = Sprite.Create(textura, recorte, pivo, pixelsPorUnidade, 0, SpriteMeshType.FullRect);
             quadros[i].name = $"{pasta} {animacao} {i}";
@@ -378,7 +399,7 @@ public static class ArteImportada
     private static Rect Recorte(Texture2D textura, int x, int y, int largura, int altura)
         => new Rect(x, textura.height - y - altura, largura, altura);
 
-    private static Texture2D Textura(string caminho)
+    private static Texture2D Textura(string caminho, bool avisarSeFaltar = true)
     {
         if (texturas.TryGetValue(caminho, out Texture2D guardada))
             return guardada;
@@ -391,7 +412,7 @@ public static class ArteImportada
             textura.filterMode = FilterMode.Point;
             textura.wrapMode = TextureWrapMode.Clamp;
         }
-        else
+        else if (avisarSeFaltar)
         {
             Debug.LogWarning($"[ArteImportada] nao achei Resources/{caminho}. Usando o desenho antigo.");
         }
@@ -408,6 +429,9 @@ public class ClipesDePersonagem
     public Sprite[] Andando;
     public Sprite[] Ataque;
     public Sprite[] AtaqueEspecial;
+
+    /// <summary>Terceiro ataque do Tiny RPG (so alguns tem: cavaleiros, chefes).</summary>
+    public Sprite[] AtaqueForte;
 
     /// <summary>Golpe pra baixo e pra cima, pra quem tem arte nas tres direcoes (senao usa <see cref="Ataque"/> virado).</summary>
     public Sprite[] AtaqueBaixo;

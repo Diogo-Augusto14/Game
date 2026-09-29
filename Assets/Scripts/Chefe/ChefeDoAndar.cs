@@ -127,13 +127,14 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
     // ---------------- montagem ----------------
     /// <summary>
     /// Poe olhos e a linha de mira. A <see cref="FabricaDeInimigos"/> chama logo depois de
-    /// montar o corpo; o raio e o do colisor.
+    /// montar o corpo; o raio e o do colisor. Com arte importada o bicho ja tem cara: sem
+    /// olhos desenhados, e o aviso de ataque tinge o corpo inteiro.
     /// </summary>
-    public void Enfeitar(float raioDoCorpo)
+    public void Enfeitar(float raioDoCorpo, bool comArte = false)
     {
         raio = raioDoCorpo;
 
-        for (int lado = -1; lado <= 1; lado += 2)
+        for (int lado = -1; lado <= 1 && !comArte; lado += 2)
         {
             SpriteRenderer olho = FormasDaSala.Desenho(transform, "Olho", FormasDaSala.Circulo(), Color.white,
                 new Vector2(lado * raio * 0.38f, raio * 0.22f), Vector2.one * raio * 0.42f, 11);
@@ -442,6 +443,9 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
         foreach (SpriteRenderer olho in olhos)
             if (olho != null)
                 olho.color = cor;
+
+        if (olhos.Count == 0 && desenho != null)
+            desenho.color = Color.Lerp(Color.white, cor, 0.6f);
     }
 
     // ---------------- tiros e lacaios ----------------

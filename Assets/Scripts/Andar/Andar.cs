@@ -592,7 +592,8 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Investidor, 2f), (TipoDeInimigo.Divisor, 1.5f),
                 (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1f),
                 (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1f),
-                (TipoDeInimigo.Esqueleto, 2f),
+                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.Morcego, 1.5f),
+                (TipoDeInimigo.DemonioTridente, 1f),
             };
         }
         else if (andar == 2)
@@ -606,6 +607,8 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1.5f),
                 (TipoDeInimigo.GoblinDinamite, 1.5f), (TipoDeInimigo.Arqueiro, 1.5f),
                 (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 1f), (TipoDeInimigo.Vampiro, 1f),
+                (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.DemonioTridente, 1.5f), (TipoDeInimigo.CavaleiroEscudo, 1f),
+                (TipoDeInimigo.DemonioArqueiro, 1f), (TipoDeInimigo.Demonia, 1f), (TipoDeInimigo.FogoFatuo, 1f),
             };
         }
         else
@@ -619,6 +622,9 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 2f),
                 (TipoDeInimigo.GoblinDinamite, 2f), (TipoDeInimigo.Arqueiro, 2f),
                 (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 2f), (TipoDeInimigo.Vampiro, 2f),
+                (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.DemonioTridente, 1.5f), (TipoDeInimigo.CavaleiroEscudo, 1.5f),
+                (TipoDeInimigo.CavaleiroLanca, 1.5f), (TipoDeInimigo.DemonioLaminas, 1.5f), (TipoDeInimigo.DemoniaFoice, 1.5f),
+                (TipoDeInimigo.DemonioArqueiro, 1.5f), (TipoDeInimigo.Demonia, 1.5f), (TipoDeInimigo.FogoFatuo, 1.5f),
             };
         }
 

@@ -31,6 +31,16 @@ public class AnimacaoDePersonagem : MonoBehaviour
     private float fimDaDor;
     private bool morto;
 
+    // Ataque automatico: pra inimigo que nao sabe da animacao (os antigos e os chefes).
+    private InimigoDeSala dono;
+    private bool procurouDono;
+    private Sprite[] ataqueSozinho;
+    private float fpsDoAtaqueSozinho;
+    private InimigoDeSala.Estado estadoAnterior;
+
+    /// <summary>Segundos que o Vida espera antes de apagar um inimigo morto.</summary>
+    private const float TempoDaMorte = 0.55f;
+
     /// <summary>Liga a animacao. Chame logo depois do AddComponent.</summary>
     public void Configurar(ClipesDePersonagem novosClipes, SpriteRenderer renderizador)
     {
@@ -72,6 +82,16 @@ public class AnimacaoDePersonagem : MonoBehaviour
         Trocar(quadros, fps, true);
     }
 
+    /// <summary>
+    /// Toca <paramref name="quadros"/> sozinho toda vez que o inimigo do mesmo objeto entrar em
+    /// Preparando (o telegrafo), virado pro jogador. Pra quem nao chama <see cref="TocarUmaVez"/>.
+    /// </summary>
+    public void AtacarSozinho(Sprite[] quadros, float fps = 12f)
+    {
+        ataqueSozinho = quadros;
+        fpsDoAtaqueSozinho = fps;
+    }
+
     /// <summary>Vira o desenho pro lado dado (so o sinal de x importa).</summary>
     public void OlharPara(Vector2 direcao)
     {
@@ -92,8 +112,9 @@ public class AnimacaoDePersonagem : MonoBehaviour
     {
         morto = true;
 
+        // A morte tem de caber antes de o Vida apagar o objeto.
         if (clipes.Morte != null)
-            Trocar(clipes.Morte, quadrosPorSegundo, true);
+            Trocar(clipes.Morte, Mathf.Max(quadrosPorSegundo, clipes.Morte.Length / TempoDaMorte), true);
     }
 
     private void Update()
@@ -101,12 +122,46 @@ public class AnimacaoDePersonagem : MonoBehaviour
         if (desenho == null || clipes == null)
             return;
 
+        if (ataqueSozinho != null && !morto)
+            VigiarAtaque();
+
         if (!morto && (!umaVez || Terminou))
             EscolherPeloMovimento();
 
         int quadro = Mathf.FloorToInt((Time.time - inicio) * quadrosPorSegundoAgora);
         quadro = umaVez ? Mathf.Min(quadro, tocando.Length - 1) : quadro % tocando.Length;
         desenho.sprite = tocando[quadro];
+    }
+
+    /// <summary>O inimigo deste objeto, se for um (o jogador nao e).</summary>
+    private InimigoDeSala Dono
+    {
+        get
+        {
+            if (!procurouDono)
+            {
+                procurouDono = true;
+                TryGetComponent(out dono);
+            }
+
+            return dono;
+        }
+    }
+
+    private void VigiarAtaque()
+    {
+        if (Dono == null)
+            return;
+
+        InimigoDeSala.Estado estado = dono.EstadoAtual;
+
+        if (estado == InimigoDeSala.Estado.Preparando && estadoAnterior != InimigoDeSala.Estado.Preparando && !OcupadoComAtaque)
+        {
+            OlharPara(dono.DirecaoDoJogador);
+            TocarUmaVez(ataqueSozinho, fpsDoAtaqueSozinho);
+        }
+
+        estadoAnterior = estado;
     }
 
     private void EscolherPeloMovimento()
@@ -117,8 +172,11 @@ public class AnimacaoDePersonagem : MonoBehaviour
         Vector2 velocidade = corpo != null ? corpo.linearVelocity : Vector2.zero;
         bool andando = velocidade.magnitude > velocidadeParaAndar && clipes.Andando != null;
 
+        // Parado, o inimigo fica de cara pro jogador.
         if (andando)
             OlharPara(velocidade);
+        else if (Dono != null && !Dono.EstaMorto)
+            OlharPara(Dono.DirecaoDoJogador);
 
         Sprite[] alvo = andando ? clipes.Andando : clipes.Parado;
 
