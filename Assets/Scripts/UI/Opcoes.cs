@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Teclas de som que valem em qualquer tela: M liga/desliga a musica e N os efeitos.
+/// Teclas de som que valem em qualquer tela: M liga/desliga a musica e N os efeitos
+/// (LB e RB no controle, no menu e na pausa).
 /// Desligar guarda o volume antigo pra ligar de volta no mesmo nivel.
 /// </summary>
 public static class Opcoes
@@ -16,10 +17,13 @@ public static class Opcoes
     /// <summary>Chame uma vez por quadro de quem estiver com a tela (menu, pausa, jogo).</summary>
     public static void LerTeclas()
     {
-        if (Input.GetKeyDown(KeyCode.M))
+        // No controle, LB e RB so com o jogo parado (menu, pausa): jogando, LB e bomba.
+        bool parado = Time.timeScale == 0f;
+
+        if (Input.GetKeyDown(KeyCode.M) || (parado && Controle.Apertou(BotaoDoControle.LB)))
             AlternarMusica();
 
-        if (Input.GetKeyDown(KeyCode.N))
+        if (Input.GetKeyDown(KeyCode.N) || (parado && Controle.Apertou(BotaoDoControle.RB)))
             AlternarEfeitos();
     }
 

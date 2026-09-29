@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// A tela de quando o jogador morre no andar: escurece tudo, mostra ate que andar ele
-/// chegou, os itens que pegou e a semente do andar, e espera R (ou Enter / Espaco) pra
+/// chegou, os itens que pegou e a semente do andar, e espera R (ou Enter / Espaco / A) pra
 /// comecar uma partida nova do zero.
 ///
 /// Canvas proprio, montado por codigo como a <see cref="Hud"/>. O <see cref="Andar"/>
@@ -115,7 +115,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
 
         foreach (KeyCode tecla in TeclasDeRecomecar)
         {
-            if (Input.GetKeyDown(tecla))
+            if (Input.GetKeyDown(tecla) || Controle.ApertouConfirmar)
             {
                 Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
                 RecarregarCena();
@@ -166,7 +166,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
             List<string> nomes = liberados.ConvertAll(h => h.Nome);
             Texto("Liberados", fonte, 34, new Color(0.5f, 1f, 0.55f), -125f, "Heroi liberado: " + string.Join(", ", nomes));
         }
-        TelaSimples.LinhaDeTeclas(transform, "Recomecar", -280f, vitoria ? "[R] jogar de novo" : "[R] recomecar do andar 1",
+        TelaSimples.LinhaDeTeclas(transform, "Recomecar", -280f, vitoria ? "[R] jogar de novo || [Pad A] jogar de novo" : "[R] recomecar do andar 1 || [Pad A] recomecar do andar 1",
             34, new Color(1f, 0.85f, 0.4f));
 
         // Dragon Regalia: faixa atras do titulo (rosa na vitoria, azul na morte), moldura

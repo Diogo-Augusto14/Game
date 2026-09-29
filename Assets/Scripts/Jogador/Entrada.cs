@@ -72,8 +72,9 @@ public class Entrada : MonoBehaviour
     public bool PedindoCima => Vertical > 0.5f;
 
     /// <summary>
-    /// Top-down: direcao de andar, SO pelo WASD (as setas sao do tiro). Normalizada, entao
-    /// andar na diagonal nao e mais rapido que andar reto. Zero fora do modo top-down.
+    /// Top-down: direcao de andar, SO pelo WASD (as setas sao do tiro) ou pelo controle.
+    /// Tamanho ate 1 (analogico pela metade anda devagar), entao andar na diagonal nao e
+    /// mais rapido que andar reto. Zero fora do modo top-down.
     /// </summary>
     public Vector2 Andar { get; private set; }
 
@@ -137,6 +138,10 @@ public class Entrada : MonoBehaviour
         float y = (Input.GetKey(KeyCode.W) ? 1f : 0f) - (Input.GetKey(KeyCode.S) ? 1f : 0f);
         Andar = new Vector2(x, y).normalized;
 
+        // Teclado parado: vale o controle (analogico esquerdo ou cruz).
+        if (Andar == Vector2.zero)
+            Andar = Controle.Andar;
+
         for (int i = 0; i < Setas.Length; i++)
         {
             if (Input.GetKeyDown(Setas[i]))
@@ -156,6 +161,10 @@ public class Entrada : MonoBehaviour
         }
 
         Tiro = DirecaoDaSeta(ultimaSeta);
+
+        // Nenhuma seta: vale o controle (A B X Y ou analogico direito).
+        if (Tiro == Vector2.zero)
+            Tiro = Controle.Tiro;
     }
 
     private static Vector2 DirecaoDaSeta(KeyCode seta)

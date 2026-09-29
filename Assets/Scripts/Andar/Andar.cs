@@ -124,9 +124,11 @@ public class Andar : MonoBehaviour
     [SerializeField] private Color corDoBatenteDoItem = new Color(0.95f, 0.78f, 0.25f);
     [SerializeField] private Color corDoBatenteDoChefe = new Color(0.8f, 0.15f, 0.15f);
 
-    // Teclas entre colchetes aparecem desenhadas na HUD (TelaSimples.LinhaDeTeclas).
+    // Teclas entre colchetes aparecem desenhadas na HUD (TelaSimples.LinhaDeTeclas); depois
+    // do "||" vem a mesma linha com os botoes do controle.
     private const string CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Esc] pausa";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Esc] pausa || " +
+        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad Start] pausa";
 
     // ---------------- estado ----------------
     private Sala[,] noMundo;
