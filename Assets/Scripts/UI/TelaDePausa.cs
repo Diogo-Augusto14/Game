@@ -78,9 +78,9 @@ public class TelaDePausa : MonoBehaviour
 
         TelaSimples.Texto(tela.transform, "Titulo", 80, new Color(1f, 0.95f, 0.85f), 290f, "PAUSADO");
         resumo = TelaSimples.Texto(tela.transform, "Resumo", 30, Color.white, 90f, "");
-        TelaSimples.LinhaDeTeclas(tela.transform, "Teclas", -95f, "[Esc] continuar | [R] recomecar | [Q] menu", 32,
+        TelaSimples.LinhaDeTeclas(tela.transform, "Teclas", -45f, "[Esc] continuar | [R] recomecar | [Q] menu", 32,
             new Color(1f, 0.85f, 0.4f));
-        opcoes = TelaSimples.LinhaDeTeclas(tela.transform, "Opcoes", -160f, "", 30, new Color(1f, 0.85f, 0.4f));
+        opcoes = TelaSimples.LinhaDeTeclas(tela.transform, "Opcoes", -110f, "", 30, new Color(1f, 0.85f, 0.4f));
 
         // Moldura do Dragon Regalia no meio e a faixa rosa atras do titulo.
         TelaSimples.Painel(tela.transform, "Painel", ArteDaInterface.MolduraGrande, 0f, new Vector2(1300f, 420f));

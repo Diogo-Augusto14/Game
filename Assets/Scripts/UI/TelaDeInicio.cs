@@ -73,7 +73,7 @@ public class TelaDeInicio : MonoBehaviour
         atual = this;
         abriu = Time.unscaledTime;
 
-        TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 0.97f));
+        TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 1f));
 
         textoDoTitulo = TelaSimples.Texto(transform, "Titulo", 100, new Color(1f, 0.93f, 0.8f), 400f, titulo);
         TelaSimples.Texto(transform, "Subtitulo", 30, new Color(0.75f, 0.65f, 0.65f), 268f,
