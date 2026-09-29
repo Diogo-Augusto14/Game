@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -24,6 +25,15 @@ public class Lagrima : MonoBehaviour
     private float forcaEmpurrao;
     private float percorrido;
     private bool acabou;
+    private bool atravessa;
+    private bool teleguiada;
+    private readonly HashSet<IDanificavel> acertados = new HashSet<IDanificavel>();
+
+    /// <summary>Graus por segundo que a lagrima teleguiada consegue virar.</summary>
+    private const float GiroDaTeleguiada = 300f;
+
+    /// <summary>Distancia maxima em que a teleguiada "ve" um inimigo.</summary>
+    private const float VisaoDaTeleguiada = 5f;
 
     public GameObject Dono => dono;
 
@@ -56,10 +66,20 @@ public class Lagrima : MonoBehaviour
         rb.linearVelocity = velocidade;
     }
 
+    /// <summary>Efeitos de item: atravessar inimigos e/ou curvar atras do mais perto.</summary>
+    public void DefinirEfeitos(bool atravessaInimigos, bool perseguir)
+    {
+        atravessa = atravessaInimigos;
+        teleguiada = perseguir;
+    }
+
     private void FixedUpdate()
     {
         if (acabou)
             return;
+
+        if (teleguiada)
+            Curvar();
 
         // Conta a distancia de verdade percorrida: se herdou a velocidade do jogador,
         // o alcance continua o mesmo em qualquer direcao.
@@ -81,19 +101,64 @@ public class Lagrima : MonoBehaviour
         if (outro.GetComponentInParent<Lagrima>() != null)
             return;
 
+        // Parede e pedra primeiro: a pedra tem Vida (pra bomba quebrar), mas lagrima nao
+        // pode quebrar pedra.
+        if (!outro.isTrigger && (Camadas.MascaraDeParede & (1 << outro.gameObject.layer)) != 0)
+        {
+            Estourar();
+            return;
+        }
+
         IDanificavel alvo = outro.GetComponentInParent<IDanificavel>();
 
         if (alvo != null)
         {
+            // Atravessando, cada inimigo leva um golpe so desta lagrima.
+            if (!acertados.Add(alvo))
+                return;
+
             Vector2 direcao = rb.linearVelocity.sqrMagnitude > 0.0001f ? rb.linearVelocity : Vector2.right;
             alvo.TomarDano(new DanoInfo(dano, direcao, forcaEmpurrao, transform.position, dono));
-            Estourar();
+
+            if (!atravessa)
+                Estourar();
+
             return;
         }
 
         // Trigger de cenario (zona, porta) nao para a lagrima; so coisa solida.
         if (!outro.isTrigger)
             Estourar();
+    }
+
+    /// <summary>Vira a velocidade aos poucos na direcao do inimigo acordado mais perto.</summary>
+    private void Curvar()
+    {
+        InimigoDeSala alvo = null;
+        float melhor = VisaoDaTeleguiada * VisaoDaTeleguiada;
+
+        foreach (InimigoDeSala inimigo in InimigoDeSala.Ativos)
+        {
+            if (inimigo == null || inimigo.EstaMorto || inimigo.EstadoAtual == InimigoDeSala.Estado.Dormindo)
+                continue;
+
+            float d = ((Vector2)inimigo.transform.position - rb.position).sqrMagnitude;
+
+            if (d < melhor)
+            {
+                melhor = d;
+                alvo = inimigo;
+            }
+        }
+
+        if (alvo == null)
+            return;
+
+        Vector2 v = rb.linearVelocity;
+        Vector2 querido = ((Vector2)alvo.transform.position - rb.position).normalized * v.magnitude;
+        float angulo = Vector2.SignedAngle(v, querido);
+        float giro = Mathf.Clamp(angulo, -GiroDaTeleguiada * Time.fixedDeltaTime, GiroDaTeleguiada * Time.fixedDeltaTime);
+        rb.linearVelocity = Quaternion.Euler(0f, 0f, giro) * v;
     }
 
     /// <summary>Para, desliga a colisao, encolhe e some.</summary>

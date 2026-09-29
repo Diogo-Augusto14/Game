@@ -99,6 +99,7 @@ public class Alcapao : MonoBehaviour
     private IEnumerator Cair(GameObject jogador)
     {
         caindo = true;
+        Sons.Tocar(Som.Queda);
 
         // Sem controle durante a queda: o boneco vai pro meio do buraco e encolhe.
         // Esquecer antes de desligar: desligada, a Entrada deixaria o ultimo "andar" apertado.

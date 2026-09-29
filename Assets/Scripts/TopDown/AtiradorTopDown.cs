@@ -59,6 +59,13 @@ public class AtiradorTopDown : MonoBehaviour
 
     [SerializeField, Min(0f)] private float distanciaDoOlho = 0.18f;
 
+    // ---------------- efeitos de item ----------------
+    private bool atravessa;
+    private bool teleguiada;
+    private bool paraTras;
+    private Color corOriginal;
+    private bool guardouCor;
+
     // ---------------- estado ----------------
     private Entrada entrada;
     private MovimentoTopDown movimento;
@@ -91,7 +98,7 @@ public class AtiradorTopDown : MonoBehaviour
             Debug.LogWarning("[AtiradorTopDown] sem Entrada no objeto — o boneco nao vai atirar.", this);
 
         if (sprite == null)
-            sprite = FormasTopDown.Circulo();
+            sprite = ArteGerada.Bola();
     }
 
     private void Update()
@@ -132,21 +139,51 @@ public class AtiradorTopDown : MonoBehaviour
         Vector2 origem = (Vector2)transform.position + direcao * distanciaDoCorpo + lado;
         Vector2 heranca = movimento != null ? movimento.Velocidade * herancaDaVelocidade : Vector2.zero;
 
+        Sons.Tocar(Som.Tiro, 0.55f);
+
         Lagrima doMeio = null;
         float primeiroAngulo = -aberturaDoLeque * (lagrimasPorDisparo - 1) * 0.5f;
 
         for (int i = 0; i < lagrimasPorDisparo; i++)
         {
             Vector2 rumo = Quaternion.Euler(0f, 0f, primeiroAngulo + aberturaDoLeque * i) * direcao;
-
-            Lagrima lagrima = CriarLagrima(origem);
-            lagrima.Disparar(gameObject, rumo * velocidadeDoTiro + heranca, dano, alcance, forcaEmpurrao);
+            Lagrima lagrima = Soltar(origem, rumo * velocidadeDoTiro + heranca);
 
             if (i == lagrimasPorDisparo / 2)
                 doMeio = lagrima;
         }
 
+        // Olho na Nuca: uma lagrima pra tras, do outro lado do corpo.
+        if (paraTras)
+            Soltar((Vector2)transform.position - direcao * distanciaDoCorpo, -direcao * velocidadeDoTiro + heranca);
+
         return doMeio;
+    }
+
+    private Lagrima Soltar(Vector2 origem, Vector2 velocidade)
+    {
+        Lagrima lagrima = CriarLagrima(origem);
+        lagrima.Disparar(gameObject, velocidade, dano, alcance, forcaEmpurrao);
+        lagrima.DefinirEfeitos(atravessa, teleguiada);
+        return lagrima;
+    }
+
+    /// <summary>
+    /// Liga os efeitos especiais que os itens dao a lagrima. <paramref name="novaCor"/>
+    /// null = volta a cor original.
+    /// </summary>
+    public void DefinirEfeitos(bool lagrimaAtravessa, bool lagrimaTeleguiada, bool tambemPraTras, Color? novaCor)
+    {
+        if (!guardouCor)
+        {
+            corOriginal = cor;
+            guardouCor = true;
+        }
+
+        atravessa = lagrimaAtravessa;
+        teleguiada = lagrimaTeleguiada;
+        paraTras = tambemPraTras;
+        cor = novaCor ?? corOriginal;
     }
 
     private Lagrima CriarLagrima(Vector2 posicao)

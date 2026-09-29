@@ -40,6 +40,35 @@ public class Andar : MonoBehaviour
     [Tooltip("Inimigo nao nasce mais perto que isto de uma porta")]
     [SerializeField, Min(0f)] private float distanciaDasPortas = 3f;
 
+    [Tooltip("A cada tantos andares, um inimigo a mais por sala (0 = nunca)")]
+    [SerializeField, Min(0)] private int andaresPorInimigoExtra = 2;
+
+    [Tooltip("Sentinelas no maximo por sala: sao paradas, em excesso a sala vira tiroteio")]
+    [SerializeField, Min(0)] private int maximoDeSentinelas = 2;
+
+    [Header("Variedade das salas")]
+    [Tooltip("Chance de uma sala comum nao ter pedra nem espinho")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeSalaVazia = 0.25f;
+
+    [Tooltip("Espinhos so aparecem a partir deste andar")]
+    [SerializeField, Min(1)] private int espinhosAPartirDoAndar = 2;
+
+    [Tooltip("Cor do chao de cada andar (o andar 4 volta pra primeira, e assim por diante)")]
+    [SerializeField] private Color[] coresDoChao =
+    {
+        new Color(0.22f, 0.17f, 0.14f),   // porao: terra
+        new Color(0.14f, 0.17f, 0.22f),   // cavernas: pedra azulada
+        new Color(0.15f, 0.2f, 0.13f),    // esgoto: musgo
+    };
+
+    [Tooltip("Cor das paredes de cada andar, na mesma ordem do chao")]
+    [SerializeField] private Color[] coresDaParede =
+    {
+        new Color(0.35f, 0.3f, 0.28f),
+        new Color(0.28f, 0.32f, 0.4f),
+        new Color(0.27f, 0.34f, 0.25f),
+    };
+
     [Header("Itens e coletaveis")]
     [Tooltip("Chance de cada inimigo soltar coracao, moeda, bomba ou chave ao morrer")]
     [SerializeField, Range(0f, 1f)] private float chanceDeDropDoInimigo = 0.15f;
@@ -54,8 +83,17 @@ public class Andar : MonoBehaviour
     [Tooltip("Distancia do centro da sala do chefe ate o alcapao, pro lado oposto da porta (o pedestal fica no centro)")]
     [SerializeField, Min(0f)] private float distanciaDoAlcapao = 2f;
 
+    [Tooltip("O andar do chefe final. Vencer ele termina a partida (sem alcapao)")]
+    [SerializeField, Min(1)] private int andarFinal = 4;
+
     [Tooltip("Mostra 'Andar N' no meio da tela a cada andar novo")]
     [SerializeField] private bool avisarAndarNovo = true;
+
+    [Header("Menu")]
+    [Tooltip("Mostra o menu inicial ao abrir a cena (recomecar depois de morrer pula o menu)")]
+    [SerializeField] private bool mostrarMenu = true;
+
+    [SerializeField] private string nomeDoJogo = "THE PRETTIE";
 
     [Header("Jogador")]
     [Tooltip("Sem ninguem com a tag Player na cena, monta o jogador top-down (WASD anda, setas atiram)")]
@@ -78,11 +116,14 @@ public class Andar : MonoBehaviour
     [Header("Cores")]
     [SerializeField] private Color corDoChaoDoItem = new Color(0.32f, 0.28f, 0.14f);
     [SerializeField] private Color corDoChaoDoChefe = new Color(0.32f, 0.14f, 0.14f);
+    [SerializeField] private Color corDoChaoDaLoja = new Color(0.16f, 0.24f, 0.18f);
+    [SerializeField] private Color corDoChaoDaSecreta = new Color(0.1f, 0.09f, 0.12f);
+    [SerializeField] private Color corDoBatenteDaLoja = new Color(0.4f, 0.85f, 0.45f);
     [SerializeField] private Color corDoBatenteDoItem = new Color(0.95f, 0.78f, 0.25f);
     [SerializeField] private Color corDoBatenteDoChefe = new Color(0.8f, 0.15f, 0.15f);
 
     private const string CONTROLES =
-        "W A S D  andar    Setas  atirar    E  bomba\n" +
+        "W A S D  andar    Setas  atirar    E  bomba    Esc  pausa\n" +
         "Limpe a sala pra abrir as portas. Venca o chefe e pule no alcapao";
 
     // ---------------- estado ----------------
@@ -138,11 +179,17 @@ public class Andar : MonoBehaviour
 
         if (mostrarMinimapa && GetComponent<Minimapa>() == null)
             gameObject.AddComponent<Minimapa>();
+
+        if (GetComponent<TelaDePausa>() == null)
+            gameObject.AddComponent<TelaDePausa>();
     }
 
     private void Start()
     {
         Gerar();
+
+        if (mostrarMenu)
+            TelaDeInicio.Mostrar(this, nomeDoJogo);
     }
 
     private void OnDestroy()
@@ -154,8 +201,13 @@ public class Andar : MonoBehaviour
             Physics2D.gravity = gravidadeAnterior;
 
         if (vidaDoJogador != null)
+        {
             vidaDoJogador.AoMorrer.RemoveListener(MorreuOJogador);
+            vidaDoJogador.AoTomarDano.RemoveListener(DoeuNoJogador);
+        }
     }
+
+    private void DoeuNoJogador(DanoInfo _) => Sons.Tocar(Som.DanoJogador);
 
     // ---------------- api ----------------
     /// <summary>
@@ -210,7 +262,7 @@ public class Andar : MonoBehaviour
         Entrar(Mapa.Inicio, null);
 
         if (avisarAndarNovo)
-            AvisoDoAndar.Mostrar($"Andar {numeroDoAndar}");
+            AvisoDoAndar.Mostrar(UltimoAndar ? "Ultimo andar" : $"Andar {numeroDoAndar}");
     }
 
     // ---------------- troca de sala ----------------
@@ -245,6 +297,17 @@ public class Andar : MonoBehaviour
 
             Teleportar(ponto);
         }
+
+        // Saiu da secreta por uma porta que do outro lado ainda estava escondida: abre.
+        if (saiuPor.HasValue)
+        {
+            Porta chegada = destino.PortaEm(saiuPor.Value.Oposto());
+
+            if (chegada != null && chegada.Escondida)
+                chegada.Revelar();
+        }
+
+        Musica.Tocar(sala.Tipo == TipoDeSala.Chefe && !destino.Limpa ? MusicaDoChefe : Musica.DoAndar(numeroDoAndar));
 
         MoverCamera(destino.transform.position, saiuPor.HasValue ? tempoDaTransicao : 0f);
         AoEntrarNaSala?.Invoke(destino);
@@ -357,7 +420,10 @@ public class Andar : MonoBehaviour
         vidaDoJogador = encontrado.GetComponent<Vida>();
 
         if (vidaDoJogador != null)
+        {
             vidaDoJogador.AoMorrer.AddListener(MorreuOJogador);
+            vidaDoJogador.AoTomarDano.AddListener(DoeuNoJogador);
+        }
 
         if (encontrado.GetComponent<Inventario>() == null)
             encontrado.AddComponent<Inventario>();
@@ -407,12 +473,33 @@ public class Andar : MonoBehaviour
         Sala sala = Sala.Criar($"Sala {casa.Tipo} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
         salaDoMapa[sala] = casa;
 
+        if (coresDoChao.Length > 0 && coresDaParede.Length > 0)
+            sala.Pintar(coresDoChao[(numeroDoAndar - 1) % coresDoChao.Length],
+                        coresDaParede[(numeroDoAndar - 1) % coresDaParede.Length]);
+
+        // So sala comum ganha obstaculo: inicio, item e chefe ficam com o chao livre.
+        if (casa.Tipo == TipoDeSala.Normal)
+            DisposicoesDaSala.Sortear(sala, chanceDeSalaVazia, numeroDoAndar >= espinhosAPartirDoAndar);
+
         foreach (Porta porta in sala.Portas)
         {
             porta.AoAtravessar.AddListener(AoAtravessar);
 
-            if (porta.Existe)
-                MarcarPortaEspecial(porta, casa, Mapa.Vizinha(casa, ParaDirecao(porta.Lado)));
+            if (!porta.Existe)
+                continue;
+
+            SalaDoAndar vizinha = Mapa.Vizinha(casa, ParaDirecao(porta.Lado));
+
+            // Porta pra secreta: parece parede ate uma bomba abrir (e sem batente colorido,
+            // que entregaria o segredo). De dentro da secreta as portas sao normais.
+            if (vizinha.Tipo == TipoDeSala.Secreta && casa.Tipo != TipoDeSala.Secreta)
+            {
+                porta.Esconder();
+                porta.AoRevelar += _ => Sons.Tocar(Som.Segredo);
+                continue;
+            }
+
+            MarcarPortaEspecial(porta, casa, vizinha);
         }
 
         PintarChao(sala, casa.Tipo);
@@ -429,24 +516,98 @@ public class Andar : MonoBehaviour
         {
             case TipoDeSala.Normal:
                 quantos = UnityEngine.Random.Range(inimigosPorSala.x, inimigosPorSala.y + 1);
+
+                if (andaresPorInimigoExtra > 0)
+                    quantos += Mathf.Min(2, (numeroDoAndar - 1) / andaresPorInimigoExtra);
+
                 break;
             case TipoDeSala.Chefe:
                 // No meio da sala, longe de todas as portas. O pedestal do premio nasce no
-                // mesmo lugar quando ele morre (PorPremios).
-                sala.CriarInimigo(TipoDeInimigo.Chefe, Vector2.zero);
+                // mesmo lugar quando ele morre (PorPremios). Andar par = o segundo chefe.
+                sala.CriarInimigo(UltimoAndar ? TipoDeInimigo.ChefeFinal : ChefeDoNumero(numeroDoAndar), Vector2.zero);
                 return;
             default:
                 return; // inicio e item: sala tranquila, como no Isaac
         }
 
+        int sentinelas = 0;
+
         for (int i = 0; i < quantos; i++)
         {
-            TipoDeInimigo tipo = UnityEngine.Random.value < 0.35f ? TipoDeInimigo.Atirador : TipoDeInimigo.Perseguidor;
+            TipoDeInimigo tipo = SortearInimigo(numeroDoAndar);
+
+            if (tipo == TipoDeInimigo.Sentinela && ++sentinelas > maximoDeSentinelas)
+                tipo = TipoDeInimigo.Perseguidor;
+
             InimigoDeSala inimigo = sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
+
+            if (inimigo is InimigoSentinela sentinela)
+                sentinela.UsarOitoDirecoes(numeroDoAndar >= 3);
 
             if (inimigo != null && chanceDeDropDoInimigo > 0f)
                 inimigo.gameObject.AddComponent<SoltaColetavel>().Configurar(chanceDeDropDoInimigo, sala.transform);
         }
+    }
+
+    /// <summary>Andar impar: o Monstrao. Andar par: o Sapao.</summary>
+    public static TipoDeInimigo ChefeDoNumero(int andar)
+    {
+        return andar % 2 == 0 ? TipoDeInimigo.ChefeSaltador : TipoDeInimigo.Chefe;
+    }
+
+    /// <summary>
+    /// Quem aparece em cada andar, com peso. Cada andar traz gente nova, pra o andar
+    /// seguinte nao parecer o mesmo com mais salas:
+    ///   1  -> perseguidor, atirador, investidor, divisor
+    ///   2  -> + saltador e sentinela (e o perseguidor fica mais raro)
+    ///   3+ -> todos, com mais investidor, divisor e sentinela
+    /// </summary>
+    private static TipoDeInimigo SortearInimigo(int andar)
+    {
+        (TipoDeInimigo tipo, float peso)[] tabela;
+
+        if (andar <= 1)
+        {
+            tabela = new[]
+            {
+                (TipoDeInimigo.Perseguidor, 4f), (TipoDeInimigo.Atirador, 2.5f),
+                (TipoDeInimigo.Investidor, 2f), (TipoDeInimigo.Divisor, 1.5f),
+            };
+        }
+        else if (andar == 2)
+        {
+            tabela = new[]
+            {
+                (TipoDeInimigo.Perseguidor, 2f), (TipoDeInimigo.Atirador, 2f),
+                (TipoDeInimigo.Investidor, 1.5f), (TipoDeInimigo.Divisor, 1.5f),
+                (TipoDeInimigo.Saltador, 3f), (TipoDeInimigo.Sentinela, 1.5f),
+            };
+        }
+        else
+        {
+            tabela = new[]
+            {
+                (TipoDeInimigo.Perseguidor, 1.5f), (TipoDeInimigo.Atirador, 2f),
+                (TipoDeInimigo.Investidor, 2.5f), (TipoDeInimigo.Divisor, 2f),
+                (TipoDeInimigo.Saltador, 2f), (TipoDeInimigo.Sentinela, 2f),
+            };
+        }
+
+        float total = 0f;
+        foreach (var linha in tabela)
+            total += linha.peso;
+
+        float sorteio = UnityEngine.Random.value * total;
+
+        foreach (var linha in tabela)
+        {
+            sorteio -= linha.peso;
+
+            if (sorteio <= 0f)
+                return linha.tipo;
+        }
+
+        return tabela[tabela.Length - 1].tipo;
     }
 
     // ---------------- itens e coletaveis ----------------
@@ -470,16 +631,36 @@ public class Andar : MonoBehaviour
             case TipoDeSala.Chefe:
                 // Sorteia ja na montagem, pra semente do andar decidir o item e nao a hora da luta.
                 // O alcapao abre junto, acima do pedestal: pega o item e desce.
+                // No ultimo andar nao tem alcapao: venceu o chefe final, venceu o jogo.
+                if (UltimoAndar)
+                {
+                    sala.AoLimpar.AddListener(() =>
+                    {
+                        Musica.Tocar(TemaMusical.Vitoria);
+                        TelaDeFimDeJogo.MostrarVitoria(this);
+                    });
+                    break;
+                }
+
                 ItemPassivo doChefe = CatalogoDeItens.Sortear(itensQueJaSairam);
                 sala.AoLimpar.AddListener(() =>
                 {
                     Pedestal.Criar(doChefe, centro, sala.transform);
                     Alcapao.Criar(centro + LongeDaPorta(sala, distanciaDoAlcapao), sala.transform);
+                    Musica.Tocar(Musica.DoAndar(numeroDoAndar));
                 });
                 break;
 
             case TipoDeSala.Normal:
                 sala.AoLimpar.AddListener(() => TabelaDeDrops.TalvezSoltar(chanceDePremioDaSala, centro, sala.transform));
+                break;
+
+            case TipoDeSala.Loja:
+                Loja.Montar(sala.transform, itensQueJaSairam);
+                break;
+
+            case TipoDeSala.Secreta:
+                PorTesouroSecreto(sala);
                 break;
 
             case TipoDeSala.Inicio:
@@ -516,6 +697,37 @@ public class Andar : MonoBehaviour
 
     private bool ItemTrancado => numeroDoAndar >= trancarItemAPartirDoAndar;
 
+    private TemaMusical MusicaDoChefe => UltimoAndar ? TemaMusical.ChefeFinal : TemaMusical.Chefe;
+
+    /// <summary>O andar do chefe final: vencer ele termina a partida.</summary>
+    public bool UltimoAndar => numeroDoAndar >= andarFinal;
+
+    public int AndarFinal => andarFinal;
+
+    /// <summary>
+    /// O premio de quem acha a sala secreta: as vezes um item, senao um monte de moedas
+    /// com uma bomba (pra achar a proxima) e um coracao.
+    /// </summary>
+    private void PorTesouroSecreto(Sala sala)
+    {
+        Vector2 centro = sala.transform.position;
+
+        if (UnityEngine.Random.value < 0.4f)
+        {
+            Pedestal.Criar(CatalogoDeItens.Sortear(itensQueJaSairam), centro, sala.transform);
+            return;
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            float angulo = i * 72f * Mathf.Deg2Rad;
+            Coletavel.Criar(TipoDeColetavel.Moeda, centro + new Vector2(Mathf.Cos(angulo), Mathf.Sin(angulo)) * 1.2f, sala.transform);
+        }
+
+        Coletavel.Criar(TipoDeColetavel.Bomba, centro + Vector2.left * 0.3f, sala.transform);
+        Coletavel.Criar(TipoDeColetavel.Coracao, centro + Vector2.right * 0.3f, sala.transform);
+    }
+
     /// <summary>Ponto livre da sala longe de toda porta, pra ninguem nascer em cima de quem entra.</summary>
     private Vector2 PontoLongeDasPortas(Sala sala)
     {
@@ -541,13 +753,21 @@ public class Andar : MonoBehaviour
 
     private void PintarChao(Sala sala, TipoDeSala tipo)
     {
-        if (tipo != TipoDeSala.Item && tipo != TipoDeSala.Chefe)
-            return;
+        Color cor;
+
+        switch (tipo)
+        {
+            case TipoDeSala.Item: cor = corDoChaoDoItem; break;
+            case TipoDeSala.Chefe: cor = corDoChaoDoChefe; break;
+            case TipoDeSala.Loja: cor = corDoChaoDaLoja; break;
+            case TipoDeSala.Secreta: cor = corDoChaoDaSecreta; break;
+            default: return;
+        }
 
         Transform chao = sala.transform.Find("Cenario/Chao");
 
         if (chao != null && chao.TryGetComponent(out SpriteRenderer sr))
-            sr.color = tipo == TipoDeSala.Item ? corDoChaoDoItem : corDoChaoDoChefe;
+            sr.color = cor;
     }
 
     /// <summary>
@@ -563,6 +783,8 @@ public class Andar : MonoBehaviour
             cor = corDoBatenteDoChefe;
         else if (casa.Tipo == TipoDeSala.Item || vizinha.Tipo == TipoDeSala.Item)
             cor = corDoBatenteDoItem;
+        else if (casa.Tipo == TipoDeSala.Loja || vizinha.Tipo == TipoDeSala.Loja)
+            cor = corDoBatenteDaLoja;
         else
             return;
 

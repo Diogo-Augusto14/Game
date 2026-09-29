@@ -29,6 +29,19 @@ public class ItemPassivo
     public float somaTamanhoDaLagrima;
     public int lagrimasExtras;
 
+    [Header("Lagrima especial")]
+    [Tooltip("Atravessa inimigos (continua voando depois de acertar)")]
+    public bool atravessa;
+
+    [Tooltip("Curva sozinha na direcao do inimigo mais perto")]
+    public bool teleguiada;
+
+    [Tooltip("Solta uma lagrima pra tras tambem")]
+    public bool paraTras;
+
+    [Tooltip("Muda a cor da lagrima (alfa 0 = nao muda)")]
+    public Color corDaLagrima = new Color(0f, 0f, 0f, 0f);
+
     [Header("Corpo")]
     public float somaVelocidade;
     public float somaVidaMaxima;
@@ -89,6 +102,18 @@ public static class CatalogoDeItens
 
             new ItemPassivo("Saco de Moedas", "Moedas, chave e bombas", new Color(0.95f, 0.8f, 0.2f))
                 { moedas = 10, chaves = 1, bombas = 3 },
+
+            new ItemPassivo("Lagrima Fantasma", "Lagrimas atravessam inimigos", new Color(0.85f, 0.95f, 1f))
+                { atravessa = true, corDaLagrima = new Color(0.85f, 0.95f, 1f, 0.55f) },
+
+            new ItemPassivo("Bussola Maldita", "Lagrimas perseguem inimigos", new Color(0.7f, 0.35f, 0.95f))
+                { teleguiada = true, corDaLagrima = new Color(0.75f, 0.45f, 1f) },
+
+            new ItemPassivo("Olho na Nuca", "Chora pra tras tambem", new Color(0.4f, 0.8f, 0.55f))
+                { paraTras = true },
+
+            new ItemPassivo("Pimenta", "Lagrimas de fogo, dano para cima", new Color(1f, 0.35f, 0.1f))
+                { multiplicaDano = 1.3f, somaVelocidadeDoTiro = 1f, corDaLagrima = new Color(1f, 0.45f, 0.15f) },
         };
     }
 

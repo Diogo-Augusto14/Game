@@ -63,7 +63,9 @@ public class Sala : MonoBehaviour
 
     private readonly Dictionary<LadoDaPorta, Porta> portas = new Dictionary<LadoDaPorta, Porta>();
     private readonly List<InimigoDeSala> inimigos = new List<InimigoDeSala>();
+    private readonly HashSet<Vector2Int> celulasOcupadas = new HashSet<Vector2Int>();
 
+    private Transform cenario;
     private Transform pastaDeInimigos;
     private bool montada;
     private int vivos;
@@ -154,11 +156,77 @@ public class Sala : MonoBehaviour
         return porta;
     }
 
-    /// <summary>Ponto aleatorio dentro da sala, com uma margem das paredes. Relativo ao centro.</summary>
+    /// <summary>
+    /// Ponto aleatorio dentro da sala, com uma margem das paredes e fora de pedra e
+    /// espinho. Relativo ao centro.
+    /// </summary>
     public Vector2 PontoLivreAleatorio(float margem = 1.5f)
     {
         Vector2 meio = tamanhoInterno * 0.5f - Vector2.one * margem;
-        return new Vector2(Random.Range(-meio.x, meio.x), Random.Range(-meio.y, meio.y));
+        Vector2 ponto = Vector2.zero;
+
+        for (int tentativa = 0; tentativa < 30; tentativa++)
+        {
+            ponto = new Vector2(Random.Range(-meio.x, meio.x), Random.Range(-meio.y, meio.y));
+
+            if (Livre(ponto))
+                break;
+        }
+
+        return ponto;
+    }
+
+    /// <summary>True se um corpo desta folga (raio) cabe no ponto sem encostar em obstaculo.</summary>
+    public bool Livre(Vector2 posicaoLocal, float folga = 0.45f)
+    {
+        foreach (Vector2Int celula in celulasOcupadas)
+        {
+            if (Mathf.Abs(posicaoLocal.x - celula.x) < 0.5f + folga && Mathf.Abs(posicaoLocal.y - celula.y) < 0.5f + folga)
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Poe uma pedra ou espinhos no ladrilho dado (x e y inteiros a partir do centro; numa
+    /// sala 13x7, x vai de -6 a 6 e y de -3 a 3). Ladrilho ja ocupado fica como esta.
+    /// </summary>
+    public void PorObstaculo(TipoDeObstaculo tipo, Vector2Int celula)
+    {
+        Montar();
+
+        if (!celulasOcupadas.Add(celula))
+            return;
+
+        Vector2 posicao = celula;
+
+        if (tipo == TipoDeObstaculo.Pedra)
+            Pedra.Criar(cenario, posicao, Color.Lerp(corDaParede, new Color(0.55f, 0.55f, 0.55f), 0.35f));
+        else
+            Espinhos.Criar(cenario, posicao);
+    }
+
+    /// <summary>Troca a cor do chao e das paredes (cada andar tem a sua).</summary>
+    public void Pintar(Color chao, Color parede)
+    {
+        Montar();
+        corDoChao = chao;
+        corDaParede = parede;
+
+        foreach (Transform peca in cenario)
+        {
+            if (!peca.TryGetComponent(out SpriteRenderer sr))
+                continue;
+
+            if (peca.name == "Chao")
+                sr.color = chao;
+            else if (peca.name.StartsWith("Parede"))
+                sr.color = parede;
+        }
+
+        foreach (Porta porta in portas.Values)
+            porta.PintarParede(parede);
     }
 
     // ================================================================ ciclo de vida
@@ -195,6 +263,8 @@ public class Sala : MonoBehaviour
         foreach (Porta porta in portas.Values)
             porta.Fechar();
 
+        Sons.Tocar(Som.PortaFecha);
+
         foreach (InimigoDeSala inimigo in inimigos)
         {
             if (inimigo != null && !inimigo.EstaMorto)
@@ -229,6 +299,10 @@ public class Sala : MonoBehaviour
 
     private void Limpar()
     {
+        // So faz barulho quando teve luta: sala vazia abre calada.
+        if (inimigos.Count > 0)
+            Sons.Tocar(Som.PortaAbre);
+
         Limpa = true;
 
         foreach (Porta porta in portas.Values)
@@ -257,10 +331,10 @@ public class Sala : MonoBehaviour
 
         montada = true;
 
-        Transform cenario = new GameObject("Cenario").transform;
+        cenario = new GameObject("Cenario").transform;
         cenario.SetParent(transform, false);
 
-        FormasDaSala.Desenho(cenario, "Chao", FormasDaSala.Quadrado(), corDoChao, Vector2.zero, tamanhoInterno, -10);
+        FormasDaSala.DesenhoLadrilhado(cenario, "Chao", ArteGerada.Chao(), corDoChao, Vector2.zero, tamanhoInterno, -10);
 
         MontarLado(cenario, LadoDaPorta.Cima, portaCima);
         MontarLado(cenario, LadoDaPorta.Baixo, portaBaixo);
@@ -322,7 +396,7 @@ public class Sala : MonoBehaviour
 
     private void Parede(Transform pai, string nome, Vector2 posicaoLocal, Vector2 tamanho)
     {
-        SpriteRenderer sr = FormasDaSala.Desenho(pai, nome, FormasDaSala.Quadrado(), corDaParede, posicaoLocal, tamanho, 0);
+        SpriteRenderer sr = FormasDaSala.DesenhoLadrilhado(pai, nome, ArteGerada.Tijolo(), corDaParede, posicaoLocal, tamanho, 0);
         sr.gameObject.layer = CamadaDeParede;
 
         BoxCollider2D caixa = sr.gameObject.AddComponent<BoxCollider2D>();

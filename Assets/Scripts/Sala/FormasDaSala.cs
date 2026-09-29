@@ -54,6 +54,17 @@ public static class FormasDaSala
         return circulo;
     }
 
+    /// <summary>Como <see cref="Desenho"/>, mas o sprite repete (modo Tiled) pra cobrir o tamanho.</summary>
+    public static SpriteRenderer DesenhoLadrilhado(Transform pai, string nome, Sprite sprite, Color cor,
+                                                   Vector2 posicaoLocal, Vector2 tamanho, int ordem)
+    {
+        SpriteRenderer sr = Desenho(pai, nome, sprite, cor, posicaoLocal, Vector2.one, ordem);
+        sr.transform.localScale = Vector3.one;
+        sr.drawMode = SpriteDrawMode.Tiled;
+        sr.size = tamanho;
+        return sr;
+    }
+
     /// <summary>Cria um filho so com desenho (sem colisao).</summary>
     public static SpriteRenderer Desenho(Transform pai, string nome, Sprite sprite, Color cor,
                                          Vector2 posicaoLocal, Vector2 tamanho, int ordem)

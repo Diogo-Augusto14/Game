@@ -36,7 +36,7 @@ public class TiroDaSala : MonoBehaviour
         obj.transform.localScale = Vector3.one * diametro;
 
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = FormasDaSala.Circulo();
+        sr.sprite = ArteGerada.Bola();
         sr.color = cor;
         sr.sortingOrder = 20;
 
@@ -55,6 +55,10 @@ public class TiroDaSala : MonoBehaviour
         p.atingeJogador = atingeJogador;
 
         corpo.linearVelocity = velocidade;
+
+        if (atingeJogador)
+            Sons.Tocar(Som.TiroInimigo, 0.4f);
+
         return p;
     }
 

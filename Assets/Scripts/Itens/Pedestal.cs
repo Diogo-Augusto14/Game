@@ -51,7 +51,7 @@ public class Pedestal : MonoBehaviour
             desenho.transform.localScale = Vector3.one * 0.45f;
 
             SpriteRenderer sr = desenho.AddComponent<SpriteRenderer>();
-            sr.sprite = FormasTopDown.Circulo();
+            sr.sprite = ArteGerada.Bola();
             sr.color = item.cor;
             sr.sortingOrder = 6;
 

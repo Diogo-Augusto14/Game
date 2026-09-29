@@ -43,6 +43,9 @@ public class Coletavel : MonoBehaviour
         }
     }
 
+    /// <summary>Tamanho do desenho no mundo, em unidades.</summary>
+    public static float TamanhoDe(TipoDeColetavel tipo) => tipo == TipoDeColetavel.Moeda ? 0.42f : 0.55f;
+
     /// <summary>Poe um coletavel no mundo, na posicao dada. <paramref name="pai"/> costuma ser a sala.</summary>
     public static Coletavel Criar(TipoDeColetavel tipo, Vector2 posicao, Transform pai = null)
     {
@@ -50,34 +53,17 @@ public class Coletavel : MonoBehaviour
         obj.transform.SetParent(pai, true);
         obj.transform.position = posicao;
 
-        // Formas simples ate ter arte: coracao e moeda redondos, chave comprida, bomba
-        // redonda escura com um pavio.
-        bool comprido = tipo == TipoDeColetavel.Chave;
-        Vector2 tamanho = comprido ? new Vector2(0.22f, 0.45f) : Vector2.one * (tipo == TipoDeColetavel.Moeda ? 0.3f : 0.4f);
-        Sprite forma = comprido ? FormasTopDown.Quadrado() : FormasTopDown.Circulo();
-
+        // Pixel art de 1 unidade (ArteGerada), ja colorida.
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = forma;
-        sr.color = CorDe(tipo);
+        sr.sprite = ArteGerada.Coletavel(tipo);
+        sr.color = Color.white;
         sr.sortingOrder = 5;
-        obj.transform.localScale = new Vector3(tamanho.x, tamanho.y, 1f);
+        obj.transform.localScale = Vector3.one * TamanhoDe(tipo);
 
-        if (tipo == TipoDeColetavel.Bomba)
-        {
-            GameObject pavio = new GameObject("Pavio");
-            pavio.transform.SetParent(obj.transform, false);
-            pavio.transform.localPosition = new Vector3(0f, 0.55f, 0f);
-            pavio.transform.localScale = new Vector3(0.2f, 0.3f, 1f);
-            SpriteRenderer p = pavio.AddComponent<SpriteRenderer>();
-            p.sprite = FormasTopDown.Quadrado();
-            p.color = new Color(1f, 0.6f, 0.2f);
-            p.sortingOrder = 6;
-        }
-
-        // Circulo/quadrado gerado tem 1 unidade: o colisor na escala local cobre o desenho.
+        // O desenho tem 1 unidade: o colisor na escala local cobre o desenho.
         CircleCollider2D colisor = obj.AddComponent<CircleCollider2D>();
         colisor.isTrigger = true;
-        colisor.radius = comprido ? 0.7f : 0.6f;
+        colisor.radius = 0.5f;
 
         Coletavel c = obj.AddComponent<Coletavel>();
         c.tipo = tipo;
@@ -125,6 +111,7 @@ public class Coletavel : MonoBehaviour
                 return;
 
             vida.Curar(cura);
+            Sons.Tocar(Som.Coracao);
         }
         else
         {
@@ -134,6 +121,7 @@ public class Coletavel : MonoBehaviour
                 return;
 
             inventario.Adicionar(tipo, 1);
+            Sons.Tocar(tipo == TipoDeColetavel.Moeda ? Som.Moeda : Som.Chave);
         }
 
         Destroy(gameObject);

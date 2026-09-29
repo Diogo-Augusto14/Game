@@ -29,11 +29,11 @@ public class Bomba : MonoBehaviour
     {
         GameObject obj = new GameObject("Bomba acesa");
         obj.transform.position = posicao;
-        obj.transform.localScale = Vector3.one * 0.45f;
+        obj.transform.localScale = Vector3.one * 0.6f;
 
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = FormasTopDown.Circulo();
-        sr.color = Coletavel.CorDe(TipoDeColetavel.Bomba);
+        sr.sprite = ArteGerada.Coletavel(TipoDeColetavel.Bomba);
+        sr.color = Color.white;
         sr.sortingOrder = 4;
 
         Bomba bomba = obj.AddComponent<Bomba>();
@@ -54,7 +54,7 @@ public class Bomba : MonoBehaviour
     private IEnumerator Queimar()
     {
         Color escura = desenho.color;
-        Color acesa = new Color(1f, 0.35f, 0.2f);
+        Color acesa = new Color(1f, 0.45f, 0.3f);
 
         for (float t = 0f; t < pavio; t += Time.deltaTime)
         {
@@ -74,12 +74,19 @@ public class Bomba : MonoBehaviour
 
         explodiu = true;
         Vector2 centro = transform.position;
+        Sons.Tocar(Som.Explosao);
 
         // Cada Vida uma vez so, mesmo que tenha varios colisores.
         HashSet<Vida> atingidos = new HashSet<Vida>();
 
         foreach (Collider2D c in Physics2D.OverlapCircleAll(centro, raio))
         {
+            // Porta secreta escondida na parede: a explosao abre.
+            Porta porta = c.GetComponentInParent<Porta>();
+
+            if (porta != null && porta.Escondida)
+                porta.Revelar();
+
             Vida vida = c.GetComponentInParent<Vida>();
 
             if (vida == null || !atingidos.Add(vida))
@@ -106,6 +113,7 @@ public class Bomba : MonoBehaviour
         Vector3 inicio = transform.localScale;
         Vector3 fim = Vector3.one * raio * 2f;
         desenho.sortingOrder = 30;
+        desenho.sprite = FormasTopDown.Circulo();
 
         for (float t = 0f; t < DURACAO; t += Time.deltaTime)
         {

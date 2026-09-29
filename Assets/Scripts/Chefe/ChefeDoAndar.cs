@@ -19,7 +19,7 @@ using UnityEngine;
 /// Golpe nao atordoa nem empurra (<see cref="InimigoDeSala.Imparavel"/>). Ao morrer, os
 /// lacaios que ainda estiverem vivos morrem junto, e a sala abre.
 /// </summary>
-public class ChefeDoAndar : InimigoDeSala
+public class ChefeDoAndar : InimigoDeSala, IChefe
 {
     private enum Ataque
     {
@@ -179,6 +179,7 @@ public class ChefeDoAndar : InimigoDeSala
 
         barraCriada = true;
         BarraDoChefe.Mostrar(this);
+        Sons.Tocar(Som.Rugido);
     }
 
     // ---------------- andar ----------------
@@ -324,6 +325,7 @@ public class ChefeDoAndar : InimigoDeSala
                 if (parede.collider != null)
                 {
                     rb.linearVelocity = Vector2.zero;
+                    Sons.Tocar(Som.Pancada);
 
                     // Segunda fase: a pancada na parede espalha tiros.
                     if (segundaFase)
