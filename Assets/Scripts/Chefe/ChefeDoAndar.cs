@@ -179,6 +179,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
 
         barraCriada = true;
         BarraDoChefe.Mostrar(this);
+        Sons.Tocar(Som.Rugido);
     }
 
     // ---------------- andar ----------------
@@ -324,6 +325,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
                 if (parede.collider != null)
                 {
                     rb.linearVelocity = Vector2.zero;
+                    Sons.Tocar(Som.Pancada);
 
                     // Segunda fase: a pancada na parede espalha tiros.
                     if (segundaFase)

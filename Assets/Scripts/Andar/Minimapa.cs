@@ -29,6 +29,8 @@ public class Minimapa : MonoBehaviour
     [SerializeField] private Color corDescoberta = new Color(0.28f, 0.28f, 0.28f);
     [SerializeField] private Color corDoItem = new Color(0.95f, 0.78f, 0.25f);
     [SerializeField] private Color corDoChefe = new Color(0.85f, 0.15f, 0.15f);
+    [SerializeField] private Color corDaLoja = new Color(0.4f, 0.85f, 0.45f);
+    [SerializeField] private Color corDaSecreta = new Color(0.55f, 0.5f, 0.65f);
 
     private Andar andar;
     private RectTransform painel;
@@ -74,12 +76,17 @@ public class Minimapa : MonoBehaviour
             Image quadrado = Quadrado(painel, $"Sala ({sala.X},{sala.Y})", canto, tamanhoDaSala, corDescoberta);
             salas[sala.X, sala.Y] = quadrado;
 
-            if (sala.Tipo == TipoDeSala.Item || sala.Tipo == TipoDeSala.Chefe)
+            Color? icone = sala.Tipo == TipoDeSala.Item ? corDoItem
+                         : sala.Tipo == TipoDeSala.Chefe ? corDoChefe
+                         : sala.Tipo == TipoDeSala.Loja ? corDaLoja
+                         : sala.Tipo == TipoDeSala.Secreta ? corDaSecreta
+                         : (Color?)null;
+
+            if (icone.HasValue)
             {
                 float lado = tamanhoDaSala.y * 0.5f;
                 Vector2 meio = (tamanhoDaSala - Vector2.one * lado) * 0.5f;
-                Quadrado(quadrado.rectTransform, "Icone", meio, Vector2.one * lado,
-                         sala.Tipo == TipoDeSala.Item ? corDoItem : corDoChefe);
+                Quadrado(quadrado.rectTransform, "Icone", meio, Vector2.one * lado, icone.Value);
             }
         }
 

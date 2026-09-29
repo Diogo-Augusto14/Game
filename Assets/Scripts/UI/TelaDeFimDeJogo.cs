@@ -30,13 +30,25 @@ public class TelaDeFimDeJogo : MonoBehaviour
 
     public static TelaDeFimDeJogo Atual { get; private set; }
 
-    public static TelaDeFimDeJogo Mostrar(Andar andar)
+    public static TelaDeFimDeJogo Mostrar(Andar andar) => Criar(andar, false);
+
+    /// <summary>A mesma tela, mas de vitoria: o jogador venceu o chefe final.</summary>
+    public static TelaDeFimDeJogo MostrarVitoria(Andar andar) => Criar(andar, true);
+
+    private static TelaDeFimDeJogo Criar(Andar andar, bool vitoria)
     {
         if (Atual != null)
             return Atual;
 
-        TelaDeFimDeJogo tela = new GameObject("Tela de fim de jogo").AddComponent<TelaDeFimDeJogo>();
-        tela.Montar(andar);
+        TelaDeFimDeJogo tela = new GameObject(vitoria ? "Tela de vitoria" : "Tela de fim de jogo").AddComponent<TelaDeFimDeJogo>();
+        tela.Montar(andar, vitoria);
+
+        if (vitoria)
+        {
+            tela.atraso = 1.5f;
+            Sons.Tocar(Som.Vitoria);
+        }
+
         return tela;
     }
 
@@ -109,7 +121,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
     }
 
     // ---------------- montagem ----------------
-    private void Montar(Andar andar)
+    private void Montar(Andar andar, bool vitoria)
     {
         Canvas canvas = gameObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -132,15 +144,19 @@ public class TelaDeFimDeJogo : MonoBehaviour
         rtFundo.anchorMax = Vector2.one;
         rtFundo.offsetMin = rtFundo.offsetMax = Vector2.zero;
         Image imagem = fundo.AddComponent<Image>();
-        imagem.color = new Color(0.05f, 0f, 0f, 0.85f);
+        imagem.color = vitoria ? new Color(0.02f, 0.05f, 0.02f, 0.85f) : new Color(0.05f, 0f, 0f, 0.85f);
         imagem.raycastTarget = false;
 
         Font fonte = Fonte();
 
-        Texto("Titulo", fonte, 96, new Color(0.9f, 0.15f, 0.15f), 170f, "VOCE MORREU");
-        Texto("Resumo", fonte, 36, Color.white, 40f, Resumo(andar));
+        if (vitoria)
+            Texto("Titulo", fonte, 96, new Color(1f, 0.85f, 0.3f), 170f, "VOCE VENCEU!");
+        else
+            Texto("Titulo", fonte, 96, new Color(0.9f, 0.15f, 0.15f), 170f, "VOCE MORREU");
+
+        Texto("Resumo", fonte, 36, Color.white, 40f, vitoria ? ResumoDaVitoria(andar) : Resumo(andar));
         Texto("Itens", fonte, 28, new Color(0.85f, 0.85f, 0.85f), -70f, Itens(andar));
-        Texto("Recomecar", fonte, 34, new Color(1f, 0.85f, 0.4f), -220f, "R  recomecar do andar 1");
+        Texto("Recomecar", fonte, 34, new Color(1f, 0.85f, 0.4f), -220f, vitoria ? "R  jogar de novo" : "R  recomecar do andar 1");
     }
 
     private static string Resumo(Andar andar)
@@ -149,6 +165,15 @@ public class TelaDeFimDeJogo : MonoBehaviour
             return "";
 
         return $"Chegou ate o andar {andar.NumeroDoAndar}\n" +
+               $"<size=24><color=#999999>semente {andar.SementeUsada}</color></size>";
+    }
+
+    private static string ResumoDaVitoria(Andar andar)
+    {
+        if (andar == null)
+            return "";
+
+        return $"O Olho do Porao caiu. Voce desceu {andar.NumeroDoAndar} andares\n" +
                $"<size=24><color=#999999>semente {andar.SementeUsada}</color></size>";
     }
 

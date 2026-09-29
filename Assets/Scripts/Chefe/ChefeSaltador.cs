@@ -190,6 +190,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
 
         barraCriada = true;
         BarraDoChefe.Mostrar(this);
+        Sons.Tocar(Som.Rugido);
     }
 
     // ---------------- andar ----------------
@@ -333,6 +334,8 @@ public class ChefeSaltador : InimigoDeSala, IChefe
         origemDoPulo = rb.position;
         destinoDoPulo = DentroDaSala(jogador != null ? (Vector2)jogador.position : rb.position);
 
+        Sons.Tocar(Som.Pulo);
+
         // No ar: nada acerta e nada e acertado.
         if (colisor != null)
             colisor.enabled = false;
@@ -383,6 +386,8 @@ public class ChefeSaltador : InimigoDeSala, IChefe
 
         if (marca != null)
             marca.enabled = false;
+
+        Sons.Tocar(Som.Pancada);
 
         // Pancada no chao: machuca quem estiver embaixo e espalha tiros.
         if (jogador != null && Vector2.Distance(jogador.position, destinoDoPulo) < Raio + 0.6f)

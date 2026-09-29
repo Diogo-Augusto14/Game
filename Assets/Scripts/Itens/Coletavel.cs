@@ -125,6 +125,7 @@ public class Coletavel : MonoBehaviour
                 return;
 
             vida.Curar(cura);
+            Sons.Tocar(Som.Coracao);
         }
         else
         {
@@ -134,6 +135,7 @@ public class Coletavel : MonoBehaviour
                 return;
 
             inventario.Adicionar(tipo, 1);
+            Sons.Tocar(tipo == TipoDeColetavel.Moeda ? Som.Moeda : Som.Chave);
         }
 
         Destroy(gameObject);

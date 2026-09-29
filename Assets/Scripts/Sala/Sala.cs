@@ -263,6 +263,8 @@ public class Sala : MonoBehaviour
         foreach (Porta porta in portas.Values)
             porta.Fechar();
 
+        Sons.Tocar(Som.PortaFecha);
+
         foreach (InimigoDeSala inimigo in inimigos)
         {
             if (inimigo != null && !inimigo.EstaMorto)
@@ -297,6 +299,10 @@ public class Sala : MonoBehaviour
 
     private void Limpar()
     {
+        // So faz barulho quando teve luta: sala vazia abre calada.
+        if (inimigos.Count > 0)
+            Sons.Tocar(Som.PortaAbre);
+
         Limpa = true;
 
         foreach (Porta porta in portas.Values)

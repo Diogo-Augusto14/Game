@@ -79,6 +79,12 @@ public class Porta : MonoBehaviour
 
     public bool Aberta { get; private set; } = true;
 
+    /// <summary>Porta secreta ainda nao descoberta: parece parede ate uma bomba explodir perto.</summary>
+    public bool Escondida { get; private set; }
+
+    /// <summary>Uma bomba abriu esta porta secreta. O andar abre a do outro lado junto.</summary>
+    public event System.Action<Porta> AoRevelar;
+
     /// <summary>A sala dona desta porta (pode ser null se a porta foi montada solta).</summary>
     public Sala Sala { get; private set; }
 
@@ -128,7 +134,7 @@ public class Porta : MonoBehaviour
 
     public void Abrir()
     {
-        if (!existe)
+        if (!existe || Escondida)
             return;
 
         Aberta = true;
@@ -151,6 +157,53 @@ public class Porta : MonoBehaviour
         AplicarEstado();
     }
 
+    /// <summary>Vira porta secreta: fechada e com cara de parede, com uma rachadura discreta.</summary>
+    public void Esconder()
+    {
+        if (!existe)
+            return;
+
+        Escondida = true;
+        Aberta = false;
+        AplicarEstado();
+
+        // A dica do Isaac: uma rachadura na parede, pra quem prestar atencao.
+        Vector2 eixo = lado.Horizontal() ? Vector2.right : Vector2.up;
+        Vector2 cruzado = lado.Horizontal() ? Vector2.up : Vector2.right;
+
+        for (int i = -1; i <= 1; i++)
+        {
+            SpriteRenderer risco = FormasDaSala.Desenho(transform, "Rachadura", FormasDaSala.Quadrado(),
+                new Color(0.12f, 0.1f, 0.09f, 0.8f), eixo * (i * 0.22f) + cruzado * (i % 2 == 0 ? 0.08f : -0.08f),
+                Vector2.one * 0.1f, 3);
+            risco.transform.localScale = new Vector3(lado.Horizontal() ? 2.4f : 0.9f, lado.Horizontal() ? 0.9f : 2.4f, 1f);
+            risco.transform.localRotation = Quaternion.Euler(0f, 0f, i * 35f);
+        }
+    }
+
+    /// <summary>
+    /// Uma bomba explodiu perto: a porta secreta aparece. Abre na hora se a sala nao estiver
+    /// em luta; senao abre junto com as outras quando a sala for limpa.
+    /// </summary>
+    public void Revelar()
+    {
+        if (!Escondida)
+            return;
+
+        Escondida = false;
+
+        foreach (Transform filho in transform)
+            if (filho.name == "Rachadura")
+                Destroy(filho.gameObject);
+
+        if (Sala == null || !Sala.Ativa || Sala.Limpa)
+            Abrir();
+        else
+            AplicarEstado();
+
+        AoRevelar?.Invoke(this);
+    }
+
     private void Emparedar()
     {
         Aberta = false;
@@ -166,7 +219,7 @@ public class Porta : MonoBehaviour
             passagem.enabled = existe && Aberta;
 
         if (desenho != null)
-            desenho.color = !existe ? corDeParede : Aberta ? corAberta : corFechada;
+            desenho.color = !existe || Escondida ? corDeParede : Aberta ? corAberta : corFechada;
     }
 
     private void OnTriggerEnter2D(Collider2D outro)

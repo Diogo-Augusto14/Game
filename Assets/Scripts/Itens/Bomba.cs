@@ -74,12 +74,19 @@ public class Bomba : MonoBehaviour
 
         explodiu = true;
         Vector2 centro = transform.position;
+        Sons.Tocar(Som.Explosao);
 
         // Cada Vida uma vez so, mesmo que tenha varios colisores.
         HashSet<Vida> atingidos = new HashSet<Vida>();
 
         foreach (Collider2D c in Physics2D.OverlapCircleAll(centro, raio))
         {
+            // Porta secreta escondida na parede: a explosao abre.
+            Porta porta = c.GetComponentInParent<Porta>();
+
+            if (porta != null && porta.Escondida)
+                porta.Revelar();
+
             Vida vida = c.GetComponentInParent<Vida>();
 
             if (vida == null || !atingidos.Add(vida))

@@ -82,6 +82,9 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     private float raioDoCorpo;
     private float ladoDoDesvio = 1f;
 
+    /// <summary>Todo inimigo ligado na cena (lagrima teleguiada procura aqui, sem Find).</summary>
+    public static readonly System.Collections.Generic.List<InimigoDeSala> Ativos = new System.Collections.Generic.List<InimigoDeSala>();
+
     public Estado EstadoAtual { get; protected set; } = Estado.Dormindo;
 
     public Vida Vida => vida;
@@ -115,12 +118,14 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
     protected virtual void OnEnable()
     {
+        Ativos.Add(this);
         vida.AoTomarDano.AddListener(AoLevarGolpe);
         vida.AoMorrer.AddListener(Morrer);
     }
 
     protected virtual void OnDisable()
     {
+        Ativos.Remove(this);
         vida.AoTomarDano.RemoveListener(AoLevarGolpe);
         vida.AoMorrer.RemoveListener(Morrer);
     }
@@ -323,6 +328,8 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         if (EstadoAtual == Estado.Morto)
             return;
 
+        Sons.Tocar(Som.Acerto, 0.7f);
+
         // Levar tiro dormindo acorda (nao tem graca matar inimigo parado de longe).
         if (EstadoAtual == Estado.Dormindo)
             AoAcordar?.Invoke();
@@ -353,6 +360,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     protected virtual void Morrer()
     {
         EstadoAtual = Estado.Morto;
+        Sons.Tocar(Som.MorteInimigo, 0.8f);
 
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Kinematic;

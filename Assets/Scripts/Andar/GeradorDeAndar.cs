@@ -7,7 +7,9 @@ public enum TipoDeSala
     Normal,
     Inicio,
     Item,
-    Chefe
+    Chefe,
+    Loja,
+    Secreta
 }
 
 /// <summary>As quatro saidas de uma sala. Y cresce pra cima, igual ao mundo da Unity.</summary>
@@ -78,6 +80,8 @@ public class MapaDoAndar
     public SalaDoAndar Inicio { get; internal set; }
     public SalaDoAndar Item { get; internal set; }
     public SalaDoAndar Chefe { get; internal set; }
+    public SalaDoAndar Loja { get; internal set; }
+    public SalaDoAndar Secreta { get; internal set; }
 
     private readonly SalaDoAndar[,] grade;
 
@@ -126,11 +130,12 @@ public class MapaDoAndar
         sala.Visitada = true;
         sala.Descoberta = true;
 
+        // A secreta so aparece no mapa depois que alguem entra nela.
         foreach (Direcao d in Direcoes.Todas)
         {
             SalaDoAndar vizinha = Vizinha(sala, d);
 
-            if (vizinha != null)
+            if (vizinha != null && vizinha.Tipo != TipoDeSala.Secreta)
                 vizinha.Descoberta = true;
         }
     }
@@ -189,7 +194,10 @@ public static class GeradorDeAndar
             MapaDoAndar mapa = Espalhar(largura, altura, alvo, sorteio);
             List<SalaDoAndar> becos = Becos(mapa);
 
-            if (mapa.Salas.Count == alvo && becos.Count >= 2)
+            // Na primeira metade das tentativas exige beco pra loja tambem; depois aceita sem loja.
+            int becosPedidos = tentativa < TENTATIVAS / 2 ? 3 : 2;
+
+            if (mapa.Salas.Count == alvo && becos.Count >= becosPedidos)
             {
                 Decorar(mapa, becos, sorteio);
                 return mapa;
@@ -282,6 +290,73 @@ public static class GeradorDeAndar
         SalaDoAndar item = candidatas[sorteio.Next(candidatas.Count)];
         item.Tipo = TipoDeSala.Item;
         mapa.Item = item;
+        candidatas.Remove(item);
+
+        if (candidatas.Count > 0)
+        {
+            SalaDoAndar loja = candidatas[sorteio.Next(candidatas.Count)];
+            loja.Tipo = TipoDeSala.Loja;
+            mapa.Loja = loja;
+        }
+
+        PorSecreta(mapa, sorteio);
+    }
+
+    /// <summary>
+    /// A sala secreta, como no Isaac: numa casa VAZIA encostada no maior numero possivel
+    /// de salas (de preferencia tres ou mais), mas nunca colada na do chefe. Ela nao entra
+    /// na arvore: as portas pra ela ficam escondidas na parede e so abrem com bomba.
+    /// </summary>
+    private static void PorSecreta(MapaDoAndar mapa, Random sorteio)
+    {
+        List<(int x, int y)> melhores = new List<(int x, int y)>();
+        int maisVizinhas = 1;
+
+        for (int x = 0; x < mapa.Largura; x++)
+        {
+            for (int y = 0; y < mapa.Altura; y++)
+            {
+                if (mapa.Em(x, y) != null)
+                    continue;
+
+                int vizinhas = 0;
+                bool perigosa = false;
+
+                foreach (Direcao d in Direcoes.Todas)
+                {
+                    SalaDoAndar v = mapa.Em(x + Direcoes.Dx(d), y + Direcoes.Dy(d));
+
+                    if (v == null)
+                        continue;
+
+                    vizinhas++;
+
+                    if (v.Tipo == TipoDeSala.Chefe)
+                        perigosa = true;
+                }
+
+                if (perigosa || vizinhas < maisVizinhas)
+                    continue;
+
+                if (vizinhas > maisVizinhas)
+                {
+                    maisVizinhas = vizinhas;
+                    melhores.Clear();
+                }
+
+                melhores.Add((x, y));
+            }
+        }
+
+        // So casas com pelo menos duas vizinhas: senao seria so mais um beco escondido.
+        if (melhores.Count == 0 || maisVizinhas < 2)
+            return;
+
+        (int sx, int sy) = melhores[sorteio.Next(melhores.Count)];
+        SalaDoAndar secreta = mapa.Criar(sx, sy);
+        secreta.Tipo = TipoDeSala.Secreta;
+        secreta.Distancia = -1;
+        mapa.Secreta = secreta;
     }
 
     /// <summary>Busca em largura a partir da inicial: Distancia = numero de portas ate la.</summary>

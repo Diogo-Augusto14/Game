@@ -87,6 +87,7 @@ public class EstatisticasDoJogador : MonoBehaviour
             inventario.Adicionar(TipoDeColetavel.Bomba, item.bombas);
         }
 
+        Sons.Tocar(Som.Item);
         Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
         AoPegarItem?.Invoke(item);
     }
@@ -96,6 +97,8 @@ public class EstatisticasDoJogador : MonoBehaviour
         float somaDano = 0f, multDano = 1f, somaCadencia = 0f, multCadencia = 1f;
         float somaAlcance = 0f, somaVelTiro = 0f, somaTamanho = 0f, somaVelocidade = 0f;
         int extras = 0;
+        bool atravessa = false, teleguiada = false, paraTras = false;
+        Color? corDaLagrima = null;
 
         foreach (ItemPassivo i in itens)
         {
@@ -108,6 +111,13 @@ public class EstatisticasDoJogador : MonoBehaviour
             somaTamanho += i.somaTamanhoDaLagrima;
             somaVelocidade += i.somaVelocidade;
             extras += i.lagrimasExtras;
+            atravessa |= i.atravessa;
+            teleguiada |= i.teleguiada;
+            paraTras |= i.paraTras;
+
+            // O ultimo item com cor de lagrima manda na cor.
+            if (i.corDaLagrima.a > 0f)
+                corDaLagrima = i.corDaLagrima;
         }
 
         if (atirador != null)
@@ -121,6 +131,8 @@ public class EstatisticasDoJogador : MonoBehaviour
                 Mathf.Max(3f, velocidadeDoTiroBase + somaVelTiro),
                 tamanhoBase + somaTamanho,
                 Mathf.Min(lagrimasMaximas, lagrimasBase + extras));
+
+            atirador.DefinirEfeitos(atravessa, teleguiada, paraTras, corDaLagrima);
         }
 
         if (movimento != null)

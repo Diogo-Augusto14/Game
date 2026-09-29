@@ -10,7 +10,8 @@ public enum TipoDeInimigo
     Sentinela,
     Divisor,
     DivisorPequeno,
-    ChefeSaltador
+    ChefeSaltador,
+    ChefeFinal
 }
 
 /// <summary>
@@ -35,6 +36,11 @@ public static class FabricaDeInimigos
                 ChefeSaltador sapao = Montar<ChefeSaltador>("Chefe Saltador", posicao, pai, 0.8f, new Color(0.25f, 0.5f, 0.22f), 150f);
                 sapao.Enfeitar();
                 return sapao;
+
+            case TipoDeInimigo.ChefeFinal:
+                ChefeFinal olho = Montar<ChefeFinal>("Chefe Final", posicao, pai, 1f, new Color(0.32f, 0.1f, 0.28f), 450f);
+                olho.Enfeitar(1f);
+                return olho;
 
             case TipoDeInimigo.Atirador:
                 return Montar<InimigoAtirador>("Atirador", posicao, pai, 0.32f, new Color(0.62f, 0.35f, 0.85f), 30f);
