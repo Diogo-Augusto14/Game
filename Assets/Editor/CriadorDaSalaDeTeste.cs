@@ -5,9 +5,7 @@ using UnityEngine;
 
 /// <summary>
 /// Menu <c>Tools ▸ Jogo ▸ Sala ▸ Criar cena de teste</c>: cria (ou recria) a cena
-/// Assets/Scenes/SalaDeTeste.unity com camera, a <see cref="DemoDaSala"/> e um Bootstrap
-/// DESLIGADO — que e o que impede o Bootstrap de plataforma de se instalar sozinho e
-/// montar o boneco de plataforma no meio da sala.
+/// Assets/Scenes/SalaDeTeste.unity com camera e a <see cref="DemoDaSala"/>.
 /// </summary>
 public static class CriadorDaSalaDeTeste
 {
@@ -28,9 +26,6 @@ public static class CriadorDaSalaDeTeste
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = new Color(0.05f, 0.04f, 0.04f);
         objCamera.transform.position = new Vector3(0f, 0f, -10f);
-
-        GameObject objBootstrap = new GameObject("Bootstrap (desligado)");
-        objBootstrap.AddComponent<Bootstrap>().Ativo = false;
 
         new GameObject("Sala de teste").AddComponent<DemoDaSala>();
 

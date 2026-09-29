@@ -4,15 +4,11 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Prepara o projeto pra rodar: cria as camadas e tags que o jogo espera, arruma a matriz
-/// de colisao 2D e gera a biblioteca de animacoes se ela nao existir.
+/// Prepara o projeto pra rodar: cria as camadas e tags que o jogo espera e arruma a matriz
+/// de colisao 2D.
 ///
-/// Menu: Tools ▸ Jogo ▸ Preparar projeto.
-///
-/// Tambem roda SOZINHO em dois momentos, e e isso que sustenta o "so dar play":
-///   • ao abrir o projeto (ou depois de recompilar), se a biblioteca nao existir;
-///   • ao entrar no Play, pela mesma razao.
-/// Quem clona o repositorio aperta Play e o jogo funciona, sem passo manual nenhum.
+/// Menu: Tools ▸ Jogo ▸ Preparar projeto. Tambem roda sozinho ao entrar no Play, se faltar
+/// alguma camada: quem clona o repositorio aperta Play e o jogo funciona.
 /// </summary>
 [InitializeOnLoad]
 public static class ConfiguradorDoProjeto
@@ -24,92 +20,29 @@ public static class ConfiguradorDoProjeto
     static ConfiguradorDoProjeto()
     {
         EditorApplication.playModeStateChanged += AoTrocarDeModo;
-
-        // delayCall: mexer em assets no meio da recarga de dominio da pau.
-        EditorApplication.delayCall += GarantirBiblioteca;
     }
 
     private static void AoTrocarDeModo(PlayModeStateChange estado)
     {
-        if (estado == PlayModeStateChange.ExitingEditMode)
-            GarantirBiblioteca();
-    }
-
-    private static void GarantirBiblioteca()
-    {
-        if (ConstrutorDeAnimacoes.BibliotecaExiste())
+        if (estado != PlayModeStateChange.ExitingEditMode)
             return;
 
-        Debug.Log("[ConfiguradorDoProjeto] biblioteca de animacoes faltando — construindo agora.");
-
-        GarantirCamadasETags();
-        ConstrutorDeAnimacoes.Construir(out int clipes, out int quadros, out List<string> problemas);
-
-        Debug.Log($"[ConfiguradorDoProjeto] biblioteca pronta: {clipes} clipes, {quadros} quadros.");
-
-        foreach (string problema in problemas)
-            Debug.LogWarning("[ConfiguradorDoProjeto] " + problema);
+        foreach (string camada in CAMADAS)
+        {
+            if (LayerMask.NameToLayer(camada) < 0 && ApelidoExiste(camada) < 0)
+            {
+                GarantirCamadasETags();
+                return;
+            }
+        }
     }
 
     // ================================================================ menu
     [MenuItem("Tools/Jogo/Preparar projeto", false, 0)]
     private static void PrepararTudo()
     {
-        List<string> relatorio = new List<string>
-        {
-            GarantirCamadasETags(),
-            ArrumarMatrizDeColisao()
-        };
-
-        ConstrutorDeAnimacoes.Construir(out int clipes, out int quadros, out List<string> problemas);
-        relatorio.Add($"ANIMACOES: {clipes} clipes, {quadros} quadros.");
-
-        string mensagem = string.Join("\n\n", relatorio);
-
-        if (problemas.Count > 0)
-            mensagem += "\n\nProblemas:\n" + string.Join("\n", problemas);
-
-        mensagem += "\n\nPode apertar Play.";
-
+        string mensagem = GarantirCamadasETags() + "\n\n" + ArrumarMatrizDeColisao() + "\n\nPode apertar Play.";
         EditorUtility.DisplayDialog("Projeto preparado", mensagem, "Beleza");
-    }
-
-    [MenuItem("Tools/Jogo/Conferir a cena", false, 40)]
-    private static void ConferirCena()
-    {
-        List<string> avisos = new List<string>();
-
-        if (!ConstrutorDeAnimacoes.BibliotecaExiste())
-            avisos.Add("- A biblioteca de animacoes nao existe. Rode Preparar projeto.");
-
-        bool temChao = false;
-
-        foreach (Collider2D c in Object.FindObjectsByType<Collider2D>(FindObjectsSortMode.None))
-        {
-            if (!c.isTrigger && c.attachedRigidbody == null)
-            {
-                temChao = true;
-                break;
-            }
-        }
-
-        if (!temChao)
-            avisos.Add("- A cena nao tem chao. O Bootstrap monta um de emergencia, mas o melhor e desenhar o seu.");
-
-        if (Camera.main == null)
-            avisos.Add("- Nao existe camera com a tag MainCamera. O Bootstrap cria uma.");
-
-        foreach (string camada in CAMADAS)
-        {
-            if (LayerMask.NameToLayer(camada) < 0 && ApelidoExiste(camada) < 0)
-                avisos.Add($"- Falta a camada \"{camada}\". Rode Preparar projeto.");
-        }
-
-        string mensagem = avisos.Count == 0
-            ? "Tudo certo. Aperte Play."
-            : string.Join("\n", avisos);
-
-        EditorUtility.DisplayDialog("Conferencia da cena", mensagem, "Beleza");
     }
 
     private static int ApelidoExiste(string camada)

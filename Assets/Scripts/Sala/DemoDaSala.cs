@@ -10,7 +10,7 @@ using UnityEngine;
 /// Se a cena nao tiver objeto com a tag Player, cria um <see cref="JogadorDeTeste"/>.
 ///
 /// Pra usar: <c>Tools ▸ Jogo ▸ Sala ▸ Criar cena de teste</c>, ou um objeto vazio com este
-/// componente numa cena sem o Bootstrap de plataforma ligado.
+/// componente numa cena vazia.
 /// </summary>
 [DisallowMultipleComponent]
 public class DemoDaSala : MonoBehaviour

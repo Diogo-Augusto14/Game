@@ -12,7 +12,7 @@ public static class FormasDaSala
     private static Sprite circulo;
 
     /// <summary>Quadrado 1x1 unidade (o mesmo bloco do resto do jogo).</summary>
-    public static Sprite Quadrado() => Construtor.SpriteDeBloco();
+    public static Sprite Quadrado() => FormasTopDown.Quadrado();
 
     /// <summary>Circulo cheio de 1 unidade de diametro, com borda escurecida.</summary>
     public static Sprite Circulo()

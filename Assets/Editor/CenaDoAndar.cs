@@ -1,62 +1,50 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Cria uma cena pronta pra testar o gerador de andar: camera, o objeto <see cref="Andar"/>
-/// e um Bootstrap DESLIGADO (e a presenca dele que impede o Bootstrap de plataforma de se
-/// instalar sozinho e montar a fase lateral por cima do andar).
+/// O Play do editor sempre comeca pela cena do jogo (Assets/Scenes/Jogo.unity), qualquer
+/// que seja a cena aberta. Assim nunca roda uma cena velha ou de teste sem querer.
 ///
-/// Menu: Tools ▸ Jogo ▸ Andar ▸ Criar cena de teste do andar.
+/// Menu: Tools ▸ Jogo ▸ Play sempre pela cena do jogo (marcado = ligado). Desmarque pra
+/// testar outra cena, como a sala de treino (TopDown).
 /// </summary>
+[InitializeOnLoad]
 public static class CenaDoAndar
 {
-    private const string CAMINHO = "Assets/Scenes/Andar.unity";
+    private const string CAMINHO = "Assets/Scenes/Jogo.unity";
+    private const string MENU = "Tools/Jogo/Play sempre pela cena do jogo";
+    private const string CHAVE = "Jogo.PlayPelaCenaDoJogo";
 
-    [MenuItem("Tools/Jogo/Andar/Criar cena de teste do andar", false, 60)]
-    private static void Criar()
+    static CenaDoAndar()
     {
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-            return;
-
-        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(CAMINHO) != null &&
-            !EditorUtility.DisplayDialog("Cena do andar", $"{CAMINHO} ja existe. Substituir?", "Substituir", "Cancelar"))
-            return;
-
-        Scene cena = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
-
-        Camera cam = Camera.main;
-
-        if (cam != null)
-        {
-            cam.orthographic = true;
-            cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = Color.black;
-        }
-
-        new GameObject("Andar").AddComponent<Andar>();
-
-        Bootstrap bootstrap = new GameObject("Bootstrap (desligado)").AddComponent<Bootstrap>();
-        bootstrap.Ativo = false;
-
-        EditorSceneManager.SaveScene(cena, CAMINHO);
-        PorNoBuild();
-        Debug.Log($"[Andar] cena criada em {CAMINHO}. Aperte Play: WASD anda, setas atiram.");
+        // delayCall: o AssetDatabase pode nao estar pronto no meio da recarga de dominio.
+        EditorApplication.delayCall += Aplicar;
     }
 
-    /// <summary>Poe a cena no Build Settings: o R da tela de fim de jogo recarrega ela.</summary>
-    private static void PorNoBuild()
+    private static bool Ligado
     {
-        var cenas = new System.Collections.Generic.List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
+        get => EditorPrefs.GetBool(CHAVE, true);
+        set => EditorPrefs.SetBool(CHAVE, value);
+    }
 
-        foreach (EditorBuildSettingsScene c in cenas)
-            if (c.path == CAMINHO)
-                return;
+    [MenuItem(MENU, false, 60)]
+    private static void Alternar()
+    {
+        Ligado = !Ligado;
+        Aplicar();
+    }
 
-        cenas.Add(new EditorBuildSettingsScene(CAMINHO, true));
-        EditorBuildSettings.scenes = cenas.ToArray();
+    [MenuItem(MENU, true)]
+    private static bool MarcarNoMenu()
+    {
+        Menu.SetChecked(MENU, Ligado);
+        return true;
+    }
+
+    private static void Aplicar()
+    {
+        EditorSceneManager.playModeStartScene = Ligado ? AssetDatabase.LoadAssetAtPath<SceneAsset>(CAMINHO) : null;
     }
 }
 #endif

@@ -1,7 +1,7 @@
 # Itens e coletáveis
 
-Tudo em `Assets/Scripts/Itens/`. Funciona sozinho na cena do andar
-(`Tools ▸ Jogo ▸ Andar ▸ Criar cena de teste do andar`): é só dar Play.
+Tudo em `Assets/Scripts/Itens/`. Funciona sozinho na cena do jogo
+(`Assets/Scenes/Jogo.unity`): é só dar Play.
 
 ## O que tem no andar
 

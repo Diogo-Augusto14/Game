@@ -15,8 +15,7 @@ using UnityEngine;
 /// porta avisa em <see cref="Porta.AoAtravessar"/> quando o jogador passa. O Andar escuta
 /// esse aviso, poe o jogador na porta oposta da sala vizinha e desliza a camera ate la.
 ///
-/// Pra usar: um objeto vazio com este componente numa cena sem o Bootstrap de plataforma.
-/// O jeito mais rapido e <c>Tools ▸ Jogo ▸ Andar ▸ Criar cena de teste do andar</c>.
+/// Pra usar: um objeto vazio com este componente numa cena (a Assets/Scenes/Jogo.unity ja vem assim).
 /// Se a cena nao tiver ninguem com a tag Player, ele monta o jogador top-down.
 /// </summary>
 [DisallowMultipleComponent]
@@ -108,7 +107,7 @@ public class Andar : MonoBehaviour
     [SerializeField] private bool montarHud = true;
 
     [Header("Camera")]
-    [Tooltip("Forca ortografica, com zoom pra caber uma sala inteira, e desliga o Cameramov")]
+    [Tooltip("Forca ortografica, com zoom pra caber uma sala inteira")]
     [SerializeField] private bool ajustarCamera = true;
 
     [SerializeField, Min(0f)] private float tempoDaTransicao = 0.3f;
@@ -357,11 +356,6 @@ public class Andar : MonoBehaviour
         if (cam == null || !ajustarCamera)
             return;
 
-        Cameramov seguidora = cam.GetComponent<Cameramov>();
-
-        if (seguidora != null)
-            seguidora.enabled = false;
-
         // A sala (15x9 com as paredes) e mais estreita que a tela 16:9: cabendo a altura inteira,
         // sobrava meia unidade preta de cada lado. Agora cabe a LARGURA inteira e a parede de
         // cima e de baixo corta um pouco, como no Isaac. So nunca deixa de mostrar o chao todo.
@@ -441,7 +435,7 @@ public class Andar : MonoBehaviour
         if (montarHud && FindAnyObjectByType<Hud>() == null)
         {
             Hud hud = new GameObject("Hud").AddComponent<Hud>();
-            hud.Configurar(encontrado.GetComponent<Vida>(), null, CONTROLES);
+            hud.Configurar(encontrado.GetComponent<Vida>(), CONTROLES);
             hud.UsarCoracoes();
         }
 
