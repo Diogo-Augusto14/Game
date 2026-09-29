@@ -66,7 +66,7 @@ public static class FabricaDeInimigos
 
             case TipoDeInimigo.ChefeFinal:
             {
-                ClipesDePersonagem clipes = Tiny("Olho", 7f);
+                ClipesDePersonagem clipes = Tiny("Olho", 9f);   // bicho de 16 px: maior que isto fica quadriculado
                 ChefeFinal olho = Montar<ChefeFinal>("Chefe Final", posicao, pai, 1f,
                     (ArteGerada.Bola(), new Color(0.32f, 0.1f, 0.28f)), 450f, clipes, clipes?.AtaqueForte);
                 olho.Enfeitar(1f, clipes != null);
