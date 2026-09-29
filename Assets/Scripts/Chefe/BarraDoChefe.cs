@@ -80,11 +80,11 @@ public class BarraDoChefe : MonoBehaviour
 
         float altura = comArte ? 16f : Altura;
 
-        // Moldura centralizada embaixo.
+        // Moldura centralizada embaixo, acima da linha de teclas da HUD (que fica em y 20).
         RectTransform moldura = Retangulo("Moldura", transform, new Color(0f, 0f, 0f, 0.75f), desenhoDaMoldura);
         moldura.anchorMin = moldura.anchorMax = new Vector2(0.5f, 0f);
         moldura.pivot = new Vector2(0.5f, 0f);
-        moldura.anchoredPosition = new Vector2(0f, 40f);
+        moldura.anchoredPosition = new Vector2(0f, 72f);
         moldura.sizeDelta = new Vector2(Largura + borda.x + borda.z, altura + borda.y + borda.w);
 
         RectTransform fundo = Retangulo("Fundo", moldura, new Color(0.2f, 0.05f, 0.05f), comArte ? ArteImportada.BarraVazia : null);
