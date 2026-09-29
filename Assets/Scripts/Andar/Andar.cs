@@ -362,9 +362,13 @@ public class Andar : MonoBehaviour
         if (seguidora != null)
             seguidora.enabled = false;
 
-        // Cabe a sala inteira, paredes incluidas, na altura e na largura.
+        // A sala (15x9 com as paredes) e mais estreita que a tela 16:9: cabendo a altura inteira,
+        // sobrava meia unidade preta de cada lado. Agora cabe a LARGURA inteira e a parede de
+        // cima e de baixo corta um pouco, como no Isaac. So nunca deixa de mostrar o chao todo.
         cam.orthographic = true;
-        cam.orthographicSize = Mathf.Max(Passo.y * 0.5f, Passo.x * 0.5f / Mathf.Max(cam.aspect, 0.1f));
+        float cabeLargura = Passo.x * 0.5f / Mathf.Max(cam.aspect, 0.1f);
+        float chaoInteiro = Sala.TamanhoPadrao.y * 0.5f + 0.5f;
+        cam.orthographicSize = Mathf.Max(cabeLargura, chaoInteiro);
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black;
     }
