@@ -64,7 +64,7 @@ public static class TelaSimples
     }
 
     /// <summary>
-    /// Painel do Pixel UI pack (9-slice: as bordas nao esticam) centralizado, a
+    /// Painel de pacote (9-slice: as bordas nao esticam) centralizado, a
     /// <paramref name="y"/> do meio da tela, logo acima do fundo escuro e atras dos textos.
     /// Sem a imagem do pacote, nao desenha nada (os textos continuam legiveis no fundo).
     /// </summary>
@@ -88,6 +88,157 @@ public static class TelaSimples
         imagem.type = Image.Type.Sliced;
         imagem.raycastTarget = false;
         return imagem;
+    }
+
+    /// <summary>
+    /// Faixa de titulo (Dragon Regalia) atras de um texto que esta em <paramref name="yDoTexto"/>:
+    /// o pano da faixa fica centrado no texto. Sem a imagem, nao desenha nada.
+    /// </summary>
+    public static Image Faixa(Transform pai, string nome, Sprite sprite, float yDoTexto, float largura)
+    {
+        return Painel(pai, nome, sprite, yDoTexto - ArteDaInterface.MeioDoPanoDaFaixa,
+                      new Vector2(largura, ArteDaInterface.AlturaDaFaixa));
+    }
+
+    // ---------------- dicas de controle com o desenho das teclas ----------------
+    private static readonly System.Collections.Generic.Dictionary<string, KeyCode> ApelidosDeTecla =
+        new System.Collections.Generic.Dictionary<string, KeyCode>(System.StringComparer.OrdinalIgnoreCase)
+        {
+            { "Enter", KeyCode.Return }, { "Esc", KeyCode.Escape }, { "Espaco", KeyCode.Space },
+            { "Cima", KeyCode.UpArrow }, { "Baixo", KeyCode.DownArrow },
+            { "Esquerda", KeyCode.LeftArrow }, { "Direita", KeyCode.RightArrow },
+        };
+
+    /// <summary>
+    /// Uma linha centralizada de dicas com o desenho das teclas, a <paramref name="y"/> do meio
+    /// da tela. <paramref name="conteudo"/> mistura teclas entre colchetes e texto, e "|" separa
+    /// os grupos: <c>"[W][A][S][D] andar | [Esc] pausar"</c>. Tecla sem desenho vira texto.
+    /// </summary>
+    public static RectTransform LinhaDeTeclas(Transform pai, string nome, float y, string conteudo, int tamanho, Color cor)
+    {
+        GameObject obj = new GameObject(nome, typeof(RectTransform));
+        obj.transform.SetParent(pai, false);
+
+        RectTransform rt = (RectTransform)obj.transform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(0f, y);
+
+        HorizontalLayoutGroup linha = obj.AddComponent<HorizontalLayoutGroup>();
+        linha.childAlignment = TextAnchor.MiddleCenter;
+        linha.spacing = Mathf.Round(tamanho * 0.2f);
+        linha.childControlWidth = true;
+        linha.childControlHeight = true;
+        linha.childForceExpandWidth = false;
+        linha.childForceExpandHeight = false;
+
+        ContentSizeFitter ajuste = obj.AddComponent<ContentSizeFitter>();
+        ajuste.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        ajuste.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        TrocarLinhaDeTeclas(rt, conteudo, tamanho, cor);
+        return rt;
+    }
+
+    /// <summary>Refaz o conteudo de uma linha da <see cref="LinhaDeTeclas"/> (ex.: musica ligada/desligada).</summary>
+    public static void TrocarLinhaDeTeclas(RectTransform linha, string conteudo, int tamanho, Color cor)
+    {
+        for (int i = linha.childCount - 1; i >= 0; i--)
+        {
+            // Destroy so acontece no fim do quadro: tira do pai ja pra o layout nao contar.
+            Transform filho = linha.GetChild(i);
+            filho.SetParent(null, false);
+            Object.Destroy(filho.gameObject);
+        }
+
+        float lado = Mathf.Round(tamanho * 1.6f);
+        int i0 = 0;
+
+        while (i0 < conteudo.Length)
+        {
+            char c = conteudo[i0];
+
+            if (c == '[')
+            {
+                int fim = conteudo.IndexOf(']', i0);
+
+                if (fim > i0)
+                {
+                    string nomeDaTecla = conteudo.Substring(i0 + 1, fim - i0 - 1);
+                    Tecla(linha, nomeDaTecla, lado, tamanho, cor);
+                    i0 = fim + 1;
+                    continue;
+                }
+            }
+
+            if (c == '|')
+            {
+                Espaco(linha, tamanho * 1.4f);
+                i0++;
+                continue;
+            }
+
+            int proximo = conteudo.IndexOfAny(new[] { '[', '|' }, i0 + 1);
+
+            if (proximo < 0)
+                proximo = conteudo.Length;
+
+            string pedaco = conteudo.Substring(i0, proximo - i0).Trim();
+
+            if (pedaco.Length > 0)
+                TextoDaLinha(linha, pedaco, tamanho, cor);
+
+            i0 = proximo;
+        }
+    }
+
+    private static void Tecla(Transform linha, string nome, float lado, int tamanho, Color cor)
+    {
+        if (!ApelidosDeTecla.TryGetValue(nome, out KeyCode tecla) && !System.Enum.TryParse(nome, true, out tecla))
+            tecla = KeyCode.None;
+
+        if (ArteDaInterface.Tecla(tecla) == null)
+        {
+            TextoDaLinha(linha, nome, tamanho, cor);
+            return;
+        }
+
+        GameObject obj = new GameObject("Tecla " + nome, typeof(RectTransform));
+        obj.transform.SetParent(linha, false);
+
+        Image imagem = obj.AddComponent<Image>();
+        imagem.raycastTarget = false;
+        obj.AddComponent<IconeDeTecla>().Configurar(tecla);
+
+        LayoutElement tamanhoFixo = obj.AddComponent<LayoutElement>();
+        tamanhoFixo.preferredWidth = tamanhoFixo.minWidth = lado;
+        tamanhoFixo.preferredHeight = tamanhoFixo.minHeight = lado;
+    }
+
+    private static void Espaco(Transform linha, float largura)
+    {
+        GameObject obj = new GameObject("Espaco", typeof(RectTransform));
+        obj.transform.SetParent(linha, false);
+        LayoutElement espaco = obj.AddComponent<LayoutElement>();
+        espaco.preferredWidth = espaco.minWidth = largura;
+    }
+
+    private static void TextoDaLinha(Transform linha, string conteudo, int tamanho, Color cor)
+    {
+        GameObject obj = new GameObject("Texto", typeof(RectTransform));
+        obj.transform.SetParent(linha, false);
+
+        Text texto = obj.AddComponent<Text>();
+        texto.font = TelaDeFimDeJogo.Fonte();
+        texto.fontSize = tamanho;
+        texto.alignment = TextAnchor.MiddleLeft;
+        texto.color = cor;
+        texto.supportRichText = true;
+        texto.horizontalOverflow = HorizontalWrapMode.Overflow;
+        texto.verticalOverflow = VerticalWrapMode.Overflow;
+        texto.raycastTarget = false;
+        texto.text = conteudo;
+        obj.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.8f);
     }
 
     /// <summary>Tira o controle do jogador (menu, pausa) ou devolve.</summary>

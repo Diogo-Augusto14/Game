@@ -19,7 +19,14 @@ public class TelaDeInicio : MonoBehaviour
     private Transform jogador;
     private Andar andar;
     private Text textoDoTitulo;
-    private Text textoDeJogar;
+    private RectTransform linhaDeJogar;
+    private Image botaoDeJogar;
+    private Image ponteiro;
+    private Image setaEsquerda;
+    private Image setaDireita;
+    private int ladoAceso;
+    private float acesoAte;
+    private RectTransform dicaDoHeroi;
     private Text textoDoHeroi;
     private Text descricaoDoHeroi;
     private Text numerosDoHeroi;
@@ -66,26 +73,32 @@ public class TelaDeInicio : MonoBehaviour
         atual = this;
         abriu = Time.unscaledTime;
 
-        TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 0.97f));
+        TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 1f));
 
-        textoDoTitulo = TelaSimples.Texto(transform, "Titulo", 110, new Color(0.95f, 0.85f, 0.75f), 390f, titulo);
-        TelaSimples.Texto(transform, "Subtitulo", 30, new Color(0.7f, 0.6f, 0.6f), 300f,
+        textoDoTitulo = TelaSimples.Texto(transform, "Titulo", 100, new Color(1f, 0.93f, 0.8f), 400f, titulo);
+        TelaSimples.Texto(transform, "Subtitulo", 30, new Color(0.75f, 0.65f, 0.65f), 268f,
             $"Desca {(andar != null ? andar.AndarFinal : 4)} andares e derrote o Olho do Porao");
 
-        MontarEscolhaDoHeroi(110f);
+        MontarEscolhaDoHeroi(88f);
 
-        TelaSimples.Texto(transform, "Controles", 28, new Color(0.85f, 0.85f, 0.85f), -150f,
-            "W A S D  andar        Setas  atirar        E  bomba\n" +
-            "Esc  pausar        M  musica        N  efeitos\n" +
+        Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
+        TelaSimples.LinhaDeTeclas(transform, "Controles", -158f,
+            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba", 28, corDasDicas);
+        TelaSimples.LinhaDeTeclas(transform, "Opcoes", -212f, "[Esc] pausar | [M] musica | [N] efeitos", 28, corDasDicas);
+        TelaSimples.Texto(transform, "Dica", 24, new Color(0.8f, 0.85f, 0.95f), -260f,
             "Bomba abre parede rachada. Moeda compra na loja.");
 
-        textoDeJogar = TelaSimples.Texto(transform, "Jogar", 44, new Color(1f, 0.85f, 0.35f), -330f, "Enter  jogar");
-        MostrarHeroi();
-        TelaSimples.Texto(transform, "Sair", 26, new Color(0.6f, 0.55f, 0.55f), -405f, "Esc  sair do jogo");
+        linhaDeJogar = TelaSimples.LinhaDeTeclas(transform, "Jogar", -376f, "", 40, new Color(1f, 0.85f, 0.35f));
+        MontarPonteiro(-376f);
+        TelaSimples.LinhaDeTeclas(transform, "Sair", -462f, "[Esc] sair do jogo", 24, new Color(0.65f, 0.6f, 0.6f));
+        TelaSimples.Texto(transform, "Creditos", 17, new Color(0.45f, 0.42f, 0.45f), -514f,
+            "Sons de interface: Nathan Gibson (CC BY 4.0)    Interface: Tiny RPG Dragon Regalia GUI    Teclas: Vryell");
 
-        // Paineis do Pixel UI pack atras dos controles e do "botao" de jogar.
-        TelaSimples.Painel(transform, "Painel do botao", ArteImportada.PainelAzul, -330f, new Vector2(520f, 110f));
-        TelaSimples.Painel(transform, "Painel dos controles", ArteImportada.PainelMarrom, -150f, new Vector2(1180f, 170f));
+        // Molduras do Dragon Regalia atras de tudo (Painel poe logo acima do fundo escuro).
+        botaoDeJogar = TelaSimples.Painel(transform, "Botao de jogar", ArteDaInterface.Botao(0), -376f, new Vector2(470f, 105f));
+        TelaSimples.Painel(transform, "Painel dos controles", ArteDaInterface.MolduraPequena, -208f, new Vector2(1300f, 200f));
+        TelaSimples.Faixa(transform, "Faixa do titulo", ArteDaInterface.FaixaRosa, 400f, 1150f);
+        MostrarHeroi();
 
         // Congela o jogo e segura o jogador ate apertar Enter.
         Time.timeScale = 0f;
@@ -104,10 +117,11 @@ public class TelaDeInicio : MonoBehaviour
 
         float t = Time.unscaledTime;
         textoDoTitulo.transform.localScale = Vector3.one * (1f + Mathf.Sin(t * 1.5f) * 0.03f);
-        textoDeJogar.color = new Color(1f, 0.85f, 0.35f, 0.55f + Mathf.Sin(t * 4f) * 0.45f);
 
         Opcoes.LerTeclas();
         AnimarRetrato(t);
+        AnimarPonteiro(t);
+        AnimarSetas(t);
 
         // Meio segundo de respiro: o Enter que abriu o Play nao pula o menu.
         if (t - abriu < 0.4f)
@@ -136,7 +150,7 @@ public class TelaDeInicio : MonoBehaviour
                 if (Herois.Liberado(Herois.Atual))
                     Comecar();
                 else
-                    Sons.Tocar(Som.DanoJogador, 0.5f);
+                    Sons.Tocar(Som.MenuNegado, 0.8f, 0f);
 
                 return;
             }
@@ -153,7 +167,7 @@ public class TelaDeInicio : MonoBehaviour
             Herois.Aplicar(jogador.gameObject, Herois.Atual);
 
         TelaSimples.TravarJogador(jogador, false);
-        Sons.Tocar(Som.Menu);
+        Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
 
         if (andar != null)
             Musica.Tocar(Musica.DoAndar(andar.NumeroDoAndar));
@@ -164,7 +178,7 @@ public class TelaDeInicio : MonoBehaviour
     // ---------------- escolha do heroi ----------------
     private void MontarEscolhaDoHeroi(float y)
     {
-        TelaSimples.Painel(transform, "Painel do heroi", ArteImportada.PainelMarrom, y, new Vector2(1180f, 250f));
+        TelaSimples.Painel(transform, "Painel do heroi", ArteDaInterface.MolduraGrande, y, new Vector2(1300f, 320f));
 
         GameObject obj = new GameObject("Retrato do heroi", typeof(RectTransform));
         obj.transform.SetParent(transform, false);
@@ -177,9 +191,14 @@ public class TelaDeInicio : MonoBehaviour
         retratoDoHeroi.preserveAspect = true;
         retratoDoHeroi.raycastTarget = false;
 
-        textoDoHeroi = TelaSimples.Texto(transform, "Nome do heroi", 46, new Color(1f, 0.9f, 0.6f), y + 65f, "");
-        descricaoDoHeroi = TelaSimples.Texto(transform, "Descricao do heroi", 28, new Color(0.9f, 0.85f, 0.8f), y + 5f, "");
-        numerosDoHeroi = TelaSimples.Texto(transform, "Numeros do heroi", 24, new Color(0.7f, 0.8f, 0.9f), y - 60f, "");
+        textoDoHeroi = TelaSimples.Texto(transform, "Nome do heroi", 46, new Color(1f, 0.9f, 0.6f), y + 88f, "");
+        descricaoDoHeroi = TelaSimples.Texto(transform, "Descricao do heroi", 28, new Color(1f, 0.97f, 0.92f), y + 35f, "");
+        numerosDoHeroi = TelaSimples.Texto(transform, "Numeros do heroi", 24, new Color(0.85f, 0.93f, 1f), y - 15f, "");
+        dicaDoHeroi = TelaSimples.LinhaDeTeclas(transform, "Dica do heroi", y - 68f, "", 22, new Color(0.85f, 0.93f, 1f));
+        dicaDoHeroi.anchoredPosition = new Vector2(120f, dicaDoHeroi.anchoredPosition.y);
+
+        setaEsquerda = Imagem("Seta esquerda", new Vector2(-590f, y), 64f);
+        setaDireita = Imagem("Seta direita", new Vector2(590f, y), 64f);
 
         foreach (Text texto in new[] { textoDoHeroi, descricaoDoHeroi, numerosDoHeroi })
         {
@@ -193,6 +212,8 @@ public class TelaDeInicio : MonoBehaviour
 
     private void TrocarHeroi(int passo)
     {
+        ladoAceso = passo;
+        acesoAte = Time.unscaledTime + 0.15f;
         Herois.Escolher(Herois.Escolhido + passo);
         Sons.Tocar(Som.Menu, 0.6f);
         MostrarHeroi();
@@ -203,18 +224,29 @@ public class TelaDeInicio : MonoBehaviour
         Herois.Heroi heroi = Herois.Atual;
         bool liberado = Herois.Liberado(heroi);
 
-        textoDoHeroi.text = liberado ? $"<   {heroi.Nome}   >" : $"<   {heroi.Nome}  (bloqueado)   >";
+        textoDoHeroi.text = liberado ? heroi.Nome : $"{heroi.Nome}  (bloqueado)";
         descricaoDoHeroi.text = liberado ? heroi.Descricao : $"<color=#ff9966>Pra liberar: {heroi.Requisito}</color>";
-        numerosDoHeroi.text =
-            (liberado
-                ? $"Vida {heroi.Vida / 20f:0.#}     Velocidade {heroi.Velocidade:0.#}     Dano {heroi.Dano:0.#}     " +
-                  $"Tiros/s {heroi.Cadencia:0.#}     Alcance {heroi.Alcance:0.#}\n"
-                : "? ? ?\n") +
-            $"A / D  ou  esquerda / direita  troca o heroi  ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)";
+        numerosDoHeroi.text = liberado
+            ? $"Vida {heroi.Vida / 20f:0.#}     Velocidade {heroi.Velocidade:0.#}     Dano {heroi.Dano:0.#}     " +
+              $"Tiros/s {heroi.Cadencia:0.#}     Alcance {heroi.Alcance:0.#}"
+            : "? ? ?";
 
-        // Na montagem, o nome e a descricao vem antes do texto de jogar existir.
-        if (textoDeJogar != null)
-            textoDeJogar.text = liberado ? "Enter  jogar" : "Heroi bloqueado";
+        TelaSimples.TrocarLinhaDeTeclas(dicaDoHeroi,
+            $"[A][D] ou [Esquerda][Direita] troca o heroi ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)",
+            22, new Color(0.85f, 0.93f, 1f));
+
+        // Na montagem, o nome e a descricao vem antes do botao de jogar existir.
+        if (linhaDeJogar != null)
+        {
+            TelaSimples.TrocarLinhaDeTeclas(linhaDeJogar, liberado ? "[Enter] jogar" : "Heroi bloqueado", 40,
+                liberado ? new Color(1f, 0.85f, 0.35f) : new Color(1f, 0.6f, 0.4f));
+        }
+
+        if (botaoDeJogar != null)
+            botaoDeJogar.sprite = ArteDaInterface.Botao(liberado ? 0 : 3);
+
+        if (ponteiro != null)
+            ponteiro.enabled = liberado && ponteiro.sprite != null;
 
         clipesDoRetrato = Herois.Clipes(heroi);
         retratoDoHeroi.enabled = clipesDoRetrato != null && clipesDoRetrato.Parado != null;
@@ -238,6 +270,49 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         return total;
+    }
+
+    private Image Imagem(string nome, Vector2 posicao, float lado)
+    {
+        GameObject obj = new GameObject(nome, typeof(RectTransform));
+        obj.transform.SetParent(transform, false);
+        RectTransform rt = (RectTransform)obj.transform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = posicao;
+        rt.sizeDelta = Vector2.one * lado;
+
+        Image imagem = obj.AddComponent<Image>();
+        imagem.raycastTarget = false;
+        return imagem;
+    }
+
+    /// <summary>O ponteiro dourado que aponta pro botao de jogar.</summary>
+    private void MontarPonteiro(float y)
+    {
+        ponteiro = Imagem("Ponteiro", new Vector2(-300f, y), 78f);
+        ponteiro.sprite = ArteDaInterface.Ponteiro(0);
+        ponteiro.enabled = ponteiro.sprite != null;
+    }
+
+    private void AnimarPonteiro(float tempo)
+    {
+        if (ponteiro == null || !ponteiro.enabled)
+            return;
+
+        ponteiro.sprite = ArteDaInterface.Ponteiro(Mathf.FloorToInt(tempo * 8f));
+        RectTransform rt = ponteiro.rectTransform;
+        rt.anchoredPosition = new Vector2(-300f + Mathf.Abs(Mathf.Sin(tempo * 4f)) * 12f, rt.anchoredPosition.y);
+    }
+
+    /// <summary>A seta do lado que trocou acende por um instante.</summary>
+    private void AnimarSetas(float tempo)
+    {
+        bool aceso = tempo < acesoAte;
+        setaEsquerda.sprite = ArteDaInterface.SetaEsquerda(aceso && ladoAceso < 0 ? 1 : 0);
+        setaDireita.sprite = ArteDaInterface.SetaDireita(aceso && ladoAceso > 0 ? 1 : 0);
+        setaEsquerda.enabled = setaEsquerda.sprite != null;
+        setaDireita.enabled = setaDireita.sprite != null;
     }
 
     private void AnimarRetrato(float tempo)

@@ -31,7 +31,7 @@ public class Hud : MonoBehaviour
     [Tooltip("Mostra a lista de teclas no canto. Desligue quando o jogo tiver menu")]
     [SerializeField] private bool mostrarControles = true;
 
-    [SerializeField, Min(8)] private int tamanhoDaFonte = 16;
+    [SerializeField, Min(8)] private int tamanhoDaFonte = 20;
 
     [Header("Coracoes (top-down)")]
     [Tooltip("Vida em coracoes do Pixel UI pack, como no Isaac, em vez da barra")]
@@ -55,8 +55,9 @@ public class Hud : MonoBehaviour
     // Quem monta a HUD por codigo pode trocar a lista (o top-down tem outras teclas).
     private string textoDosControles = TEXTO_DOS_CONTROLES;
 
+    // Teclas entre colchetes viram o desenho da tecla (ver TelaSimples.LinhaDeTeclas).
     private const string TEXTO_DOS_CONTROLES =
-        "W A S D  andar    Setas  atirar";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar";
 
     /// <summary>
     /// Aponta a HUD pra uma vida. Chame logo depois do AddComponent, antes do Start.
@@ -217,22 +218,12 @@ public class Hud : MonoBehaviour
             return;
         }
 
-        RectTransform fundo = CriarPainel("Controles (fundo)", new Color(0f, 0f, 0f, 0.4f));
-        Ancorar(fundo, new Vector2(0f, 0f), new Vector2(margem.x, margem.y), new Vector2(620f, 120f));
-
-        GameObject obj = new GameObject("Controles", typeof(RectTransform));
-        obj.transform.SetParent(fundo, false);
-
-        Text texto = obj.AddComponent<Text>();
-        texto.font = fonte;
-        texto.fontSize = tamanhoDaFonte;
-        texto.color = new Color(1f, 1f, 1f, 0.85f);
-        texto.alignment = TextAnchor.LowerLeft;
-        texto.horizontalOverflow = HorizontalWrapMode.Overflow;
-        texto.verticalOverflow = VerticalWrapMode.Overflow;
-        texto.text = textoDosControles;
-
-        Esticar((RectTransform)obj.transform, 8f);
+        // Uma linha no canto de baixo, com o desenho das teclas do pacote Controllers and Keyboard.
+        RectTransform linha = TelaSimples.LinhaDeTeclas(transform, "Controles", 0f, textoDosControles,
+            tamanhoDaFonte, new Color(1f, 1f, 1f, 0.85f));
+        linha.anchorMin = linha.anchorMax = Vector2.zero;
+        linha.pivot = Vector2.zero;
+        linha.anchoredPosition = margem;
     }
 
     private static Font FonteEmbutida()

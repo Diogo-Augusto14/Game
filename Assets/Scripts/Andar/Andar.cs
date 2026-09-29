@@ -124,9 +124,9 @@ public class Andar : MonoBehaviour
     [SerializeField] private Color corDoBatenteDoItem = new Color(0.95f, 0.78f, 0.25f);
     [SerializeField] private Color corDoBatenteDoChefe = new Color(0.8f, 0.15f, 0.15f);
 
+    // Teclas entre colchetes aparecem desenhadas na HUD (TelaSimples.LinhaDeTeclas).
     private const string CONTROLES =
-        "W A S D  andar    Setas  atirar    E  bomba    Esc  pausa\n" +
-        "Limpe a sala pra abrir as portas. Venca o chefe e pule no alcapao";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Esc] pausa";
 
     // ---------------- estado ----------------
     private Sala[,] noMundo;
@@ -660,7 +660,7 @@ public class Andar : MonoBehaviour
 
         List<string> nomes = liberados.ConvertAll(h => h.Nome);
         AvisoDoAndar.Mostrar("Heroi liberado: " + string.Join(", ", nomes) + "!");
-        Sons.Tocar(Som.Item);
+        Sons.Tocar(Som.Aviso);
     }
 
     /// <summary>

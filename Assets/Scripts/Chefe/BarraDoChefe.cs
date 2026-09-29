@@ -59,21 +59,38 @@ public class BarraDoChefe : MonoBehaviour
         grupo.interactable = false;
         grupo.blocksRaycasts = false;
 
-        // Com o Pixel UI pack: moldura inclinada e barras de pixel art (9-slice, as pontas
-        // nao esticam). Sem ele: os retangulos lisos de antes.
+        // Com os pacotes: moldura dourada do Dragon Regalia (ou a inclinada do Pixel UI) e
+        // as barras de pixel art do Pixel UI (9-slice, as pontas nao esticam). Sem eles: os
+        // retangulos lisos de antes.
         bool comArte = ArteImportada.MolduraDaBarra != null;
-        float borda = comArte ? ArteImportada.MargemDaMoldura * (100f / ArteImportada.PixelsPorUnidadeDaInterface) : 4f;
-        float altura = comArte ? 20f : Altura;
+        Sprite desenhoDaMoldura = ArteDaInterface.MolduraDaBarra;
+        Vector4 borda;
+
+        if (desenhoDaMoldura != null && comArte)
+        {
+            // Bordas da moldura dourada em pixels da imagem, desenhadas 4x.
+            borda = ArteDaInterface.BordaDaBarra * 4f;
+        }
+        else
+        {
+            desenhoDaMoldura = comArte ? ArteImportada.MolduraDaBarra : null;
+            float margem = comArte ? ArteImportada.MargemDaMoldura * (100f / ArteImportada.PixelsPorUnidadeDaInterface) : 4f;
+            borda = Vector4.one * margem;
+        }
+
+        float altura = comArte ? 16f : Altura;
 
         // Moldura centralizada embaixo.
-        RectTransform moldura = Retangulo("Moldura", transform, new Color(0f, 0f, 0f, 0.75f), comArte ? ArteImportada.MolduraDaBarra : null);
+        RectTransform moldura = Retangulo("Moldura", transform, new Color(0f, 0f, 0f, 0.75f), desenhoDaMoldura);
         moldura.anchorMin = moldura.anchorMax = new Vector2(0.5f, 0f);
         moldura.pivot = new Vector2(0.5f, 0f);
         moldura.anchoredPosition = new Vector2(0f, 40f);
-        moldura.sizeDelta = new Vector2(Largura + borda * 2f, altura + borda * 2f);
+        moldura.sizeDelta = new Vector2(Largura + borda.x + borda.z, altura + borda.y + borda.w);
 
         RectTransform fundo = Retangulo("Fundo", moldura, new Color(0.2f, 0.05f, 0.05f), comArte ? ArteImportada.BarraVazia : null);
-        Esticar(fundo, borda);
+        Esticar(fundo, 0f);
+        fundo.offsetMin = new Vector2(borda.x, borda.y);
+        fundo.offsetMax = new Vector2(-borda.z, -borda.w);
 
         rastro = Retangulo("Rastro", fundo, new Color(1f, 0.9f, 0.75f), comArte ? ArteImportada.BarraAmarela : null);
         Esticar(rastro, 0f);
