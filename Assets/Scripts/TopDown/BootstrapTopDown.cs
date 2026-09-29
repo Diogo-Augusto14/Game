@@ -152,6 +152,9 @@ public class BootstrapTopDown : MonoBehaviour
     /// Monta o jogador top-down completo (movimento, vida e tiro). Publico pra outras cenas
     /// montadas por codigo, como o andar, usarem o mesmo boneco.
     /// </summary>
+    /// <summary>Pixels por unidade do arqueiro: o corpo (uns 75 px) fica com ~1 unidade na escala 0.8.</summary>
+    private const float PixelsDoArqueiro = 60f;
+
     public static GameObject CriarJogador(Vector2 posicao, Color corDoJogador)
     {
         GameObject raiz = new GameObject("Jogador");
@@ -183,6 +186,15 @@ public class BootstrapTopDown : MonoBehaviour
         vida.UsarEmpurraoTopDown();
 
         AtiradorTopDown atirador = raiz.AddComponent<AtiradorTopDown>();
+
+        // O arqueiro azul do Tiny Swords no lugar do rosto gerado (se a imagem existir).
+        ClipesDePersonagem arqueiro = ArteImportada.ArqueiroAzul(PixelsDoArqueiro);
+
+        if (arqueiro != null)
+        {
+            corpo.sprite = arqueiro.Parado[0];
+            raiz.AddComponent<ArqueiroDoJogador>().Configurar(arqueiro, corpo);
+        }
 
         // Olho: bolinha escura que mostra pra onde o boneco olha / atira.
         GameObject olho = new GameObject("Olho");

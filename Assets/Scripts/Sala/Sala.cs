@@ -260,6 +260,14 @@ public class Sala : MonoBehaviour
     public void Pintar(Color chao, Color parede)
     {
         Montar();
+
+        // Os ladrilhos do pacote ja tem cor: a do andar so puxa de leve pro tom dele.
+        if (ArteGerada.CenarioDoPacote)
+        {
+            chao = Color.Lerp(Color.white, chao, 0.4f);
+            parede = Color.Lerp(Color.white, parede, 0.4f);
+        }
+
         corDoChao = chao;
         corDaParede = parede;
 

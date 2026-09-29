@@ -11,12 +11,16 @@ using UnityEngine;
 ///   InterfacePixel/00.png ... 07.png  (Pixel UI pack 3)
 ///       coracoes, paineis e barras recortados pelos retangulos la embaixo
 ///   TinySwords/...  (Tiny Swords e Tiny Swords Free Pack, da Pixel Frog)
-///       folhas em grade (uma linha por animacao): goblins, barril, arqueiro, dinamite,
+///       folhas em grade (uma linha por animacao): o arqueiro azul do jogador, goblins,
+///       barril, arqueiro, dinamite,
 ///       explosao, caveira de morte e enfeites de chao
 ///   Masmorra/Esqueleto, EsqueletoFoice, Vampiro  (Enemy Animations Set)
 ///       uma tira por animacao, quadros de 32x32
 ///   Masmorra/Tocha, Candelabro, Objetos  (2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon v2.0)
 ///       tocha de parede, candelabro e caveira/ossos do chao, em ladrilhos de 16 px
+///   Masmorra/Chao, Parede, Portao, Espinhos, Ladrilhos  (2D Dungeon Asset Pack v5.2)
+///       chao, tijolos, portao de grade, espinhos, o tileset inteiro (buraco do alcapao)
+///       e, na folha Objetos, moeda, frasco, chave, mesas e os icones dos itens
 ///
 /// Tudo e recortado aqui com Sprite.Create, sem fatiar no Sprite Editor: quem clonar o
 /// projeto nao precisa preparar nada. Se uma imagem sumir, quem pediu recebe null e volta
@@ -230,6 +234,35 @@ public static class ArteImportada
         return um != null ? um[0] : null;
     }
 
+    /// <summary>
+    /// O jogador: o arqueiro azul do Tiny Swords (Update 010). Parado, correndo e o tiro pra
+    /// cima, pro lado e pra baixo (as diagonais da folha ficam de fora: o tiro e em 4 direcoes).
+    /// A morte e a caveira do pacote.
+    /// </summary>
+    public static ClipesDePersonagem ArqueiroAzul(float pixelsPorUnidade)
+    {
+        RectInt recorte = new RectInt(0, 0, 192, 192);
+        Vector2 centro = new Vector2(98f, 100f);
+        const string folha = "TinySwords/ArqueiroAzul";
+
+        return Clipes(folha, pixelsPorUnidade, c =>
+        {
+            c.Parado = Linha(folha, 192, 0, 6, recorte, centro, pixelsPorUnidade);
+            c.Andando = Linha(folha, 192, 1, 6, recorte, centro, pixelsPorUnidade);
+            c.AtaqueCima = Linha(folha, 192, 2, 8, recorte, centro, pixelsPorUnidade);
+            c.Ataque = Linha(folha, 192, 4, 8, recorte, centro, pixelsPorUnidade);
+            c.AtaqueBaixo = Linha(folha, 192, 6, 8, recorte, centro, pixelsPorUnidade);
+            // So a caveira subindo (a primeira linha): ela fica na tela ate o fim de jogo.
+            Sprite[] caveira = Caveira(pixelsPorUnidade * 128f / 192f);
+
+            if (caveira != null)
+            {
+                c.Morte = new Sprite[7];
+                System.Array.Copy(caveira, c.Morte, 7);
+            }
+        });
+    }
+
     /// <summary>Nomes dos enfeites de chao (cogumelos, pedrinhas, moitas, ossos).</summary>
     private static readonly string[] Enfeites = { "01", "02", "03", "04", "05", "06", "07", "10", "14", "15" };
 
@@ -283,6 +316,124 @@ public static class ArteImportada
     /// <summary>Candelabro de chao com a chama tremendo (4 quadros de 16x16), pivo no pe.</summary>
     public static Sprite[] Candelabro(float pixelsPorUnidade)
         => Linha("Masmorra/Candelabro", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 15f), pixelsPorUnidade);
+
+    // ================================================================ cenario da masmorra
+    // 2D Dungeon Asset Pack v5.2: ladrilhos de 16 px, 16 pixels por unidade (1 ladrilho = 1
+    // unidade, o mesmo tamanho da arte gerada que eles substituem).
+
+    private const float PixelsDoLadrilho = 16f;
+
+    /// <summary>Chao (4x4 ladrilhos misturados, pra repeticao nao aparecer). Para modo Tiled.</summary>
+    public static Sprite ChaoDaMasmorra => Inteira("Masmorra/Chao", PixelsDoLadrilho);
+
+    /// <summary>Tijolos da parede (4 ladrilhos lado a lado). Para modo Tiled.</summary>
+    public static Sprite ParedeDaMasmorra => Inteira("Masmorra/Parede", PixelsDoLadrilho);
+
+    /// <summary>Portao de grade: quadro 0 fechado, 4 aberto (a parte de cima da folha, 16x16).</summary>
+    public static Sprite Portao(bool aberto)
+    {
+        Sprite[] quadros = Linha("Masmorra/Portao", 16, 0, 5, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho, 32);
+        return quadros != null ? quadros[aberto ? 4 : 0] : null;
+    }
+
+    /// <summary>Espinhos saindo do chao (5 quadros de 16x16, o ultimo todo pra fora).</summary>
+    public static Sprite[] EspinhosDoChao
+        => Linha("Masmorra/Espinhos", 16, 0, 5, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
+
+    /// <summary>Um ladrilho do tileset inteiro (coluna, linha), ex. o buraco do alcapao em (3, 9).</summary>
+    public static Sprite Ladrilho(int coluna, int linha)
+        => Celula("Masmorra/Ladrilhos", coluna, linha);
+
+    /// <summary>Um objeto da folha de itens (coluna, linha): moeda, frasco, chave, bau, mesa...</summary>
+    public static Sprite Objeto(int coluna, int linha)
+        => Celula("Masmorra/Objetos", coluna, linha);
+
+    /// <summary>
+    /// O desenho de cada item passivo, pelo nome: frascos, gemas, livro, pergaminho, taca.
+    /// Nome desconhecido sorteia um fixo (o mesmo nome sempre da o mesmo desenho).
+    /// </summary>
+    public static Sprite IconeDoItem(string nome)
+    {
+        switch (nome)
+        {
+            case "Cebola Triste": return Objeto(9, 2);
+            case "Seringa Vermelha": return Objeto(9, 3);
+            case "Tenis Velho": return Objeto(6, 1);
+            case "Olho Triplo": return Objeto(5, 1);
+            case "Olho Gemeo": return Objeto(3, 1);
+            case "Luneta": return Objeto(11, 3);
+            case "Coracao Extra": return Objeto(10, 2);
+            case "Lagrima de Chumbo": return Objeto(4, 1);
+            case "Cafe": return Objeto(10, 4);
+            case "Saco de Moedas": return Objeto(4, 3);
+            case "Lagrima Fantasma": return Objeto(11, 4);
+            case "Bussola Maldita": return Objeto(11, 2);
+            case "Olho na Nuca": return Objeto(10, 3);
+            case "Pimenta": return Objeto(10, 1);
+        }
+
+        (int, int)[] reserva = { (7, 1), (8, 1), (8, 2), (1, 3), (1, 4) };
+        int h = 0;
+
+        foreach (char c in nome ?? "")
+            h = h * 31 + c;
+
+        (int coluna, int linha) = reserva[Mathf.Abs(h) % reserva.Length];
+        return Objeto(coluna, linha);
+    }
+
+    /// <summary>Uma das quatro pedras do Tiny Swords, sorteada; ~1 unidade de lado.</summary>
+    public static Sprite PedraAleatoria()
+        => Inteira($"TinySwords/Pedra{Random.Range(1, 5)}", 60f);
+
+    /// <summary>A dinamite parada do Tiny Swords, como icone de bomba (~1 unidade).</summary>
+    public static Sprite BombaDeDinamite
+    {
+        get
+        {
+            Sprite[] quadros = Dinamite(50f);
+            return quadros != null ? quadros[0] : null;
+        }
+    }
+
+    /// <summary>Tiro dos inimigos: a gema laranja da folha de objetos, a ~1 unidade (o tiro escala).</summary>
+    public static Sprite TiroMagico
+    {
+        get
+        {
+            Sprite[] um = Linha("Masmorra/Objetos", 16, 1, 1, new RectInt(7 * 16, 0, 16, 16), new Vector2(7 * 16 + 8f, 8f), 11f);
+            return um != null ? um[0] : null;
+        }
+    }
+
+    private static Sprite Celula(string caminho, int coluna, int linha)
+    {
+        Sprite[] um = Linha(caminho, 16, linha, 1, new RectInt(coluna * 16, 0, 16, 16),
+                            new Vector2(coluna * 16 + 8f, 8f), PixelsDoLadrilho);
+        return um != null ? um[0] : null;
+    }
+
+    /// <summary>A imagem inteira como um sprite, pivo no meio.</summary>
+    private static Sprite Inteira(string caminho, float pixelsPorUnidade)
+    {
+        string chave = caminho + "@" + pixelsPorUnidade;
+
+        if (sprites.TryGetValue(chave, out Sprite guardado))
+            return guardado;
+
+        Texture2D textura = Textura(caminho);
+        Sprite sprite = null;
+
+        if (textura != null)
+        {
+            sprite = Sprite.Create(textura, new Rect(0, 0, textura.width, textura.height), new Vector2(0.5f, 0.5f),
+                                   pixelsPorUnidade, 0, SpriteMeshType.FullRect);
+            sprite.name = caminho;
+        }
+
+        sprites[chave] = sprite;
+        return sprite;
+    }
 
     private static ClipesDePersonagem Clipes(string nome, float pixelsPorUnidade, System.Action<ClipesDePersonagem> montar)
     {

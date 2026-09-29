@@ -120,6 +120,7 @@ public class HudDoInventario : MonoBehaviour
 
         Image icone = obj.AddComponent<Image>();
         icone.sprite = ArteGerada.Coletavel(tipo);
+        icone.preserveAspect = true;   // a dinamite e comprida: sem isto ficava achatada
         icone.raycastTarget = false;
 
         // Contorno claro: a bomba e escura e sumia no chao escuro.

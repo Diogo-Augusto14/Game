@@ -801,6 +801,10 @@ public class Andar : MonoBehaviour
 
         Transform chao = sala.transform.Find("Cenario/Chao");
 
+        // Os ladrilhos do pacote ja tem cor: o tom da sala especial entra pela metade.
+        if (ArteGerada.CenarioDoPacote)
+            cor = Color.Lerp(Color.white, cor, 0.5f);
+
         if (chao != null && chao.TryGetComponent(out SpriteRenderer sr))
             sr.color = cor;
     }
@@ -827,8 +831,20 @@ public class Andar : MonoBehaviour
         const float MEIA_PORTA = 0.75f;
         const float LADO = 0.4f;
 
+        // Com o pacote: caveira no chefe, estandarte vermelho na loja e azul no item.
+        Sprite estandarte = cor == corDoBatenteDoChefe ? ArteImportada.Objeto(2, 3)
+            : cor == corDoBatenteDaLoja ? ArteImportada.Objeto(1, 3)
+            : ArteImportada.Objeto(1, 4);
+
         for (int s = -1; s <= 1; s += 2)
         {
+            if (estandarte != null)
+            {
+                Vector2 junto = eixo * (s * (MEIA_PORTA + 0.3f));
+                FormasDaSala.Desenho(porta.transform, "Batente", estandarte, Color.white, junto, Vector2.one * 0.7f, 2);
+                continue;
+            }
+
             Vector2 posicao = eixo * (s * (MEIA_PORTA + LADO * 0.5f));
             FormasDaSala.Desenho(porta.transform, "Batente", FormasDaSala.Quadrado(), cor, posicao, Vector2.one * LADO, 2);
         }

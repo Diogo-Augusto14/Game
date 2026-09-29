@@ -20,8 +20,10 @@ public class Espinhos : MonoBehaviour
         obj.transform.SetParent(pai, false);
         obj.transform.localPosition = posicaoLocal;
 
-        FormasDaSala.Desenho(obj.transform, "Base", FormasDaSala.Quadrado(), new Color(0.16f, 0.13f, 0.12f, 0.6f),
-            Vector2.zero, Vector2.one * 0.9f, -9);
+        // A placa escura so faz falta no desenho gerado: o do pacote ja vem com a base.
+        if (!ArteGerada.CenarioDoPacote)
+            FormasDaSala.Desenho(obj.transform, "Base", FormasDaSala.Quadrado(), new Color(0.16f, 0.13f, 0.12f, 0.6f),
+                Vector2.zero, Vector2.one * 0.9f, -9);
         FormasDaSala.Desenho(obj.transform, "Pontas", ArteGerada.EspinhosNoChao(), Color.white, Vector2.zero, Vector2.one, -8);
 
         BoxCollider2D area = obj.AddComponent<BoxCollider2D>();

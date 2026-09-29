@@ -36,8 +36,10 @@ public class TiroDaSala : MonoBehaviour
         obj.transform.localScale = Vector3.one * diametro;
 
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = ArteGerada.Bola();
-        sr.color = cor;
+        // A gema do pacote ja tem cor: a do tiro so tinge pela metade.
+        Sprite gema = ArteImportada.TiroMagico;
+        sr.sprite = gema != null ? gema : ArteGerada.Bola();
+        sr.color = gema != null ? Color.Lerp(Color.white, cor, 0.5f) : cor;
         sr.sortingOrder = 20;
 
         Rigidbody2D corpo = obj.AddComponent<Rigidbody2D>();

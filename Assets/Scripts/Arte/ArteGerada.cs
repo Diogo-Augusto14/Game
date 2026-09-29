@@ -326,23 +326,38 @@ public static class ArteGerada
     /// <summary>Bola branca com luz em cima e sombra embaixo. Pinte pelo SpriteRenderer.</summary>
     public static Sprite Bola() => Guardado("bola", () => BolaComRosto(Color.white, null));
 
+    /// <summary>
+    /// Coracao, moeda, chave e bomba. Com a arte dos pacotes: frasco vermelho, moeda e chave
+    /// dourada da masmorra, e a dinamite do Tiny Swords. Sem ela, o desenho daqui.
+    /// </summary>
     public static Sprite Coletavel(TipoDeColetavel tipo)
     {
         switch (tipo)
         {
-            case TipoDeColetavel.Coracao: return Guardado("coracao", () => Texto(Coracao));
-            case TipoDeColetavel.Moeda: return Guardado("moeda", () => Texto(Moeda));
-            case TipoDeColetavel.Chave: return Guardado("chave", () => Texto(Chave));
-            default: return Guardado("bomba", () => Texto(Bomba));
+            case TipoDeColetavel.Coracao: return ArteImportada.Objeto(8, 3) ?? Guardado("coracao", () => Texto(Coracao));
+            case TipoDeColetavel.Moeda: return ArteImportada.Objeto(3, 3) ?? Guardado("moeda", () => Texto(Moeda));
+            case TipoDeColetavel.Chave: return ArteImportada.Objeto(9, 4) ?? Guardado("chave", () => Texto(Chave));
+            default: return ArteImportada.BombaDeDinamite ?? Guardado("bomba", () => Texto(Bomba));
         }
     }
 
-    public static Sprite PedraSolta() => Guardado("pedra", () => Texto(Pedra));
+    /// <summary>Pedra de sala: uma das pedras do Tiny Swords (sorteada), ou a desenhada aqui.</summary>
+    public static Sprite PedraSolta() => ArteImportada.PedraAleatoria() ?? Guardado("pedra", () => Texto(Pedra));
 
-    public static Sprite EspinhosNoChao() => Guardado("espinhos", () => Texto(Espinhos));
+    /// <summary>Espinhos: os da masmorra, todos pra fora, ou os desenhados aqui.</summary>
+    public static Sprite EspinhosNoChao()
+    {
+        Sprite[] pacote = ArteImportada.EspinhosDoChao;
+        return pacote != null ? pacote[pacote.Length - 1] : Guardado("espinhos", () => Texto(Espinhos));
+    }
+
+    /// <summary>True quando o chao e a parede vem do pacote da masmorra (a cor do andar so tinge de leve).</summary>
+    public static bool CenarioDoPacote => ArteImportada.ChaoDaMasmorra != null;
 
     /// <summary>Ladrilho do chao: pedra lisa com pintinhas e uma junta escura. Para modo Tiled.</summary>
-    public static Sprite Chao() => Guardado("chao", () =>
+    public static Sprite Chao() => ArteImportada.ChaoDaMasmorra ?? ChaoGerado();
+
+    private static Sprite ChaoGerado() => Guardado("chao", () =>
     {
         Color32[] px = new Color32[Lado * Lado];
         Sintetizador.Ruido ruido = new Sintetizador.Ruido(12345);
@@ -366,7 +381,9 @@ public static class ArteGerada
     });
 
     /// <summary>Ladrilho da parede: tijolos com rejunte. Para modo Tiled.</summary>
-    public static Sprite Tijolo() => Guardado("tijolo", () =>
+    public static Sprite Tijolo() => ArteImportada.ParedeDaMasmorra ?? TijoloGerado();
+
+    private static Sprite TijoloGerado() => Guardado("tijolo", () =>
     {
         Color32[] px = new Color32[Lado * Lado];
         Sintetizador.Ruido ruido = new Sintetizador.Ruido(777);

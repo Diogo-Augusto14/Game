@@ -25,8 +25,23 @@ public class Tranca : MonoBehaviour
         BoxCollider2D solido = obj.AddComponent<BoxCollider2D>();
         solido.size = tamanho;
 
-        FormasDaSala.Desenho(obj.transform, "Grade", FormasDaSala.Quadrado(), new Color(0.75f, 0.6f, 0.25f), Vector2.zero, tamanho, 3);
-        FormasDaSala.Desenho(obj.transform, "Cadeado", FormasDaSala.Circulo(), Coletavel.CorDe(TipoDeColetavel.Chave), Vector2.zero, Vector2.one * 0.45f, 4);
+        Sprite portao = ArteImportada.Portao(false);
+        Sprite chave = ArteImportada.Objeto(9, 4);
+
+        if (portao != null && chave != null)
+        {
+            // Portao de grade dourado com a chave na frente: ja diz o que abre.
+            SpriteRenderer grade = FormasDaSala.Desenho(obj.transform, "Grade", portao, new Color(1f, 0.85f, 0.45f), Vector2.zero,
+                new Vector2(Mathf.Max(tamanho.x, tamanho.y), Mathf.Min(tamanho.x, tamanho.y)), 3);
+            grade.transform.localRotation = Quaternion.Euler(0f, 0f, porta.Lado == LadoDaPorta.Baixo ? 180f
+                : porta.Lado == LadoDaPorta.Esquerda ? 90f : porta.Lado == LadoDaPorta.Direita ? -90f : 0f);
+            FormasDaSala.Desenho(obj.transform, "Cadeado", chave, Color.white, Vector2.zero, Vector2.one * 0.7f, 4);
+        }
+        else
+        {
+            FormasDaSala.Desenho(obj.transform, "Grade", FormasDaSala.Quadrado(), new Color(0.75f, 0.6f, 0.25f), Vector2.zero, tamanho, 3);
+            FormasDaSala.Desenho(obj.transform, "Cadeado", FormasDaSala.Circulo(), Coletavel.CorDe(TipoDeColetavel.Chave), Vector2.zero, Vector2.one * 0.45f, 4);
+        }
 
         return obj.AddComponent<Tranca>();
     }

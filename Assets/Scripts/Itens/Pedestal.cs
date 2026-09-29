@@ -31,10 +31,23 @@ public class Pedestal : MonoBehaviour
         pedra.transform.localPosition = new Vector3(0f, -0.2f, 0f);
 
         SpriteRenderer srPedra = pedra.AddComponent<SpriteRenderer>();
-        srPedra.sprite = FormasTopDown.Quadrado();
-        srPedra.color = new Color(0.55f, 0.52f, 0.5f);
+        Sprite altar = ArteImportada.Objeto(2, 2);
         srPedra.sortingOrder = 4;
-        pedra.AddComponent<BoxCollider2D>();
+
+        if (altar != null)
+        {
+            // Altar de pedra da masmorra, sem esticar; o colisor fica do tamanho da pedra antiga.
+            pedra.transform.localScale = Vector3.one;
+            srPedra.sprite = altar;
+            srPedra.color = Color.white;
+            pedra.AddComponent<BoxCollider2D>().size = new Vector2(0.8f, 0.5f);
+        }
+        else
+        {
+            srPedra.sprite = FormasTopDown.Quadrado();
+            srPedra.color = new Color(0.55f, 0.52f, 0.5f);
+            pedra.AddComponent<BoxCollider2D>();
+        }
 
         CircleCollider2D sensor = obj.AddComponent<CircleCollider2D>();
         sensor.isTrigger = true;
@@ -48,11 +61,12 @@ public class Pedestal : MonoBehaviour
             GameObject desenho = new GameObject("Item");
             desenho.transform.SetParent(obj.transform, false);
             desenho.transform.localPosition = new Vector3(0f, 0.35f, 0f);
-            desenho.transform.localScale = Vector3.one * 0.45f;
+            Sprite icone = ArteImportada.IconeDoItem(item.nome);
+            desenho.transform.localScale = Vector3.one * (icone != null ? 0.8f : 0.45f);
 
             SpriteRenderer sr = desenho.AddComponent<SpriteRenderer>();
-            sr.sprite = ArteGerada.Bola();
-            sr.color = item.cor;
+            sr.sprite = icone != null ? icone : ArteGerada.Bola();
+            sr.color = icone != null ? Color.white : item.cor;
             sr.sortingOrder = 6;
 
             p.desenhoDoItem = desenho.transform;
