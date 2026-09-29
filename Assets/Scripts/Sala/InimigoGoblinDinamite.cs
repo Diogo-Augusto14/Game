@@ -57,6 +57,7 @@ public class InimigoGoblinDinamite : InimigoComArte
         if (!recarga.Ativo && VeOJogador() && ParaOJogador().magnitude <= alcanceMaximo + 1f)
         {
             EstadoAtual = Estado.Preparando;
+            recarga.Forcar(intervaloEntreArremessos);   // levar tiro no meio nao faz ele atacar de novo na hora
             preparo.Forcar(tempoDePreparo);
             Frear();
 

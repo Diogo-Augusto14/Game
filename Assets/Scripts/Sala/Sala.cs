@@ -208,8 +208,11 @@ public class Sala : MonoBehaviour
     }
 
     /// <summary>
-    /// Espalha enfeites de chao (arte do Tiny Swords) em pontos livres. So desenho: nao
-    /// bloqueia nada e fica embaixo de tudo. Sem a arte, nao faz nada.
+    /// Enfeita a sala com arte importada, so desenho (nao bloqueia nada):
+    ///   - <paramref name="quantos"/> enfeites de chao (cogumelo, pedrinha, osso) em pontos livres;
+    ///   - duas tochas acesas na parede de cima, uma de cada lado da porta;
+    ///   - as vezes um candelabro num canto livre.
+    /// Sem a arte, a parte que faltar simplesmente nao aparece.
     /// </summary>
     public void Enfeitar(int quantos)
     {
@@ -220,13 +223,36 @@ public class Sala : MonoBehaviour
             Sprite sprite = ArteImportada.EnfeiteAleatorio();
 
             if (sprite == null)
-                return;
+                break;
 
             // Longe das paredes, pra nao tampar porta.
             Vector2 ponto = PontoLivreAleatorio(1.2f);
             SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, new Color(0.85f, 0.85f, 0.85f),
                                                      ponto, Vector2.one, -9);
             sr.flipX = Random.value < 0.5f;
+        }
+
+        Vector2 meio = tamanhoInterno * 0.5f;
+
+        // Tochas no meio da espessura da parede de cima, a um quarto da largura de cada lado.
+        Sprite[] tocha = ArteImportada.TochaDeParede(24f);
+
+        for (int lado = -1; lado <= 1 && tocha != null; lado += 2)
+        {
+            Vector2 local = new Vector2(lado * meio.x * 0.5f, meio.y + espessuraDaParede * 0.5f);
+            EfeitoDeQuadros.Criar(tocha, 8f, (Vector2)transform.position + local, 1, cenario)?.EmLoop();
+        }
+
+        // Candelabro: meia chance, num canto que nao tenha pedra nem espinho.
+        Sprite[] candelabro = ArteImportada.Candelabro(16f);
+
+        if (candelabro != null && Random.value < 0.5f)
+        {
+            Vector2Int canto = new Vector2Int(Random.value < 0.5f ? -1 : 1, Random.value < 0.5f ? -1 : 1);
+            Vector2 local = new Vector2(canto.x * (meio.x - 0.6f), canto.y * (meio.y - 0.6f));
+
+            if (Livre(local, 0.2f))
+                EfeitoDeQuadros.Criar(candelabro, 6f, (Vector2)transform.position + local + Vector2.down * 0.45f, -8, cenario)?.EmLoop();
         }
     }
 

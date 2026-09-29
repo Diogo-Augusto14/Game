@@ -53,6 +53,7 @@ public class InimigoArqueiro : InimigoComArte
         if (!recarga.Ativo && VeOJogador())
         {
             EstadoAtual = Estado.Preparando;
+            recarga.Forcar(intervaloEntreFlechas);   // levar tiro no meio nao faz ele atacar de novo na hora
             preparo.Forcar(tempoDePreparo);
             Frear();
 

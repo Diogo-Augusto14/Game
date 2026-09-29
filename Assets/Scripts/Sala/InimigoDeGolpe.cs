@@ -1,22 +1,23 @@
 using UnityEngine;
 
 /// <summary>
-/// Goblin da tocha (Tiny Swords): rapido, corre atras do jogador e, chegando perto, gira
-/// a tocha num arco de fogo. Tem arte do golpe pro lado, pra baixo e pra cima.
+/// Inimigo corpo a corpo com arte importada: corre atras do jogador e, chegando perto,
+/// ergue a arma e golpeia a frente. Usado pelo goblin da tocha (Tiny Swords, com golpe
+/// pro lado, pra baixo e pra cima) e pelo esqueleto da espada (Enemy Animations Set).
 ///
 ///   Agindo      -> persegue
 ///   Preparando  -> ergue a tocha (a animacao ate o quadro do golpe)
 ///   golpe       -> dano num circulo a frente dele
 ///   Recuperando -> termina o giro parado; da tempo de revidar
 ///
-/// O golpe sai na direcao em que o jogador ESTAVA quando ele ergueu a tocha.
+/// O golpe sai na direcao em que o jogador ESTAVA quando ele ergueu a arma.
 /// </summary>
-public class InimigoGoblinTocha : InimigoComArte
+public class InimigoDeGolpe : InimigoComArte
 {
-    [Header("Golpe de tocha")]
+    [Header("Golpe")]
     [SerializeField, Min(0f)] private float alcanceParaGolpear = 1.2f;
 
-    [Tooltip("Telegrafo: segundos erguendo a tocha")]
+    [Tooltip("Telegrafo: segundos erguendo a arma")]
     [SerializeField, Min(0f)] private float tempoDePreparo = 0.35f;
 
     [SerializeField, Min(0f)] private float tempoDeRecuperacao = 0.4f;
@@ -28,8 +29,8 @@ public class InimigoGoblinTocha : InimigoComArte
     [Tooltip("Raio da area do golpe, centrada a frente dele")]
     [SerializeField, Min(0.1f)] private float raioDoGolpe = 0.6f;
 
-    /// <summary>A tira de ataque tem 6 quadros; o fogo aparece no quarto (indice 3).</summary>
-    private const int QuadroDoGolpe = 3;
+    [Tooltip("Quadro da animacao de ataque em que o golpe acerta")]
+    [SerializeField, Min(0)] private int quadroDoGolpe = 3;
 
     private Cronometro recarga;
     private Cronometro preparo;
@@ -41,6 +42,15 @@ public class InimigoGoblinTocha : InimigoComArte
         base.Awake();
         velocidade = 2.4f;
         recarga.Forcar(intervaloEntreGolpes * 0.5f);
+    }
+
+    /// <summary>Ajusta o bicho (a fabrica chama logo depois de montar).</summary>
+    public void Ajustar(float novaVelocidade, int novoQuadroDoGolpe, float novoPreparo, float novoDano)
+    {
+        velocidade = novaVelocidade;
+        quadroDoGolpe = novoQuadroDoGolpe;
+        tempoDePreparo = novoPreparo;
+        danoDoGolpe = novoDano;
     }
 
     protected override void AtualizarAgindo(float dt)
@@ -60,11 +70,12 @@ public class InimigoGoblinTocha : InimigoComArte
         {
             direcaoDoGolpe = alvo / distancia;
             EstadoAtual = Estado.Preparando;
+            recarga.Forcar(intervaloEntreGolpes);   // levar tiro no meio nao faz ele atacar de novo na hora
             preparo.Forcar(tempoDePreparo);
             Frear();
 
             animacao?.OlharPara(direcaoDoGolpe);
-            TocarAtaque(QuadrosDoGolpe(direcaoDoGolpe), QuadroDoGolpe, tempoDePreparo);
+            TocarAtaque(QuadrosDoGolpe(direcaoDoGolpe), quadroDoGolpe, tempoDePreparo);
             return;
         }
 

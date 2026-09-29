@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Base dos inimigos com arte do Tiny Swords (goblins, barril, arqueiro). Guarda a
-/// animacao, troca a morte encolhida por uma caveira que sobe e some, e tem a ajuda de
+/// animacao, troca a morte encolhida pela animacao de morte (ou uma caveira), e tem a ajuda de
 /// manter distancia que os de longe usam.
 /// </summary>
 public abstract class InimigoComArte : InimigoDeSala
@@ -78,16 +78,21 @@ public abstract class InimigoComArte : InimigoDeSala
         if (!DeixaCaveira)
             return;
 
-        // A caveira toma o lugar do bicho. Sem a arte, fica o encolhido da base.
-        Sprite[] caveira = ArteImportada.Caveira(PixelsDoTinySwords);
+        // A morte do proprio bicho (esqueleto, vampiro) ou a caveira do Tiny Swords toma o
+        // lugar dele, num objeto solto: o Vida apaga o inimigo antes de a animacao acabar.
+        // Sem arte nenhuma, fica o encolhido da base.
+        Sprite[] restos = clipes?.Morte ?? ArteImportada.Caveira(PixelsDoTinySwords);
 
-        if (caveira == null)
+        if (restos == null)
         {
             transform.localScale = escala * 0.6f;
             return;
         }
 
-        EfeitoDeQuadros.Criar(caveira, 14f, transform.position, 11, transform.parent);
+        EfeitoDeQuadros efeito = EfeitoDeQuadros.Criar(restos, 14f, transform.position, 11, transform.parent)?.SegurarNoFim(0.6f);
+
+        if (efeito != null && desenho != null)
+            efeito.Virar(desenho.flipX);
 
         if (animacao != null)
             animacao.enabled = false;

@@ -12,6 +12,10 @@ using UnityEngine;
 ///   TinySwords/...  (Tiny Swords e Tiny Swords Free Pack, da Pixel Frog)
 ///       folhas em grade (uma linha por animacao): goblins, barril, arqueiro, dinamite,
 ///       explosao, caveira de morte e enfeites de chao
+///   Masmorra/Esqueleto, EsqueletoFoice, Vampiro  (Enemy Animations Set)
+///       uma tira por animacao, quadros de 32x32
+///   Masmorra/Tocha, Candelabro, Objetos  (2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon v2.0)
+///       tocha de parede, candelabro e caveira/ossos do chao, em ladrilhos de 16 px
 ///
 /// Tudo e recortado aqui com Sprite.Create, sem fatiar no Sprite Editor: quem clonar o
 /// projeto nao precisa preparar nada. Se uma imagem sumir, quem pediu recebe null e volta
@@ -208,13 +212,56 @@ public static class ArteImportada
     /// <summary>Nomes dos enfeites de chao (cogumelos, pedrinhas, moitas, ossos).</summary>
     private static readonly string[] Enfeites = { "01", "02", "03", "04", "05", "06", "07", "10", "14", "15" };
 
-    /// <summary>Um enfeite de chao sorteado (64 px = 1 ladrilho), ou null sem a arte.</summary>
+    /// <summary>
+    /// Um enfeite de chao sorteado, ou null sem a arte: os do Tiny Swords (64 px = 1
+    /// ladrilho) e, de vez em quando, uma caveira ou ossos da masmorra.
+    /// </summary>
     public static Sprite EnfeiteAleatorio()
     {
+        int sorteio = Random.Range(0, Enfeites.Length + 2);
+
+        if (sorteio >= Enfeites.Length)
+        {
+            // Objetos.png: caveira na coluna 2 da linha 3, ossos na coluna 2 da linha 4.
+            Sprite[] osso = Linha("Masmorra/Objetos", 16, sorteio == Enfeites.Length ? 3 : 4, 1,
+                                  new RectInt(32, 0, 16, 16), new Vector2(40f, 8f), 20f);
+
+            if (osso != null)
+                return osso[0];
+        }
+
         string nome = Enfeites[Random.Range(0, Enfeites.Length)];
         Sprite[] um = Linha("TinySwords/Enfeites/" + nome, 64, 0, 1, new RectInt(0, 0, 64, 64), new Vector2(32f, 32f), 64f);
         return um != null ? um[0] : null;
     }
+
+    // ================================================================ masmorra
+    /// <summary>
+    /// Um bicho do Enemy Animations Set (Esqueleto, EsqueletoFoice, Vampiro): tiras de
+    /// quadros 32x32, o corpo com uns 16 px. <paramref name="centro"/> e o meio do corpo no quadro.
+    /// </summary>
+    public static ClipesDePersonagem Masmorra(string pasta, Vector2 centro, float pixelsPorUnidade)
+    {
+        string caminho = "Masmorra/" + pasta + "/";
+        RectInt recorte = new RectInt(0, 0, 32, 32);
+
+        return Clipes(caminho, pixelsPorUnidade, c =>
+        {
+            c.Parado = Linha(caminho + "Parado", 32, 0, 99, recorte, centro, pixelsPorUnidade);
+            c.Andando = Linha(caminho + "Andando", 32, 0, 99, recorte, centro, pixelsPorUnidade);
+            c.Ataque = Linha(caminho + "Ataque", 32, 0, 99, recorte, centro, pixelsPorUnidade);
+            c.Dor = Linha(caminho + "Dor", 32, 0, 99, recorte, centro, pixelsPorUnidade);
+            c.Morte = Linha(caminho + "Morte", 32, 0, 99, recorte, centro, pixelsPorUnidade);
+        });
+    }
+
+    /// <summary>Tocha de parede acesa (6 quadros de 16x28), com o pivo no suporte.</summary>
+    public static Sprite[] TochaDeParede(float pixelsPorUnidade)
+        => Linha("Masmorra/Tocha", 16, 0, 6, new RectInt(0, 0, 16, 28), new Vector2(8f, 20f), pixelsPorUnidade, 28);
+
+    /// <summary>Candelabro de chao com a chama tremendo (4 quadros de 16x16), pivo no pe.</summary>
+    public static Sprite[] Candelabro(float pixelsPorUnidade)
+        => Linha("Masmorra/Candelabro", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 15f), pixelsPorUnidade);
 
     private static ClipesDePersonagem Clipes(string nome, float pixelsPorUnidade, System.Action<ClipesDePersonagem> montar)
     {
@@ -240,9 +287,12 @@ public static class ArteImportada
     /// <paramref name="celula"/>. O pivo fica no centro do corpo, pra o colisor cair em cima dele.
     /// </summary>
     private static Sprite[] Linha(string caminho, int celula, int linha, int quantos, RectInt recorte, Vector2 centro,
-                                  float pixelsPorUnidade)
+                                  float pixelsPorUnidade, int alturaDaCelula = 0)
     {
-        string chave = $"{caminho}#{linha}@{pixelsPorUnidade}";
+        if (alturaDaCelula <= 0)
+            alturaDaCelula = celula;
+
+        string chave = $"{caminho}#{linha}:{recorte.x},{recorte.y}@{pixelsPorUnidade}";
 
         if (linhas.TryGetValue(chave, out Sprite[] guardados))
             return guardados;
@@ -250,7 +300,7 @@ public static class ArteImportada
         Texture2D textura = Textura(caminho);
         Sprite[] quadros = null;
 
-        if (textura != null && (linha + 1) * celula <= textura.height)
+        if (textura != null && (linha + 1) * alturaDaCelula <= textura.height)
         {
             quantos = Mathf.Min(quantos, textura.width / celula);
             quadros = new Sprite[quantos];
@@ -261,7 +311,7 @@ public static class ArteImportada
 
             for (int i = 0; i < quantos; i++)
             {
-                Rect r = Recorte(textura, i * celula + recorte.x, linha * celula + recorte.y, recorte.width, recorte.height);
+                Rect r = Recorte(textura, i * celula + recorte.x, linha * alturaDaCelula + recorte.y, recorte.width, recorte.height);
                 quadros[i] = Sprite.Create(textura, r, pivo, pixelsPorUnidade, 0, SpriteMeshType.FullRect);
                 quadros[i].name = $"{caminho} {linha}:{i}";
             }

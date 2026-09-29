@@ -17,7 +17,10 @@ public enum TipoDeInimigo
     GoblinTocha,
     GoblinDinamite,
     Barril,
-    Arqueiro
+    Arqueiro,
+    Esqueleto,
+    EsqueletoFoice,
+    Vampiro
 }
 
 /// <summary>
@@ -90,7 +93,7 @@ public static class FabricaDeInimigos
 
             // Arte do Tiny Swords. Sem a imagem, cada um vira uma bola da sua cor.
             case TipoDeInimigo.GoblinTocha:
-                return ComArte<InimigoGoblinTocha>("Goblin da tocha", posicao, pai, 0.3f, 35f,
+                return ComArte<InimigoDeGolpe>("Goblin da tocha", posicao, pai, 0.3f, 35f,
                     ArteImportada.GoblinDaTocha(InimigoComArte.PixelsDoTinySwords), new Color(0.75f, 0.3f, 0.15f));
 
             case TipoDeInimigo.GoblinDinamite:
@@ -104,6 +107,23 @@ public static class FabricaDeInimigos
             case TipoDeInimigo.Arqueiro:
                 return ComArte<InimigoArqueiro>("Arqueiro", posicao, pai, 0.3f, 30f,
                     ArteImportada.Arqueiro(InimigoComArte.PixelsDoTinySwords), new Color(0.3f, 0.3f, 0.4f));
+
+            // Enemy Animations Set: quadros de 32 px com o corpo (uns 16 px) no meio.
+            case TipoDeInimigo.Esqueleto:
+            {
+                InimigoDeGolpe esqueleto = ComArte<InimigoDeGolpe>("Esqueleto", posicao, pai, 0.3f, 35f,
+                    ArteImportada.Masmorra("Esqueleto", new Vector2(15f, 22f), PixelsDaMasmorra), new Color(0.85f, 0.82f, 0.7f));
+                esqueleto.Ajustar(1.7f, 6, 0.5f, 15f);
+                return esqueleto;
+            }
+
+            case TipoDeInimigo.EsqueletoFoice:
+                return ComArte<InimigoEsqueletoFoice>("Esqueleto da foice", posicao, pai, 0.32f, 45f,
+                    ArteImportada.Masmorra("EsqueletoFoice", new Vector2(16f, 22f), PixelsDaMasmorra), new Color(0.75f, 0.72f, 0.65f));
+
+            case TipoDeInimigo.Vampiro:
+                return ComArte<InimigoVampiro>("Vampiro", posicao, pai, 0.3f, 40f,
+                    ArteImportada.Masmorra("Vampiro", new Vector2(13f, 21f), PixelsDaMasmorra), new Color(0.4f, 0.4f, 0.55f));
 
             default:
                 return Montar<InimigoPerseguidor>("Perseguidor", posicao, pai, 0.3f, Rosto(TipoDeInimigo.Perseguidor, new Color(0.85f, 0.25f, 0.25f)), 25f);
@@ -119,6 +139,9 @@ public static class FabricaDeInimigos
         inimigo.UsarArte(Animar(inimigo, clipes), clipes);
         return inimigo;
     }
+
+    /// <summary>Pixels por unidade do Enemy Animations Set: o corpo (uns 16 px) fica com ~0.9 unidade.</summary>
+    private const float PixelsDaMasmorra = 18f;
 
     /// <summary>Pixels da arte importada por unidade: o corpo (uns 20 px) fica com ~0.9 unidade.</summary>
     private const float PixelsDoPersonagem = 22f;

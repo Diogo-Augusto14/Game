@@ -511,9 +511,10 @@ public class Andar : MonoBehaviour
 
         PintarChao(sala, casa.Tipo);
 
-        // Loja e chefe ficam limpos: a loja tem as mercadorias, o chefe precisa do chao todo.
-        if (casa.Tipo != TipoDeSala.Loja && casa.Tipo != TipoDeSala.Chefe)
-            sala.Enfeitar(UnityEngine.Random.Range(enfeitesPorSala.x, enfeitesPorSala.y + 1));
+        // Toda sala ganha tochas; loja e chefe ficam sem enfeite de chao (a loja tem as
+        // mercadorias, o chefe precisa do chao todo).
+        bool chaoLimpo = casa.Tipo == TipoDeSala.Loja || casa.Tipo == TipoDeSala.Chefe;
+        sala.Enfeitar(chaoLimpo ? 0 : UnityEngine.Random.Range(enfeitesPorSala.x, enfeitesPorSala.y + 1));
 
         Povoar(sala, casa);
         PorPremios(sala, casa);
@@ -574,8 +575,9 @@ public class Andar : MonoBehaviour
     /// Quem aparece em cada andar, com peso. Cada andar traz gente nova, pra o andar
     /// seguinte nao parecer o mesmo com mais salas:
     ///   1  -> perseguidor, atirador, investidor, divisor, demonio, monstro de sangue,
-    ///         goblin da tocha, barril
-    ///   2  -> + saltador, sentinela, goblin da dinamite e arqueiro (e o perseguidor fica mais raro)
+    ///         goblin da tocha, barril, esqueleto
+    ///   2  -> + saltador, sentinela, goblin da dinamite, arqueiro, esqueleto da foice e
+    ///         vampiro (e o perseguidor fica mais raro)
     ///   3+ -> todos, com mais investidor, divisor e sentinela
     /// </summary>
     private static TipoDeInimigo SortearInimigo(int andar)
@@ -590,6 +592,7 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Investidor, 2f), (TipoDeInimigo.Divisor, 1.5f),
                 (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1f),
                 (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1f),
+                (TipoDeInimigo.Esqueleto, 2f),
             };
         }
         else if (andar == 2)
@@ -602,6 +605,7 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1.5f),
                 (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1.5f),
                 (TipoDeInimigo.GoblinDinamite, 1.5f), (TipoDeInimigo.Arqueiro, 1.5f),
+                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 1f), (TipoDeInimigo.Vampiro, 1f),
             };
         }
         else
@@ -614,6 +618,7 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Demonio, 2.5f), (TipoDeInimigo.MonstroDeSangue, 2f),
                 (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 2f),
                 (TipoDeInimigo.GoblinDinamite, 2f), (TipoDeInimigo.Arqueiro, 2f),
+                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 2f), (TipoDeInimigo.Vampiro, 2f),
             };
         }
 
