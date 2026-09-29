@@ -42,7 +42,9 @@ public enum TipoDeInimigo
     Morceguinho,
     Lobisomem,
     Urso,
-    Necromante
+    Necromante,
+    ChefeNecromante,
+    ChefeMinotauro
 }
 
 /// <summary>
@@ -75,6 +77,24 @@ public static class FabricaDeInimigos
                     (ArteGerada.Bola(), new Color(0.25f, 0.5f, 0.22f)), 150f, clipes, clipes?.AtaqueForte);
                 sapao.Enfeitar(clipes != null);
                 return sapao;
+            }
+
+            case TipoDeInimigo.ChefeNecromante:
+            {
+                ClipesDePersonagem clipes = Tiny("Necromante", 14f);
+                ChefeNecromante rei = Montar<ChefeNecromante>("Chefe Necromante", posicao, pai, 0.6f,
+                    (ArteGerada.Bola(), new Color(0.35f, 0.2f, 0.55f)), 200f, clipes);
+                rei.Enfeitar(clipes);
+                return rei;
+            }
+
+            case TipoDeInimigo.ChefeMinotauro:
+            {
+                ClipesDePersonagem clipes = Tiny("Minotauro", 13f);
+                ChefeMinotauro touro = Montar<ChefeMinotauro>("Chefe Minotauro", posicao, pai, 0.7f,
+                    (ArteGerada.Bola(), new Color(0.6f, 0.35f, 0.2f)), 130f, clipes);
+                touro.Enfeitar(clipes);
+                return touro;
             }
 
             case TipoDeInimigo.ChefeFinal:
