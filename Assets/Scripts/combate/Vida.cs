@@ -7,7 +7,7 @@ using UnityEngine.Events;
 ///
 /// O que faz: desconta a defesa, respeita a invencibilidade, aplica o empurrao, pisca o
 /// sprite e avisa quem quiser ouvir. O que NAO faz: animar. Animacao e decidida por quem
-/// desenha (AnimacaoDoJogador / AnimacaoDoInimigo), que le <see cref="UltimoGolpe"/> e
+/// desenha, que le <see cref="UltimoGolpe"/> e
 /// <see cref="EstaMorto"/>. Misturar as duas coisas e o que faz um sistema de dano ficar
 /// impossivel de reusar em outro bicho.
 ///

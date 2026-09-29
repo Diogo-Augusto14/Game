@@ -5,9 +5,8 @@ using UnityEngine;
 /// pedras), o jogador com movimento em 8 direcoes e tiro de lagrimas, bonecos de treino
 /// pra testar o dano, a camera parada enquadrando a sala e a HUD.
 ///
-/// E o irmao do <see cref="Bootstrap"/> do plataforma, com a mesma ideia: a cena so
-/// precisa ter este componente, e o resto e montado por codigo, sem prefab nem arte.
-/// Estando na cena, ele tambem impede o Bootstrap do plataforma de se instalar.
+/// A cena so precisa ter este componente, e o resto e montado por codigo, sem prefab.
+/// E a sala de treino (cena TopDown); o jogo de verdade e o <see cref="Andar"/>.
 ///
 /// Gravidade: zerada no mundo enquanto esta cena roda (e devolvida ao sair), e cada
 /// corpo daqui ainda usa gravityScale 0 — visto de cima nada cai.
@@ -184,6 +183,9 @@ public class BootstrapTopDown : MonoBehaviour
 
         AtiradorTopDown atirador = raiz.AddComponent<AtiradorTopDown>();
 
+        // O heroi escolhido no menu (vida, arma e desenho) no lugar do rosto gerado.
+        Herois.Aplicar(raiz, Herois.Atual);
+
         // Olho: bolinha escura que mostra pra onde o boneco olha / atira.
         GameObject olho = new GameObject("Olho");
         olho.transform.SetParent(raiz.transform, false);
@@ -272,6 +274,6 @@ public class BootstrapTopDown : MonoBehaviour
 
         GameObject obj = new GameObject("Hud");
         Hud hud = obj.AddComponent<Hud>();
-        hud.Configurar(Jogador != null ? Jogador.GetComponent<Vida>() : null, null, CONTROLES);
+        hud.Configurar(Jogador != null ? Jogador.GetComponent<Vida>() : null, CONTROLES);
     }
 }

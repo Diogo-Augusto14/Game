@@ -91,6 +91,12 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
     public bool EstaMorto => EstadoAtual == Estado.Morto;
 
+    /// <summary>Troca a velocidade andando (a fabrica usa nas variacoes de um mesmo comportamento).</summary>
+    public void DefinirVelocidade(float nova) => velocidade = Mathf.Max(0f, nova);
+
+    /// <summary>Do inimigo ate o jogador (zero sem jogador). A animacao usa pra virar pro alvo.</summary>
+    public Vector2 DirecaoDoJogador => rb != null ? ParaOJogador() : Vector2.zero;
+
     public bool IgnorandoDano => false;
 
     /// <summary>
@@ -371,7 +377,8 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
             c.enabled = false;
 
         // Encolhe: o Vida pisca e restaura a cor por conta propria, entao a morte se
-        // mostra pelo tamanho, que ninguem mais mexe.
-        transform.localScale *= 0.6f;
+        // mostra pelo tamanho, que ninguem mais mexe. Com arte, a animacao de morte mostra.
+        if (!TryGetComponent(out AnimacaoDePersonagem _))
+            transform.localScale *= 0.6f;
     }
 }

@@ -15,8 +15,7 @@ using UnityEngine;
 /// porta avisa em <see cref="Porta.AoAtravessar"/> quando o jogador passa. O Andar escuta
 /// esse aviso, poe o jogador na porta oposta da sala vizinha e desliza a camera ate la.
 ///
-/// Pra usar: um objeto vazio com este componente numa cena sem o Bootstrap de plataforma.
-/// O jeito mais rapido e <c>Tools ▸ Jogo ▸ Andar ▸ Criar cena de teste do andar</c>.
+/// Pra usar: um objeto vazio com este componente numa cena (a Assets/Scenes/Jogo.unity ja vem assim).
 /// Se a cena nao tiver ninguem com a tag Player, ele monta o jogador top-down.
 /// </summary>
 [DisallowMultipleComponent]
@@ -32,6 +31,9 @@ public class Andar : MonoBehaviour
     [SerializeField, Min(3)] private int larguraDaGrade = 9;
 
     [SerializeField, Min(3)] private int alturaDaGrade = 8;
+
+    [Tooltip("Enfeites de chao (cogumelo, pedrinha, osso) por sala: sorteado entre o minimo e o maximo")]
+    [SerializeField] private Vector2Int enfeitesPorSala = new Vector2Int(2, 5);
 
     [Header("Inimigos")]
     [Tooltip("Inimigos numa sala comum: sorteado entre o minimo e o maximo")]
@@ -105,7 +107,7 @@ public class Andar : MonoBehaviour
     [SerializeField] private bool montarHud = true;
 
     [Header("Camera")]
-    [Tooltip("Forca ortografica, com zoom pra caber uma sala inteira, e desliga o Cameramov")]
+    [Tooltip("Forca ortografica, com zoom pra caber uma sala inteira")]
     [SerializeField] private bool ajustarCamera = true;
 
     [SerializeField, Min(0f)] private float tempoDaTransicao = 0.3f;
@@ -354,14 +356,13 @@ public class Andar : MonoBehaviour
         if (cam == null || !ajustarCamera)
             return;
 
-        Cameramov seguidora = cam.GetComponent<Cameramov>();
-
-        if (seguidora != null)
-            seguidora.enabled = false;
-
-        // Cabe a sala inteira, paredes incluidas, na altura e na largura.
+        // A sala (15x9 com as paredes) e mais estreita que a tela 16:9: cabendo a altura inteira,
+        // sobrava meia unidade preta de cada lado. Agora cabe a LARGURA inteira e a parede de
+        // cima e de baixo corta um pouco, como no Isaac. So nunca deixa de mostrar o chao todo.
         cam.orthographic = true;
-        cam.orthographicSize = Mathf.Max(Passo.y * 0.5f, Passo.x * 0.5f / Mathf.Max(cam.aspect, 0.1f));
+        float cabeLargura = Passo.x * 0.5f / Mathf.Max(cam.aspect, 0.1f);
+        float chaoInteiro = Sala.TamanhoPadrao.y * 0.5f + 0.5f;
+        cam.orthographicSize = Mathf.Max(cabeLargura, chaoInteiro);
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black;
     }
@@ -434,7 +435,7 @@ public class Andar : MonoBehaviour
         if (montarHud && FindAnyObjectByType<Hud>() == null)
         {
             Hud hud = new GameObject("Hud").AddComponent<Hud>();
-            hud.Configurar(encontrado.GetComponent<Vida>(), null, CONTROLES);
+            hud.Configurar(encontrado.GetComponent<Vida>(), CONTROLES);
             hud.UsarCoracoes();
         }
 
@@ -507,6 +508,12 @@ public class Andar : MonoBehaviour
         }
 
         PintarChao(sala, casa.Tipo);
+
+        // Toda sala ganha tochas; loja e chefe ficam sem enfeite de chao (a loja tem as
+        // mercadorias, o chefe precisa do chao todo).
+        bool chaoLimpo = casa.Tipo == TipoDeSala.Loja || casa.Tipo == TipoDeSala.Chefe;
+        sala.Enfeitar(chaoLimpo ? 0 : UnityEngine.Random.Range(enfeitesPorSala.x, enfeitesPorSala.y + 1));
+
         Povoar(sala, casa);
         PorPremios(sala, casa);
         return sala;
@@ -565,8 +572,10 @@ public class Andar : MonoBehaviour
     /// <summary>
     /// Quem aparece em cada andar, com peso. Cada andar traz gente nova, pra o andar
     /// seguinte nao parecer o mesmo com mais salas:
-    ///   1  -> perseguidor, atirador, investidor, divisor, demonio, monstro de sangue
-    ///   2  -> + saltador e sentinela (e o perseguidor fica mais raro)
+    ///   1  -> perseguidor, atirador, investidor, divisor, demonio, monstro de sangue,
+    ///         goblin da tocha, barril, esqueleto
+    ///   2  -> + saltador, sentinela, goblin da dinamite, arqueiro, esqueleto da foice e
+    ///         vampiro (e o perseguidor fica mais raro)
     ///   3+ -> todos, com mais investidor, divisor e sentinela
     /// </summary>
     private static TipoDeInimigo SortearInimigo(int andar)
@@ -580,6 +589,11 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Perseguidor, 4f), (TipoDeInimigo.Atirador, 2.5f),
                 (TipoDeInimigo.Investidor, 2f), (TipoDeInimigo.Divisor, 1.5f),
                 (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1f),
+                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1f),
+                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.Morcego, 1.5f),
+                (TipoDeInimigo.DemonioTridente, 1f),
+                (TipoDeInimigo.Orc, 2f), (TipoDeInimigo.EsqueletoGuerreiro, 2f), (TipoDeInimigo.Geleia, 1.5f),
+                (TipoDeInimigo.Morceguinho, 1.5f),
             };
         }
         else if (andar == 2)
@@ -590,6 +604,14 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Investidor, 1.5f), (TipoDeInimigo.Divisor, 1.5f),
                 (TipoDeInimigo.Saltador, 3f), (TipoDeInimigo.Sentinela, 1.5f),
                 (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1.5f),
+                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1.5f),
+                (TipoDeInimigo.GoblinDinamite, 1.5f), (TipoDeInimigo.Arqueiro, 1.5f),
+                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 1f), (TipoDeInimigo.Vampiro, 1f),
+                (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.DemonioTridente, 1.5f), (TipoDeInimigo.CavaleiroEscudo, 1f),
+                (TipoDeInimigo.DemonioArqueiro, 1f), (TipoDeInimigo.Demonia, 1f), (TipoDeInimigo.FogoFatuo, 1f),
+                (TipoDeInimigo.Orc, 1.5f), (TipoDeInimigo.OrcBlindado, 1f), (TipoDeInimigo.OrcMontado, 1f),
+                (TipoDeInimigo.EsqueletoGuerreiro, 1.5f), (TipoDeInimigo.EsqueletoBlindado, 1f), (TipoDeInimigo.EsqueletoArqueiro, 1.5f),
+                (TipoDeInimigo.Geleia, 1.5f), (TipoDeInimigo.Morceguinho, 1.5f), (TipoDeInimigo.Lobisomem, 1f), (TipoDeInimigo.Necromante, 1f),
             };
         }
         else
@@ -600,6 +622,15 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Investidor, 2.5f), (TipoDeInimigo.Divisor, 2f),
                 (TipoDeInimigo.Saltador, 2f), (TipoDeInimigo.Sentinela, 2f),
                 (TipoDeInimigo.Demonio, 2.5f), (TipoDeInimigo.MonstroDeSangue, 2f),
+                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 2f),
+                (TipoDeInimigo.GoblinDinamite, 2f), (TipoDeInimigo.Arqueiro, 2f),
+                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 2f), (TipoDeInimigo.Vampiro, 2f),
+                (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.DemonioTridente, 1.5f), (TipoDeInimigo.CavaleiroEscudo, 1.5f),
+                (TipoDeInimigo.CavaleiroLanca, 1.5f), (TipoDeInimigo.DemonioLaminas, 1.5f), (TipoDeInimigo.DemoniaFoice, 1.5f),
+                (TipoDeInimigo.DemonioArqueiro, 1.5f), (TipoDeInimigo.Demonia, 1.5f), (TipoDeInimigo.FogoFatuo, 1.5f),
+                (TipoDeInimigo.Orc, 1f), (TipoDeInimigo.OrcBlindado, 1.5f), (TipoDeInimigo.OrcElite, 1.5f), (TipoDeInimigo.OrcMontado, 1.5f),
+                (TipoDeInimigo.EsqueletoBlindado, 1.5f), (TipoDeInimigo.EsqueletoEspadao, 1.5f), (TipoDeInimigo.EsqueletoArqueiro, 1.5f),
+                (TipoDeInimigo.Lobisomem, 1.5f), (TipoDeInimigo.Urso, 1f), (TipoDeInimigo.Necromante, 1.5f),
             };
         }
 
@@ -776,6 +807,10 @@ public class Andar : MonoBehaviour
 
         Transform chao = sala.transform.Find("Cenario/Chao");
 
+        // Os ladrilhos do pacote ja tem cor: o tom da sala especial entra pela metade.
+        if (ArteGerada.CenarioDoPacote)
+            cor = Color.Lerp(Color.white, cor, 0.5f);
+
         if (chao != null && chao.TryGetComponent(out SpriteRenderer sr))
             sr.color = cor;
     }
@@ -802,8 +837,20 @@ public class Andar : MonoBehaviour
         const float MEIA_PORTA = 0.75f;
         const float LADO = 0.4f;
 
+        // Com o pacote: caveira no chefe, estandarte vermelho na loja e azul no item.
+        Sprite estandarte = cor == corDoBatenteDoChefe ? ArteImportada.Objeto(2, 3)
+            : cor == corDoBatenteDaLoja ? ArteImportada.Objeto(1, 3)
+            : ArteImportada.Objeto(1, 4);
+
         for (int s = -1; s <= 1; s += 2)
         {
+            if (estandarte != null)
+            {
+                Vector2 junto = eixo * (s * (MEIA_PORTA + 0.3f));
+                FormasDaSala.Desenho(porta.transform, "Batente", estandarte, Color.white, junto, Vector2.one * 0.7f, 2);
+                continue;
+            }
+
             Vector2 posicao = eixo * (s * (MEIA_PORTA + LADO * 0.5f));
             FormasDaSala.Desenho(porta.transform, "Batente", FormasDaSala.Quadrado(), cor, posicao, Vector2.one * LADO, 2);
         }

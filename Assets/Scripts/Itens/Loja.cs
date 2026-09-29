@@ -26,6 +26,16 @@ public static class Loja
         Transform vendedor = new GameObject("Vendedor").transform;
         vendedor.SetParent(sala, false);
         vendedor.position = centro + new Vector2(0f, 2.3f);
+        // O bruxo do Tiny RPG faz de vendedor, parado atras do balcao.
+        ClipesDePersonagem bruxo = ArteImportada.Personagem("Bruxo", 26f);
+
+        if (bruxo != null)
+        {
+            EfeitoDeQuadros.Criar(bruxo.Parado, 8f, vendedor.position, 8, vendedor)?.EmLoop();
+            FormasDaSala.Desenho(vendedor, "Balcao", ArteImportada.Objeto(0, 2), Color.white, new Vector2(0f, -0.55f), Vector2.one * 1.3f, 9);
+            return;
+        }
+
         FormasDaSala.Desenho(vendedor, "Corpo", FormasDaSala.Circulo(), new Color(0.35f, 0.3f, 0.45f), Vector2.zero, Vector2.one * 0.8f, 8);
         FormasDaSala.Desenho(vendedor, "Chapeu", FormasDaSala.Quadrado(), new Color(0.2f, 0.15f, 0.25f), new Vector2(0f, 0.4f), new Vector2(0.9f, 0.2f), 9);
 

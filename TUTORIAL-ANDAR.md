@@ -6,11 +6,8 @@ limpar a sala, troca de sala com a câmera deslizando e um minimapa no canto.
 
 ## Testar
 
-1. `Tools ▸ Jogo ▸ Andar ▸ Criar cena de teste do andar` (cria `Assets/Scenes/Andar.unity`).
-2. Play. **WASD** anda, **setas** atiram.
-
-A cena já vem com um `Bootstrap` desligado: é a presença dele que impede o Bootstrap de
-plataforma de se instalar sozinho e montar a fase lateral por cima do andar.
+1. Play. O editor sempre começa pela cena do jogo, `Assets/Scenes/Jogo.unity`.
+2. **WASD** anda, **setas** atiram.
 
 Se a cena não tiver ninguém com a tag `Player`, o `Andar` monta o mesmo jogador da cena
 top-down (`BootstrapTopDown.CriarJogador`), e também uma HUD com a vida.

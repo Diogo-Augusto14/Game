@@ -9,10 +9,48 @@ public static class FormasDaSala
 {
     private const int LadoDoCirculo = 32;
 
-    private static Sprite circulo;
+    private const int LadoDoBloco = 16;
 
-    /// <summary>Quadrado 1x1 unidade (o mesmo bloco do resto do jogo).</summary>
-    public static Sprite Quadrado() => Construtor.SpriteDeBloco();
+    private static Sprite circulo;
+    private static Sprite bloco;
+
+    /// <summary>
+    /// Bloco de 1x1 unidade: miolo cinza claro com borda branca. Full Rect e textura em
+    /// Repeat, porque ele e desenhado em modo Tiled (a Unity avisa e deixa fendas sem isso).
+    /// </summary>
+    public static Sprite Quadrado()
+    {
+        if (bloco != null)
+            return bloco;
+
+        Texture2D textura = new Texture2D(LadoDoBloco, LadoDoBloco, TextureFormat.RGBA32, false)
+        {
+            name = "BlocoGerado",
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Repeat
+        };
+
+        Color32[] pixels = new Color32[LadoDoBloco * LadoDoBloco];
+        Color32 miolo = new Color32(184, 184, 184, 255);
+        Color32 borda = new Color32(255, 255, 255, 255);
+
+        for (int y = 0; y < LadoDoBloco; y++)
+        {
+            for (int x = 0; x < LadoDoBloco; x++)
+            {
+                bool naBorda = x == 0 || y == 0 || x == LadoDoBloco - 1 || y == LadoDoBloco - 1;
+                pixels[y * LadoDoBloco + x] = naBorda ? borda : miolo;
+            }
+        }
+
+        textura.SetPixels32(pixels);
+        textura.Apply();
+
+        bloco = Sprite.Create(textura, new Rect(0f, 0f, LadoDoBloco, LadoDoBloco), new Vector2(0.5f, 0.5f),
+                              LadoDoBloco, 0, SpriteMeshType.FullRect);
+        bloco.name = "BlocoGerado";
+        return bloco;
+    }
 
     /// <summary>Circulo cheio de 1 unidade de diametro, com borda escurecida.</summary>
     public static Sprite Circulo()

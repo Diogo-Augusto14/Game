@@ -26,7 +26,10 @@ public class ProdutoDaLoja : MonoBehaviour
         ProdutoDaLoja p = Base($"Loja: {item?.nome}", preco, posicao, pai);
         p.ehItem = true;
         p.item = item;
-        p.desenho = Desenhar(p.transform, ArteGerada.Bola(), item != null ? item.cor : Color.white, Vector2.one * 0.45f);
+        Sprite icone = item != null ? ArteImportada.IconeDoItem(item.nome) : null;
+        p.desenho = icone != null
+            ? Desenhar(p.transform, icone, Color.white, Vector2.one * 0.8f)
+            : Desenhar(p.transform, ArteGerada.Bola(), item != null ? item.cor : Color.white, Vector2.one * 0.45f);
         return p;
     }
 
@@ -46,7 +49,13 @@ public class ProdutoDaLoja : MonoBehaviour
         obj.transform.position = posicao;
 
         // Tapete escuro embaixo, pra ficar claro que e vitrine e nao coisa caida.
-        FormasDaSala.Desenho(obj.transform, "Tapete", FormasDaSala.Quadrado(), new Color(0.12f, 0.1f, 0.1f), Vector2.zero, new Vector2(1f, 0.9f), -8);
+        // Com o pacote, a mesinha de madeira da masmorra faz de vitrine.
+        Sprite mesa = ArteImportada.Objeto(1, 2);
+
+        if (mesa != null)
+            FormasDaSala.Desenho(obj.transform, "Mesa", mesa, Color.white, new Vector2(0f, -0.1f), Vector2.one * 1.1f, -8);
+        else
+            FormasDaSala.Desenho(obj.transform, "Tapete", FormasDaSala.Quadrado(), new Color(0.12f, 0.1f, 0.1f), Vector2.zero, new Vector2(1f, 0.9f), -8);
 
         CircleCollider2D sensor = obj.AddComponent<CircleCollider2D>();
         sensor.isTrigger = true;

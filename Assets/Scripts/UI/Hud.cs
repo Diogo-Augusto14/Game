@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// HUD montada por codigo: barra de vida, frascos de cura e a lista de controles.
+/// HUD montada por codigo: vida (coracoes ou barra) e a lista de controles.
 ///
-/// Por que por codigo e nao por prefab: o Bootstrap precisa conseguir montar o jogo
+/// Por que por codigo e nao por prefab: o Andar precisa conseguir montar o jogo
 /// inteiro sem nenhum asset preparado a mao. Uma HUD de prefab quebraria o "so dar play"
 /// na primeira vez que alguem clonasse o projeto sem a pasta de prefabs.
 ///
@@ -18,8 +18,6 @@ public class Hud : MonoBehaviour
     [Tooltip("Vazio = usa o jogador da cena")]
     [SerializeField] private Vida vida;
 
-    [SerializeField] private Cura cura;
-
     [Header("Aparencia")]
     [SerializeField] private Vector2 tamanhoDaBarra = new Vector2(320f, 22f);
 
@@ -28,10 +26,6 @@ public class Hud : MonoBehaviour
     [SerializeField] private Color corDaVida = new Color(0.85f, 0.2f, 0.25f);
 
     [SerializeField] private Color corDoFundo = new Color(0f, 0f, 0f, 0.55f);
-
-    [SerializeField] private Color corDoFrascoCheio = new Color(0.35f, 0.85f, 1f);
-
-    [SerializeField] private Color corDoFrascoVazio = new Color(1f, 1f, 1f, 0.18f);
 
     [Header("Controles na tela")]
     [Tooltip("Mostra a lista de teclas no canto. Desligue quando o jogo tiver menu")]
@@ -50,10 +44,6 @@ public class Hud : MonoBehaviour
 
     // ---------------- estado ----------------
     private Image preenchimentoDaVida;
-    private Image preenchimentoDaCura;
-    private Image[] frascos;
-    private RectTransform raizDosFrascos;
-    private int frascosDesenhados = -1;
     private readonly System.Collections.Generic.List<Image> coracoes = new System.Collections.Generic.List<Image>();
     private RectTransform raizDosCoracoes;
     private int metadesDesenhadas = -1;
@@ -66,20 +56,14 @@ public class Hud : MonoBehaviour
     private string textoDosControles = TEXTO_DOS_CONTROLES;
 
     private const string TEXTO_DOS_CONTROLES =
-        "A / D  andar      Ctrl  devagar\n" +
-        "Espaco  pular (2x)   no ar + parede = wall jump\n" +
-        "Shift  dash    Shift + Baixo  escorregar    Shift + tras  esquiva\n" +
-        "J / Mouse  golpe (combo 1-2-3)    no ar + Baixo  mergulho\n" +
-        "Baixo  agachar    Cima  escada / subir beirada    E (segurar)  curar";
+        "W A S D  andar    Setas  atirar";
 
     /// <summary>
-    /// Aponta a HUD pra uma vida (e frascos, se houver) sem depender do Player do
-    /// plataforma. Chame logo depois do AddComponent, antes do Start.
+    /// Aponta a HUD pra uma vida. Chame logo depois do AddComponent, antes do Start.
     /// </summary>
-    public void Configurar(Vida alvo, Cura frascos = null, string controles = null)
+    public void Configurar(Vida alvo, string controles = null)
     {
         vida = alvo;
-        cura = frascos;
 
         if (controles != null)
             textoDosControles = controles;
@@ -101,11 +85,13 @@ public class Hud : MonoBehaviour
 
     private void GarantirAlvo()
     {
-        if (vida == null && Player.Atual != null)
-            vida = Player.Atual.Saude;
+        if (vida != null)
+            return;
 
-        if (cura == null && Player.Atual != null)
-            cura = Player.Atual.Frascos;
+        GameObject jogador = GameObject.FindWithTag("Player");
+
+        if (jogador != null)
+            vida = jogador.GetComponent<Vida>();
     }
 
     private void Update()
@@ -122,23 +108,6 @@ public class Hud : MonoBehaviour
             preenchimentoDaVida.fillAmount = vida.Fracao;
 
         AtualizarCoracoes();
-
-        AtualizarFrascos();
-    }
-
-    private void AtualizarFrascos()
-    {
-        if (cura == null || raizDosFrascos == null)
-            return;
-
-        if (frascosDesenhados != cura.FrascosMaximos)
-            MontarFrascos(cura.FrascosMaximos);
-
-        for (int i = 0; i < frascos.Length; i++)
-            frascos[i].color = i < cura.Frascos ? corDoFrascoCheio : corDoFrascoVazio;
-
-        if (preenchimentoDaCura != null)
-            preenchimentoDaCura.fillAmount = cura.Curando ? cura.Progresso : 0f;
     }
 
     // ---------------- montagem ----------------
@@ -171,8 +140,6 @@ public class Hud : MonoBehaviour
         else
             MontarBarraDeVida();
 
-        MontarRaizDosFrascos();
-
         if (mostrarControles)
             MontarControles();
     }
@@ -190,20 +157,6 @@ public class Hud : MonoBehaviour
         preenchimentoDaVida.fillMethod = Image.FillMethod.Horizontal;
         preenchimentoDaVida.fillOrigin = (int)Image.OriginHorizontal.Left;
         preenchimentoDaVida.fillAmount = 1f;
-
-        // Barrinha fina de progresso da cura, embaixo da vida.
-        RectTransform fundoCura = CriarPainel("Cura (fundo)", corDoFundo);
-        Ancorar(fundoCura, new Vector2(0f, 1f),
-            new Vector2(margem.x, -(margem.y + tamanhoDaBarra.y + 4f)),
-            new Vector2(tamanhoDaBarra.x, 6f));
-
-        RectTransform barraCura = CriarPainel("Cura", corDoFrascoCheio, fundoCura);
-        Esticar(barraCura, 1f);
-
-        preenchimentoDaCura = barraCura.GetComponent<Image>();
-        preenchimentoDaCura.type = Image.Type.Filled;
-        preenchimentoDaCura.fillMethod = Image.FillMethod.Horizontal;
-        preenchimentoDaCura.fillAmount = 0f;
     }
 
     private void MontarRaizDosCoracoes()
@@ -251,34 +204,6 @@ public class Hud : MonoBehaviour
 
         coracoesDesenhados = total;
         metadesDesenhadas = metades;
-    }
-
-    private void MontarRaizDosFrascos()
-    {
-        raizDosFrascos = CriarPainel("Frascos", Color.clear);
-        Ancorar(raizDosFrascos, new Vector2(0f, 1f),
-            new Vector2(margem.x, -(margem.y + tamanhoDaBarra.y + 16f)),
-            new Vector2(tamanhoDaBarra.x, 18f));
-    }
-
-    private void MontarFrascos(int quantidade)
-    {
-        // Limpa o que tinha antes: a quantidade de frascos pode mudar no meio do jogo.
-        for (int i = raizDosFrascos.childCount - 1; i >= 0; i--)
-            Destroy(raizDosFrascos.GetChild(i).gameObject);
-
-        frascos = new Image[Mathf.Max(0, quantidade)];
-        frascosDesenhados = quantidade;
-
-        const float lado = 16f;
-        const float espaco = 6f;
-
-        for (int i = 0; i < frascos.Length; i++)
-        {
-            RectTransform pip = CriarPainel($"Frasco {i}", corDoFrascoVazio, raizDosFrascos);
-            Ancorar(pip, new Vector2(0f, 0.5f), new Vector2(i * (lado + espaco), 0f), new Vector2(lado, lado));
-            frascos[i] = pip.GetComponent<Image>();
-        }
     }
 
     private void MontarControles()

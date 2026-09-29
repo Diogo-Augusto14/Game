@@ -72,6 +72,7 @@ public class Porta : MonoBehaviour
     private BoxCollider2D bloqueio;
     private BoxCollider2D passagem;
     private SpriteRenderer desenho;
+    private Vector2 tamanhoDoVao;
 
     public LadoDaPorta Lado => lado;
 
@@ -124,6 +125,7 @@ public class Porta : MonoBehaviour
         passagem.size = tamanho * (novoLado.Horizontal() ? new Vector2(0.8f, 0.5f) : new Vector2(0.5f, 0.8f));
         passagem.offset = novoLado.Direcao() * espessura * 0.25f;
 
+        tamanhoDoVao = tamanho;
         desenho = FormasDaSala.Desenho(transform, "Desenho", FormasDaSala.Quadrado(), corDeParede, Vector2.zero, tamanho, 1);
 
         if (existe)
@@ -218,14 +220,54 @@ public class Porta : MonoBehaviour
         if (passagem != null)
             passagem.enabled = existe && Aberta;
 
-        if (desenho != null)
+        if (desenho == null)
+            return;
+
+        // Sem porta (ou porta secreta), o vao vira tijolo igual ao resto da parede.
+        bool parede = !existe || Escondida;
+        Sprite portao = parede ? null : ArteImportada.Portao(Aberta);
+
+        // Porta dos lados aberta: o portao e desenhado de frente e, deitado, sobrava batente
+        // pra fora da parede. Ali o vao vira so o chao da masmorra passando pela parede.
+        if (portao != null && Aberta && !lado.Horizontal() && ArteGerada.CenarioDoPacote)
         {
-            // Sem porta (ou porta secreta), o vao vira tijolo igual ao resto da parede.
-            bool parede = !existe || Escondida;
-            Vector2 tamanho = desenho.size;
-            desenho.sprite = parede ? ArteGerada.Tijolo() : FormasDaSala.Quadrado();
-            desenho.size = tamanho;
-            desenho.color = parede ? corDeParede : Aberta ? corAberta : corFechada;
+            desenho.transform.localRotation = Quaternion.identity;
+            desenho.transform.localScale = Vector3.one;
+            desenho.drawMode = SpriteDrawMode.Tiled;
+            desenho.sprite = ArteGerada.Chao();
+            desenho.size = tamanhoDoVao;
+            desenho.color = new Color(0.55f, 0.55f, 0.6f);
+            return;
+        }
+
+        if (portao != null)
+        {
+            // Portao de grade do pacote: desenhado de frente, virado pra dentro da sala.
+            desenho.drawMode = SpriteDrawMode.Simple;
+            desenho.sprite = portao;
+            desenho.color = Color.white;
+            desenho.transform.localRotation = Quaternion.Euler(0f, 0f, RotacaoDoPortao());
+            desenho.transform.localScale = new Vector3(Mathf.Max(tamanhoDoVao.x, tamanhoDoVao.y), Mathf.Min(tamanhoDoVao.x, tamanhoDoVao.y), 1f);
+            return;
+        }
+
+        desenho.transform.localRotation = Quaternion.identity;
+        desenho.transform.localScale = Vector3.one;
+        desenho.drawMode = SpriteDrawMode.Tiled;
+        desenho.sprite = parede ? ArteGerada.Tijolo() : FormasDaSala.Quadrado();
+        desenho.size = tamanhoDoVao;
+        desenho.color = parede ? corDeParede : Aberta ? corAberta : corFechada;
+    }
+
+    /// <summary>O portao e desenhado na parede de cima; nas outras gira pra a frente dar pra sala.</summary>
+    private float RotacaoDoPortao()
+    {
+        switch (lado)
+        {
+            case LadoDaPorta.Baixo: return 180f;
+            case LadoDaPorta.Esquerda: return 90f;
+            case LadoDaPorta.Direita: return -90f;
+            default: return 0f;
         }
     }
 

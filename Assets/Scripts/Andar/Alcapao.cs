@@ -34,10 +34,15 @@ public class Alcapao : MonoBehaviour
         obj.transform.position = posicao;
 
         // Moldura de madeira e o buraco preto por cima. Abaixo de tudo que anda (ordem 1-2).
-        FormasDaSala.Desenho(obj.transform, "Moldura", FormasDaSala.Quadrado(), new Color(0.35f, 0.24f, 0.14f),
-            Vector2.zero, Vector2.one * (TAMANHO + 0.2f), 1);
-        SpriteRenderer buraco = FormasDaSala.Desenho(obj.transform, "Buraco", FormasDaSala.Quadrado(), Color.black,
-            Vector2.zero, Vector2.one * TAMANHO, 2);
+        // Com o pacote: o alcapao de madeira por baixo e o buraco em espiral do tileset abrindo.
+        Sprite moldura = ArteImportada.Objeto(0, 4);
+        Sprite espiral = ArteImportada.Ladrilho(3, 9);
+        bool comArte = moldura != null && espiral != null;
+
+        FormasDaSala.Desenho(obj.transform, "Moldura", comArte ? moldura : FormasDaSala.Quadrado(),
+            comArte ? Color.white : new Color(0.35f, 0.24f, 0.14f), Vector2.zero, Vector2.one * (TAMANHO + 0.2f), 1);
+        SpriteRenderer buraco = FormasDaSala.Desenho(obj.transform, "Buraco", comArte ? espiral : FormasDaSala.Quadrado(),
+            comArte ? new Color(0.35f, 0.3f, 0.45f) : Color.black, Vector2.zero, Vector2.one * TAMANHO, 2);
 
         // Sensor menor que o desenho: tem que pisar de verdade, nao so raspar a borda.
         BoxCollider2D sensor = obj.AddComponent<BoxCollider2D>();

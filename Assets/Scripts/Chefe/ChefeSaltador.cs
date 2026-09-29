@@ -128,14 +128,17 @@ public class ChefeSaltador : InimigoDeSala, IChefe
     protected override bool Imparavel => true;
 
     // ---------------- montagem ----------------
-    /// <summary>Olhos no alto da cabeca, sombra e a marca de onde vai cair. A fabrica chama.</summary>
-    public void Enfeitar()
+    /// <summary>
+    /// Olhos no alto da cabeca, sombra e a marca de onde vai cair. A fabrica chama. Com arte
+    /// importada o bicho ja tem cara: so sombra e marca, e o aviso tinge o corpo.
+    /// </summary>
+    public void Enfeitar(bool comArte = false)
     {
         if (corpo == null)
             return;
 
         // Olhos filhos do corpo (que tem escala 2*raio): posicoes em fracao do diametro.
-        for (int lado = -1; lado <= 1; lado += 2)
+        for (int lado = -1; lado <= 1 && !comArte; lado += 2)
         {
             SpriteRenderer olho = FormasDaSala.Desenho(corpo, "Olho", FormasDaSala.Circulo(), Color.white,
                 new Vector2(lado * 0.24f, 0.36f), Vector2.one * 0.28f, 11);
@@ -146,7 +149,8 @@ public class ChefeSaltador : InimigoDeSala, IChefe
         }
 
         // Boca: uma faixa escura.
-        FormasDaSala.Desenho(corpo, "Boca", FormasDaSala.Circulo(), new Color(0.1f, 0.2f, 0.08f),
+        if (!comArte)
+            FormasDaSala.Desenho(corpo, "Boca", FormasDaSala.Circulo(), new Color(0.1f, 0.2f, 0.08f),
             new Vector2(0f, -0.08f), new Vector2(0.55f, 0.1f), 11);
 
         FormasDaSala.Desenho(transform, "Sombra", FormasDaSala.Circulo(), new Color(0f, 0f, 0f, 0.35f),
@@ -549,6 +553,9 @@ public class ChefeSaltador : InimigoDeSala, IChefe
         foreach (SpriteRenderer olho in olhos)
             if (olho != null)
                 olho.color = cor;
+
+        if (olhos.Count == 0 && desenho != null)
+            desenho.color = Color.Lerp(Color.white, cor, 0.6f);
     }
 
     // ---------------- fases e morte ----------------

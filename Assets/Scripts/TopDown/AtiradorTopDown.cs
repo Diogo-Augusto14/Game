@@ -45,7 +45,7 @@ public class AtiradorTopDown : MonoBehaviour
 
     [SerializeField] private Color cor = new Color(0.55f, 0.8f, 1f);
 
-    [Tooltip("Sprite da lagrima. Vazio = um circulo gerado por codigo")]
+    [Tooltip("Sprite da lagrima. Vazio = a flecha do Tiny Swords (ou um circulo gerado, sem ela)")]
     [SerializeField] private Sprite sprite;
 
     [Tooltip("Distancia do centro do boneco de onde a lagrima nasce")]
@@ -72,6 +72,13 @@ public class AtiradorTopDown : MonoBehaviour
     private Cronometro recarga;
     private bool olhoDireito;
     private Vector2 olhando = Vector2.down;
+    private bool apontarLagrima;
+
+    /// <summary>Pixels por unidade da flecha: com a lagrima de 0.28, fica com ~0.55 de comprimento.</summary>
+    private const float PixelsDaFlecha = 24f;
+
+    /// <summary>Cada disparo, com a direcao (a animacao do arqueiro escuta).</summary>
+    public event System.Action<Vector2> AoAtirar;
 
     public float Dano => dano;
 
@@ -98,7 +105,16 @@ public class AtiradorTopDown : MonoBehaviour
             Debug.LogWarning("[AtiradorTopDown] sem Entrada no objeto — o boneco nao vai atirar.", this);
 
         if (sprite == null)
-            sprite = ArteGerada.Bola();
+        {
+            // A flecha e branca de fabrica e voa apontada pro rumo; a bola e azul e redonda.
+            sprite = ArteImportada.Flecha(PixelsDaFlecha);
+            apontarLagrima = sprite != null;
+
+            if (apontarLagrima)
+                cor = Color.white;
+            else
+                sprite = ArteGerada.Bola();
+        }
     }
 
     private void Update()
@@ -140,6 +156,7 @@ public class AtiradorTopDown : MonoBehaviour
         Vector2 heranca = movimento != null ? movimento.Velocidade * herancaDaVelocidade : Vector2.zero;
 
         Sons.Tocar(Som.Tiro, 0.55f);
+        AoAtirar?.Invoke(direcao);
 
         Lagrima doMeio = null;
         float primeiroAngulo = -aberturaDoLeque * (lagrimasPorDisparo - 1) * 0.5f;
@@ -203,7 +220,12 @@ public class AtiradorTopDown : MonoBehaviour
 
         obj.AddComponent<Rigidbody2D>();
 
-        return obj.AddComponent<Lagrima>();
+        Lagrima lagrima = obj.AddComponent<Lagrima>();
+
+        if (apontarLagrima)
+            lagrima.ApontarProRumo();
+
+        return lagrima;
     }
 
     /// <summary>Troca os numeros da arma (itens, power-ups). Valores fora do limite sao ajustados.</summary>
@@ -220,6 +242,21 @@ public class AtiradorTopDown : MonoBehaviour
         velocidadeDoTiro = Mathf.Max(0.1f, novaVelocidade);
         tamanho = Mathf.Max(0.05f, novoTamanho);
         lagrimasPorDisparo = Mathf.Max(1, quantasPorDisparo);
+    }
+
+    /// <summary>
+    /// Troca o desenho do tiro (cada heroi tem o seu). <paramref name="apontar"/> = o desenho
+    /// gira pro rumo, como a flecha; senao fica parado, como uma bola.
+    /// </summary>
+    public void DefinirVisual(Sprite novoSprite, bool apontar, Color novaCor)
+    {
+        if (novoSprite == null)
+            return;
+
+        sprite = novoSprite;
+        apontarLagrima = apontar;
+        cor = novaCor;
+        guardouCor = false;
     }
 
     /// <summary>Aponta o filho que mostra a direcao do olhar.</summary>

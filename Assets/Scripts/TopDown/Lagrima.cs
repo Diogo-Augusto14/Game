@@ -27,6 +27,7 @@ public class Lagrima : MonoBehaviour
     private bool acabou;
     private bool atravessa;
     private bool teleguiada;
+    private bool apontar;
     private readonly HashSet<IDanificavel> acertados = new HashSet<IDanificavel>();
 
     /// <summary>Graus por segundo que a lagrima teleguiada consegue virar.</summary>
@@ -64,6 +65,23 @@ public class Lagrima : MonoBehaviour
         acabou = false;
 
         rb.linearVelocity = velocidade;
+        Apontar();
+    }
+
+    private void Apontar()
+    {
+        if (!apontar || rb.linearVelocity.sqrMagnitude < 0.0001f)
+            return;
+
+        float angulo = Mathf.Atan2(rb.linearVelocity.y, rb.linearVelocity.x) * Mathf.Rad2Deg;
+        rb.rotation = angulo;
+        transform.rotation = Quaternion.Euler(0f, 0f, angulo);
+    }
+
+    /// <summary>Gira o desenho pro rumo do voo (flecha). Sem isto fica parado (lagrima redonda).</summary>
+    public void ApontarProRumo()
+    {
+        apontar = true;
     }
 
     /// <summary>Efeitos de item: atravessar inimigos e/ou curvar atras do mais perto.</summary>
@@ -79,7 +97,10 @@ public class Lagrima : MonoBehaviour
             return;
 
         if (teleguiada)
+        {
             Curvar();
+            Apontar();
+        }
 
         // Conta a distancia de verdade percorrida: se herdou a velocidade do jogador,
         // o alcance continua o mesmo em qualquer direcao.

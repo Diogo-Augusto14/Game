@@ -109,10 +109,19 @@ public class ChefeFinal : InimigoDeSala, IChefe
     protected override bool Imparavel => true;
 
     // ---------------- montagem ----------------
-    /// <summary>Branco do olho, iris, pupila e a linha do laser. A fabrica chama.</summary>
-    public void Enfeitar(float raioDoCorpo)
+    /// <summary>
+    /// Branco do olho, iris, pupila e a linha do laser. A fabrica chama. Com arte importada
+    /// (o monstro-olho do Tiny RPG) so a linha do laser; a cor do aviso tinge o corpo.
+    /// </summary>
+    public void Enfeitar(float raioDoCorpo, bool comArte = false)
     {
         raio = raioDoCorpo;
+
+        if (comArte)
+        {
+            CriarMira();
+            return;
+        }
 
         FormasDaSala.Desenho(transform, "Branco", FormasDaSala.Circulo(), new Color(0.95f, 0.92f, 0.88f),
             Vector2.zero, Vector2.one * raio * 1.6f, 11);
@@ -132,6 +141,11 @@ public class ChefeFinal : InimigoDeSala, IChefe
             veia.sortingOrder = 12;
         }
 
+        CriarMira();
+    }
+
+    private void CriarMira()
+    {
         mira = FormasDaSala.Desenho(transform, "Mira do laser", FormasDaSala.Quadrado(),
             new Color(1f, 0.15f, 0.15f, 0.3f), Vector2.zero, new Vector2(1f, 0.1f), 5);
         mira.enabled = false;
@@ -178,7 +192,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
         rb.linearVelocity = Vector2.zero;
         recarga.Contar(dt);
         Cruz(dt);
-        PintarIris(new Color(0.3f, 0.75f, 0.4f));
+        PintarIris(new Color(0.3f, 0.75f, 0.4f), Color.white);
 
         if (!recarga.Ativo && jogador != null)
             ComecarAtaque(EscolherAtaque());
@@ -371,7 +385,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
         rb.linearVelocity = Vector2.zero;
         Cruz(dt);
         recuperacao.Contar(dt);
-        PintarIris(new Color(0.25f, 0.45f, 0.3f));
+        PintarIris(new Color(0.25f, 0.45f, 0.3f), new Color(0.7f, 0.7f, 0.7f));
 
         if (recuperacao.Ativo)
             return;
@@ -425,10 +439,15 @@ public class ChefeFinal : InimigoDeSala, IChefe
         mira.color = cor;
     }
 
-    private void PintarIris(Color cor)
+    /// <param name="corDoCorpo">Com arte importada (sem iris), a cor do corpo; null = a da iris puxada pro branco.</param>
+    private void PintarIris(Color cor, Color? corDoCorpo = null)
     {
+        cor = fase >= 3 ? Color.Lerp(cor, Color.red, 0.35f) : cor;
+
         if (iris != null)
-            iris.color = fase >= 3 ? Color.Lerp(cor, Color.red, 0.35f) : cor;
+            iris.color = cor;
+        else if (desenho != null)
+            desenho.color = corDoCorpo ?? Color.Lerp(Color.white, cor, 0.6f);
     }
 
     // ---------------- tiros ----------------

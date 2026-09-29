@@ -207,10 +207,68 @@ public class Sala : MonoBehaviour
             Espinhos.Criar(cenario, posicao);
     }
 
+    /// <summary>
+    /// Enfeita a sala com arte importada, so desenho (nao bloqueia nada):
+    ///   - <paramref name="quantos"/> enfeites de chao (cogumelo, pedrinha, osso) em pontos livres;
+    ///   - duas tochas acesas na parede de cima, uma de cada lado da porta;
+    ///   - as vezes um candelabro num canto livre.
+    /// Sem a arte, a parte que faltar simplesmente nao aparece.
+    /// </summary>
+    public void Enfeitar(int quantos)
+    {
+        Montar();
+
+        for (int i = 0; i < quantos; i++)
+        {
+            Sprite sprite = ArteImportada.EnfeiteAleatorio();
+
+            if (sprite == null)
+                break;
+
+            // Longe das paredes, pra nao tampar porta.
+            Vector2 ponto = PontoLivreAleatorio(1.2f);
+            SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, new Color(0.85f, 0.85f, 0.85f),
+                                                     ponto, Vector2.one, -9);
+            sr.flipX = Random.value < 0.5f;
+        }
+
+        Vector2 meio = tamanhoInterno * 0.5f;
+
+        // Tochas na parte de baixo da parede de cima, a um quarto da largura de cada lado. A
+        // camera corta o alto da parede (cabe a largura da sala): a chama tem de caber abaixo disso.
+        Sprite[] tocha = ArteImportada.TochaDeParede(32f);
+
+        for (int lado = -1; lado <= 1 && tocha != null; lado += 2)
+        {
+            Vector2 local = new Vector2(lado * meio.x * 0.5f, meio.y + espessuraDaParede * 0.1f);
+            EfeitoDeQuadros.Criar(tocha, 8f, (Vector2)transform.position + local, 1, cenario)?.EmLoop();
+        }
+
+        // Candelabro: meia chance, num canto que nao tenha pedra nem espinho.
+        Sprite[] candelabro = ArteImportada.Candelabro(16f);
+
+        if (candelabro != null && Random.value < 0.5f)
+        {
+            Vector2Int canto = new Vector2Int(Random.value < 0.5f ? -1 : 1, Random.value < 0.5f ? -1 : 1);
+            Vector2 local = new Vector2(canto.x * (meio.x - 0.6f), canto.y * (meio.y - 0.6f));
+
+            if (Livre(local, 0.2f))
+                EfeitoDeQuadros.Criar(candelabro, 6f, (Vector2)transform.position + local + Vector2.down * 0.45f, -8, cenario)?.EmLoop();
+        }
+    }
+
     /// <summary>Troca a cor do chao e das paredes (cada andar tem a sua).</summary>
     public void Pintar(Color chao, Color parede)
     {
         Montar();
+
+        // Os ladrilhos do pacote ja tem cor: a do andar so puxa de leve pro tom dele.
+        if (ArteGerada.CenarioDoPacote)
+        {
+            chao = Color.Lerp(Color.white, chao, 0.4f);
+            parede = Color.Lerp(Color.white, parede, 0.4f);
+        }
+
         corDoChao = chao;
         corDaParede = parede;
 
