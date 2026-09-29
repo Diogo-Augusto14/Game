@@ -70,6 +70,7 @@ public class TelaDePausa : MonoBehaviour
         TelaSimples.Texto(tela.transform, "Titulo", 90, Color.white, 250f, "PAUSADO");
         resumo = TelaSimples.Texto(tela.transform, "Resumo", 30, new Color(0.85f, 0.85f, 0.85f), 90f, "");
         opcoes = TelaSimples.Texto(tela.transform, "Opcoes", 34, new Color(1f, 0.85f, 0.4f), -150f, "");
+        TelaSimples.Painel(tela.transform, "Painel", ArteImportada.PainelCinza, -30f, new Vector2(1300f, 440f));
         Atualizar();
 
         Time.timeScale = 0f;

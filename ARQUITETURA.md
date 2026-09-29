@@ -302,6 +302,8 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `InimigoPerseguidor.cs` | Vai atrás do jogador em zigue-zague |
 | `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira |
 | `TiroDaSala.cs` | Projétil dos dois lados (inimigo acerta só o jogador e vice-versa) |
+| `InimigoDemonio.cs` | Demônio (arte importada): persegue, ergue a espada e corta à frente |
+| `InimigoDeSangue.cs` | Monstro de Sangue (arte importada): lento, espirra um anel de gotas |
 | `FabricaDeInimigos.cs` | Receita de cada inimigo, montada por código |
 | `JogadorDeTeste.cs` | Boneco **provisório**; só nasce se a cena não tiver objeto com tag `Player` |
 | `DemoDaSala.cs` | Cena de teste: uma sala, e troca por outra ao sair pela porta |
@@ -317,3 +319,20 @@ sala.AoLimpar.AddListener(() => /* soltar prêmio */);
 
 A sala não troca o jogador de sala: ela só avisa. `Porta.PontoDeChegada` é onde pôr o
 jogador quando ele chega por aquela porta.
+
+---
+
+## 8. Arte importada (pacotes)
+
+Imagens de pacote ficam em `Assets/Arte/Resources/` e são lidas por
+`Arte/ArteImportada.cs` (sem fatiar no Sprite Editor: os recortes estão no código). O
+import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, sem mipmap.
+
+| Pasta | Pacote | Onde aparece |
+|---|---|---|
+| `Personagens/Demonio`, `Personagens/MonstroDeSangue` | Tiny RPG Character Asset Pack 02 (versão com sombra) | Inimigos `Demonio` e `MonstroDeSangue`, animados por `Animacao/AnimacaoDePersonagem.cs` |
+| `InterfacePixel` | Pixel UI pack 3 | Corações da vida, barra do chefe, painéis do menu/pausa/fim de jogo, placa de preço da loja |
+
+Cada tira de personagem tem quadros de 100×100 com o bicho (uns 20 px) no meio. O
+recorte usado é 64×48 em volta do corpo, com o pivô no centro do corpo.
+Se uma imagem sumir, `ArteImportada` devolve null e cada tela volta ao desenho antigo.

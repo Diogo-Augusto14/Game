@@ -157,6 +157,9 @@ public class TelaDeFimDeJogo : MonoBehaviour
         Texto("Resumo", fonte, 36, Color.white, 40f, vitoria ? ResumoDaVitoria(andar) : Resumo(andar));
         Texto("Itens", fonte, 28, new Color(0.85f, 0.85f, 0.85f), -70f, Itens(andar));
         Texto("Recomecar", fonte, 34, new Color(1f, 0.85f, 0.4f), -220f, vitoria ? "R  jogar de novo" : "R  recomecar do andar 1");
+
+        TelaSimples.Painel(transform, "Painel do botao", ArteImportada.PainelAzul, -220f, new Vector2(640f, 100f));
+        TelaSimples.Painel(transform, "Painel do resumo", ArteImportada.PainelMarrom, -15f, new Vector2(1300f, 290f));
     }
 
     private static string Resumo(Andar andar)

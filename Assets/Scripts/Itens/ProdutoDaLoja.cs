@@ -59,6 +59,16 @@ public class ProdutoDaLoja : MonoBehaviour
         // Moedinha do lado do numero.
         FormasDaSala.Desenho(obj.transform, "Moeda", ArteGerada.Coletavel(TipoDeColetavel.Moeda), Color.white,
             new Vector2(0.34f, -0.65f), Vector2.one * 0.26f, 21);
+
+        // Plaquinha do Pixel UI pack atras do preco (fatiada: as bordas nao esticam).
+        Sprite placa = ArteImportada.PlacaNoMundo;
+
+        if (placa != null)
+        {
+            SpriteRenderer sr = FormasDaSala.Desenho(obj.transform, "Placa", placa, Color.white, new Vector2(0.1f, -0.65f), Vector2.one, 20);
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.size = new Vector2(0.95f, 0.38f);
+        }
         return p;
     }
 

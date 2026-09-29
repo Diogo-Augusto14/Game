@@ -59,22 +59,38 @@ public class BarraDoChefe : MonoBehaviour
         grupo.interactable = false;
         grupo.blocksRaycasts = false;
 
-        // Moldura escura centralizada embaixo.
-        RectTransform moldura = Retangulo("Moldura", transform, new Color(0f, 0f, 0f, 0.75f));
+        // Com o Pixel UI pack: moldura inclinada e barras de pixel art (9-slice, as pontas
+        // nao esticam). Sem ele: os retangulos lisos de antes.
+        bool comArte = ArteImportada.MolduraDaBarra != null;
+        float borda = comArte ? ArteImportada.MargemDaMoldura * (100f / ArteImportada.PixelsPorUnidadeDaInterface) : 4f;
+        float altura = comArte ? 20f : Altura;
+
+        // Moldura centralizada embaixo.
+        RectTransform moldura = Retangulo("Moldura", transform, new Color(0f, 0f, 0f, 0.75f), comArte ? ArteImportada.MolduraDaBarra : null);
         moldura.anchorMin = moldura.anchorMax = new Vector2(0.5f, 0f);
         moldura.pivot = new Vector2(0.5f, 0f);
         moldura.anchoredPosition = new Vector2(0f, 40f);
-        moldura.sizeDelta = new Vector2(Largura + 8f, Altura + 8f);
+        moldura.sizeDelta = new Vector2(Largura + borda * 2f, altura + borda * 2f);
 
-        RectTransform fundo = Retangulo("Fundo", moldura, new Color(0.2f, 0.05f, 0.05f));
-        Esticar(fundo, 4f);
+        RectTransform fundo = Retangulo("Fundo", moldura, new Color(0.2f, 0.05f, 0.05f), comArte ? ArteImportada.BarraVazia : null);
+        Esticar(fundo, borda);
 
-        rastro = Retangulo("Rastro", fundo, new Color(1f, 0.9f, 0.75f));
+        rastro = Retangulo("Rastro", fundo, new Color(1f, 0.9f, 0.75f), comArte ? ArteImportada.BarraAmarela : null);
         Esticar(rastro, 0f);
 
-        preenchimento = Retangulo("Vida", fundo, corDaVida);
+        preenchimento = Retangulo("Vida", fundo, corDaVida, comArte ? ArteImportada.BarraVermelha : null);
         Esticar(preenchimento, 0f);
         imagemDaVida = preenchimento.GetComponent<Image>();
+
+        if (comArte)
+        {
+            // A barra ja e vermelha: a cor so tinge. Fase dois puxa pro laranja.
+            corDaVida = Color.white;
+            corDaSegundaFase = new Color(1f, 0.7f, 0.35f);
+            fundo.GetComponent<Image>().color = Color.white;
+            moldura.GetComponent<Image>().color = Color.white;
+            rastro.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.85f);
+        }
 
         Font fonte = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -173,13 +189,20 @@ public class BarraDoChefe : MonoBehaviour
             barra.anchorMax = new Vector2(Mathf.Clamp01(fracao), 1f);
     }
 
-    private static RectTransform Retangulo(string nome, Transform pai, Color cor)
+    private static RectTransform Retangulo(string nome, Transform pai, Color cor, Sprite sprite = null)
     {
         GameObject obj = new GameObject(nome, typeof(RectTransform));
         obj.transform.SetParent(pai, false);
 
         Image imagem = obj.AddComponent<Image>();
         imagem.color = cor;
+
+        if (sprite != null)
+        {
+            imagem.sprite = sprite;
+            imagem.type = Image.Type.Sliced;
+        }
+
         imagem.raycastTarget = false;
         return (RectTransform)obj.transform;
     }

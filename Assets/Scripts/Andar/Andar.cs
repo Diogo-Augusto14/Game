@@ -432,7 +432,11 @@ public class Andar : MonoBehaviour
             encontrado.AddComponent<EstatisticasDoJogador>();
 
         if (montarHud && FindAnyObjectByType<Hud>() == null)
-            new GameObject("Hud").AddComponent<Hud>().Configurar(encontrado.GetComponent<Vida>(), null, CONTROLES);
+        {
+            Hud hud = new GameObject("Hud").AddComponent<Hud>();
+            hud.Configurar(encontrado.GetComponent<Vida>(), null, CONTROLES);
+            hud.UsarCoracoes();
+        }
 
         if (montarHud && FindAnyObjectByType<HudDoInventario>() == null)
             HudDoInventario.Criar(encontrado);
@@ -544,6 +548,9 @@ public class Andar : MonoBehaviour
             if (inimigo is InimigoSentinela sentinela)
                 sentinela.UsarOitoDirecoes(numeroDoAndar >= 3);
 
+            if (inimigo is InimigoDeSangue sangue && numeroDoAndar >= 3)
+                sangue.Endurecer();
+
             if (inimigo != null && chanceDeDropDoInimigo > 0f)
                 inimigo.gameObject.AddComponent<SoltaColetavel>().Configurar(chanceDeDropDoInimigo, sala.transform);
         }
@@ -558,7 +565,7 @@ public class Andar : MonoBehaviour
     /// <summary>
     /// Quem aparece em cada andar, com peso. Cada andar traz gente nova, pra o andar
     /// seguinte nao parecer o mesmo com mais salas:
-    ///   1  -> perseguidor, atirador, investidor, divisor
+    ///   1  -> perseguidor, atirador, investidor, divisor, demonio, monstro de sangue
     ///   2  -> + saltador e sentinela (e o perseguidor fica mais raro)
     ///   3+ -> todos, com mais investidor, divisor e sentinela
     /// </summary>
@@ -572,6 +579,7 @@ public class Andar : MonoBehaviour
             {
                 (TipoDeInimigo.Perseguidor, 4f), (TipoDeInimigo.Atirador, 2.5f),
                 (TipoDeInimigo.Investidor, 2f), (TipoDeInimigo.Divisor, 1.5f),
+                (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1f),
             };
         }
         else if (andar == 2)
@@ -581,6 +589,7 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Perseguidor, 2f), (TipoDeInimigo.Atirador, 2f),
                 (TipoDeInimigo.Investidor, 1.5f), (TipoDeInimigo.Divisor, 1.5f),
                 (TipoDeInimigo.Saltador, 3f), (TipoDeInimigo.Sentinela, 1.5f),
+                (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1.5f),
             };
         }
         else
@@ -590,6 +599,7 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Perseguidor, 1.5f), (TipoDeInimigo.Atirador, 2f),
                 (TipoDeInimigo.Investidor, 2.5f), (TipoDeInimigo.Divisor, 2f),
                 (TipoDeInimigo.Saltador, 2f), (TipoDeInimigo.Sentinela, 2f),
+                (TipoDeInimigo.Demonio, 2.5f), (TipoDeInimigo.MonstroDeSangue, 2f),
             };
         }
 
