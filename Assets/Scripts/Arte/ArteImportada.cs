@@ -70,6 +70,16 @@ public static class ArteImportada
         { "Lobisomem", new Vector2(55f, 50f) },
         { "Urso", new Vector2(51f, 49f) },
         { "Necromante", new Vector2(46f, 45f) },
+        // Herois jogaveis do Pack 01 (o corpo, sem contar a arma)
+        { "Herois/Soldado", new Vector2(47f, 50f) },
+        { "Herois/Cavaleiro", new Vector2(47f, 48f) },
+        { "Herois/Templario", new Vector2(49f, 49f) },
+        { "Herois/Lanceiro", new Vector2(50f, 48f) },
+        { "Herois/Espadachim", new Vector2(47f, 50f) },
+        { "Herois/Machadeiro", new Vector2(49f, 48f) },
+        { "Herois/Arqueiro", new Vector2(50f, 49f) },
+        { "Herois/Mago", new Vector2(49f, 49f) },
+        { "Herois/Padre", new Vector2(51f, 48f) },
     };
 
     private static readonly Vector2 CentroPadrao = new Vector2(52f, 50f);
@@ -419,6 +429,29 @@ public static class ArteImportada
             Sprite[] um = Linha("Masmorra/Objetos", 16, 1, 1, new RectInt(7 * 16, 0, 16, 16), new Vector2(7 * 16 + 8f, 8f), 11f);
             return um != null ? um[0] : null;
         }
+    }
+
+    // ---------------- tiros dos herois (Tiny RPG Pack 01) ----------------
+    /// <summary>Flecha de 32x32 do pacote (Soldado, Arqueiro, Dardo), apontando pra direita.</summary>
+    public static Sprite FlechaDoHeroi(string nome, float pixelsPorUnidade)
+        => Unico($"Personagens/Projeteis/{nome}", 32, new RectInt(6, 12, 22, 10), new Vector2(16.5f, 16.5f), pixelsPorUnidade);
+
+    /// <summary>A bola de fogo do mago (primeiro quadro), com o rastro pra tras: aponta pra direita.</summary>
+    public static Sprite BolaDeFogo(float pixelsPorUnidade)
+        => Unico("Personagens/Projeteis/BolaDeFogo", 100, new RectInt(40, 44, 24, 16), new Vector2(55f, 51.5f), pixelsPorUnidade);
+
+    /// <summary>A estrela branca dos cristais do mago (setimo quadro). O padre atira ela pintada.</summary>
+    public static Sprite Estrela(float pixelsPorUnidade)
+        => Unico("Personagens/Projeteis/Cristais", 100, new RectInt(640, 34, 26, 32), new Vector2(653f, 50f), pixelsPorUnidade);
+
+    /// <summary>O risco de luz no fim dos cristais: vira o corte dos herois de espada e machado.</summary>
+    public static Sprite Corte(float pixelsPorUnidade)
+        => Unico("Personagens/Projeteis/Cristais", 100, new RectInt(839, 30, 25, 35), new Vector2(851.5f, 47.5f), pixelsPorUnidade);
+
+    private static Sprite Unico(string caminho, int celula, RectInt recorte, Vector2 centro, float pixelsPorUnidade)
+    {
+        Sprite[] um = Linha(caminho, celula, 0, 1, recorte, centro, pixelsPorUnidade);
+        return um != null && um.Length > 0 ? um[0] : null;
     }
 
     private static Sprite Celula(string caminho, int coluna, int linha)

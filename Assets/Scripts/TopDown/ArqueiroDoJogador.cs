@@ -1,9 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Anima o jogador com o arqueiro azul do Tiny Swords: parado ou correndo conforme a
-/// velocidade, o tiro pra cima, pro lado ou pra baixo a cada disparo do
-/// <see cref="AtiradorTopDown"/>, e a caveira quando morre.
+/// Anima o jogador com o heroi escolhido (<see cref="Herois"/>): parado ou correndo conforme
+/// a velocidade, o golpe a cada disparo do <see cref="AtiradorTopDown"/> (o arqueiro azul
+/// tem tiro pra cima, pro lado e pra baixo; os do Tiny RPG, so de lado) e a morte.
 ///
 /// O desenho e o SpriteRenderer da raiz (o Vida pisca ele); aqui so troca o sprite e o flipX.
 /// </summary>
@@ -18,8 +18,7 @@ public class ArqueiroDoJogador : MonoBehaviour
     [Tooltip("Segundos da animacao de tiro (encurta se a cadencia for mais rapida)")]
     [SerializeField, Min(0.05f)] private float duracaoDoTiro = 0.3f;
 
-    /// <summary>O tiro sai na hora: a animacao comeca com o arco ja puxado.</summary>
-    private const int PrimeiroQuadroDoTiro = 3;
+    private int primeiroQuadroDoTiro = 3;
 
     private ClipesDePersonagem clipes;
     private SpriteRenderer desenho;
@@ -33,10 +32,17 @@ public class ArqueiroDoJogador : MonoBehaviour
     private bool umaVez;
     private bool morto;
 
-    /// <summary>Liga a animacao. Chame logo depois do AddComponent.</summary>
-    public void Configurar(ClipesDePersonagem novosClipes, SpriteRenderer renderizador)
+    /// <summary>
+    /// Liga a animacao (ou troca de heroi, chamando de novo). O tiro sai na hora, entao o
+    /// golpe comeca em <paramref name="quadroDoTiro"/>, com o arco ja puxado; -1 = no meio.
+    /// </summary>
+    public void Configurar(ClipesDePersonagem novosClipes, SpriteRenderer renderizador, int quadroDoTiro = 3)
     {
+        Desligar();
+
         clipes = novosClipes;
+        primeiroQuadroDoTiro = quadroDoTiro;
+        morto = false;
         desenho = renderizador;
         corpo = GetComponent<Rigidbody2D>();
         atirador = GetComponent<AtiradorTopDown>();
@@ -48,10 +54,15 @@ public class ArqueiroDoJogador : MonoBehaviour
         if (vida != null)
             vida.AoMorrer.AddListener(Morreu);
 
+        if (desenho != null)
+            desenho.flipX = false;
+
         Tocar(clipes.Parado, quadrosPorSegundo, false);
     }
 
-    private void OnDestroy()
+    private void OnDestroy() => Desligar();
+
+    private void Desligar()
     {
         if (atirador != null)
             atirador.AoAtirar -= Atirou;
@@ -72,12 +83,15 @@ public class ArqueiroDoJogador : MonoBehaviour
         else if (Mathf.Abs(direcao.x) > 0.01f)
             desenho.flipX = direcao.x < 0f;
 
-        if (quadros == null || quadros.Length <= PrimeiroQuadroDoTiro)
+        if (quadros == null || quadros.Length == 0)
             return;
 
+        int primeiro = primeiroQuadroDoTiro < 0 ? quadros.Length / 3 : primeiroQuadroDoTiro;
+        primeiro = Mathf.Clamp(primeiro, 0, quadros.Length - 1);
+
         float duracao = atirador != null ? Mathf.Min(duracaoDoTiro, 1f / atirador.TirosPorSegundo) : duracaoDoTiro;
-        Sprite[] soltando = new Sprite[quadros.Length - PrimeiroQuadroDoTiro];
-        System.Array.Copy(quadros, PrimeiroQuadroDoTiro, soltando, 0, soltando.Length);
+        Sprite[] soltando = new Sprite[quadros.Length - primeiro];
+        System.Array.Copy(quadros, primeiro, soltando, 0, soltando.Length);
         Tocar(soltando, soltando.Length / duracao, true);
     }
 

@@ -244,6 +244,21 @@ public class AtiradorTopDown : MonoBehaviour
         lagrimasPorDisparo = Mathf.Max(1, quantasPorDisparo);
     }
 
+    /// <summary>
+    /// Troca o desenho do tiro (cada heroi tem o seu). <paramref name="apontar"/> = o desenho
+    /// gira pro rumo, como a flecha; senao fica parado, como uma bola.
+    /// </summary>
+    public void DefinirVisual(Sprite novoSprite, bool apontar, Color novaCor)
+    {
+        if (novoSprite == null)
+            return;
+
+        sprite = novoSprite;
+        apontarLagrima = apontar;
+        cor = novaCor;
+        guardouCor = false;
+    }
+
     /// <summary>Aponta o filho que mostra a direcao do olhar.</summary>
     public void DefinirOlho(Transform alvo)
     {
