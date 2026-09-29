@@ -122,6 +122,11 @@ public class HudDoInventario : MonoBehaviour
         icone.sprite = ArteGerada.Coletavel(tipo);
         icone.raycastTarget = false;
 
+        // Contorno claro: a bomba e escura e sumia no chao escuro.
+        Outline contorno = obj.AddComponent<Outline>();
+        contorno.effectColor = new Color(1f, 1f, 1f, 0.55f);
+        contorno.effectDistance = new Vector2(2f, 2f);
+
         return CriarTexto(nome, fonte, tamanhoDaFonte + 6, TextAnchor.MiddleLeft,
             new Vector2(0f, 1f), posicao + new Vector2(38f, 0f), new Vector2(60f, 32f));
     }
