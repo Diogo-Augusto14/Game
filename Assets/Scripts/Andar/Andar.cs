@@ -55,22 +55,6 @@ public class Andar : MonoBehaviour
     [Tooltip("Espinhos so aparecem a partir deste andar")]
     [SerializeField, Min(1)] private int espinhosAPartirDoAndar = 2;
 
-    [Tooltip("Cor do chao de cada andar (o andar 4 volta pra primeira, e assim por diante)")]
-    [SerializeField] private Color[] coresDoChao =
-    {
-        new Color(0.22f, 0.17f, 0.14f),   // porao: terra
-        new Color(0.14f, 0.17f, 0.22f),   // cavernas: pedra azulada
-        new Color(0.15f, 0.2f, 0.13f),    // esgoto: musgo
-    };
-
-    [Tooltip("Cor das paredes de cada andar, na mesma ordem do chao")]
-    [SerializeField] private Color[] coresDaParede =
-    {
-        new Color(0.35f, 0.3f, 0.28f),
-        new Color(0.28f, 0.32f, 0.4f),
-        new Color(0.27f, 0.34f, 0.25f),
-    };
-
     [Header("Itens e coletaveis")]
     [Tooltip("Chance de cada inimigo soltar coracao, moeda, bomba ou chave ao morrer")]
     [SerializeField, Range(0f, 1f)] private float chanceDeDropDoInimigo = 0.15f;
@@ -166,6 +150,9 @@ public class Andar : MonoBehaviour
 
     public int NumeroDoAndar => numeroDoAndar;
 
+    /// <summary>Porao, Catacumbas, Cripta ou Abismo: a cara e os inimigos deste andar.</summary>
+    public TemaDoAndar Tema { get; private set; } = TemaDoAndar.Porao;
+
     /// <summary>A semente que gerou este andar. Anote quando achar um andar com problema.</summary>
     public int SementeUsada { get; private set; }
 
@@ -212,7 +199,10 @@ public class Andar : MonoBehaviour
     private void OnDestroy()
     {
         if (Atual == this)
+        {
             Atual = null;
+            TemaDoAndar.Usar(null);
+        }
 
         if (mexeuNaGravidade)
             Physics2D.gravity = gravidadeAnterior;
@@ -255,6 +245,10 @@ public class Andar : MonoBehaviour
             Destroy(raizDasSalas.gameObject);
         }
 
+        // Chao, paredes, enfeites e inimigos do andar (TemaDoAndar). Antes de montar as salas.
+        Tema = TemaDoAndar.DoNumero(numeroDoAndar, UltimoAndar);
+        TemaDoAndar.Usar(Tema);
+
         SementeUsada = semente != 0 ? semente : Environment.TickCount;
         Mapa = GeradorDeAndar.Gerar(numeroDoAndar, SementeUsada, larguraDaGrade, alturaDaGrade);
 
@@ -279,7 +273,7 @@ public class Andar : MonoBehaviour
         Entrar(Mapa.Inicio, null);
 
         if (avisarAndarNovo)
-            AvisoDoAndar.Mostrar(UltimoAndar ? "Ultimo andar" : $"Andar {numeroDoAndar}");
+            AvisoDoAndar.Mostrar(UltimoAndar ? $"Ultimo andar: {Tema.Nome}" : $"Andar {numeroDoAndar}: {Tema.Nome}");
     }
 
     // ---------------- troca de sala ----------------
@@ -499,9 +493,7 @@ public class Andar : MonoBehaviour
         Sala sala = Sala.Criar($"Sala {casa.Tipo} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
         salaDoMapa[sala] = casa;
 
-        if (coresDoChao.Length > 0 && coresDaParede.Length > 0)
-            sala.Pintar(coresDoChao[(numeroDoAndar - 1) % coresDoChao.Length],
-                        coresDaParede[(numeroDoAndar - 1) % coresDaParede.Length]);
+        sala.Pintar(Tema.CorDoChao, Tema.CorDaParede, Tema.ForcaDaCor);
 
         // So sala comum ganha obstaculo: inicio, item e chefe ficam com o chao livre.
         if (casa.Tipo == TipoDeSala.Normal)
@@ -569,7 +561,7 @@ public class Andar : MonoBehaviour
 
         for (int i = 0; i < quantos; i++)
         {
-            TipoDeInimigo tipo = SortearInimigo(numeroDoAndar);
+            TipoDeInimigo tipo = SortearInimigo();
 
             if (tipo == TipoDeInimigo.Sentinela && ++sentinelas > maximoDeSentinelas)
                 tipo = TipoDeInimigo.Perseguidor;
@@ -607,87 +599,8 @@ public class Andar : MonoBehaviour
         return opcoes[UnityEngine.Random.Range(0, opcoes.Length)];
     }
 
-    /// <summary>
-    /// Quem aparece em cada andar, com peso. Cada andar traz gente nova, pra o andar
-    /// seguinte nao parecer o mesmo com mais salas:
-    ///   1  -> perseguidor, atirador, investidor, divisor, demonio, monstro de sangue,
-    ///         goblin da tocha, barril, esqueleto
-    ///   2  -> + saltador, sentinela, goblin da dinamite, arqueiro, esqueleto da foice e
-    ///         vampiro (e o perseguidor fica mais raro)
-    ///   3+ -> todos, com mais investidor, divisor e sentinela
-    /// </summary>
-    private static TipoDeInimigo SortearInimigo(int andar)
-    {
-        (TipoDeInimigo tipo, float peso)[] tabela;
-
-        if (andar <= 1)
-        {
-            tabela = new[]
-            {
-                (TipoDeInimigo.Perseguidor, 4f), (TipoDeInimigo.Atirador, 2.5f),
-                (TipoDeInimigo.Investidor, 2f), (TipoDeInimigo.Divisor, 1.5f),
-                (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1f),
-                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1f),
-                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.Morcego, 1.5f),
-                (TipoDeInimigo.DemonioTridente, 1f),
-                (TipoDeInimigo.Orc, 2f), (TipoDeInimigo.EsqueletoGuerreiro, 2f), (TipoDeInimigo.Geleia, 1.5f),
-                (TipoDeInimigo.Morceguinho, 1.5f),
-            };
-        }
-        else if (andar == 2)
-        {
-            tabela = new[]
-            {
-                (TipoDeInimigo.Perseguidor, 2f), (TipoDeInimigo.Atirador, 2f),
-                (TipoDeInimigo.Investidor, 1.5f), (TipoDeInimigo.Divisor, 1.5f),
-                (TipoDeInimigo.Saltador, 3f), (TipoDeInimigo.Sentinela, 1.5f),
-                (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1.5f),
-                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1.5f),
-                (TipoDeInimigo.GoblinDinamite, 1.5f), (TipoDeInimigo.Arqueiro, 1.5f),
-                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 1f), (TipoDeInimigo.Vampiro, 1f),
-                (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.DemonioTridente, 1.5f), (TipoDeInimigo.CavaleiroEscudo, 1f),
-                (TipoDeInimigo.DemonioArqueiro, 1f), (TipoDeInimigo.Demonia, 1f), (TipoDeInimigo.FogoFatuo, 1f),
-                (TipoDeInimigo.Orc, 1.5f), (TipoDeInimigo.OrcBlindado, 1f), (TipoDeInimigo.OrcMontado, 1f),
-                (TipoDeInimigo.EsqueletoGuerreiro, 1.5f), (TipoDeInimigo.EsqueletoBlindado, 1f), (TipoDeInimigo.EsqueletoArqueiro, 1.5f),
-                (TipoDeInimigo.Geleia, 1.5f), (TipoDeInimigo.Morceguinho, 1.5f), (TipoDeInimigo.Lobisomem, 1f), (TipoDeInimigo.Necromante, 1f),
-            };
-        }
-        else
-        {
-            tabela = new[]
-            {
-                (TipoDeInimigo.Perseguidor, 1.5f), (TipoDeInimigo.Atirador, 2f),
-                (TipoDeInimigo.Investidor, 2.5f), (TipoDeInimigo.Divisor, 2f),
-                (TipoDeInimigo.Saltador, 2f), (TipoDeInimigo.Sentinela, 2f),
-                (TipoDeInimigo.Demonio, 2.5f), (TipoDeInimigo.MonstroDeSangue, 2f),
-                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 2f),
-                (TipoDeInimigo.GoblinDinamite, 2f), (TipoDeInimigo.Arqueiro, 2f),
-                (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 2f), (TipoDeInimigo.Vampiro, 2f),
-                (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.DemonioTridente, 1.5f), (TipoDeInimigo.CavaleiroEscudo, 1.5f),
-                (TipoDeInimigo.CavaleiroLanca, 1.5f), (TipoDeInimigo.DemonioLaminas, 1.5f), (TipoDeInimigo.DemoniaFoice, 1.5f),
-                (TipoDeInimigo.DemonioArqueiro, 1.5f), (TipoDeInimigo.Demonia, 1.5f), (TipoDeInimigo.FogoFatuo, 1.5f),
-                (TipoDeInimigo.Orc, 1f), (TipoDeInimigo.OrcBlindado, 1.5f), (TipoDeInimigo.OrcElite, 1.5f), (TipoDeInimigo.OrcMontado, 1.5f),
-                (TipoDeInimigo.EsqueletoBlindado, 1.5f), (TipoDeInimigo.EsqueletoEspadao, 1.5f), (TipoDeInimigo.EsqueletoArqueiro, 1.5f),
-                (TipoDeInimigo.Lobisomem, 1.5f), (TipoDeInimigo.Urso, 1f), (TipoDeInimigo.Necromante, 1.5f),
-            };
-        }
-
-        float total = 0f;
-        foreach (var linha in tabela)
-            total += linha.peso;
-
-        float sorteio = UnityEngine.Random.value * total;
-
-        foreach (var linha in tabela)
-        {
-            sorteio -= linha.peso;
-
-            if (sorteio <= 0f)
-                return linha.tipo;
-        }
-
-        return tabela[tabela.Length - 1].tipo;
-    }
+    /// <summary>Um inimigo comum do andar: cada tema tem a sua lista (ver <see cref="TemaDoAndar"/>).</summary>
+    private TipoDeInimigo SortearInimigo() => Tema.SortearInimigo();
 
     // ---------------- itens e coletaveis ----------------
     /// <summary>Letreiro no meio da tela pra cada heroi que o chefe liberou.</summary>
@@ -860,7 +773,7 @@ public class Andar : MonoBehaviour
     /// <summary>Um inimigo das ondas da sala de desafio, com a mesma tabela e os drops do andar.</summary>
     private InimigoDeSala InimigoDoDesafio(Sala sala, Vector2 ponto)
     {
-        TipoDeInimigo tipo = SortearInimigo(numeroDoAndar);
+        TipoDeInimigo tipo = SortearInimigo();
 
         // Sentinela e parada: numa onda so faz a sala virar tiroteio.
         if (tipo == TipoDeInimigo.Sentinela)
