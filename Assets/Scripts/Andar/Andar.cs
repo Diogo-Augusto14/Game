@@ -598,6 +598,8 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1f),
                 (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.Morcego, 1.5f),
                 (TipoDeInimigo.DemonioTridente, 1f),
+                (TipoDeInimigo.Orc, 2f), (TipoDeInimigo.EsqueletoGuerreiro, 2f), (TipoDeInimigo.Geleia, 1.5f),
+                (TipoDeInimigo.Morceguinho, 1.5f),
             };
         }
         else if (andar == 2)
@@ -613,6 +615,9 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 1f), (TipoDeInimigo.Vampiro, 1f),
                 (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.DemonioTridente, 1.5f), (TipoDeInimigo.CavaleiroEscudo, 1f),
                 (TipoDeInimigo.DemonioArqueiro, 1f), (TipoDeInimigo.Demonia, 1f), (TipoDeInimigo.FogoFatuo, 1f),
+                (TipoDeInimigo.Orc, 1.5f), (TipoDeInimigo.OrcBlindado, 1f), (TipoDeInimigo.OrcMontado, 1f),
+                (TipoDeInimigo.EsqueletoGuerreiro, 1.5f), (TipoDeInimigo.EsqueletoBlindado, 1f), (TipoDeInimigo.EsqueletoArqueiro, 1.5f),
+                (TipoDeInimigo.Geleia, 1.5f), (TipoDeInimigo.Morceguinho, 1.5f), (TipoDeInimigo.Lobisomem, 1f), (TipoDeInimigo.Necromante, 1f),
             };
         }
         else
@@ -629,6 +634,9 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.DemonioTridente, 1.5f), (TipoDeInimigo.CavaleiroEscudo, 1.5f),
                 (TipoDeInimigo.CavaleiroLanca, 1.5f), (TipoDeInimigo.DemonioLaminas, 1.5f), (TipoDeInimigo.DemoniaFoice, 1.5f),
                 (TipoDeInimigo.DemonioArqueiro, 1.5f), (TipoDeInimigo.Demonia, 1.5f), (TipoDeInimigo.FogoFatuo, 1.5f),
+                (TipoDeInimigo.Orc, 1f), (TipoDeInimigo.OrcBlindado, 1.5f), (TipoDeInimigo.OrcElite, 1.5f), (TipoDeInimigo.OrcMontado, 1.5f),
+                (TipoDeInimigo.EsqueletoBlindado, 1.5f), (TipoDeInimigo.EsqueletoEspadao, 1.5f), (TipoDeInimigo.EsqueletoArqueiro, 1.5f),
+                (TipoDeInimigo.Lobisomem, 1.5f), (TipoDeInimigo.Urso, 1f), (TipoDeInimigo.Necromante, 1.5f),
             };
         }
 

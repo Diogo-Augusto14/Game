@@ -5,7 +5,8 @@ using UnityEngine;
 /// As imagens que vieram de pacote (nao desenhadas por codigo), lidas de
 /// <c>Assets/Arte/Resources</c>:
 ///
-///   Personagens/...  (Tiny RPG Character Asset Pack 02, os 20 bichos)
+///   Personagens/...  (Tiny RPG Character Asset Pack 02, os 20 bichos, e do Pack 01 v2.0 os
+///       orcs, esqueletos, lobisomem, urso, geleia, morceguinho e necromante)
 ///       uma tira por animacao, quadros de 100x100 com o bicho (uns 20 px) no meio;
 ///   Personagens/Projeteis  flecha, bala de canhao, magia e raios desses bichos
 ///   InterfacePixel/00.png ... 07.png  (Pixel UI pack 3)
@@ -55,6 +56,20 @@ public static class ArteImportada
         { "Minotauro", new Vector2(56f, 49f) },
         { "Morcego", new Vector2(49f, 46f) },
         { "Olho", new Vector2(50f, 52f) },
+        // Tiny RPG Character Asset Pack 01 v2.0
+        { "Orc", new Vector2(54f, 50f) },
+        { "OrcBlindado", new Vector2(54f, 48f) },
+        { "OrcElite", new Vector2(56f, 46f) },
+        { "OrcMontado", new Vector2(53f, 44f) },
+        { "EsqueletoGuerreiro", new Vector2(56f, 50f) },
+        { "EsqueletoBlindado", new Vector2(53f, 47f) },
+        { "EsqueletoEspadao", new Vector2(47f, 48f) },
+        { "EsqueletoArqueiro", new Vector2(52f, 48f) },
+        { "Geleia", new Vector2(48f, 50f) },
+        { "Morceguinho", new Vector2(49f, 48f) },
+        { "Lobisomem", new Vector2(55f, 50f) },
+        { "Urso", new Vector2(51f, 49f) },
+        { "Necromante", new Vector2(46f, 45f) },
     };
 
     private static readonly Vector2 CentroPadrao = new Vector2(52f, 50f);

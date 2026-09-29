@@ -29,7 +29,20 @@ public enum TipoDeInimigo
     DemonioArqueiro,
     Demonia,
     FogoFatuo,
-    DemoniaFoice
+    DemoniaFoice,
+    Orc,
+    OrcBlindado,
+    OrcElite,
+    OrcMontado,
+    EsqueletoGuerreiro,
+    EsqueletoBlindado,
+    EsqueletoEspadao,
+    EsqueletoArqueiro,
+    Geleia,
+    Morceguinho,
+    Lobisomem,
+    Urso,
+    Necromante
 }
 
 /// <summary>
@@ -194,6 +207,55 @@ public static class FabricaDeInimigos
 
                 return ComArte<InimigoEsqueletoFoice>("Demonia da foice", posicao, pai, 0.34f, 55f, clipes, new Color(0.5f, 0.1f, 0.3f));
             }
+
+            // Tiny RPG Pack 01: orcs, esqueletos e feras, nos comportamentos que ja existem.
+            case TipoDeInimigo.Orc:
+                return Golpe("Orc", posicao, pai, 0.3f, 35f, "Orc", 26f, 2f, 3, 0.4f, 15f);
+
+            case TipoDeInimigo.OrcBlindado:
+                return Golpe("Orc blindado", posicao, pai, 0.32f, 70f, "OrcBlindado", 26f, 1.4f, 4, 0.5f, 18f);
+
+            case TipoDeInimigo.OrcElite:
+                return Golpe("Orc de elite", posicao, pai, 0.34f, 60f, "OrcElite", 26f, 2f, 3, 0.4f, 20f);
+
+            case TipoDeInimigo.OrcMontado:
+                return Antigo<InimigoInvestidor>("Orc montado", TipoDeInimigo.Investidor, posicao, pai, 0.36f,
+                    new Color(0.5f, 0.6f, 0.3f), 45f, "OrcMontado", 28f);
+
+            case TipoDeInimigo.EsqueletoGuerreiro:
+                return Golpe("Esqueleto guerreiro", posicao, pai, 0.3f, 30f, "EsqueletoGuerreiro", 26f, 1.9f, 3, 0.4f, 12f);
+
+            case TipoDeInimigo.EsqueletoBlindado:
+                return Golpe("Esqueleto blindado", posicao, pai, 0.3f, 60f, "EsqueletoBlindado", 26f, 1.4f, 4, 0.5f, 15f);
+
+            case TipoDeInimigo.EsqueletoEspadao:
+                return Golpe("Esqueleto do espadao", posicao, pai, 0.33f, 55f, "EsqueletoEspadao", 26f, 1.6f, 5, 0.6f, 22f);
+
+            case TipoDeInimigo.EsqueletoArqueiro:
+                return ComArte<InimigoArqueiro>("Esqueleto arqueiro", posicao, pai, 0.3f, 25f,
+                    Tiny("EsqueletoArqueiro", 26f), new Color(0.8f, 0.8f, 0.7f));
+
+            case TipoDeInimigo.Geleia:
+                return Antigo<InimigoSaltador>("Geleia", TipoDeInimigo.Saltador, posicao, pai, 0.27f,
+                    new Color(0.4f, 0.8f, 0.4f), 20f, "Geleia", 28f);
+
+            case TipoDeInimigo.Morceguinho:
+            {
+                InimigoPerseguidor bicho = Antigo<InimigoPerseguidor>("Morceguinho", TipoDeInimigo.Perseguidor, posicao, pai, 0.24f,
+                    new Color(0.4f, 0.3f, 0.5f), 10f, "Morceguinho", 32f);
+                bicho.DefinirVelocidade(3.4f);
+                return bicho;
+            }
+
+            case TipoDeInimigo.Lobisomem:
+                return Golpe("Lobisomem", posicao, pai, 0.32f, 45f, "Lobisomem", 26f, 2.8f, 5, 0.35f, 15f);
+
+            case TipoDeInimigo.Urso:
+                return Golpe("Urso", posicao, pai, 0.38f, 90f, "Urso", 22f, 1.5f, 5, 0.55f, 25f);
+
+            case TipoDeInimigo.Necromante:
+                return Antigo<InimigoAtirador>("Necromante", TipoDeInimigo.Atirador, posicao, pai, 0.32f,
+                    new Color(0.4f, 0.2f, 0.6f), 40f, "Necromante", 28f);
 
             default:
             {
