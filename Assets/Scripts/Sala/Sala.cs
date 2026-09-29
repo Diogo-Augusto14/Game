@@ -61,6 +61,9 @@ public class Sala : MonoBehaviour
     [Tooltip("Morreu o ultimo inimigo: portas abertas")]
     public UnityEvent AoLimpar = new UnityEvent();
 
+    [Tooltip("Morreu o ultimo inimigo, mas SegurarPortas deixou as portas fechadas (a proxima onda do desafio)")]
+    public UnityEvent AoEsvaziar = new UnityEvent();
+
     private readonly Dictionary<LadoDaPorta, Porta> portas = new Dictionary<LadoDaPorta, Porta>();
     private readonly List<InimigoDeSala> inimigos = new List<InimigoDeSala>();
     private readonly HashSet<Vector2Int> celulasOcupadas = new HashSet<Vector2Int>();
@@ -75,6 +78,12 @@ public class Sala : MonoBehaviour
     public bool Limpa { get; private set; }
 
     public int InimigosVivos => vivos;
+
+    /// <summary>
+    /// Com isto ligado, a sala nao abre as portas quando o ultimo inimigo morre: avisa em
+    /// <see cref="AoEsvaziar"/> e espera <see cref="Liberar"/>. E a sala de desafio entre ondas.
+    /// </summary>
+    public bool SegurarPortas { get; set; }
 
     public Vector2 TamanhoInterno => tamanhoInterno;
 
@@ -332,6 +341,32 @@ public class Sala : MonoBehaviour
         AoFechar?.Invoke();
     }
 
+    /// <summary>
+    /// Fecha as portas na hora, mesmo sem inimigo vivo (a emboscada da sala de desafio).
+    /// Os inimigos criados depois ja nascem acordados.
+    /// </summary>
+    public void Fechar()
+    {
+        Montar();
+        Ativa = true;
+        Limpa = false;
+
+        foreach (Porta porta in portas.Values)
+            porta.Fechar();
+
+        Sons.Tocar(Som.PortaFecha);
+        AoFechar?.Invoke();
+    }
+
+    /// <summary>Desliga <see cref="SegurarPortas"/> e, sem inimigo vivo, abre as portas.</summary>
+    public void Liberar()
+    {
+        SegurarPortas = false;
+
+        if (vivos == 0 && Ativa)
+            Limpar();
+    }
+
     private void Registrar(InimigoDeSala inimigo)
     {
         if (inimigo == null || inimigos.Contains(inimigo))
@@ -351,7 +386,12 @@ public class Sala : MonoBehaviour
     {
         vivos = Mathf.Max(0, vivos - 1);
 
-        if (vivos == 0 && Ativa)
+        if (vivos != 0 || !Ativa)
+            return;
+
+        if (SegurarPortas)
+            AoEsvaziar?.Invoke();
+        else
             Limpar();
     }
 

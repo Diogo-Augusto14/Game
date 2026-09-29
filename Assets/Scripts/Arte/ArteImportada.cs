@@ -374,6 +374,20 @@ public static class ArteImportada
         => Celula("Masmorra/Objetos", coluna, linha);
 
     /// <summary>
+    /// Trofeu de escudo (16x32, duas linhas da folha de objetos): azul ou vermelho, pivo no
+    /// pe. Marca a porta da sala de desafio.
+    /// </summary>
+    public static Sprite Trofeu(bool vermelho)
+        => Unico("Masmorra/Objetos", 16, new RectInt(vermelho ? 16 : 0, 0, 16, 32), new Vector2(vermelho ? 24f : 8f, 32f),
+                 PixelsDoLadrilho, 32);
+
+    /// <summary>Bau fechado grande da folha de objetos (o que fica na sala amaldicoada).</summary>
+    public static Sprite Bau => Objeto(5, 4);
+
+    /// <summary>O idolo de olho vermelho da folha de objetos: enfeite e marca da sala amaldicoada.</summary>
+    public static Sprite IdoloMaldito => Objeto(2, 1);
+
+    /// <summary>
     /// O desenho de cada item passivo, pelo nome: frascos, gemas, livro, pergaminho, taca.
     /// Nome desconhecido sorteia um fixo (o mesmo nome sempre da o mesmo desenho).
     /// </summary>
@@ -448,9 +462,10 @@ public static class ArteImportada
     public static Sprite Corte(float pixelsPorUnidade)
         => Unico("Personagens/Projeteis/Cristais", 100, new RectInt(839, 30, 25, 35), new Vector2(851.5f, 47.5f), pixelsPorUnidade);
 
-    private static Sprite Unico(string caminho, int celula, RectInt recorte, Vector2 centro, float pixelsPorUnidade)
+    private static Sprite Unico(string caminho, int celula, RectInt recorte, Vector2 centro, float pixelsPorUnidade,
+                                int alturaDaCelula = 0)
     {
-        Sprite[] um = Linha(caminho, celula, 0, 1, recorte, centro, pixelsPorUnidade);
+        Sprite[] um = Linha(caminho, celula, 0, 1, recorte, centro, pixelsPorUnidade, alturaDaCelula);
         return um != null && um.Length > 0 ? um[0] : null;
     }
 
@@ -512,7 +527,7 @@ public static class ArteImportada
         if (alturaDaCelula <= 0)
             alturaDaCelula = celula;
 
-        string chave = $"{caminho}#{linha}:{recorte.x},{recorte.y}@{pixelsPorUnidade}";
+        string chave = $"{caminho}#{linha}:{recorte.x},{recorte.y},{recorte.width}x{recorte.height}@{pixelsPorUnidade}";
 
         if (linhas.TryGetValue(chave, out Sprite[] guardados))
             return guardados;

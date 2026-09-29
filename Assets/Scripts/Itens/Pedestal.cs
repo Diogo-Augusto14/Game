@@ -18,6 +18,38 @@ public class Pedestal : MonoBehaviour
 
     public bool Vazio => item == null;
 
+    /// <summary>O jogador pegou o item deste pedestal (a sala de desafio comeca a luta aqui).</summary>
+    public event System.Action<Pedestal> AoPegar;
+
+    /// <summary>
+    /// "Escolha um": pegar o item de um destes pedestais faz o dos outros sumir, como a
+    /// sala do tesouro com duas opcoes do Isaac.
+    /// </summary>
+    public static void EscolhaUm(params Pedestal[] pedestais)
+    {
+        foreach (Pedestal escolhido in pedestais)
+        {
+            escolhido.AoPegar += _ =>
+            {
+                foreach (Pedestal outro in pedestais)
+                    if (outro != escolhido)
+                        outro.Sumir();
+            };
+        }
+    }
+
+    /// <summary>O item some sem ninguem pegar (fica so o altar).</summary>
+    public void Sumir()
+    {
+        if (item == null)
+            return;
+
+        item = null;
+
+        if (desenhoDoItem != null)
+            Destroy(desenhoDoItem.gameObject);
+    }
+
     public static Pedestal Criar(ItemPassivo item, Vector2 posicao, Transform pai = null)
     {
         GameObject obj = new GameObject($"Pedestal ({item?.nome})");
@@ -111,5 +143,6 @@ public class Pedestal : MonoBehaviour
             Destroy(desenhoDoItem.gameObject);
 
         estatisticas.Pegar(dado);
+        AoPegar?.Invoke(this);
     }
 }

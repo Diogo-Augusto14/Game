@@ -81,6 +81,16 @@ public class Andar : MonoBehaviour
     [Tooltip("A partir deste andar a porta da sala do item fica trancada (precisa de chave)")]
     [SerializeField, Min(1)] private int trancarItemAPartirDoAndar = 2;
 
+    [Tooltip("Chance da sala do tesouro ter dois pedestais: pega um, o outro some")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeDuasOpcoes = 0.3f;
+
+    [Header("Sala de desafio")]
+    [Tooltip("Ondas de inimigos depois de pegar o item: no andar 1 e depois dele")]
+    [SerializeField] private Vector2Int ondasDoDesafio = new Vector2Int(2, 3);
+
+    [Tooltip("Inimigos por onda no andar 1; a cada dois andares vem mais um")]
+    [SerializeField, Min(1)] private int inimigosPorOnda = 3;
+
     [Header("Fim do andar")]
     [Tooltip("Distancia do centro da sala do chefe ate o alcapao, pro lado oposto da porta (o pedestal fica no centro)")]
     [SerializeField, Min(0f)] private float distanciaDoAlcapao = 2f;
@@ -120,9 +130,12 @@ public class Andar : MonoBehaviour
     [SerializeField] private Color corDoChaoDoChefe = new Color(0.32f, 0.14f, 0.14f);
     [SerializeField] private Color corDoChaoDaLoja = new Color(0.16f, 0.24f, 0.18f);
     [SerializeField] private Color corDoChaoDaSecreta = new Color(0.1f, 0.09f, 0.12f);
+    [SerializeField] private Color corDoChaoDoDesafio = new Color(0.34f, 0.2f, 0.12f);
+    [SerializeField] private Color corDoChaoDaAmaldicoada = new Color(0.2f, 0.06f, 0.1f);
     [SerializeField] private Color corDoBatenteDaLoja = new Color(0.4f, 0.85f, 0.45f);
     [SerializeField] private Color corDoBatenteDoItem = new Color(0.95f, 0.78f, 0.25f);
     [SerializeField] private Color corDoBatenteDoChefe = new Color(0.8f, 0.15f, 0.15f);
+    [SerializeField] private Color corDoBatenteDoDesafio = new Color(0.95f, 0.5f, 0.15f);
 
     // Teclas entre colchetes aparecem desenhadas na HUD (TelaSimples.LinhaDeTeclas); depois
     // do "||" vem a mesma linha com os botoes do controle.
@@ -282,8 +295,14 @@ public class Andar : MonoBehaviour
         Direcao direcao = ParaDirecao(porta.Lado);
         SalaDoAndar para = Mapa.Vizinha(de, direcao);
 
-        if (para != null)
-            Entrar(para, porta.Lado);
+        if (para == null)
+            return;
+
+        Entrar(para, porta.Lado);
+
+        // Porta da sala amaldicoada: cobra meio coracao na ida e na volta.
+        if (de.Tipo == TipoDeSala.Amaldicoada || para.Tipo == TipoDeSala.Amaldicoada)
+            SalaAmaldicoada.Ferir(jogador, porta.Lado.Direcao());
     }
 
     /// <param name="saiuPor">Porta por onde o jogador saiu da sala anterior. Null = comeco do andar, fica no centro.</param>
@@ -506,7 +525,10 @@ public class Andar : MonoBehaviour
                 continue;
             }
 
-            MarcarPortaEspecial(porta, casa, vizinha);
+            if (casa.Tipo == TipoDeSala.Amaldicoada || vizinha.Tipo == TipoDeSala.Amaldicoada)
+                SalaAmaldicoada.MarcarPorta(porta);
+            else
+                MarcarPortaEspecial(porta, casa, vizinha);
         }
 
         PintarChao(sala, casa.Tipo);
@@ -681,7 +703,10 @@ public class Andar : MonoBehaviour
 
     /// <summary>
     /// O que cada tipo de sala guarda, como no Isaac:
-    ///   Item   -> pedestal com um item passivo no meio (porta trancada a partir do andar 2)
+    ///   Item   -> pedestal com um item passivo no meio (porta trancada a partir do andar 2);
+    ///             as vezes dois pedestais, escolha um
+    ///   Desafio -> pedestal com item; pegou, as portas fecham e vem ondas de inimigos
+    ///   Amaldicoada -> item ou bau; a porta com espinhos custa meio coracao por passagem
     ///   Chefe  -> pedestal com item quando a sala e limpa
     ///   Normal -> chance de um coletavel no meio quando a sala e limpa
     ///   Inicio -> uma chave de brinde nos andares com sala do item trancada
@@ -693,7 +718,17 @@ public class Andar : MonoBehaviour
         switch (casa.Tipo)
         {
             case TipoDeSala.Item:
-                Pedestal.Criar(CatalogoDeItens.Sortear(itensQueJaSairam), centro, sala.transform);
+                PorTesouro(sala);
+                break;
+
+            case TipoDeSala.Desafio:
+                int ondas = numeroDoAndar <= 1 ? ondasDoDesafio.x : ondasDoDesafio.y;
+                SalaDeDesafio.Montar(sala, CatalogoDeItens.Sortear(itensQueJaSairam), ondas,
+                                     inimigosPorOnda + (numeroDoAndar - 1) / 2, InimigoDoDesafio);
+                break;
+
+            case TipoDeSala.Amaldicoada:
+                SalaAmaldicoada.Montar(sala, CatalogoDeItens.Sortear(itensQueJaSairam));
                 break;
 
             case TipoDeSala.Chefe:
@@ -797,6 +832,48 @@ public class Andar : MonoBehaviour
         Coletavel.Criar(TipoDeColetavel.Coracao, centro + Vector2.right * 0.3f, sala.transform);
     }
 
+    /// <summary>
+    /// A sala do tesouro: o pedestal no meio, entre dois candelabros. As vezes vem com duas
+    /// opcoes (escolha um: o outro item some).
+    /// </summary>
+    private void PorTesouro(Sala sala)
+    {
+        Vector2 centro = sala.transform.position;
+
+        if (UnityEngine.Random.value < chanceDeDuasOpcoes)
+        {
+            Pedestal esquerda = Pedestal.Criar(CatalogoDeItens.Sortear(itensQueJaSairam), centro + Vector2.left * 1.5f, sala.transform);
+            Pedestal direita = Pedestal.Criar(CatalogoDeItens.Sortear(itensQueJaSairam), centro + Vector2.right * 1.5f, sala.transform);
+            Pedestal.EscolhaUm(esquerda, direita);
+        }
+        else
+        {
+            Pedestal.Criar(CatalogoDeItens.Sortear(itensQueJaSairam), centro, sala.transform);
+        }
+
+        Sprite[] candelabro = ArteImportada.Candelabro(16f);
+
+        for (int lado = -1; lado <= 1 && candelabro != null; lado += 2)
+            EfeitoDeQuadros.Criar(candelabro, 6f, centro + new Vector2(lado * 3f, 0.4f), -8, sala.transform)?.EmLoop();
+    }
+
+    /// <summary>Um inimigo das ondas da sala de desafio, com a mesma tabela e os drops do andar.</summary>
+    private InimigoDeSala InimigoDoDesafio(Sala sala, Vector2 ponto)
+    {
+        TipoDeInimigo tipo = SortearInimigo(numeroDoAndar);
+
+        // Sentinela e parada: numa onda so faz a sala virar tiroteio.
+        if (tipo == TipoDeInimigo.Sentinela)
+            tipo = TipoDeInimigo.Perseguidor;
+
+        InimigoDeSala inimigo = sala.CriarInimigo(tipo, ponto);
+
+        if (inimigo != null && chanceDeDropDoInimigo > 0f)
+            inimigo.gameObject.AddComponent<SoltaColetavel>().Configurar(chanceDeDropDoInimigo, sala.transform);
+
+        return inimigo;
+    }
+
     /// <summary>Ponto livre da sala longe de toda porta, pra ninguem nascer em cima de quem entra.</summary>
     private Vector2 PontoLongeDasPortas(Sala sala)
     {
@@ -830,6 +907,8 @@ public class Andar : MonoBehaviour
             case TipoDeSala.Chefe: cor = corDoChaoDoChefe; break;
             case TipoDeSala.Loja: cor = corDoChaoDaLoja; break;
             case TipoDeSala.Secreta: cor = corDoChaoDaSecreta; break;
+            case TipoDeSala.Desafio: cor = corDoChaoDoDesafio; break;
+            case TipoDeSala.Amaldicoada: cor = corDoChaoDaAmaldicoada; break;
             default: return;
         }
 
@@ -858,6 +937,8 @@ public class Andar : MonoBehaviour
             cor = corDoBatenteDoItem;
         else if (casa.Tipo == TipoDeSala.Loja || vizinha.Tipo == TipoDeSala.Loja)
             cor = corDoBatenteDaLoja;
+        else if (casa.Tipo == TipoDeSala.Desafio || vizinha.Tipo == TipoDeSala.Desafio)
+            cor = corDoBatenteDoDesafio;
         else
             return;
 
@@ -868,6 +949,7 @@ public class Andar : MonoBehaviour
         // Com o pacote: caveira no chefe, estandarte vermelho na loja e azul no item.
         Sprite estandarte = cor == corDoBatenteDoChefe ? ArteImportada.Objeto(2, 3)
             : cor == corDoBatenteDaLoja ? ArteImportada.Objeto(1, 3)
+            : cor == corDoBatenteDoDesafio ? ArteImportada.Trofeu(true)
             : ArteImportada.Objeto(1, 4);
 
         for (int s = -1; s <= 1; s += 2)

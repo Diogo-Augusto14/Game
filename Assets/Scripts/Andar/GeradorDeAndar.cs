@@ -9,7 +9,9 @@ public enum TipoDeSala
     Item,
     Chefe,
     Loja,
-    Secreta
+    Secreta,
+    Desafio,
+    Amaldicoada
 }
 
 /// <summary>As quatro saidas de uma sala. Y cresce pra cima, igual ao mundo da Unity.</summary>
@@ -82,6 +84,8 @@ public class MapaDoAndar
     public SalaDoAndar Chefe { get; internal set; }
     public SalaDoAndar Loja { get; internal set; }
     public SalaDoAndar Secreta { get; internal set; }
+    public SalaDoAndar Desafio { get; internal set; }
+    public SalaDoAndar Amaldicoada { get; internal set; }
 
     private readonly SalaDoAndar[,] grade;
 
@@ -155,6 +159,7 @@ public class MapaDoAndar
 ///   4. Se nao deu o numero de salas, ou nao sobraram becos (salas com uma porta so)
 ///      pra por o chefe e o item, joga fora e tenta de novo.
 ///   5. O chefe vai no beco mais longe da sala inicial; o item, em outro beco sorteado.
+///      Depois, se sobrar beco: loja, sala de desafio e (a partir do andar 2) amaldicoada.
 ///
 /// Como cada sala nova so encosta na sala que a criou, o andar sai como uma arvore: nao
 /// tem ciclos, e toda sala e alcancavel a partir da inicial.
@@ -163,6 +168,9 @@ public static class GeradorDeAndar
 {
     /// <summary>Tentativas antes de desistir das regras e aceitar o melhor andar que saiu.</summary>
     private const int TENTATIVAS = 500;
+
+    /// <summary>A sala amaldicoada so aparece a partir deste andar.</summary>
+    public const int AmaldicoadaAPartirDoAndar = 2;
 
     /// <summary>
     /// Quantas salas o andar deve ter. Formula do Isaac: 8 ou 9 no primeiro andar, cerca de
@@ -194,12 +202,14 @@ public static class GeradorDeAndar
             MapaDoAndar mapa = Espalhar(largura, altura, alvo, sorteio);
             List<SalaDoAndar> becos = Becos(mapa);
 
-            // Na primeira metade das tentativas exige beco pra loja tambem; depois aceita sem loja.
-            int becosPedidos = tentativa < TENTATIVAS / 2 ? 3 : 2;
+            // No comeco exige beco pra toda sala especial (chefe, item, loja, desafio e
+            // amaldicoada); a exigencia cai aos poucos ate so chefe e item.
+            int especiais = 3 + 1 + (numeroDoAndar >= AmaldicoadaAPartirDoAndar ? 1 : 0);
+            int becosPedidos = Math.Max(2, especiais - tentativa * (especiais - 1) / TENTATIVAS);
 
             if (mapa.Salas.Count == alvo && becos.Count >= becosPedidos)
             {
-                Decorar(mapa, becos, sorteio);
+                Decorar(mapa, becos, sorteio, numeroDoAndar);
                 return mapa;
             }
 
@@ -208,7 +218,7 @@ public static class GeradorDeAndar
         }
 
         // Grade apertada demais pro alvo. Nao trava o jogo: usa o maior andar que saiu.
-        Decorar(melhor, Becos(melhor), sorteio);
+        Decorar(melhor, Becos(melhor), sorteio, numeroDoAndar);
         return melhor;
     }
 
@@ -263,12 +273,13 @@ public static class GeradorDeAndar
         return becos;
     }
 
-    private static void Decorar(MapaDoAndar mapa, List<SalaDoAndar> becos, Random sorteio)
+    private static void Decorar(MapaDoAndar mapa, List<SalaDoAndar> becos, Random sorteio, int numeroDoAndar)
     {
         CalcularDistancias(mapa);
 
         // Pior caso (grade minuscula): sem becos, usa a sala mais longe que nao seja a inicial.
-        List<SalaDoAndar> candidatas = becos.Count > 0 ? becos : new List<SalaDoAndar>(mapa.Salas);
+        bool temBecos = becos.Count > 0;
+        List<SalaDoAndar> candidatas = temBecos ? becos : new List<SalaDoAndar>(mapa.Salas);
         candidatas.Remove(mapa.Inicio);
 
         if (candidatas.Count == 0)
@@ -297,6 +308,23 @@ public static class GeradorDeAndar
             SalaDoAndar loja = candidatas[sorteio.Next(candidatas.Count)];
             loja.Tipo = TipoDeSala.Loja;
             mapa.Loja = loja;
+            candidatas.Remove(loja);
+        }
+
+        // So em beco que sobrou: sala comum nunca vira especial.
+        if (temBecos && candidatas.Count > 0)
+        {
+            SalaDoAndar desafio = candidatas[sorteio.Next(candidatas.Count)];
+            desafio.Tipo = TipoDeSala.Desafio;
+            mapa.Desafio = desafio;
+            candidatas.Remove(desafio);
+        }
+
+        if (temBecos && candidatas.Count > 0 && numeroDoAndar >= AmaldicoadaAPartirDoAndar)
+        {
+            SalaDoAndar amaldicoada = candidatas[sorteio.Next(candidatas.Count)];
+            amaldicoada.Tipo = TipoDeSala.Amaldicoada;
+            mapa.Amaldicoada = amaldicoada;
         }
 
         PorSecreta(mapa, sorteio);
