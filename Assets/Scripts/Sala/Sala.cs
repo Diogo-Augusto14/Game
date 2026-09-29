@@ -234,12 +234,13 @@ public class Sala : MonoBehaviour
 
         Vector2 meio = tamanhoInterno * 0.5f;
 
-        // Tochas no meio da espessura da parede de cima, a um quarto da largura de cada lado.
-        Sprite[] tocha = ArteImportada.TochaDeParede(24f);
+        // Tochas na parte de baixo da parede de cima, a um quarto da largura de cada lado. A
+        // camera corta o alto da parede (cabe a largura da sala): a chama tem de caber abaixo disso.
+        Sprite[] tocha = ArteImportada.TochaDeParede(32f);
 
         for (int lado = -1; lado <= 1 && tocha != null; lado += 2)
         {
-            Vector2 local = new Vector2(lado * meio.x * 0.5f, meio.y + espessuraDaParede * 0.5f);
+            Vector2 local = new Vector2(lado * meio.x * 0.5f, meio.y + espessuraDaParede * 0.1f);
             EfeitoDeQuadros.Criar(tocha, 8f, (Vector2)transform.position + local, 1, cenario)?.EmLoop();
         }
 
