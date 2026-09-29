@@ -304,6 +304,11 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `TiroDaSala.cs` | Projétil dos dois lados (inimigo acerta só o jogador e vice-versa) |
 | `InimigoDemonio.cs` | Demônio (arte importada): persegue, ergue a espada e corta à frente |
 | `InimigoDeSangue.cs` | Monstro de Sangue (arte importada): lento, espirra um anel de gotas |
+| `InimigoComArte.cs` | Base dos inimigos do Tiny Swords: animação, caveira ao morrer, manter distância |
+| `InimigoGoblinTocha.cs` | Goblin da tocha: rápido, persegue e gira a tocha (golpe pro lado, pra cima ou pra baixo) |
+| `InimigoGoblinDinamite.cs` | Goblin da dinamite: fica longe e joga dinamite (`DinamiteLancada.cs`) onde o jogador está; um círculo vermelho avisa onde cai |
+| `InimigoBarril.cs` | Barril de TNT: parece um barril parado; o goblin sai, corre até o jogador, acende o pavio e explode. Morto a tiro, explode na hora |
+| `InimigoArqueiro.cs` | Arqueiro sombrio: mantém distância, puxa o arco e solta uma flecha reta |
 | `FabricaDeInimigos.cs` | Receita de cada inimigo, montada por código |
 | `JogadorDeTeste.cs` | Boneco **provisório**; só nasce se a cena não tiver objeto com tag `Player` |
 | `DemoDaSala.cs` | Cena de teste: uma sala, e troca por outra ao sair pela porta |
@@ -332,7 +337,11 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 |---|---|---|
 | `Personagens/Demonio`, `Personagens/MonstroDeSangue` | Tiny RPG Character Asset Pack 02 (versão com sombra) | Inimigos `Demonio` e `MonstroDeSangue`, animados por `Animacao/AnimacaoDePersonagem.cs` |
 | `InterfacePixel` | Pixel UI pack 3 | Corações da vida, barra do chefe, painéis do menu/pausa/fim de jogo, placa de preço da loja |
+| `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Goblins da tocha e da dinamite, barril de TNT, arqueiro sombrio, flecha, dinamite, explosão (bomba do jogador também), caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`) |
 
 Cada tira de personagem tem quadros de 100×100 com o bicho (uns 20 px) no meio. O
 recorte usado é 64×48 em volta do corpo, com o pivô no centro do corpo.
+As folhas do Tiny Swords são grades (uma linha por animação, células de 192, 128 ou 64 px);
+`ArteImportada.Linha` recorta uma linha com o pivô no centro do corpo. A explosão fica
+com o tamanho do raio de dano (`Combate/Explosao.cs`).
 Se uma imagem sumir, `ArteImportada` devolve null e cada tela volta ao desenho antigo.

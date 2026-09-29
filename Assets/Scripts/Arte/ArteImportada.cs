@@ -9,6 +9,9 @@ using UnityEngine;
 ///       uma tira por animacao, quadros de 100x100 com o bicho (uns 20 px) no meio
 ///   InterfacePixel/00.png ... 07.png  (Pixel UI pack 3)
 ///       coracoes, paineis e barras recortados pelos retangulos la embaixo
+///   TinySwords/...  (Tiny Swords e Tiny Swords Free Pack, da Pixel Frog)
+///       folhas em grade (uma linha por animacao): goblins, barril, arqueiro, dinamite,
+///       explosao, caveira de morte e enfeites de chao
 ///
 /// Tudo e recortado aqui com Sprite.Create, sem fatiar no Sprite Editor: quem clonar o
 /// projeto nao precisa preparar nada. Se uma imagem sumir, quem pediu recebe null e volta
@@ -88,6 +91,183 @@ public static class ArteImportada
             quadros[i].name = $"{pasta} {animacao} {i}";
         }
 
+        return quadros;
+    }
+
+    // ================================================================ Tiny Swords
+    // Folhas em grade: cada linha e uma animacao, cada celula um quadro quadrado. Os
+    // retangulos abaixo (recorte e centro do corpo) estao em coordenadas de UMA celula,
+    // y pra baixo, do jeito que aparecem num editor de imagem.
+
+    /// <summary>
+    /// Goblin da tocha: parado, correndo e o golpe de tocha em tres direcoes
+    /// (lado, baixo, cima). O golpe acerta no quarto quadro (indice 3).
+    /// </summary>
+    public static ClipesDePersonagem GoblinDaTocha(float pixelsPorUnidade)
+    {
+        const string folha = "TinySwords/GoblinTocha";
+        RectInt recorte = new RectInt(8, 16, 176, 160);
+        Vector2 centro = new Vector2(92f, 100f);
+
+        return Clipes(folha, pixelsPorUnidade, c =>
+        {
+            c.Parado = Linha(folha, 192, 0, 7, recorte, centro, pixelsPorUnidade);
+            c.Andando = Linha(folha, 192, 1, 6, recorte, centro, pixelsPorUnidade);
+            c.Ataque = Linha(folha, 192, 2, 6, recorte, centro, pixelsPorUnidade);
+            c.AtaqueBaixo = Linha(folha, 192, 3, 6, recorte, centro, pixelsPorUnidade);
+            c.AtaqueCima = Linha(folha, 192, 4, 6, recorte, centro, pixelsPorUnidade);
+        });
+    }
+
+    /// <summary>Goblin da dinamite: parado, correndo e o arremesso (a dinamite sai no indice 5).</summary>
+    public static ClipesDePersonagem GoblinDaDinamite(float pixelsPorUnidade)
+    {
+        const string folha = "TinySwords/GoblinDinamite";
+        RectInt recorte = new RectInt(40, 40, 120, 112);
+        Vector2 centro = new Vector2(94f, 104f);
+
+        return Clipes(folha, pixelsPorUnidade, c =>
+        {
+            c.Parado = Linha(folha, 192, 0, 6, recorte, centro, pixelsPorUnidade);
+            c.Andando = Linha(folha, 192, 1, 6, recorte, centro, pixelsPorUnidade);
+            c.Ataque = Linha(folha, 192, 2, 7, recorte, centro, pixelsPorUnidade);
+        });
+    }
+
+    /// <summary>
+    /// Barril de TNT com um goblin dentro:
+    ///   Parado = fechado, AtaqueEspecial = saindo do barril, Andando = correndo com o
+    ///   barril, Ataque = pavio aceso (em loop enquanto queima).
+    /// </summary>
+    public static ClipesDePersonagem Barril(float pixelsPorUnidade)
+    {
+        const string folha = "TinySwords/Barril";
+        RectInt recorte = new RectInt(24, 0, 80, 112);
+        Vector2 centro = new Vector2(64f, 72f);
+
+        return Clipes(folha, pixelsPorUnidade, c =>
+        {
+            c.Parado = Linha(folha, 128, 0, 1, recorte, centro, pixelsPorUnidade);
+            c.AtaqueEspecial = Linha(folha, 128, 1, 6, recorte, centro, pixelsPorUnidade);
+            c.Andando = Linha(folha, 128, 4, 3, recorte, centro, pixelsPorUnidade);
+            c.Ataque = Linha(folha, 128, 5, 3, recorte, centro, pixelsPorUnidade);
+        });
+    }
+
+    /// <summary>Arqueiro sombrio (Free Pack): parado, correndo e o tiro (a flecha sai no indice 5).</summary>
+    public static ClipesDePersonagem Arqueiro(float pixelsPorUnidade)
+    {
+        RectInt recorte = new RectInt(40, 40, 112, 104);
+        Vector2 centro = new Vector2(94f, 100f);
+
+        return Clipes("TinySwords/Arqueiro", pixelsPorUnidade, c =>
+        {
+            c.Parado = Linha("TinySwords/ArqueiroParado", 192, 0, 6, recorte, centro, pixelsPorUnidade);
+            c.Andando = Linha("TinySwords/ArqueiroAndando", 192, 0, 4, recorte, centro, pixelsPorUnidade);
+            c.Ataque = Linha("TinySwords/ArqueiroAtirando", 192, 0, 8, recorte, centro, pixelsPorUnidade);
+        });
+    }
+
+    /// <summary>A caveira que sobe quando um goblin ou o arqueiro morre (14 quadros).</summary>
+    public static Sprite[] Caveira(float pixelsPorUnidade)
+    {
+        RectInt recorte = new RectInt(24, 24, 80, 88);
+        Vector2 centro = new Vector2(64f, 72f);
+        Sprite[] subindo = Linha("TinySwords/Caveira", 128, 0, 7, recorte, centro, pixelsPorUnidade);
+        Sprite[] sumindo = Linha("TinySwords/Caveira", 128, 1, 7, recorte, centro, pixelsPorUnidade);
+
+        if (subindo == null || sumindo == null)
+            return null;
+
+        Sprite[] todos = new Sprite[subindo.Length + sumindo.Length];
+        subindo.CopyTo(todos, 0);
+        sumindo.CopyTo(todos, subindo.Length);
+        return todos;
+    }
+
+    /// <summary>A banana de dinamite girando (6 quadros).</summary>
+    public static Sprite[] Dinamite(float pixelsPorUnidade)
+        => Linha("TinySwords/Dinamite", 64, 0, 6, new RectInt(0, 0, 64, 64), new Vector2(34f, 28f), pixelsPorUnidade);
+
+    /// <summary>
+    /// A explosao (9 quadros). A bola de fogo tem uns 105 px de largura: pra ela cobrir um
+    /// circulo de raio r, use <c>ExplosaoPixelsPorUnidade(r)</c>.
+    /// </summary>
+    public static Sprite[] Explosao(float pixelsPorUnidade)
+        => Linha("TinySwords/Explosao", 192, 0, 9, new RectInt(0, 0, 192, 192), new Vector2(96f, 94f), pixelsPorUnidade);
+
+    public static float ExplosaoPixelsPorUnidade(float raio) => 105f / Mathf.Max(0.1f, raio * 2f);
+
+    /// <summary>A flecha do arqueiro, apontando pra direita (48 px de comprimento).</summary>
+    public static Sprite Flecha(float pixelsPorUnidade)
+    {
+        Sprite[] um = Linha("TinySwords/Flecha", 64, 0, 1, new RectInt(8, 24, 48, 16), new Vector2(32f, 32f), pixelsPorUnidade);
+        return um != null ? um[0] : null;
+    }
+
+    /// <summary>Nomes dos enfeites de chao (cogumelos, pedrinhas, moitas, ossos).</summary>
+    private static readonly string[] Enfeites = { "01", "02", "03", "04", "05", "06", "07", "10", "14", "15" };
+
+    /// <summary>Um enfeite de chao sorteado (64 px = 1 ladrilho), ou null sem a arte.</summary>
+    public static Sprite EnfeiteAleatorio()
+    {
+        string nome = Enfeites[Random.Range(0, Enfeites.Length)];
+        Sprite[] um = Linha("TinySwords/Enfeites/" + nome, 64, 0, 1, new RectInt(0, 0, 64, 64), new Vector2(32f, 32f), 64f);
+        return um != null ? um[0] : null;
+    }
+
+    private static ClipesDePersonagem Clipes(string nome, float pixelsPorUnidade, System.Action<ClipesDePersonagem> montar)
+    {
+        string chave = nome + "@" + pixelsPorUnidade;
+
+        if (personagens.TryGetValue(chave, out ClipesDePersonagem guardado))
+            return guardado;
+
+        ClipesDePersonagem clipes = new ClipesDePersonagem();
+        montar(clipes);
+
+        if (clipes.Parado == null)
+            clipes = null;
+
+        personagens[chave] = clipes;
+        return clipes;
+    }
+
+    private static readonly Dictionary<string, Sprite[]> linhas = new Dictionary<string, Sprite[]>();
+
+    /// <summary>
+    /// Os quadros de uma linha de uma folha em grade de celulas quadradas de lado
+    /// <paramref name="celula"/>. O pivo fica no centro do corpo, pra o colisor cair em cima dele.
+    /// </summary>
+    private static Sprite[] Linha(string caminho, int celula, int linha, int quantos, RectInt recorte, Vector2 centro,
+                                  float pixelsPorUnidade)
+    {
+        string chave = $"{caminho}#{linha}@{pixelsPorUnidade}";
+
+        if (linhas.TryGetValue(chave, out Sprite[] guardados))
+            return guardados;
+
+        Texture2D textura = Textura(caminho);
+        Sprite[] quadros = null;
+
+        if (textura != null && (linha + 1) * celula <= textura.height)
+        {
+            quantos = Mathf.Min(quantos, textura.width / celula);
+            quadros = new Sprite[quantos];
+
+            Vector2 pivo = new Vector2(
+                (centro.x - recorte.x) / recorte.width,
+                (recorte.yMax - centro.y) / recorte.height);
+
+            for (int i = 0; i < quantos; i++)
+            {
+                Rect r = Recorte(textura, i * celula + recorte.x, linha * celula + recorte.y, recorte.width, recorte.height);
+                quadros[i] = Sprite.Create(textura, r, pivo, pixelsPorUnidade, 0, SpriteMeshType.FullRect);
+                quadros[i].name = $"{caminho} {linha}:{i}";
+            }
+        }
+
+        linhas[chave] = quadros;
         return quadros;
     }
 
@@ -178,6 +358,10 @@ public class ClipesDePersonagem
     public Sprite[] Andando;
     public Sprite[] Ataque;
     public Sprite[] AtaqueEspecial;
+
+    /// <summary>Golpe pra baixo e pra cima, pra quem tem arte nas tres direcoes (senao usa <see cref="Ataque"/> virado).</summary>
+    public Sprite[] AtaqueBaixo;
+    public Sprite[] AtaqueCima;
     public Sprite[] Dor;
     public Sprite[] Morte;
 }

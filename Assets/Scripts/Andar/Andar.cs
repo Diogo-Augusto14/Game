@@ -33,6 +33,9 @@ public class Andar : MonoBehaviour
 
     [SerializeField, Min(3)] private int alturaDaGrade = 8;
 
+    [Tooltip("Enfeites de chao (cogumelo, pedrinha, osso) por sala: sorteado entre o minimo e o maximo")]
+    [SerializeField] private Vector2Int enfeitesPorSala = new Vector2Int(2, 5);
+
     [Header("Inimigos")]
     [Tooltip("Inimigos numa sala comum: sorteado entre o minimo e o maximo")]
     [SerializeField] private Vector2Int inimigosPorSala = new Vector2Int(2, 4);
@@ -507,6 +510,11 @@ public class Andar : MonoBehaviour
         }
 
         PintarChao(sala, casa.Tipo);
+
+        // Loja e chefe ficam limpos: a loja tem as mercadorias, o chefe precisa do chao todo.
+        if (casa.Tipo != TipoDeSala.Loja && casa.Tipo != TipoDeSala.Chefe)
+            sala.Enfeitar(UnityEngine.Random.Range(enfeitesPorSala.x, enfeitesPorSala.y + 1));
+
         Povoar(sala, casa);
         PorPremios(sala, casa);
         return sala;
@@ -565,8 +573,9 @@ public class Andar : MonoBehaviour
     /// <summary>
     /// Quem aparece em cada andar, com peso. Cada andar traz gente nova, pra o andar
     /// seguinte nao parecer o mesmo com mais salas:
-    ///   1  -> perseguidor, atirador, investidor, divisor, demonio, monstro de sangue
-    ///   2  -> + saltador e sentinela (e o perseguidor fica mais raro)
+    ///   1  -> perseguidor, atirador, investidor, divisor, demonio, monstro de sangue,
+    ///         goblin da tocha, barril
+    ///   2  -> + saltador, sentinela, goblin da dinamite e arqueiro (e o perseguidor fica mais raro)
     ///   3+ -> todos, com mais investidor, divisor e sentinela
     /// </summary>
     private static TipoDeInimigo SortearInimigo(int andar)
@@ -580,6 +589,7 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Perseguidor, 4f), (TipoDeInimigo.Atirador, 2.5f),
                 (TipoDeInimigo.Investidor, 2f), (TipoDeInimigo.Divisor, 1.5f),
                 (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1f),
+                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1f),
             };
         }
         else if (andar == 2)
@@ -590,6 +600,8 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Investidor, 1.5f), (TipoDeInimigo.Divisor, 1.5f),
                 (TipoDeInimigo.Saltador, 3f), (TipoDeInimigo.Sentinela, 1.5f),
                 (TipoDeInimigo.Demonio, 2f), (TipoDeInimigo.MonstroDeSangue, 1.5f),
+                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 1.5f),
+                (TipoDeInimigo.GoblinDinamite, 1.5f), (TipoDeInimigo.Arqueiro, 1.5f),
             };
         }
         else
@@ -600,6 +612,8 @@ public class Andar : MonoBehaviour
                 (TipoDeInimigo.Investidor, 2.5f), (TipoDeInimigo.Divisor, 2f),
                 (TipoDeInimigo.Saltador, 2f), (TipoDeInimigo.Sentinela, 2f),
                 (TipoDeInimigo.Demonio, 2.5f), (TipoDeInimigo.MonstroDeSangue, 2f),
+                (TipoDeInimigo.GoblinTocha, 2f), (TipoDeInimigo.Barril, 2f),
+                (TipoDeInimigo.GoblinDinamite, 2f), (TipoDeInimigo.Arqueiro, 2f),
             };
         }
 

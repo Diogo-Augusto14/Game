@@ -207,6 +207,29 @@ public class Sala : MonoBehaviour
             Espinhos.Criar(cenario, posicao);
     }
 
+    /// <summary>
+    /// Espalha enfeites de chao (arte do Tiny Swords) em pontos livres. So desenho: nao
+    /// bloqueia nada e fica embaixo de tudo. Sem a arte, nao faz nada.
+    /// </summary>
+    public void Enfeitar(int quantos)
+    {
+        Montar();
+
+        for (int i = 0; i < quantos; i++)
+        {
+            Sprite sprite = ArteImportada.EnfeiteAleatorio();
+
+            if (sprite == null)
+                return;
+
+            // Longe das paredes, pra nao tampar porta.
+            Vector2 ponto = PontoLivreAleatorio(1.2f);
+            SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, new Color(0.85f, 0.85f, 0.85f),
+                                                     ponto, Vector2.one, -9);
+            sr.flipX = Random.value < 0.5f;
+        }
+    }
+
     /// <summary>Troca a cor do chao e das paredes (cada andar tem a sua).</summary>
     public void Pintar(Color chao, Color parede)
     {

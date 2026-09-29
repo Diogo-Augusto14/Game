@@ -13,7 +13,11 @@ public enum TipoDeInimigo
     ChefeSaltador,
     ChefeFinal,
     Demonio,
-    MonstroDeSangue
+    MonstroDeSangue,
+    GoblinTocha,
+    GoblinDinamite,
+    Barril,
+    Arqueiro
 }
 
 /// <summary>
@@ -84,9 +88,36 @@ public static class FabricaDeInimigos
                 return monstro;
             }
 
+            // Arte do Tiny Swords. Sem a imagem, cada um vira uma bola da sua cor.
+            case TipoDeInimigo.GoblinTocha:
+                return ComArte<InimigoGoblinTocha>("Goblin da tocha", posicao, pai, 0.3f, 35f,
+                    ArteImportada.GoblinDaTocha(InimigoComArte.PixelsDoTinySwords), new Color(0.75f, 0.3f, 0.15f));
+
+            case TipoDeInimigo.GoblinDinamite:
+                return ComArte<InimigoGoblinDinamite>("Goblin da dinamite", posicao, pai, 0.32f, 30f,
+                    ArteImportada.GoblinDaDinamite(InimigoComArte.PixelsDoTinySwords), new Color(0.3f, 0.6f, 0.3f));
+
+            case TipoDeInimigo.Barril:
+                return ComArte<InimigoBarril>("Barril", posicao, pai, 0.32f, 20f,
+                    ArteImportada.Barril(InimigoComArte.PixelsDoTinySwords), new Color(0.7f, 0.25f, 0.2f));
+
+            case TipoDeInimigo.Arqueiro:
+                return ComArte<InimigoArqueiro>("Arqueiro", posicao, pai, 0.3f, 30f,
+                    ArteImportada.Arqueiro(InimigoComArte.PixelsDoTinySwords), new Color(0.3f, 0.3f, 0.4f));
+
             default:
                 return Montar<InimigoPerseguidor>("Perseguidor", posicao, pai, 0.3f, Rosto(TipoDeInimigo.Perseguidor, new Color(0.85f, 0.25f, 0.25f)), 25f);
         }
+    }
+
+    private static T ComArte<T>(string nome, Vector2 posicao, Transform pai, float raio, float vidaMaxima,
+                                ClipesDePersonagem clipes, Color corSemArte)
+        where T : InimigoComArte
+    {
+        T inimigo = Montar<T>(nome, posicao, pai, raio,
+            (clipes?.Parado[0], clipes != null ? Color.white : corSemArte), vidaMaxima);
+        inimigo.UsarArte(Animar(inimigo, clipes), clipes);
+        return inimigo;
     }
 
     /// <summary>Pixels da arte importada por unidade: o corpo (uns 20 px) fica com ~0.9 unidade.</summary>

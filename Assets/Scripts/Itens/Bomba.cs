@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -18,8 +17,6 @@ public class Bomba : MonoBehaviour
     [SerializeField, Min(0f)] private float danoNoJogador = 20f;
 
     [SerializeField, Min(0f)] private float empurrao = 8f;
-
-    [SerializeField] private string tagDoJogador = "Player";
 
     private GameObject dono;
     private SpriteRenderer desenho;
@@ -73,35 +70,16 @@ public class Bomba : MonoBehaviour
             return;
 
         explodiu = true;
-        Vector2 centro = transform.position;
-        Sons.Tocar(Som.Explosao);
+        StopAllCoroutines();
 
-        // Cada Vida uma vez so, mesmo que tenha varios colisores.
-        HashSet<Vida> atingidos = new HashSet<Vida>();
-
-        foreach (Collider2D c in Physics2D.OverlapCircleAll(centro, raio))
+        // Com a arte do Tiny Swords a bola de fogo toma o lugar da bomba; sem ela, o
+        // proprio desenho vira o clarao.
+        if (Explosao.Estourar(transform.position, raio, dano, danoNoJogador, empurrao, dono))
         {
-            // Porta secreta escondida na parede: a explosao abre.
-            Porta porta = c.GetComponentInParent<Porta>();
-
-            if (porta != null && porta.Escondida)
-                porta.Revelar();
-
-            Vida vida = c.GetComponentInParent<Vida>();
-
-            if (vida == null || !atingidos.Add(vida))
-                continue;
-
-            Vector2 direcao = (Vector2)vida.transform.position - centro;
-
-            if (direcao.sqrMagnitude < 0.0001f)
-                direcao = Vector2.up;
-
-            float quanto = vida.CompareTag(tagDoJogador) ? danoNoJogador : dano;
-            vida.TomarDano(new DanoInfo(quanto, direcao.normalized, empurrao, centro, dono));
+            Destroy(gameObject);
+            return;
         }
 
-        StopAllCoroutines();
         StartCoroutine(Clarao());
     }
 
