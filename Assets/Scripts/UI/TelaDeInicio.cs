@@ -87,7 +87,7 @@ public class TelaDeInicio : MonoBehaviour
             "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba",
             28, corDasDicas);
         TelaSimples.LinhaDeTeclas(transform, "Opcoes", -212f,
-            "[Esc] pausar | [M] musica | [N] efeitos || [Pad Start] pausar | [Pad LB] musica | [Pad RB] efeitos", 28, corDasDicas);
+            "[O] opcoes | [Esc] pausar | [M] musica | [N] efeitos || [Pad X] opcoes | [Pad Start] pausar | [Pad LB] musica | [Pad RB] efeitos", 28, corDasDicas);
         TelaSimples.Texto(transform, "Dica", 24, new Color(0.8f, 0.85f, 0.95f), -260f,
             "Bomba abre parede rachada. Moeda compra na loja.");
 
@@ -121,10 +121,15 @@ public class TelaDeInicio : MonoBehaviour
         float t = Time.unscaledTime;
         textoDoTitulo.transform.localScale = Vector3.one * (1f + Mathf.Sin(t * 1.5f) * 0.03f);
 
-        Opcoes.LerTeclas();
         AnimarRetrato(t);
         AnimarPonteiro(t);
         AnimarSetas(t);
+
+        // Com as opcoes por cima, as teclas sao delas (o Esc de la nao pode sair do jogo).
+        if (TelaDeOpcoes.Ocupada)
+            return;
+
+        Opcoes.LerTeclas();
 
         // Meio segundo de respiro: o Enter que abriu o Play nao pula o menu.
         if (t - abriu < 0.4f)
@@ -138,6 +143,12 @@ public class TelaDeInicio : MonoBehaviour
 #else
             Application.Quit();
 #endif
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
+        {
+            TelaDeOpcoes.Abrir();
             return;
         }
 

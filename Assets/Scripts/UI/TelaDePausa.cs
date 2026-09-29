@@ -6,7 +6,7 @@ using UnityEngine.UI;
 /// Esc pausa o jogo: congela tudo e mostra o andar, os itens pegos e as opcoes.
 ///
 ///   Esc  continuar      R  recomecar do andar 1      Q  voltar ao menu
-///   M    musica         N  efeitos
+///   M    musica         N  efeitos          O  opcoes (volumes, tela)
 ///
 /// No controle: Start (ou B) continua, Select recomeca, Y vai ao menu, LB e RB o som.
 ///
@@ -31,7 +31,7 @@ public class TelaDePausa : MonoBehaviour
 
     private void Update()
     {
-        if (TelaDeInicio.Aberta || TelaDeFimDeJogo.Atual != null)
+        if (TelaDeInicio.Aberta || TelaDeFimDeJogo.Atual != null || TelaDeOpcoes.Ocupada)
             return;
 
         if (!Pausado)
@@ -62,6 +62,10 @@ public class TelaDePausa : MonoBehaviour
             Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
             TelaDeFimDeJogo.RecarregarCena();
         }
+        else if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
+        {
+            TelaDeOpcoes.Abrir(Atualizar);
+        }
         else if (Input.GetKeyDown(KeyCode.Q) || Controle.Apertou(BotaoDoControle.Y))
         {
             Sons.Tocar(Som.MenuFechar, 1f, 0f);
@@ -82,7 +86,7 @@ public class TelaDePausa : MonoBehaviour
 
         TelaSimples.Texto(tela.transform, "Titulo", 80, new Color(1f, 0.95f, 0.85f), 290f, "PAUSADO");
         resumo = TelaSimples.Texto(tela.transform, "Resumo", 30, Color.white, 90f, "");
-        TelaSimples.LinhaDeTeclas(tela.transform, "Teclas", -45f, "[Esc] continuar | [R] recomecar | [Q] menu || [Pad Start] continuar | [Pad Select] recomecar | [Pad Y] menu", 32,
+        TelaSimples.LinhaDeTeclas(tela.transform, "Teclas", -45f, "[Esc] continuar | [R] recomecar | [O] opcoes | [Q] menu || [Pad Start] continuar | [Pad Select] recomecar | [Pad X] opcoes | [Pad Y] menu", 32,
             new Color(1f, 0.85f, 0.4f));
         opcoes = TelaSimples.LinhaDeTeclas(tela.transform, "Opcoes", -110f, "", 30, new Color(1f, 0.85f, 0.4f));
 
@@ -108,6 +112,9 @@ public class TelaDePausa : MonoBehaviour
 
     private void Atualizar()
     {
+        if (tela == null)
+            return;
+
         resumo.text = $"{(andar.UltimoAndar ? "Ultimo andar" : $"Andar {andar.NumeroDoAndar}")} de {andar.AndarFinal}\n{Itens()}";
         TelaSimples.TrocarLinhaDeTeclas(opcoes,
             $"[M] musica: {Musica()} | [N] efeitos: {Efeitos()} || [Pad LB] musica: {Musica()} | [Pad RB] efeitos: {Efeitos()}",
