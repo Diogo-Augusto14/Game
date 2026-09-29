@@ -72,6 +72,7 @@ public class TelaDeInicio : MonoBehaviour
             "Bomba abre parede rachada. Moeda compra na loja.");
 
         textoDeJogar = TelaSimples.Texto(transform, "Jogar", 44, new Color(1f, 0.85f, 0.35f), -260f, "Enter  jogar");
+        TelaSimples.Texto(transform, "Sair", 26, new Color(0.6f, 0.55f, 0.55f), -330f, "Esc  sair do jogo");
 
         // Congela o jogo e segura o jogador ate apertar Enter.
         Time.timeScale = 0f;
@@ -97,6 +98,17 @@ public class TelaDeInicio : MonoBehaviour
         // Meio segundo de respiro: o Enter que abriu o Play nao pula o menu.
         if (t - abriu < 0.4f)
             return;
+
+        // No .exe e o unico jeito de fechar sem Alt+F4. No editor, sai do Play.
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+            return;
+        }
 
         foreach (KeyCode tecla in TeclasDeJogar)
         {
