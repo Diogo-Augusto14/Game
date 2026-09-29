@@ -89,6 +89,12 @@ public class Andar : MonoBehaviour
     [Tooltip("Mostra 'Andar N' no meio da tela a cada andar novo")]
     [SerializeField] private bool avisarAndarNovo = true;
 
+    [Header("Menu")]
+    [Tooltip("Mostra o menu inicial ao abrir a cena (recomecar depois de morrer pula o menu)")]
+    [SerializeField] private bool mostrarMenu = true;
+
+    [SerializeField] private string nomeDoJogo = "THE PRETTIE";
+
     [Header("Jogador")]
     [Tooltip("Sem ninguem com a tag Player na cena, monta o jogador top-down (WASD anda, setas atiram)")]
     [SerializeField] private bool criarJogador = true;
@@ -117,7 +123,7 @@ public class Andar : MonoBehaviour
     [SerializeField] private Color corDoBatenteDoChefe = new Color(0.8f, 0.15f, 0.15f);
 
     private const string CONTROLES =
-        "W A S D  andar    Setas  atirar    E  bomba\n" +
+        "W A S D  andar    Setas  atirar    E  bomba    Esc  pausa\n" +
         "Limpe a sala pra abrir as portas. Venca o chefe e pule no alcapao";
 
     // ---------------- estado ----------------
@@ -173,11 +179,17 @@ public class Andar : MonoBehaviour
 
         if (mostrarMinimapa && GetComponent<Minimapa>() == null)
             gameObject.AddComponent<Minimapa>();
+
+        if (GetComponent<TelaDePausa>() == null)
+            gameObject.AddComponent<TelaDePausa>();
     }
 
     private void Start()
     {
         Gerar();
+
+        if (mostrarMenu)
+            TelaDeInicio.Mostrar(this, nomeDoJogo);
     }
 
     private void OnDestroy()
@@ -477,15 +489,17 @@ public class Andar : MonoBehaviour
                 continue;
 
             SalaDoAndar vizinha = Mapa.Vizinha(casa, ParaDirecao(porta.Lado));
-            MarcarPortaEspecial(porta, casa, vizinha);
 
-            // Porta pra secreta: parece parede ate uma bomba abrir. De dentro da secreta
-            // as portas sao normais.
+            // Porta pra secreta: parece parede ate uma bomba abrir (e sem batente colorido,
+            // que entregaria o segredo). De dentro da secreta as portas sao normais.
             if (vizinha.Tipo == TipoDeSala.Secreta && casa.Tipo != TipoDeSala.Secreta)
             {
                 porta.Esconder();
                 porta.AoRevelar += _ => Sons.Tocar(Som.Segredo);
+                continue;
             }
+
+            MarcarPortaEspecial(porta, casa, vizinha);
         }
 
         PintarChao(sala, casa.Tipo);

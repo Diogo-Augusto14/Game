@@ -29,11 +29,11 @@ public class Bomba : MonoBehaviour
     {
         GameObject obj = new GameObject("Bomba acesa");
         obj.transform.position = posicao;
-        obj.transform.localScale = Vector3.one * 0.45f;
+        obj.transform.localScale = Vector3.one * 0.6f;
 
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = FormasTopDown.Circulo();
-        sr.color = Coletavel.CorDe(TipoDeColetavel.Bomba);
+        sr.sprite = ArteGerada.Coletavel(TipoDeColetavel.Bomba);
+        sr.color = Color.white;
         sr.sortingOrder = 4;
 
         Bomba bomba = obj.AddComponent<Bomba>();
@@ -54,7 +54,7 @@ public class Bomba : MonoBehaviour
     private IEnumerator Queimar()
     {
         Color escura = desenho.color;
-        Color acesa = new Color(1f, 0.35f, 0.2f);
+        Color acesa = new Color(1f, 0.45f, 0.3f);
 
         for (float t = 0f; t < pavio; t += Time.deltaTime)
         {
@@ -113,6 +113,7 @@ public class Bomba : MonoBehaviour
         Vector3 inicio = transform.localScale;
         Vector3 fim = Vector3.one * raio * 2f;
         desenho.sortingOrder = 30;
+        desenho.sprite = FormasTopDown.Circulo();
 
         for (float t = 0f; t < DURACAO; t += Time.deltaTime)
         {

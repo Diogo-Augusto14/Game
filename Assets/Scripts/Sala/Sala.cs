@@ -334,7 +334,7 @@ public class Sala : MonoBehaviour
         cenario = new GameObject("Cenario").transform;
         cenario.SetParent(transform, false);
 
-        FormasDaSala.Desenho(cenario, "Chao", FormasDaSala.Quadrado(), corDoChao, Vector2.zero, tamanhoInterno, -10);
+        FormasDaSala.DesenhoLadrilhado(cenario, "Chao", ArteGerada.Chao(), corDoChao, Vector2.zero, tamanhoInterno, -10);
 
         MontarLado(cenario, LadoDaPorta.Cima, portaCima);
         MontarLado(cenario, LadoDaPorta.Baixo, portaBaixo);
@@ -396,7 +396,7 @@ public class Sala : MonoBehaviour
 
     private void Parede(Transform pai, string nome, Vector2 posicaoLocal, Vector2 tamanho)
     {
-        SpriteRenderer sr = FormasDaSala.Desenho(pai, nome, FormasDaSala.Quadrado(), corDaParede, posicaoLocal, tamanho, 0);
+        SpriteRenderer sr = FormasDaSala.DesenhoLadrilhado(pai, nome, ArteGerada.Tijolo(), corDaParede, posicaoLocal, tamanho, 0);
         sr.gameObject.layer = CamadaDeParede;
 
         BoxCollider2D caixa = sr.gameObject.AddComponent<BoxCollider2D>();

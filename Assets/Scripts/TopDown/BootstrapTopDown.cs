@@ -162,8 +162,8 @@ public class BootstrapTopDown : MonoBehaviour
 
         // O desenho fica na raiz: o Vida pisca o primeiro SpriteRenderer que achar.
         SpriteRenderer corpo = raiz.AddComponent<SpriteRenderer>();
-        corpo.sprite = FormasTopDown.Circulo();
-        corpo.color = corDoJogador;
+        corpo.sprite = ArteGerada.Jogador(corDoJogador);
+        corpo.color = Color.white;
         corpo.sortingOrder = 10;
 
         // Ordem importa: cada Awake procura quem veio antes.
@@ -193,6 +193,9 @@ public class BootstrapTopDown : MonoBehaviour
         desenhoDoOlho.sprite = FormasTopDown.Circulo();
         desenhoDoOlho.color = new Color(0.15f, 0.1f, 0.1f);
         desenhoDoOlho.sortingOrder = 11;
+
+        // O rosto ja tem olhos: a bolinha so marca a mira, entao fica escondida.
+        desenhoDoOlho.enabled = false;
 
         atirador.DefinirOlho(olho.transform);
 

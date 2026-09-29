@@ -203,7 +203,9 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
         // Pisca enquanto acorda: aviso de que o inimigo vai comecar a se mexer.
         float t = Mathf.Repeat(Time.time * 10f, 1f);
-        desenho.color = t < 0.5f ? corOriginal : Color.Lerp(corOriginal, Color.white, 0.6f);
+        Color apagado = Color.Lerp(corOriginal, Color.white, 0.6f);
+        apagado.a = 0.45f;
+        desenho.color = t < 0.5f ? corOriginal : apagado;
     }
 
     /// <summary>O comportamento do inimigo. Roda a cada FixedUpdate enquanto Agindo.</summary>

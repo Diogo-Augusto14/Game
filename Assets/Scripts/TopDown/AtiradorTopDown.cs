@@ -98,7 +98,7 @@ public class AtiradorTopDown : MonoBehaviour
             Debug.LogWarning("[AtiradorTopDown] sem Entrada no objeto — o boneco nao vai atirar.", this);
 
         if (sprite == null)
-            sprite = FormasTopDown.Circulo();
+            sprite = ArteGerada.Bola();
     }
 
     private void Update()

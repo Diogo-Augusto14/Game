@@ -219,7 +219,14 @@ public class Porta : MonoBehaviour
             passagem.enabled = existe && Aberta;
 
         if (desenho != null)
-            desenho.color = !existe || Escondida ? corDeParede : Aberta ? corAberta : corFechada;
+        {
+            // Sem porta (ou porta secreta), o vao vira tijolo igual ao resto da parede.
+            bool parede = !existe || Escondida;
+            Vector2 tamanho = desenho.size;
+            desenho.sprite = parede ? ArteGerada.Tijolo() : FormasDaSala.Quadrado();
+            desenho.size = tamanho;
+            desenho.color = parede ? corDeParede : Aberta ? corAberta : corFechada;
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D outro)

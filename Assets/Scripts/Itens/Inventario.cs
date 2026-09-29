@@ -29,7 +29,8 @@ public class Inventario : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(teclaDaBomba))
+        // Jogo pausado (menu, pausa, fim de jogo): a tecla nao solta bomba escondida.
+        if (Time.timeScale > 0f && Input.GetKeyDown(teclaDaBomba))
             SoltarBomba();
     }
 

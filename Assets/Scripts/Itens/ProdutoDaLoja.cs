@@ -26,7 +26,7 @@ public class ProdutoDaLoja : MonoBehaviour
         ProdutoDaLoja p = Base($"Loja: {item?.nome}", preco, posicao, pai);
         p.ehItem = true;
         p.item = item;
-        p.desenho = Desenhar(p.transform, FormasDaSala.Circulo(), item != null ? item.cor : Color.white, Vector2.one * 0.45f);
+        p.desenho = Desenhar(p.transform, ArteGerada.Bola(), item != null ? item.cor : Color.white, Vector2.one * 0.45f);
         return p;
     }
 
@@ -35,10 +35,7 @@ public class ProdutoDaLoja : MonoBehaviour
         ProdutoDaLoja p = Base($"Loja: {tipo}", preco, posicao, pai);
         p.coletavel = tipo;
 
-        bool comprido = tipo == TipoDeColetavel.Chave;
-        Sprite forma = comprido ? FormasDaSala.Quadrado() : FormasDaSala.Circulo();
-        Vector2 tamanho = comprido ? new Vector2(0.22f, 0.45f) : Vector2.one * 0.4f;
-        p.desenho = Desenhar(p.transform, forma, Coletavel.CorDe(tipo), tamanho);
+        p.desenho = Desenhar(p.transform, ArteGerada.Coletavel(tipo), Color.white, Vector2.one * Coletavel.TamanhoDe(tipo));
         return p;
     }
 
@@ -60,8 +57,8 @@ public class ProdutoDaLoja : MonoBehaviour
         p.textoDoPreco = Texto(obj.transform, preco.ToString(), new Vector2(0f, -0.65f));
 
         // Moedinha do lado do numero.
-        FormasDaSala.Desenho(obj.transform, "Moeda", FormasDaSala.Circulo(), Coletavel.CorDe(TipoDeColetavel.Moeda),
-            new Vector2(0.32f, -0.65f), Vector2.one * 0.18f, 21);
+        FormasDaSala.Desenho(obj.transform, "Moeda", ArteGerada.Coletavel(TipoDeColetavel.Moeda), Color.white,
+            new Vector2(0.34f, -0.65f), Vector2.one * 0.26f, 21);
         return p;
     }
 

@@ -18,16 +18,15 @@ public class Pedra : MonoBehaviour
 {
     public static Pedra Criar(Transform pai, Vector2 posicaoLocal, Color cor)
     {
-        SpriteRenderer sr = FormasDaSala.Desenho(pai, "Pedra", FormasDaSala.Quadrado(), cor, posicaoLocal, Vector2.one * 0.9f, -1);
+        // O desenho ja e cinza sombreado; a cor so puxa um pouco pro tom do andar.
+        SpriteRenderer sr = FormasDaSala.Desenho(pai, "Pedra", ArteGerada.PedraSolta(), Color.Lerp(Color.white, cor, 0.35f),
+            posicaoLocal, Vector2.one * 1.05f, -1);
         GameObject obj = sr.gameObject;
         obj.layer = Sala.CamadaDeParede;
 
         BoxCollider2D caixa = obj.AddComponent<BoxCollider2D>();
-        caixa.size = Vector2.one;   // um ladrilho inteiro: duas pedras coladas nao deixam fresta
+        caixa.size = Vector2.one / 1.05f;   // um ladrilho inteiro: duas pedras coladas nao deixam fresta
 
-        // Topo mais claro: da volume sem precisar de arte.
-        FormasDaSala.Desenho(obj.transform, "Topo", FormasDaSala.Quadrado(), Color.Lerp(cor, Color.white, 0.18f),
-            new Vector2(0f, 0.1f), new Vector2(0.7f, 0.55f), 0);
 
         Vida vida = obj.AddComponent<Vida>();
         vida.Configurar(1f, 0f, true, 0f, false);

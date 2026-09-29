@@ -20,17 +20,9 @@ public class Espinhos : MonoBehaviour
         obj.transform.SetParent(pai, false);
         obj.transform.localPosition = posicaoLocal;
 
-        FormasDaSala.Desenho(obj.transform, "Base", FormasDaSala.Quadrado(), new Color(0.16f, 0.13f, 0.12f),
+        FormasDaSala.Desenho(obj.transform, "Base", FormasDaSala.Quadrado(), new Color(0.16f, 0.13f, 0.12f, 0.6f),
             Vector2.zero, Vector2.one * 0.9f, -9);
-
-        // Quatro pontas em losango.
-        for (int i = 0; i < 4; i++)
-        {
-            Vector2 canto = new Vector2(i % 2 == 0 ? -0.2f : 0.2f, i < 2 ? -0.2f : 0.2f);
-            SpriteRenderer ponta = FormasDaSala.Desenho(obj.transform, "Ponta", FormasDaSala.Circulo(),
-                new Color(0.78f, 0.78f, 0.82f), canto, new Vector2(0.14f, 0.3f), -8);
-            ponta.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
-        }
+        FormasDaSala.Desenho(obj.transform, "Pontas", ArteGerada.EspinhosNoChao(), Color.white, Vector2.zero, Vector2.one, -8);
 
         BoxCollider2D area = obj.AddComponent<BoxCollider2D>();
         area.isTrigger = true;

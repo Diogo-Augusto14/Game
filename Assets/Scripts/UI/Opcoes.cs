@@ -1,0 +1,52 @@
+using UnityEngine;
+
+/// <summary>
+/// Teclas de som que valem em qualquer tela: M liga/desliga a musica e N os efeitos.
+/// Desligar guarda o volume antigo pra ligar de volta no mesmo nivel.
+/// </summary>
+public static class Opcoes
+{
+    private static float musicaAntes = 0.45f;
+    private static float efeitosAntes = 0.7f;
+
+    public static bool MusicaLigada => Musica.Volume > 0f;
+
+    public static bool EfeitosLigados => Sons.Volume > 0f;
+
+    /// <summary>Chame uma vez por quadro de quem estiver com a tela (menu, pausa, jogo).</summary>
+    public static void LerTeclas()
+    {
+        if (Input.GetKeyDown(KeyCode.M))
+            AlternarMusica();
+
+        if (Input.GetKeyDown(KeyCode.N))
+            AlternarEfeitos();
+    }
+
+    public static void AlternarMusica()
+    {
+        if (MusicaLigada)
+        {
+            musicaAntes = Musica.Volume;
+            Musica.Volume = 0f;
+        }
+        else
+        {
+            Musica.Volume = Mathf.Max(0.1f, musicaAntes);
+        }
+    }
+
+    public static void AlternarEfeitos()
+    {
+        if (EfeitosLigados)
+        {
+            efeitosAntes = Sons.Volume;
+            Sons.Volume = 0f;
+        }
+        else
+        {
+            Sons.Volume = Mathf.Max(0.1f, efeitosAntes);
+            Sons.Tocar(Som.Menu);
+        }
+    }
+}
