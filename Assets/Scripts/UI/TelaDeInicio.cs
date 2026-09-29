@@ -83,14 +83,17 @@ public class TelaDeInicio : MonoBehaviour
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(transform, "Controles", -158f,
-            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba", 28, corDasDicas);
-        TelaSimples.LinhaDeTeclas(transform, "Opcoes", -212f, "[O] opcoes | [Esc] pausar | [M] musica | [N] efeitos", 28, corDasDicas);
+            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba",
+            28, corDasDicas);
+        TelaSimples.LinhaDeTeclas(transform, "Opcoes", -212f,
+            "[O] opcoes | [Esc] pausar | [M] musica | [N] efeitos || [Pad X] opcoes | [Pad Start] pausar | [Pad LB] musica | [Pad RB] efeitos", 28, corDasDicas);
         TelaSimples.Texto(transform, "Dica", 24, new Color(0.8f, 0.85f, 0.95f), -260f,
             "Bomba abre parede rachada. Moeda compra na loja.");
 
         linhaDeJogar = TelaSimples.LinhaDeTeclas(transform, "Jogar", -376f, "", 40, new Color(1f, 0.85f, 0.35f));
         MontarPonteiro(-376f);
-        TelaSimples.LinhaDeTeclas(transform, "Sair", -462f, "[Esc] sair do jogo", 24, new Color(0.65f, 0.6f, 0.6f));
+        TelaSimples.LinhaDeTeclas(transform, "Sair", -462f, "[Esc] sair do jogo || [Pad Select] sair do jogo", 24, new Color(0.65f, 0.6f, 0.6f));
         TelaSimples.Texto(transform, "Creditos", 17, new Color(0.45f, 0.42f, 0.45f), -514f,
             "Sons de interface: Nathan Gibson (CC BY 4.0)    Interface: Tiny RPG Dragon Regalia GUI    Teclas: Vryell");
 
@@ -133,7 +136,7 @@ public class TelaDeInicio : MonoBehaviour
             return;
 
         // No .exe e o unico jeito de fechar sem Alt+F4. No editor, sai do Play.
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape) || Controle.Apertou(BotaoDoControle.Select))
         {
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
@@ -143,29 +146,29 @@ public class TelaDeInicio : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.O))
+        if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
         {
             TelaDeOpcoes.Abrir();
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A) || Controle.Apertou(BotaoDoControle.CruzEsquerda))
             TrocarHeroi(-1);
-        else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
+        else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D) || Controle.Apertou(BotaoDoControle.CruzDireita))
             TrocarHeroi(1);
 
-        foreach (KeyCode tecla in TeclasDeJogar)
-        {
-            if (Input.GetKeyDown(tecla))
-            {
-                if (Herois.Liberado(Herois.Atual))
-                    Comecar();
-                else
-                    Sons.Tocar(Som.MenuNegado, 0.8f, 0f);
+        bool confirmou = Controle.ApertouConfirmar;
 
-                return;
-            }
-        }
+        foreach (KeyCode tecla in TeclasDeJogar)
+            confirmou |= Input.GetKeyDown(tecla);
+
+        if (!confirmou)
+            return;
+
+        if (Herois.Liberado(Herois.Atual))
+            Comecar();
+        else
+            Sons.Tocar(Som.MenuNegado, 0.8f, 0f);
     }
 
     private void Comecar()
@@ -243,13 +246,14 @@ public class TelaDeInicio : MonoBehaviour
             : "? ? ?";
 
         TelaSimples.TrocarLinhaDeTeclas(dicaDoHeroi,
-            $"[A][D] ou [Esquerda][Direita] troca o heroi ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)",
+            $"[A][D] ou [Esquerda][Direita] troca o heroi ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados) || " +
+            $"[Pad CruzEsquerda][Pad CruzDireita] troca o heroi ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)",
             22, new Color(0.85f, 0.93f, 1f));
 
         // Na montagem, o nome e a descricao vem antes do botao de jogar existir.
         if (linhaDeJogar != null)
         {
-            TelaSimples.TrocarLinhaDeTeclas(linhaDeJogar, liberado ? "[Enter] jogar" : "Heroi bloqueado", 40,
+            TelaSimples.TrocarLinhaDeTeclas(linhaDeJogar, liberado ? "[Enter] jogar || [Pad A] jogar" : "Heroi bloqueado", 40,
                 liberado ? new Color(1f, 0.85f, 0.35f) : new Color(1f, 0.6f, 0.4f));
         }
 

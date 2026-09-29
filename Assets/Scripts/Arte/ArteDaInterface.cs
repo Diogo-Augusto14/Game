@@ -8,6 +8,8 @@ using UnityEngine;
 ///       molduras douradas, faixas de titulo, botao, setas, ponteiro, barra e o cursor
 ///   Teclas/Teclado.png  (Controllers and Keyboard, da Vryell)
 ///       teclas de 16x16 em grade: coluna 0 solta, coluna 2 apertada
+///   Teclas/ControleXbox.png, ControlePlayStation.png, Analogicos.png  (o mesmo pacote)
+///       botoes de 16x16: coluna 0 solto, coluna 1 apertado
 ///
 /// Mesmo esquema da <see cref="ArteImportada"/>: recorta com Sprite.Create e, se a imagem
 /// sumir, devolve null e quem pediu volta pro desenho antigo.
@@ -89,6 +91,81 @@ public static class ArteDaInterface
 
         sprites[chave] = sprite;
         return sprite;
+    }
+
+    // ================================================================ botoes do controle
+    /// <summary>
+    /// O desenho do botao no controle de Xbox ou de PlayStation (Controllers and Keyboard),
+    /// ou null. <paramref name="apertado"/> = o mesmo botao afundado (coluna 1 da folha).
+    /// </summary>
+    public static Sprite DesenhoDoBotao(BotaoDoControle botao, bool playStation, bool apertado = false)
+    {
+        string folha;
+        Vector2Int celula;
+
+        if (botao == BotaoDoControle.AnalogicoEsquerdo || botao == BotaoDoControle.AnalogicoDireito)
+        {
+            folha = "Teclas/Analogicos";
+            celula = new Vector2Int(0, botao == BotaoDoControle.AnalogicoEsquerdo ? 3 : 7);
+        }
+        else
+        {
+            folha = playStation ? "Teclas/ControlePlayStation" : "Teclas/ControleXbox";
+
+            if (!PosicaoDoBotao(botao, playStation, out celula))
+                return null;
+        }
+
+        // A cruz com uma direcao ja vem acesa: nao tem versao apertada.
+        if (apertado && (botao < BotaoDoControle.Cruz || botao > BotaoDoControle.CruzDireita))
+            celula.x += 1;
+
+        string chave = $"{folha} {celula.x},{celula.y}";
+
+        if (sprites.TryGetValue(chave, out Sprite guardado))
+            return guardado;
+
+        Texture2D textura = Textura(folha);
+        Sprite sprite = null;
+
+        if (textura != null)
+        {
+            Rect r = new Rect(celula.x * 16, textura.height - (celula.y + 1) * 16, 16, 16);
+            sprite = Sprite.Create(textura, r, new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            sprite.name = chave;
+        }
+
+        sprites[chave] = sprite;
+        return sprite;
+    }
+
+    /// <summary>
+    /// Coluna e linha do botao na folha do controle (linha 0 em cima). As duas folhas tem
+    /// os quatro botoes da frente e a cruz no mesmo lugar; o resto muda.
+    /// </summary>
+    private static bool PosicaoDoBotao(BotaoDoControle botao, bool playStation, out Vector2Int celula)
+    {
+        switch (botao)
+        {
+            case BotaoDoControle.Y: celula = new Vector2Int(0, 0); return true;
+            case BotaoDoControle.X: celula = new Vector2Int(0, 2); return true;
+            case BotaoDoControle.A: celula = new Vector2Int(0, 4); return true;
+            case BotaoDoControle.B: celula = new Vector2Int(0, 6); return true;
+            case BotaoDoControle.Cruz: celula = new Vector2Int(0, 8); return true;
+            case BotaoDoControle.CruzCima: celula = new Vector2Int(1, 10); return true;
+            case BotaoDoControle.CruzEsquerda: celula = new Vector2Int(2, 10); return true;
+            case BotaoDoControle.CruzBaixo: celula = new Vector2Int(3, 10); return true;
+            case BotaoDoControle.CruzDireita: celula = new Vector2Int(4, 10); return true;
+            case BotaoDoControle.Start: celula = new Vector2Int(0, playStation ? 17 : 11); return true;
+            case BotaoDoControle.Select: celula = new Vector2Int(0, 13); return true;
+            case BotaoDoControle.LB: celula = new Vector2Int(0, playStation ? 24 : 16); return true;
+            case BotaoDoControle.LT: celula = new Vector2Int(0, playStation ? 27 : 19); return true;
+            case BotaoDoControle.RB: celula = new Vector2Int(0, playStation ? 30 : 22); return true;
+            case BotaoDoControle.RT: celula = new Vector2Int(0, playStation ? 33 : 25); return true;
+        }
+
+        celula = default;
+        return false;
     }
 
     /// <summary>Coluna e linha da tecla na folha (linha 0 em cima).</summary>

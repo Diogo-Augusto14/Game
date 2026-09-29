@@ -113,6 +113,9 @@ public static class TelaSimples
     /// Uma linha centralizada de dicas com o desenho das teclas, a <paramref name="y"/> do meio
     /// da tela. <paramref name="conteudo"/> mistura teclas entre colchetes e texto, e "|" separa
     /// os grupos: <c>"[W][A][S][D] andar | [Esc] pausar"</c>. Tecla sem desenho vira texto.
+    /// Botao do controle e "[Pad X]" (nomes do <see cref="BotaoDoControle"/>). Com " || ", o
+    /// que vem depois e a mesma linha pro controle: ela troca sozinha quando o jogador passa
+    /// do teclado pro controle (ver <see cref="DicaDupla"/>).
     /// </summary>
     public static RectTransform LinhaDeTeclas(Transform pai, string nome, float y, string conteudo, int tamanho, Color cor)
     {
@@ -142,6 +145,26 @@ public static class TelaSimples
 
     /// <summary>Refaz o conteudo de uma linha da <see cref="LinhaDeTeclas"/> (ex.: musica ligada/desligada).</summary>
     public static void TrocarLinhaDeTeclas(RectTransform linha, string conteudo, int tamanho, Color cor)
+    {
+        int corte = conteudo.IndexOf("||", System.StringComparison.Ordinal);
+        DicaDupla dupla = linha.GetComponent<DicaDupla>();
+
+        if (corte >= 0 || dupla != null)
+        {
+            string teclado = corte >= 0 ? conteudo.Substring(0, corte).Trim() : conteudo;
+            string controle = corte >= 0 ? conteudo.Substring(corte + 2).Trim() : conteudo;
+
+            if (dupla == null)
+                dupla = linha.gameObject.AddComponent<DicaDupla>();
+
+            conteudo = dupla.Guardar(teclado, controle, tamanho, cor);
+        }
+
+        Desenhar(linha, conteudo, tamanho, cor);
+    }
+
+    /// <summary>Desenha uma versao so (teclado ou controle) da linha.</summary>
+    public static void Desenhar(RectTransform linha, string conteudo, int tamanho, Color cor)
     {
         for (int i = linha.childCount - 1; i >= 0; i--)
         {
@@ -194,6 +217,12 @@ public static class TelaSimples
 
     private static void Tecla(Transform linha, string nome, float lado, int tamanho, Color cor)
     {
+        if (nome.StartsWith("Pad ", System.StringComparison.OrdinalIgnoreCase))
+        {
+            BotaoDoPad(linha, nome.Substring(4).Trim(), lado, tamanho, cor);
+            return;
+        }
+
         if (!ApelidosDeTecla.TryGetValue(nome, out KeyCode tecla) && !System.Enum.TryParse(nome, true, out tecla))
             tecla = KeyCode.None;
 
@@ -209,6 +238,27 @@ public static class TelaSimples
         Image imagem = obj.AddComponent<Image>();
         imagem.raycastTarget = false;
         obj.AddComponent<IconeDeTecla>().Configurar(tecla);
+
+        LayoutElement tamanhoFixo = obj.AddComponent<LayoutElement>();
+        tamanhoFixo.preferredWidth = tamanhoFixo.minWidth = lado;
+        tamanhoFixo.preferredHeight = tamanhoFixo.minHeight = lado;
+    }
+
+    private static void BotaoDoPad(Transform linha, string nome, float lado, int tamanho, Color cor)
+    {
+        if (!System.Enum.TryParse(nome, true, out BotaoDoControle botao)
+            || ArteDaInterface.DesenhoDoBotao(botao, Controle.PlayStation) == null)
+        {
+            TextoDaLinha(linha, nome, tamanho, cor);
+            return;
+        }
+
+        GameObject obj = new GameObject("Botao " + nome, typeof(RectTransform));
+        obj.transform.SetParent(linha, false);
+
+        Image imagem = obj.AddComponent<Image>();
+        imagem.raycastTarget = false;
+        obj.AddComponent<IconeDeTecla>().Configurar(botao);
 
         LayoutElement tamanhoFixo = obj.AddComponent<LayoutElement>();
         tamanhoFixo.preferredWidth = tamanhoFixo.minWidth = lado;

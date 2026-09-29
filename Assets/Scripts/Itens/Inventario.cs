@@ -5,7 +5,7 @@ using UnityEngine;
 ///
 ///   Moeda  -> guardada pra loja (ainda nao existe)
 ///   Chave  -> abre a porta trancada da sala do item, a partir do andar 2
-///   Bomba  -> <c>E</c> solta uma bomba no chao, que explode e machuca todo mundo perto
+///   Bomba  -> <c>E</c> (LB/LT no controle) solta uma bomba no chao, que explode e machuca todo mundo perto
 /// </summary>
 [DisallowMultipleComponent]
 public class Inventario : MonoBehaviour
@@ -30,7 +30,7 @@ public class Inventario : MonoBehaviour
     private void Update()
     {
         // Jogo pausado (menu, pausa, fim de jogo): a tecla nao solta bomba escondida.
-        if (Time.timeScale > 0f && Input.GetKeyDown(teclaDaBomba))
+        if (Time.timeScale > 0f && (Input.GetKeyDown(teclaDaBomba) || Controle.ApertouBomba))
             SoltarBomba();
     }
 

@@ -3,11 +3,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// A tela de opcoes, aberta com O pelo menu inicial e pela pausa: volume da musica e dos
+/// A tela de opcoes, aberta com O (X no controle) pelo menu inicial e pela pausa: volume da musica e dos
 /// efeitos, tela cheia e resolucao. Tudo fica salvo entre partidas (ver <see cref="Opcoes"/>).
 ///
 ///   W/S ou Cima/Baixo  escolhe a linha      A/D ou Esquerda/Direita  muda o valor
 ///   Enter              alterna / volta      Esc ou O                 volta
+///
+/// No controle: cruz ou analogico escolhe e muda, A alterna, B (ou X, ou Start) volta.
 ///
 /// M e N continuam valendo aqui e as barras acompanham. Enquanto esta aberta, quem abriu
 /// (menu ou pausa) deve ignorar as teclas: ver <see cref="Ocupada"/>.
@@ -100,7 +102,8 @@ public class TelaDeOpcoes : MonoBehaviour
         ponteiro = Imagem("Ponteiro", Vector2.zero, 64f);
 
         TelaSimples.LinhaDeTeclas(transform, "Teclas", -345f,
-            "[W][S] escolher | [A][D] mudar | [Esc] voltar", 28, new Color(0.92f, 0.92f, 0.95f));
+            "[W][S] escolher | [A][D] mudar | [Esc] voltar || " +
+            "[Pad CruzCima][Pad CruzBaixo] escolher | [Pad CruzEsquerda][Pad CruzDireita] mudar | [Pad B] voltar", 28, new Color(0.92f, 0.92f, 0.95f));
 
         if (Application.isEditor)
         {
@@ -124,27 +127,29 @@ public class TelaDeOpcoes : MonoBehaviour
         if (Time.frameCount == quadroQueAbriu)
             return;
 
-        bool mudouSom = Input.GetKeyDown(KeyCode.M) || Input.GetKeyDown(KeyCode.N);
+        bool mudouSom = Input.GetKeyDown(KeyCode.M) || Input.GetKeyDown(KeyCode.N)
+                        || Controle.Apertou(BotaoDoControle.LB) || Controle.Apertou(BotaoDoControle.RB);
         Opcoes.LerTeclas();
 
         if (mudouSom)
             Atualizar();
 
-        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.O))
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.B)
+            || Controle.Apertou(BotaoDoControle.X) || Controle.Apertou(BotaoDoControle.Start))
         {
             Fechar();
             return;
         }
 
-        if (Apertou(KeyCode.UpArrow, KeyCode.W))
+        if (Apertou(KeyCode.UpArrow, KeyCode.W) || Controle.Apertou(BotaoDoControle.CruzCima))
             Escolher(-1);
-        else if (Apertou(KeyCode.DownArrow, KeyCode.S))
+        else if (Apertou(KeyCode.DownArrow, KeyCode.S) || Controle.Apertou(BotaoDoControle.CruzBaixo))
             Escolher(1);
-        else if (Apertou(KeyCode.LeftArrow, KeyCode.A))
+        else if (Apertou(KeyCode.LeftArrow, KeyCode.A) || Controle.Apertou(BotaoDoControle.CruzEsquerda))
             Mudar(-1);
-        else if (Apertou(KeyCode.RightArrow, KeyCode.D))
+        else if (Apertou(KeyCode.RightArrow, KeyCode.D) || Controle.Apertou(BotaoDoControle.CruzDireita))
             Mudar(1);
-        else if (Apertou(KeyCode.Return, KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
+        else if (Apertou(KeyCode.Return, KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space) || Controle.Apertou(BotaoDoControle.A))
             Confirmar();
 
         AnimarPonteiro(Time.unscaledTime);

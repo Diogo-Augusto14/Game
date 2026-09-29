@@ -8,6 +8,8 @@ using UnityEngine.UI;
 ///   Esc  continuar      R  recomecar do andar 1      Q  voltar ao menu
 ///   M    musica         N  efeitos          O  opcoes (volumes, tela)
 ///
+/// No controle: Start (ou B) continua, Select recomeca, Y vai ao menu, LB e RB o som.
+///
 /// Fica no mesmo objeto do <see cref="Andar"/> (ele poe sozinho). Nao abre por cima do
 /// menu inicial nem da tela de fim de jogo. M e N tambem funcionam jogando, sem pausar.
 /// </summary>
@@ -36,33 +38,35 @@ public class TelaDePausa : MonoBehaviour
         {
             Opcoes.LerTeclas();
 
-            if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+            if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P) || Controle.Apertou(BotaoDoControle.Start))
                 Pausar();
 
             return;
         }
 
-        bool mudou = Input.GetKeyDown(KeyCode.M) || Input.GetKeyDown(KeyCode.N);
+        bool mudou = Input.GetKeyDown(KeyCode.M) || Input.GetKeyDown(KeyCode.N)
+                     || Controle.Apertou(BotaoDoControle.LB) || Controle.Apertou(BotaoDoControle.RB);
         Opcoes.LerTeclas();
 
         if (mudou)
             Atualizar();
 
-        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P)
+            || Controle.Apertou(BotaoDoControle.Start) || Controle.Apertou(BotaoDoControle.B))
         {
             Continuar();
             Sons.Tocar(Som.MenuFechar, 1f, 0f);
         }
-        else if (Input.GetKeyDown(KeyCode.R))
+        else if (Input.GetKeyDown(KeyCode.R) || Controle.Apertou(BotaoDoControle.Select))
         {
             Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
             TelaDeFimDeJogo.RecarregarCena();
         }
-        else if (Input.GetKeyDown(KeyCode.O))
+        else if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
         {
             TelaDeOpcoes.Abrir(Atualizar);
         }
-        else if (Input.GetKeyDown(KeyCode.Q))
+        else if (Input.GetKeyDown(KeyCode.Q) || Controle.Apertou(BotaoDoControle.Y))
         {
             Sons.Tocar(Som.MenuFechar, 1f, 0f);
             TelaDeInicio.VoltarAoMenu();
@@ -82,7 +86,7 @@ public class TelaDePausa : MonoBehaviour
 
         TelaSimples.Texto(tela.transform, "Titulo", 80, new Color(1f, 0.95f, 0.85f), 290f, "PAUSADO");
         resumo = TelaSimples.Texto(tela.transform, "Resumo", 30, Color.white, 90f, "");
-        TelaSimples.LinhaDeTeclas(tela.transform, "Teclas", -45f, "[Esc] continuar | [R] recomecar | [O] opcoes | [Q] menu", 32,
+        TelaSimples.LinhaDeTeclas(tela.transform, "Teclas", -45f, "[Esc] continuar | [R] recomecar | [O] opcoes | [Q] menu || [Pad Start] continuar | [Pad Select] recomecar | [Pad X] opcoes | [Pad Y] menu", 32,
             new Color(1f, 0.85f, 0.4f));
         opcoes = TelaSimples.LinhaDeTeclas(tela.transform, "Opcoes", -110f, "", 30, new Color(1f, 0.85f, 0.4f));
 
@@ -113,10 +117,13 @@ public class TelaDePausa : MonoBehaviour
 
         resumo.text = $"{(andar.UltimoAndar ? "Ultimo andar" : $"Andar {andar.NumeroDoAndar}")} de {andar.AndarFinal}\n{Itens()}";
         TelaSimples.TrocarLinhaDeTeclas(opcoes,
-            $"[M] musica: {(Opcoes.MusicaLigada ? "ligada" : "desligada")} | " +
-            $"[N] efeitos: {(Opcoes.EfeitosLigados ? "ligados" : "desligados")}",
+            $"[M] musica: {Musica()} | [N] efeitos: {Efeitos()} || [Pad LB] musica: {Musica()} | [Pad RB] efeitos: {Efeitos()}",
             30, new Color(1f, 0.85f, 0.4f));
     }
+
+    private static string Musica() => Opcoes.MusicaLigada ? "ligada" : "desligada";
+
+    private static string Efeitos() => Opcoes.EfeitosLigados ? "ligados" : "desligados";
 
     private string Itens()
     {
