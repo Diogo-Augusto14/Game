@@ -7,7 +7,8 @@ using UnityEngine.UI;
 ///   - sala ja visitada: cinza;
 ///   - sala vizinha de uma visitada, onde voce ainda nao entrou: cinza escuro;
 ///   - o resto do andar fica escondido;
-///   - sala do item e do chefe ganham um icone assim que aparecem no mapa.
+///   - sala especial (item, chefe, loja, desafio, amaldicoada) ganha um icone colorido
+///     assim que aparece no mapa.
 ///
 /// Montado por codigo, igual a <see cref="Hud"/>: um quadrado de UI por casa da grade,
 /// criado quando o andar e gerado. Trocar de sala so muda cores e liga/desliga
@@ -31,6 +32,8 @@ public class Minimapa : MonoBehaviour
     [SerializeField] private Color corDoChefe = new Color(0.85f, 0.15f, 0.15f);
     [SerializeField] private Color corDaLoja = new Color(0.4f, 0.85f, 0.45f);
     [SerializeField] private Color corDaSecreta = new Color(0.55f, 0.5f, 0.65f);
+    [SerializeField] private Color corDoDesafio = new Color(0.95f, 0.5f, 0.15f);
+    [SerializeField] private Color corDaAmaldicoada = new Color(0.6f, 0.1f, 0.35f);
 
     private Andar andar;
     private RectTransform painel;
@@ -80,6 +83,8 @@ public class Minimapa : MonoBehaviour
                          : sala.Tipo == TipoDeSala.Chefe ? corDoChefe
                          : sala.Tipo == TipoDeSala.Loja ? corDaLoja
                          : sala.Tipo == TipoDeSala.Secreta ? corDaSecreta
+                         : sala.Tipo == TipoDeSala.Desafio ? corDoDesafio
+                         : sala.Tipo == TipoDeSala.Amaldicoada ? corDaAmaldicoada
                          : (Color?)null;
 
             if (icone.HasValue)

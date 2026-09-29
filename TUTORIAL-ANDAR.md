@@ -41,6 +41,9 @@ O gerador não depende da Unity, então dá para testar fora do editor.
 | Vizinha de uma visitada | — | cinza escuro |
 | Sala do item | chão amarelado, batentes dourados na porta | ícone dourado |
 | Sala do chefe | chão avermelhado, batentes vermelhos na porta | ícone vermelho |
+| Sala do tesouro (item) | pedestal entre dois candelabros; às vezes dois pedestais: pegou um, o outro some | ícone dourado |
+| Sala de desafio | chão alaranjado, troféus vermelhos na porta. Pegar o item fecha as portas e chama ondas de inimigos (2 no andar 1, 3 depois) | ícone laranja |
+| Sala amaldiçoada (andar 2+) | chão vinho, espinhos e ídolos na porta. Cada passagem pela porta tira meio coração; dentro tem item ou baú | ícone roxo |
 
 ## Onde mexer
 
@@ -50,6 +53,8 @@ O gerador não depende da Unity, então dá para testar fora do editor.
 | Repetir sempre o mesmo andar | `Andar ▸ Semente` diferente de 0 (o Console mostra a semente de cada Play) |
 | Quantos inimigos por sala | `Andar ▸ Inimigos` |
 | Cores das salas especiais | `Andar ▸ Cores` |
+| Ondas e inimigos da sala de desafio | `Andar ▸ Sala de desafio` |
+| Chance de duas opções na sala do tesouro | `Andar ▸ Itens e coletaveis ▸ Chance De Duas Opcoes` |
 | Paredes, portas e inimigos em si | Pasta `Sala/` (`Sala`, `Porta`, `FabricaDeInimigos`) |
 | Tamanho e cores do minimapa | Componente `Minimapa` |
 
