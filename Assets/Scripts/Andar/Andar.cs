@@ -534,7 +534,7 @@ public class Andar : MonoBehaviour
                 break;
             case TipoDeSala.Chefe:
                 // No meio da sala, longe de todas as portas. O pedestal do premio nasce no
-                // mesmo lugar quando ele morre (PorPremios). Andar par = o segundo chefe.
+                // mesmo lugar quando ele morre (PorPremios). Qual chefe: ChefeDoNumero.
                 sala.CriarInimigo(UltimoAndar ? TipoDeInimigo.ChefeFinal : ChefeDoNumero(numeroDoAndar), Vector2.zero);
                 return;
             default:
@@ -563,10 +563,24 @@ public class Andar : MonoBehaviour
         }
     }
 
-    /// <summary>Andar impar: o Monstrao. Andar par: o Sapao.</summary>
+    /// <summary>
+    /// Os chefes que podem aparecer em cada andar (o ultimo tem sempre o chefe final):
+    ///   1 -> Monstrao ou Minotauro Furioso (sorteado pela semente do andar)
+    ///   2 -> Sapao
+    ///   3 -> Rei Necromante
+    /// Do andar 4 em diante (se o chefe final vier mais tarde) a lista recomeca.
+    /// </summary>
+    private static readonly TipoDeInimigo[][] ChefesPorAndar =
+    {
+        new[] { TipoDeInimigo.Chefe, TipoDeInimigo.ChefeMinotauro },
+        new[] { TipoDeInimigo.ChefeSaltador },
+        new[] { TipoDeInimigo.ChefeNecromante },
+    };
+
     public static TipoDeInimigo ChefeDoNumero(int andar)
     {
-        return andar % 2 == 0 ? TipoDeInimigo.ChefeSaltador : TipoDeInimigo.Chefe;
+        TipoDeInimigo[] opcoes = ChefesPorAndar[(Mathf.Max(1, andar) - 1) % ChefesPorAndar.Length];
+        return opcoes[UnityEngine.Random.Range(0, opcoes.Length)];
     }
 
     /// <summary>
