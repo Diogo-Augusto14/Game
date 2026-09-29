@@ -90,9 +90,12 @@ public static class Opcoes
 
     private static float Passo(float atual, int passo)
     {
-        // Arredonda pro passo mais perto antes, pra 0.45 virar 0.5 / 0.4 e nao 0.55.
-        float degraus = Mathf.Round(atual / PassoDoVolume) + passo;
-        return Mathf.Clamp01(degraus * PassoDoVolume);
+        // Fora de um degrau (0.45 de fabrica), vai pro degrau vizinho: 0.4 descendo, 0.5
+        // subindo. Mathf.Round arredonda 4.5 pra 4 e pulava de 45% pra 30%.
+        // A folga cobre 0.3 / 0.1 dar 2.9999.
+        float degraus = atual / PassoDoVolume;
+        degraus = passo < 0 ? Mathf.Ceil(degraus - 0.01f) + passo : Mathf.Floor(degraus + 0.01f) + passo;
+        return Mathf.Clamp01(Mathf.Round(degraus) * PassoDoVolume);
     }
 
     // ---------------- tela ----------------
