@@ -123,8 +123,8 @@ public static class ArteImportada
 
     private static Sprite[] Tira(string pasta, string animacao, float pixelsPorUnidade)
     {
-        // Nem todo bicho tem terceiro ataque: sem aviso quando falta.
-        Texture2D textura = Textura($"Personagens/{pasta}/{animacao}", animacao != "Attack03");
+        // Nem todo bicho tem segundo ou terceiro ataque (padre, esqueleto arqueiro): sem aviso quando falta.
+        Texture2D textura = Textura($"Personagens/{pasta}/{animacao}", animacao != "Attack02" && animacao != "Attack03");
 
         if (textura == null)
             return null;
