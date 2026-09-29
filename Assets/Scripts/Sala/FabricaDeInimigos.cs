@@ -11,7 +11,9 @@ public enum TipoDeInimigo
     Divisor,
     DivisorPequeno,
     ChefeSaltador,
-    ChefeFinal
+    ChefeFinal,
+    Demonio,
+    MonstroDeSangue
 }
 
 /// <summary>
@@ -63,9 +65,48 @@ public static class FabricaDeInimigos
                 pedaco.VirarPedaco(2.3f);
                 return pedaco;
 
+            case TipoDeInimigo.Demonio:
+            {
+                // Arte importada (Tiny RPG pack). Sem a imagem, vira uma bola vermelha escura.
+                ClipesDePersonagem clipes = ArteImportada.Personagem("Demonio", PixelsDoPersonagem);
+                InimigoDemonio demonio = Montar<InimigoDemonio>("Demonio", posicao, pai, 0.34f,
+                    (clipes?.Parado[0], clipes != null ? Color.white : new Color(0.6f, 0.1f, 0.1f)), 40f);
+                demonio.UsarArte(Animar(demonio, clipes), clipes);
+                return demonio;
+            }
+
+            case TipoDeInimigo.MonstroDeSangue:
+            {
+                ClipesDePersonagem clipes = ArteImportada.Personagem("MonstroDeSangue", PixelsDoPersonagem);
+                InimigoDeSangue monstro = Montar<InimigoDeSangue>("Monstro de sangue", posicao, pai, 0.36f,
+                    (clipes?.Parado[0], clipes != null ? Color.white : new Color(0.55f, 0.08f, 0.2f)), 55f);
+                monstro.UsarArte(Animar(monstro, clipes), clipes);
+                return monstro;
+            }
+
             default:
                 return Montar<InimigoPerseguidor>("Perseguidor", posicao, pai, 0.3f, Rosto(TipoDeInimigo.Perseguidor, new Color(0.85f, 0.25f, 0.25f)), 25f);
         }
+    }
+
+    /// <summary>Pixels da arte importada por unidade: o corpo (uns 20 px) fica com ~0.9 unidade.</summary>
+    private const float PixelsDoPersonagem = 22f;
+
+    /// <summary>
+    /// Troca o desenho parado por um animado. A arte importada ja vem no tamanho certo
+    /// (pixels por unidade), entao o desenho volta pra escala 1.
+    /// </summary>
+    private static AnimacaoDePersonagem Animar(InimigoDeSala inimigo, ClipesDePersonagem clipes)
+    {
+        if (clipes == null)
+            return null;
+
+        SpriteRenderer desenho = inimigo.GetComponentInChildren<SpriteRenderer>();
+        desenho.transform.localScale = Vector3.one;
+
+        AnimacaoDePersonagem animacao = inimigo.gameObject.AddComponent<AnimacaoDePersonagem>();
+        animacao.Configurar(clipes, desenho);
+        return animacao;
     }
 
     /// <summary>A pixel art do bicho (ja colorida): o SpriteRenderer fica branco.</summary>

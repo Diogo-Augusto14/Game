@@ -74,6 +74,10 @@ public class TelaDeInicio : MonoBehaviour
         textoDeJogar = TelaSimples.Texto(transform, "Jogar", 44, new Color(1f, 0.85f, 0.35f), -260f, "Enter  jogar");
         TelaSimples.Texto(transform, "Sair", 26, new Color(0.6f, 0.55f, 0.55f), -330f, "Esc  sair do jogo");
 
+        // Paineis do Pixel UI pack atras dos controles e do "botao" de jogar.
+        TelaSimples.Painel(transform, "Painel do botao", ArteImportada.PainelAzul, -260f, new Vector2(520f, 110f));
+        TelaSimples.Painel(transform, "Painel dos controles", ArteImportada.PainelMarrom, -30f, new Vector2(1180f, 250f));
+
         // Congela o jogo e segura o jogador ate apertar Enter.
         Time.timeScale = 0f;
         TelaSimples.TravarJogador(jogador, true);

@@ -39,12 +39,28 @@ public class Hud : MonoBehaviour
 
     [SerializeField, Min(8)] private int tamanhoDaFonte = 16;
 
+    [Header("Coracoes (top-down)")]
+    [Tooltip("Vida em coracoes do Pixel UI pack, como no Isaac, em vez da barra")]
+    [SerializeField] private bool usarCoracoes;
+
+    [Tooltip("Quanto de vida vale um coracao inteiro (meio coracao = metade)")]
+    [SerializeField, Min(1f)] private float vidaPorCoracao = 20f;
+
+    [SerializeField, Min(1)] private int coracoesPorLinha = 6;
+
     // ---------------- estado ----------------
     private Image preenchimentoDaVida;
     private Image preenchimentoDaCura;
     private Image[] frascos;
     private RectTransform raizDosFrascos;
     private int frascosDesenhados = -1;
+    private readonly System.Collections.Generic.List<Image> coracoes = new System.Collections.Generic.List<Image>();
+    private RectTransform raizDosCoracoes;
+    private int metadesDesenhadas = -1;
+    private int coracoesDesenhados = -1;
+
+    /// <summary>Altura que os coracoes ocupam na tela (cada um tem 12 px desenhados 4x).</summary>
+    public const float LadoDoCoracao = 48f;
 
     // Quem monta a HUD por codigo pode trocar a lista (o top-down tem outras teclas).
     private string textoDosControles = TEXTO_DOS_CONTROLES;
@@ -67,6 +83,13 @@ public class Hud : MonoBehaviour
 
         if (controles != null)
             textoDosControles = controles;
+    }
+
+    /// <summary>Mostra a vida em coracoes em vez da barra. Chame antes do Start.</summary>
+    public void UsarCoracoes(float vidaDeUmCoracao = 20f)
+    {
+        usarCoracoes = true;
+        vidaPorCoracao = Mathf.Max(1f, vidaDeUmCoracao);
     }
 
     // ---------------- ciclo de vida ----------------
@@ -97,6 +120,8 @@ public class Hud : MonoBehaviour
 
         if (preenchimentoDaVida != null)
             preenchimentoDaVida.fillAmount = vida.Fracao;
+
+        AtualizarCoracoes();
 
         AtualizarFrascos();
     }
@@ -140,7 +165,12 @@ public class Hud : MonoBehaviour
         if (GetComponent<GraphicRaycaster>() == null)
             gameObject.AddComponent<GraphicRaycaster>();
 
-        MontarBarraDeVida();
+        // Sem as imagens do pacote, os coracoes voltam a ser a barra.
+        if (usarCoracoes && ArteImportada.CoracaoCheio != null)
+            MontarRaizDosCoracoes();
+        else
+            MontarBarraDeVida();
+
         MontarRaizDosFrascos();
 
         if (mostrarControles)
@@ -174,6 +204,53 @@ public class Hud : MonoBehaviour
         preenchimentoDaCura.type = Image.Type.Filled;
         preenchimentoDaCura.fillMethod = Image.FillMethod.Horizontal;
         preenchimentoDaCura.fillAmount = 0f;
+    }
+
+    private void MontarRaizDosCoracoes()
+    {
+        raizDosCoracoes = CriarPainel("Coracoes", Color.clear);
+        Ancorar(raizDosCoracoes, new Vector2(0f, 1f), new Vector2(margem.x, -margem.y),
+            new Vector2(coracoesPorLinha * (LadoDoCoracao + 4f), LadoDoCoracao));
+    }
+
+    /// <summary>
+    /// Um coracao a cada <see cref="vidaPorCoracao"/> de vida maxima. A vida atual e
+    /// arredondada pra cima em meios coracoes: com qualquer resto de vida, sobra meio.
+    /// So refaz as imagens quando a conta muda.
+    /// </summary>
+    private void AtualizarCoracoes()
+    {
+        if (raizDosCoracoes == null)
+            return;
+
+        int total = Mathf.Max(1, Mathf.CeilToInt(vida.VidaMaxima / vidaPorCoracao - 0.001f));
+        int metades = Mathf.Clamp(Mathf.CeilToInt(vida.VidaAtual / (vidaPorCoracao * 0.5f) - 0.001f), 0, total * 2);
+
+        if (total == coracoesDesenhados && metades == metadesDesenhadas)
+            return;
+
+        while (coracoes.Count < total)
+        {
+            int i = coracoes.Count;
+            RectTransform rt = CriarPainel($"Coracao {i}", Color.white, raizDosCoracoes);
+            Ancorar(rt, new Vector2(0f, 1f),
+                new Vector2((i % coracoesPorLinha) * (LadoDoCoracao + 4f), -(i / coracoesPorLinha) * (LadoDoCoracao + 4f)),
+                Vector2.one * LadoDoCoracao);
+            coracoes.Add(rt.GetComponent<Image>());
+        }
+
+        for (int i = 0; i < coracoes.Count; i++)
+        {
+            coracoes[i].gameObject.SetActive(i < total);
+
+            int cheio = metades - i * 2;
+            coracoes[i].sprite = cheio >= 2 ? ArteImportada.CoracaoCheio
+                               : cheio == 1 ? ArteImportada.CoracaoMeio
+                               : ArteImportada.CoracaoVazio;
+        }
+
+        coracoesDesenhados = total;
+        metadesDesenhadas = metades;
     }
 
     private void MontarRaizDosFrascos()
