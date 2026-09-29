@@ -26,7 +26,7 @@ public class BarraDoChefe : MonoBehaviour
 
     [SerializeField] private Color corDaSegundaFase = new Color(1f, 0.35f, 0.1f);
 
-    private ChefeDoAndar chefe;
+    private IChefe chefe;
     private CanvasGroup grupo;
     private RectTransform preenchimento;
     private RectTransform rastro;
@@ -35,7 +35,7 @@ public class BarraDoChefe : MonoBehaviour
     private float momentoDoUltimoGolpe;
     private bool sumindo;
 
-    public static BarraDoChefe Mostrar(ChefeDoAndar chefe)
+    public static BarraDoChefe Mostrar(IChefe chefe)
     {
         BarraDoChefe barra = new GameObject("Barra do chefe").AddComponent<BarraDoChefe>();
         barra.chefe = chefe;
@@ -110,14 +110,20 @@ public class BarraDoChefe : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (chefe != null)
+        if (Existe)
         {
             chefe.Vida.AoMudarVida.RemoveListener(AoMudarVida);
             chefe.Vida.AoMorrer.RemoveListener(Sumir);
         }
     }
 
-    private float Fracao => chefe != null ? chefe.Vida.Fracao : 0f;
+    private float Fracao => Existe ? chefe.Vida.Fracao : 0f;
+
+    /// <summary>
+    /// O chefe chega como interface, e o "== null" da Unity (que ve objeto destruido) so
+    /// funciona com o tipo Object: sem isto a barra acharia que um chefe destruido existe.
+    /// </summary>
+    private bool Existe => chefe is Object objeto ? objeto != null : chefe != null;
 
     private void AoMudarVida()
     {
@@ -144,10 +150,10 @@ public class BarraDoChefe : MonoBehaviour
         }
 
         // O chefe foi destruido sem passar pelo AoMorrer (troca de andar, por exemplo).
-        if (chefe == null && !sumindo)
+        if (!Existe && !sumindo)
             Sumir();
 
-        if (chefe != null && imagemDaVida != null)
+        if (Existe && imagemDaVida != null)
             imagemDaVida.color = chefe.NaSegundaFase ? corDaSegundaFase : corDaVida;
 
         float fracao = sumindo ? 0f : Fracao;

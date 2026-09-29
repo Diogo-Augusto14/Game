@@ -79,6 +79,8 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     private Cronometro atordoamento;
     private Cronometro recargaDoContato;
     private Color corOriginal;
+    private float raioDoCorpo;
+    private float ladoDoDesvio = 1f;
 
     public Estado EstadoAtual { get; protected set; } = Estado.Dormindo;
 
@@ -224,10 +226,10 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         return (Vector2)jogador.position - rb.position;
     }
 
-    /// <summary>Anda na direcao dada (normalizada ou nao), acelerando.</summary>
+    /// <summary>Anda na direcao dada (normalizada ou nao), acelerando. Contorna pedra no caminho.</summary>
     protected void Andar(Vector2 direcao, float velocidadeAlvo)
     {
-        Vector2 alvo = direcao.sqrMagnitude > 0.0001f ? direcao.normalized * velocidadeAlvo : Vector2.zero;
+        Vector2 alvo = direcao.sqrMagnitude > 0.0001f ? Desviar(direcao.normalized) * velocidadeAlvo : Vector2.zero;
 
         rb.linearVelocity = aceleracao > 0f
             ? Vector2.MoveTowards(rb.linearVelocity, alvo, aceleracao * Time.fixedDeltaTime)
@@ -235,6 +237,42 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     }
 
     protected void Frear() => Andar(Vector2.zero, 0f);
+
+    /// <summary>
+    /// Com parede ou pedra logo a frente, escorrega ao longo dela em vez de ficar
+    /// empurrando. Sem isto um perseguidor atras de uma pedra fica parado pra sempre.
+    /// Topando de frente, sempre escolhe o mesmo lado, pra nao ficar indeciso.
+    /// </summary>
+    protected Vector2 Desviar(Vector2 direcao)
+    {
+        RaycastHit2D batida = Physics2D.CircleCast(rb.position, Raio * 0.9f, direcao, 0.45f, Camadas.MascaraDeParede);
+
+        // Distancia zero = ja comecou encostado (o normal vem errado): deixa a fisica resolver.
+        if (batida.collider == null || batida.distance <= 0f)
+            return direcao;
+
+        Vector2 tangente = new Vector2(-batida.normal.y, batida.normal.x);
+        float lado = Vector2.Dot(tangente, direcao);
+
+        if (Mathf.Abs(lado) < 0.2f)
+            lado = ladoDoDesvio;
+        else
+            ladoDoDesvio = Mathf.Sign(lado);
+
+        return tangente * Mathf.Sign(lado);
+    }
+
+    /// <summary>Raio do corpo (o CircleCollider2D). Bom pra checar colisao a frente.</summary>
+    protected float Raio
+    {
+        get
+        {
+            if (raioDoCorpo <= 0f)
+                raioDoCorpo = TryGetComponent(out CircleCollider2D c) ? c.radius * transform.lossyScale.x : 0.3f;
+
+            return raioDoCorpo;
+        }
+    }
 
     /// <summary>True se nao tem parede entre o inimigo e o jogador.</summary>
     protected bool VeOJogador()

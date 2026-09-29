@@ -19,7 +19,7 @@ using UnityEngine;
 /// Golpe nao atordoa nem empurra (<see cref="InimigoDeSala.Imparavel"/>). Ao morrer, os
 /// lacaios que ainda estiverem vivos morrem junto, e a sala abre.
 /// </summary>
-public class ChefeDoAndar : InimigoDeSala
+public class ChefeDoAndar : InimigoDeSala, IChefe
 {
     private enum Ataque
     {

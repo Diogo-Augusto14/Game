@@ -144,6 +144,13 @@ public class Porta : MonoBehaviour
         AplicarEstado();
     }
 
+    /// <summary>Cor de quando a porta nao existe (vira parede). A sala chama ao pintar o andar.</summary>
+    public void PintarParede(Color cor)
+    {
+        corDeParede = cor;
+        AplicarEstado();
+    }
+
     private void Emparedar()
     {
         Aberta = false;

@@ -40,6 +40,35 @@ public class Andar : MonoBehaviour
     [Tooltip("Inimigo nao nasce mais perto que isto de uma porta")]
     [SerializeField, Min(0f)] private float distanciaDasPortas = 3f;
 
+    [Tooltip("A cada tantos andares, um inimigo a mais por sala (0 = nunca)")]
+    [SerializeField, Min(0)] private int andaresPorInimigoExtra = 2;
+
+    [Tooltip("Sentinelas no maximo por sala: sao paradas, em excesso a sala vira tiroteio")]
+    [SerializeField, Min(0)] private int maximoDeSentinelas = 2;
+
+    [Header("Variedade das salas")]
+    [Tooltip("Chance de uma sala comum nao ter pedra nem espinho")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeSalaVazia = 0.25f;
+
+    [Tooltip("Espinhos so aparecem a partir deste andar")]
+    [SerializeField, Min(1)] private int espinhosAPartirDoAndar = 2;
+
+    [Tooltip("Cor do chao de cada andar (o andar 4 volta pra primeira, e assim por diante)")]
+    [SerializeField] private Color[] coresDoChao =
+    {
+        new Color(0.22f, 0.17f, 0.14f),   // porao: terra
+        new Color(0.14f, 0.17f, 0.22f),   // cavernas: pedra azulada
+        new Color(0.15f, 0.2f, 0.13f),    // esgoto: musgo
+    };
+
+    [Tooltip("Cor das paredes de cada andar, na mesma ordem do chao")]
+    [SerializeField] private Color[] coresDaParede =
+    {
+        new Color(0.35f, 0.3f, 0.28f),
+        new Color(0.28f, 0.32f, 0.4f),
+        new Color(0.27f, 0.34f, 0.25f),
+    };
+
     [Header("Itens e coletaveis")]
     [Tooltip("Chance de cada inimigo soltar coracao, moeda, bomba ou chave ao morrer")]
     [SerializeField, Range(0f, 1f)] private float chanceDeDropDoInimigo = 0.15f;
@@ -407,6 +436,14 @@ public class Andar : MonoBehaviour
         Sala sala = Sala.Criar($"Sala {casa.Tipo} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
         salaDoMapa[sala] = casa;
 
+        if (coresDoChao.Length > 0 && coresDaParede.Length > 0)
+            sala.Pintar(coresDoChao[(numeroDoAndar - 1) % coresDoChao.Length],
+                        coresDaParede[(numeroDoAndar - 1) % coresDaParede.Length]);
+
+        // So sala comum ganha obstaculo: inicio, item e chefe ficam com o chao livre.
+        if (casa.Tipo == TipoDeSala.Normal)
+            DisposicoesDaSala.Sortear(sala, chanceDeSalaVazia, numeroDoAndar >= espinhosAPartirDoAndar);
+
         foreach (Porta porta in sala.Portas)
         {
             porta.AoAtravessar.AddListener(AoAtravessar);
@@ -429,24 +466,98 @@ public class Andar : MonoBehaviour
         {
             case TipoDeSala.Normal:
                 quantos = UnityEngine.Random.Range(inimigosPorSala.x, inimigosPorSala.y + 1);
+
+                if (andaresPorInimigoExtra > 0)
+                    quantos += Mathf.Min(2, (numeroDoAndar - 1) / andaresPorInimigoExtra);
+
                 break;
             case TipoDeSala.Chefe:
                 // No meio da sala, longe de todas as portas. O pedestal do premio nasce no
-                // mesmo lugar quando ele morre (PorPremios).
-                sala.CriarInimigo(TipoDeInimigo.Chefe, Vector2.zero);
+                // mesmo lugar quando ele morre (PorPremios). Andar par = o segundo chefe.
+                sala.CriarInimigo(ChefeDoNumero(numeroDoAndar), Vector2.zero);
                 return;
             default:
                 return; // inicio e item: sala tranquila, como no Isaac
         }
 
+        int sentinelas = 0;
+
         for (int i = 0; i < quantos; i++)
         {
-            TipoDeInimigo tipo = UnityEngine.Random.value < 0.35f ? TipoDeInimigo.Atirador : TipoDeInimigo.Perseguidor;
+            TipoDeInimigo tipo = SortearInimigo(numeroDoAndar);
+
+            if (tipo == TipoDeInimigo.Sentinela && ++sentinelas > maximoDeSentinelas)
+                tipo = TipoDeInimigo.Perseguidor;
+
             InimigoDeSala inimigo = sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
+
+            if (inimigo is InimigoSentinela sentinela)
+                sentinela.UsarOitoDirecoes(numeroDoAndar >= 3);
 
             if (inimigo != null && chanceDeDropDoInimigo > 0f)
                 inimigo.gameObject.AddComponent<SoltaColetavel>().Configurar(chanceDeDropDoInimigo, sala.transform);
         }
+    }
+
+    /// <summary>Andar impar: o Monstrao. Andar par: o Sapao.</summary>
+    public static TipoDeInimigo ChefeDoNumero(int andar)
+    {
+        return andar % 2 == 0 ? TipoDeInimigo.ChefeSaltador : TipoDeInimigo.Chefe;
+    }
+
+    /// <summary>
+    /// Quem aparece em cada andar, com peso. Cada andar traz gente nova, pra o andar
+    /// seguinte nao parecer o mesmo com mais salas:
+    ///   1  -> perseguidor, atirador, investidor, divisor
+    ///   2  -> + saltador e sentinela (e o perseguidor fica mais raro)
+    ///   3+ -> todos, com mais investidor, divisor e sentinela
+    /// </summary>
+    private static TipoDeInimigo SortearInimigo(int andar)
+    {
+        (TipoDeInimigo tipo, float peso)[] tabela;
+
+        if (andar <= 1)
+        {
+            tabela = new[]
+            {
+                (TipoDeInimigo.Perseguidor, 4f), (TipoDeInimigo.Atirador, 2.5f),
+                (TipoDeInimigo.Investidor, 2f), (TipoDeInimigo.Divisor, 1.5f),
+            };
+        }
+        else if (andar == 2)
+        {
+            tabela = new[]
+            {
+                (TipoDeInimigo.Perseguidor, 2f), (TipoDeInimigo.Atirador, 2f),
+                (TipoDeInimigo.Investidor, 1.5f), (TipoDeInimigo.Divisor, 1.5f),
+                (TipoDeInimigo.Saltador, 3f), (TipoDeInimigo.Sentinela, 1.5f),
+            };
+        }
+        else
+        {
+            tabela = new[]
+            {
+                (TipoDeInimigo.Perseguidor, 1.5f), (TipoDeInimigo.Atirador, 2f),
+                (TipoDeInimigo.Investidor, 2.5f), (TipoDeInimigo.Divisor, 2f),
+                (TipoDeInimigo.Saltador, 2f), (TipoDeInimigo.Sentinela, 2f),
+            };
+        }
+
+        float total = 0f;
+        foreach (var linha in tabela)
+            total += linha.peso;
+
+        float sorteio = UnityEngine.Random.value * total;
+
+        foreach (var linha in tabela)
+        {
+            sorteio -= linha.peso;
+
+            if (sorteio <= 0f)
+                return linha.tipo;
+        }
+
+        return tabela[tabela.Length - 1].tipo;
     }
 
     // ---------------- itens e coletaveis ----------------
