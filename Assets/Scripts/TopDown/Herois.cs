@@ -32,6 +32,26 @@ public static class Herois
         public Tiro TipoDoTiro = Tiro.FlechaAzul;
         public Color CorDoTiro = Color.white;
 
+        /// <summary>Vencer o chefe deste andar libera o heroi (0 = nao e por chefe).</summary>
+        public int LiberaNoChefeDoAndar;
+
+        /// <summary>Zerar o jogo com este heroi libera (null = nao e por ele).</summary>
+        public string LiberaZerandoCom;
+
+        /// <summary>Zerar o jogo esta quantidade de vezes, com qualquer um, libera (0 = nao e por isso).</summary>
+        public int LiberaComVitorias;
+
+        /// <summary>Livre desde o comeco: nenhuma condicao acima.</summary>
+        public bool Livre => LiberaNoChefeDoAndar <= 0 && LiberaZerandoCom == null && LiberaComVitorias <= 0;
+
+        /// <summary>O que falta fazer, pro menu mostrar no heroi bloqueado.</summary>
+        public string Requisito =>
+            LiberaNoChefeDoAndar > 0 ? $"Venca o chefe do andar {LiberaNoChefeDoAndar}"
+            : LiberaZerandoCom != null ? $"Zere o jogo com o {LiberaZerandoCom}"
+            : LiberaComVitorias > 1 ? $"Zere o jogo {LiberaComVitorias} vezes"
+            : LiberaComVitorias == 1 ? "Zere o jogo"
+            : "";
+
         /// <summary>Vida que recupera sozinho a cada <see cref="CuraACada"/> segundos (0 = nada).</summary>
         public float Cura;
         public float CuraACada = 20f;
@@ -53,6 +73,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Soldado", Pasta = "Soldado",
+            LiberaNoChefeDoAndar = 1,
             Descricao = "Aguenta mais pancada e atira um pouco mais rapido.",
             Vida = 120f, Dano = 3f, Cadencia = 3f, Alcance = 6f,
             TipoDoTiro = Tiro.FlechaDoSoldado,
@@ -60,6 +81,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Cavaleiro", Pasta = "Cavaleiro",
+            LiberaNoChefeDoAndar = 3,
             Descricao = "Muita vida. Corte de espada forte, mas curto.",
             Vida = 140f, Velocidade = 3.8f, Dano = 5f, Cadencia = 2f, Alcance = 3.5f,
             VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.45f, TipoDoTiro = Tiro.Corte,
@@ -67,6 +89,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Templario", Pasta = "Templario",
+            LiberaComVitorias = 3,
             Descricao = "O que mais aguenta, e o mais lento.",
             Vida = 160f, Velocidade = 3.5f, Dano = 4f, Cadencia = 2.2f, Alcance = 4f,
             VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.45f, TipoDoTiro = Tiro.Corte,
@@ -75,6 +98,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Lanceiro", Pasta = "Lanceiro",
+            LiberaZerandoCom = "Soldado",
             Descricao = "A cavalo: o mais rapido. Dardos fortes e velozes.",
             Velocidade = 5.5f, Dano = 4f, Cadencia = 2f, Alcance = 5.5f,
             VelocidadeDoTiro = 11f, TamanhoDoTiro = 0.3f, TipoDoTiro = Tiro.Dardo,
@@ -82,6 +106,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Espadachim", Pasta = "Espadachim",
+            LiberaZerandoCom = "Cavaleiro",
             Descricao = "Rapido e com cortes rapidos, mas pouca vida.",
             Vida = 80f, Velocidade = 5.2f, Dano = 4f, Cadencia = 3.2f, Alcance = 3.2f,
             TamanhoDoTiro = 0.4f, TipoDoTiro = Tiro.Corte,
@@ -90,6 +115,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Machadeiro", Pasta = "Machadeiro",
+            LiberaZerandoCom = "Arqueiro",
             Descricao = "O golpe mais forte do jogo, bem devagar.",
             Vida = 120f, Velocidade = 3.8f, Dano = 6.5f, Cadencia = 1.5f, Alcance = 3.8f,
             VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.5f, TipoDoTiro = Tiro.Corte,
@@ -98,6 +124,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Arqueiro", Pasta = "Arqueiro",
+            LiberaNoChefeDoAndar = 2,
             Descricao = "Pouca vida, mas atira rapido e longe.",
             Vida = 80f, Velocidade = 4.8f, Dano = 3f, Cadencia = 4f, Alcance = 8.5f,
             VelocidadeDoTiro = 11f, TamanhoDoTiro = 0.26f, TipoDoTiro = Tiro.FlechaDoArqueiro,
@@ -105,6 +132,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Mago", Pasta = "Mago",
+            LiberaComVitorias = 1,
             Descricao = "So tres coracoes, mas bolas de fogo fortes.",
             Vida = 60f, Dano = 5.5f, Cadencia = 2f, Alcance = 7f,
             VelocidadeDoTiro = 7f, TamanhoDoTiro = 0.35f, TipoDoTiro = Tiro.BolaDeFogo,
@@ -112,6 +140,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Padre", Pasta = "Padre",
+            LiberaZerandoCom = "Mago",
             Descricao = "Tiro fraco, mas cura meio coracao a cada 20 segundos.",
             Vida = 80f, Dano = 3f, VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.35f,
             TipoDoTiro = Tiro.Estrela, CorDoTiro = new Color(1f, 0.95f, 0.6f),
@@ -129,6 +158,9 @@ public static class Herois
     {
         Escolhido = 0;
     }
+
+    /// <summary>O heroi ja pode ser jogado (livre ou liberado no <see cref="Progresso"/>).</summary>
+    public static bool Liberado(Heroi heroi) => heroi.Livre || Progresso.HeroiLiberado(heroi.Nome);
 
     /// <summary>Escolhe pelo indice; da a volta nas pontas (o menu anda com esquerda e direita).</summary>
     public static void Escolher(int indice)

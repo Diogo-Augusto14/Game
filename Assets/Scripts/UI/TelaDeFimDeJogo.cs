@@ -30,18 +30,21 @@ public class TelaDeFimDeJogo : MonoBehaviour
 
     public static TelaDeFimDeJogo Atual { get; private set; }
 
-    public static TelaDeFimDeJogo Mostrar(Andar andar) => Criar(andar, false);
+    public static TelaDeFimDeJogo Mostrar(Andar andar) => Criar(andar, false, null);
 
-    /// <summary>A mesma tela, mas de vitoria: o jogador venceu o chefe final.</summary>
-    public static TelaDeFimDeJogo MostrarVitoria(Andar andar) => Criar(andar, true);
+    /// <summary>
+    /// A mesma tela, mas de vitoria: o jogador venceu o chefe final. <paramref name="liberados"/>
+    /// sao os herois que essa vitoria liberou (aparecem na tela).
+    /// </summary>
+    public static TelaDeFimDeJogo MostrarVitoria(Andar andar, List<Herois.Heroi> liberados = null) => Criar(andar, true, liberados);
 
-    private static TelaDeFimDeJogo Criar(Andar andar, bool vitoria)
+    private static TelaDeFimDeJogo Criar(Andar andar, bool vitoria, List<Herois.Heroi> liberados)
     {
         if (Atual != null)
             return Atual;
 
         TelaDeFimDeJogo tela = new GameObject(vitoria ? "Tela de vitoria" : "Tela de fim de jogo").AddComponent<TelaDeFimDeJogo>();
-        tela.Montar(andar, vitoria);
+        tela.Montar(andar, vitoria, liberados);
 
         if (vitoria)
         {
@@ -121,7 +124,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
     }
 
     // ---------------- montagem ----------------
-    private void Montar(Andar andar, bool vitoria)
+    private void Montar(Andar andar, bool vitoria, List<Herois.Heroi> liberados)
     {
         Canvas canvas = gameObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -156,6 +159,12 @@ public class TelaDeFimDeJogo : MonoBehaviour
 
         Texto("Resumo", fonte, 36, Color.white, 40f, vitoria ? ResumoDaVitoria(andar) : Resumo(andar));
         Texto("Itens", fonte, 28, new Color(0.85f, 0.85f, 0.85f), -70f, Itens(andar));
+
+        if (liberados != null && liberados.Count > 0)
+        {
+            List<string> nomes = liberados.ConvertAll(h => h.Nome);
+            Texto("Liberados", fonte, 34, new Color(0.5f, 1f, 0.55f), -125f, "Heroi liberado: " + string.Join(", ", nomes));
+        }
         Texto("Recomecar", fonte, 34, new Color(1f, 0.85f, 0.4f), -220f, vitoria ? "R  jogar de novo" : "R  recomecar do andar 1");
 
         TelaSimples.Painel(transform, "Painel do botao", ArteImportada.PainelAzul, -220f, new Vector2(640f, 100f));

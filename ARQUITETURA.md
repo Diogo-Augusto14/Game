@@ -37,6 +37,7 @@ removido do projeto.
 | `TopDown/AtiradorTopDown.cs` | Dano, alcance, cadência, velocidade do tiro; o desenho do tiro vem do herói |
 | `TopDown/Lagrima.cs` | O projétil: voa até o alcance, bate em `IDanificavel` ou parede e estoura |
 | `TopDown/Herois.cs` | Os heróis jogáveis e os números de cada um |
+| `TopDown/Progresso.cs` | O que fica salvo entre partidas (PlayerPrefs): vitórias e heróis liberados. Só o Arqueiro Azul começa livre; os outros saem vencendo chefes e zerando (condições em `Herois.cs`). `Tools ▸ Jogo ▸ Apagar progresso salvo` bloqueia tudo de novo |
 | `TopDown/BootstrapTopDown.cs` | `CriarJogador` (usado pelo `Andar`) e a sala de treino |
 | `combate/Vida.cs` | Vida, dano, invencibilidade e empurrão de tudo que apanha |
 | `Jogador/Entrada.cs` | Teclado (WASD e setas separados) |

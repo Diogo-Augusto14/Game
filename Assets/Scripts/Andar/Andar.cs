@@ -652,6 +652,17 @@ public class Andar : MonoBehaviour
     }
 
     // ---------------- itens e coletaveis ----------------
+    /// <summary>Letreiro no meio da tela pra cada heroi que o chefe liberou.</summary>
+    private static void AnunciarLiberados(List<Herois.Heroi> liberados)
+    {
+        if (liberados.Count == 0)
+            return;
+
+        List<string> nomes = liberados.ConvertAll(h => h.Nome);
+        AvisoDoAndar.Mostrar("Heroi liberado: " + string.Join(", ", nomes) + "!");
+        Sons.Tocar(Som.Item);
+    }
+
     /// <summary>
     /// O que cada tipo de sala guarda, como no Isaac:
     ///   Item   -> pedestal com um item passivo no meio (porta trancada a partir do andar 2)
@@ -678,7 +689,7 @@ public class Andar : MonoBehaviour
                     sala.AoLimpar.AddListener(() =>
                     {
                         Musica.Tocar(TemaMusical.Vitoria);
-                        TelaDeFimDeJogo.MostrarVitoria(this);
+                        TelaDeFimDeJogo.MostrarVitoria(this, Progresso.Zerou(Herois.Atual));
                     });
                     break;
                 }
@@ -689,6 +700,7 @@ public class Andar : MonoBehaviour
                     Pedestal.Criar(doChefe, centro, sala.transform);
                     Alcapao.Criar(centro + LongeDaPorta(sala, distanciaDoAlcapao), sala.transform);
                     Musica.Tocar(Musica.DoAndar(numeroDoAndar));
+                    AnunciarLiberados(Progresso.VenceuChefe(numeroDoAndar));
                 });
                 break;
 

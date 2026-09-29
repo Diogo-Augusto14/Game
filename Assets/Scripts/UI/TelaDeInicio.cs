@@ -80,6 +80,7 @@ public class TelaDeInicio : MonoBehaviour
             "Bomba abre parede rachada. Moeda compra na loja.");
 
         textoDeJogar = TelaSimples.Texto(transform, "Jogar", 44, new Color(1f, 0.85f, 0.35f), -330f, "Enter  jogar");
+        MostrarHeroi();
         TelaSimples.Texto(transform, "Sair", 26, new Color(0.6f, 0.55f, 0.55f), -405f, "Esc  sair do jogo");
 
         // Paineis do Pixel UI pack atras dos controles e do "botao" de jogar.
@@ -132,7 +133,11 @@ public class TelaDeInicio : MonoBehaviour
         {
             if (Input.GetKeyDown(tecla))
             {
-                Comecar();
+                if (Herois.Liberado(Herois.Atual))
+                    Comecar();
+                else
+                    Sons.Tocar(Som.DanoJogador, 0.5f);
+
                 return;
             }
         }
@@ -196,13 +201,20 @@ public class TelaDeInicio : MonoBehaviour
     private void MostrarHeroi()
     {
         Herois.Heroi heroi = Herois.Atual;
+        bool liberado = Herois.Liberado(heroi);
 
-        textoDoHeroi.text = $"<   {heroi.Nome}   >";
-        descricaoDoHeroi.text = heroi.Descricao;
+        textoDoHeroi.text = liberado ? $"<   {heroi.Nome}   >" : $"<   {heroi.Nome}  (bloqueado)   >";
+        descricaoDoHeroi.text = liberado ? heroi.Descricao : $"<color=#ff9966>Pra liberar: {heroi.Requisito}</color>";
         numerosDoHeroi.text =
-            $"Vida {heroi.Vida / 20f:0.#}     Velocidade {heroi.Velocidade:0.#}     Dano {heroi.Dano:0.#}     " +
-            $"Tiros/s {heroi.Cadencia:0.#}     Alcance {heroi.Alcance:0.#}\n" +
-            $"A / D  ou  esquerda / direita  troca o heroi  ({Herois.Escolhido + 1} de {Herois.Todos.Length})";
+            (liberado
+                ? $"Vida {heroi.Vida / 20f:0.#}     Velocidade {heroi.Velocidade:0.#}     Dano {heroi.Dano:0.#}     " +
+                  $"Tiros/s {heroi.Cadencia:0.#}     Alcance {heroi.Alcance:0.#}\n"
+                : "? ? ?\n") +
+            $"A / D  ou  esquerda / direita  troca o heroi  ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)";
+
+        // Na montagem, o nome e a descricao vem antes do texto de jogar existir.
+        if (textoDeJogar != null)
+            textoDeJogar.text = liberado ? "Enter  jogar" : "Heroi bloqueado";
 
         clipesDoRetrato = Herois.Clipes(heroi);
         retratoDoHeroi.enabled = clipesDoRetrato != null && clipesDoRetrato.Parado != null;
@@ -210,6 +222,22 @@ public class TelaDeInicio : MonoBehaviour
         // O arqueiro azul tem celula de 192 px com o corpo grande; os do Tiny RPG, 100 px
         // com o corpo pequeno no meio: o quadro deles vai maior pra ficarem do mesmo tamanho.
         retratoDoHeroi.rectTransform.sizeDelta = Vector2.one * (heroi.Pasta == null ? 230f : 380f);
+
+        // Bloqueado aparece so a silhueta, como no Isaac.
+        retratoDoHeroi.color = liberado ? Color.white : new Color(0f, 0f, 0f, 0.85f);
+    }
+
+    private static int LiberadosNoTotal()
+    {
+        int total = 0;
+
+        foreach (Herois.Heroi heroi in Herois.Todos)
+        {
+            if (Herois.Liberado(heroi))
+                total++;
+        }
+
+        return total;
     }
 
     private void AnimarRetrato(float tempo)

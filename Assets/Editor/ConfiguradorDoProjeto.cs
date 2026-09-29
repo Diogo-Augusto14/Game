@@ -45,6 +45,16 @@ public static class ConfiguradorDoProjeto
         EditorUtility.DisplayDialog("Projeto preparado", mensagem, "Beleza");
     }
 
+    [MenuItem("Tools/Jogo/Apagar progresso salvo (herois liberados)", false, 20)]
+    private static void ApagarProgresso()
+    {
+        if (!EditorUtility.DisplayDialog("Apagar progresso", "Bloquear de novo todos os herois (menos o Arqueiro Azul) e zerar as vitorias?", "Apagar", "Cancelar"))
+            return;
+
+        Progresso.Apagar();
+        Debug.Log("[Progresso] apagado: so o Arqueiro Azul esta liberado.");
+    }
+
     private static int ApelidoExiste(string camada)
     {
         // O projeto veio com "ground" e "Wall"; os nomes em portugues sao os preferidos,
