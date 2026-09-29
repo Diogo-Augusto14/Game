@@ -227,6 +227,19 @@ public class Porta : MonoBehaviour
         bool parede = !existe || Escondida;
         Sprite portao = parede ? null : ArteImportada.Portao(Aberta);
 
+        // Porta dos lados aberta: o portao e desenhado de frente e, deitado, sobrava batente
+        // pra fora da parede. Ali o vao vira so o chao da masmorra passando pela parede.
+        if (portao != null && Aberta && !lado.Horizontal() && ArteGerada.CenarioDoPacote)
+        {
+            desenho.transform.localRotation = Quaternion.identity;
+            desenho.transform.localScale = Vector3.one;
+            desenho.drawMode = SpriteDrawMode.Tiled;
+            desenho.sprite = ArteGerada.Chao();
+            desenho.size = tamanhoDoVao;
+            desenho.color = new Color(0.55f, 0.55f, 0.6f);
+            return;
+        }
+
         if (portao != null)
         {
             // Portao de grade do pacote: desenhado de frente, virado pra dentro da sala.
