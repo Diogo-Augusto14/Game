@@ -81,6 +81,14 @@ public class Lagrima : MonoBehaviour
         if (outro.GetComponentInParent<Lagrima>() != null)
             return;
 
+        // Parede e pedra primeiro: a pedra tem Vida (pra bomba quebrar), mas lagrima nao
+        // pode quebrar pedra.
+        if (!outro.isTrigger && (Camadas.MascaraDeParede & (1 << outro.gameObject.layer)) != 0)
+        {
+            Estourar();
+            return;
+        }
+
         IDanificavel alvo = outro.GetComponentInParent<IDanificavel>();
 
         if (alvo != null)
