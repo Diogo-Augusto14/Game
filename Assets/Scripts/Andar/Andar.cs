@@ -660,7 +660,7 @@ public class Andar : MonoBehaviour
 
         List<string> nomes = liberados.ConvertAll(h => h.Nome);
         AvisoDoAndar.Mostrar("Heroi liberado: " + string.Join(", ", nomes) + "!");
-        Sons.Tocar(Som.Item);
+        Sons.Tocar(Som.Aviso);
     }
 
     /// <summary>

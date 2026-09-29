@@ -44,10 +44,9 @@ public class BootstrapTopDown : MonoBehaviour
     [Tooltip("Ajusta a camera principal pra enquadrar a sala inteira")]
     [SerializeField] private bool ajustarCamera = true;
 
+    // Teclas entre colchetes aparecem desenhadas (TelaSimples.LinhaDeTeclas).
     private const string CONTROLES =
-        "W A S D  andar (8 direcoes)\n" +
-        "Setas  atirar (cima, baixo, esquerda, direita)\n" +
-        "Da pra andar pra um lado e atirar pro outro";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba";
 
     private Vector2 gravidadeAnterior;
     private bool mexeuNaGravidade;

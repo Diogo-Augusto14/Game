@@ -16,6 +16,7 @@ public class AvisoDoAndar : MonoBehaviour
 
     private CanvasGroup grupo;
     private Text texto;
+    private Image faixa;
     private float desde;
 
     public static void Mostrar(string mensagem)
@@ -27,6 +28,10 @@ public class AvisoDoAndar : MonoBehaviour
         }
 
         atual.texto.text = mensagem;
+
+        // A placa do Dragon Regalia acompanha o tamanho do texto.
+        if (atual.faixa != null)
+            atual.faixa.rectTransform.sizeDelta = new Vector2(atual.texto.preferredWidth + 240f, ArteDaInterface.AlturaDaFaixa);
         atual.desde = Time.unscaledTime;
         atual.grupo.alpha = 1f;
     }
@@ -61,6 +66,22 @@ public class AvisoDoAndar : MonoBehaviour
         grupo.interactable = false;
         grupo.blocksRaycasts = false;
 
+        Sprite placa = ArteDaInterface.FaixaAzul;
+
+        if (placa != null)
+        {
+            GameObject objFaixa = new GameObject("Faixa", typeof(RectTransform));
+            objFaixa.transform.SetParent(transform, false);
+            RectTransform rtFaixa = (RectTransform)objFaixa.transform;
+            rtFaixa.anchorMin = rtFaixa.anchorMax = new Vector2(0.5f, 0.5f);
+            rtFaixa.anchoredPosition = new Vector2(0f, 260f - ArteDaInterface.MeioDoPanoDaFaixa);
+
+            faixa = objFaixa.AddComponent<Image>();
+            faixa.sprite = placa;
+            faixa.type = Image.Type.Sliced;
+            faixa.raycastTarget = false;
+        }
+
         GameObject obj = new GameObject("Texto", typeof(RectTransform));
         obj.transform.SetParent(transform, false);
 
@@ -71,7 +92,7 @@ public class AvisoDoAndar : MonoBehaviour
 
         texto = obj.AddComponent<Text>();
         texto.font = TelaDeFimDeJogo.Fonte();
-        texto.fontSize = 72;
+        texto.fontSize = 64;
         texto.alignment = TextAnchor.MiddleCenter;
         texto.color = Color.white;
         texto.raycastTarget = false;

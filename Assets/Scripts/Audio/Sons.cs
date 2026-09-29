@@ -24,12 +24,19 @@ public enum Som
     Segredo,
     Rugido,
     Vitoria,
-    Menu
+    Menu,
+    MenuConfirmar,
+    MenuAbrir,
+    MenuFechar,
+    MenuNegado,
+    Aviso
 }
 
 /// <summary>
 /// Toca efeito sonoro de qualquer lugar: <c>Sons.Tocar(Som.Moeda)</c>. Os sons sao
-/// sintetizados na primeira vez (<see cref="Sintetizador"/>) e guardados.
+/// sintetizados na primeira vez (<see cref="Sintetizador"/>) e guardados. Se existir
+/// <c>Resources/Sons/&lt;nome do Som&gt;</c>, toca o arquivo no lugar: os sons de menu vem do
+/// Universal UI Soundpack (Nathan Gibson, CC BY 4.0).
 ///
 /// Um objeto "Sons" com algumas AudioSources e criado sozinho e sobrevive a troca de cena.
 /// O mesmo som tocado varias vezes no mesmo instante (dez lagrimas batendo juntas) toca
@@ -90,7 +97,11 @@ public static class Sons
     {
         if (!clips.TryGetValue(som, out AudioClip clip) || clip == null)
         {
-            clip = Gerar(som);
+            clip = Resources.Load<AudioClip>("Sons/" + som);
+
+            if (clip == null)
+                clip = Gerar(som);
+
             clips[som] = clip;
         }
 
@@ -228,7 +239,20 @@ public static class Sons
                 a = Arpejo(new[] { 60, 64, 67, 72, 67, 72, 76, 79, 84 }, 0.12f, f => Sintetizador.Pulso(f, 0.25f), 0.35f);
                 break;
 
-            default: // Menu
+            case Som.MenuConfirmar:
+                a = Arpejo(new[] { 72, 76, 79 }, 0.06f, f => Sintetizador.Pulso(f, 0.25f), 0.3f);
+                break;
+
+            case Som.MenuNegado:
+                a = new float[Amostras(0.18f)];
+                Sintetizador.Varredura(a, 0, 0.18f, 140f, 120f, Sintetizador.Quadrada, 0.3f, 0.5f);
+                break;
+
+            case Som.Aviso:
+                a = Arpejo(new[] { 67, 72, 76, 79 }, 0.08f, Sintetizador.Triangulo, 0.4f);
+                break;
+
+            default: // Menu, MenuAbrir, MenuFechar
                 a = new float[Amostras(0.08f)];
                 Sintetizador.Varredura(a, 0, 0.08f, 660f, 660f, f => Sintetizador.Pulso(f, 0.25f), 0.25f, 1f);
                 break;

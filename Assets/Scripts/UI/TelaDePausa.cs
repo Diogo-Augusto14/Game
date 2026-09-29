@@ -17,7 +17,7 @@ public class TelaDePausa : MonoBehaviour
 {
     private Andar andar;
     private GameObject tela;
-    private Text opcoes;
+    private RectTransform opcoes;
     private Text resumo;
 
     public bool Pausado => tela != null;
@@ -49,11 +49,20 @@ public class TelaDePausa : MonoBehaviour
             Atualizar();
 
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+        {
             Continuar();
+            Sons.Tocar(Som.MenuFechar, 1f, 0f);
+        }
         else if (Input.GetKeyDown(KeyCode.R))
+        {
+            Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
             TelaDeFimDeJogo.RecarregarCena();
+        }
         else if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Sons.Tocar(Som.MenuFechar, 1f, 0f);
             TelaDeInicio.VoltarAoMenu();
+        }
     }
 
     private void OnDisable()
@@ -67,15 +76,20 @@ public class TelaDePausa : MonoBehaviour
         tela = new GameObject("Pausa");
         TelaSimples.Montar(tela, 30, new Color(0f, 0f, 0f, 0.75f));
 
-        TelaSimples.Texto(tela.transform, "Titulo", 90, Color.white, 250f, "PAUSADO");
-        resumo = TelaSimples.Texto(tela.transform, "Resumo", 30, new Color(0.85f, 0.85f, 0.85f), 90f, "");
-        opcoes = TelaSimples.Texto(tela.transform, "Opcoes", 34, new Color(1f, 0.85f, 0.4f), -150f, "");
-        TelaSimples.Painel(tela.transform, "Painel", ArteImportada.PainelCinza, -30f, new Vector2(1300f, 440f));
+        TelaSimples.Texto(tela.transform, "Titulo", 80, new Color(1f, 0.95f, 0.85f), 290f, "PAUSADO");
+        resumo = TelaSimples.Texto(tela.transform, "Resumo", 30, Color.white, 90f, "");
+        TelaSimples.LinhaDeTeclas(tela.transform, "Teclas", -95f, "[Esc] continuar | [R] recomecar | [Q] menu", 32,
+            new Color(1f, 0.85f, 0.4f));
+        opcoes = TelaSimples.LinhaDeTeclas(tela.transform, "Opcoes", -160f, "", 30, new Color(1f, 0.85f, 0.4f));
+
+        // Moldura do Dragon Regalia no meio e a faixa rosa atras do titulo.
+        TelaSimples.Painel(tela.transform, "Painel", ArteDaInterface.MolduraGrande, 0f, new Vector2(1300f, 420f));
+        TelaSimples.Faixa(tela.transform, "Faixa", ArteDaInterface.FaixaRosa, 290f, 760f);
         Atualizar();
 
         Time.timeScale = 0f;
         TelaSimples.TravarJogador(andar.Jogador, true);
-        Sons.Tocar(Som.Menu);
+        Sons.Tocar(Som.MenuAbrir, 1f, 0f);
     }
 
     public void Continuar()
@@ -91,10 +105,10 @@ public class TelaDePausa : MonoBehaviour
     private void Atualizar()
     {
         resumo.text = $"{(andar.UltimoAndar ? "Ultimo andar" : $"Andar {andar.NumeroDoAndar}")} de {andar.AndarFinal}\n{Itens()}";
-        opcoes.text =
-            "Esc  continuar        R  recomecar        Q  menu\n" +
-            $"M  musica: {(Opcoes.MusicaLigada ? "ligada" : "desligada")}        " +
-            $"N  efeitos: {(Opcoes.EfeitosLigados ? "ligados" : "desligados")}";
+        TelaSimples.TrocarLinhaDeTeclas(opcoes,
+            $"[M] musica: {(Opcoes.MusicaLigada ? "ligada" : "desligada")} | " +
+            $"[N] efeitos: {(Opcoes.EfeitosLigados ? "ligados" : "desligados")}",
+            30, new Color(1f, 0.85f, 0.4f));
     }
 
     private string Itens()

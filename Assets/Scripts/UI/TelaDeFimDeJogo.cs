@@ -117,6 +117,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
         {
             if (Input.GetKeyDown(tecla))
             {
+                Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
                 RecarregarCena();
                 return;
             }
@@ -153,11 +154,11 @@ public class TelaDeFimDeJogo : MonoBehaviour
         Font fonte = Fonte();
 
         if (vitoria)
-            Texto("Titulo", fonte, 96, new Color(1f, 0.85f, 0.3f), 170f, "VOCE VENCEU!");
+            Texto("Titulo", fonte, 86, new Color(1f, 0.9f, 0.4f), 190f, "VOCE VENCEU!");
         else
-            Texto("Titulo", fonte, 96, new Color(0.9f, 0.15f, 0.15f), 170f, "VOCE MORREU");
+            Texto("Titulo", fonte, 86, new Color(1f, 0.3f, 0.3f), 190f, "VOCE MORREU");
 
-        Texto("Resumo", fonte, 36, Color.white, 40f, vitoria ? ResumoDaVitoria(andar) : Resumo(andar));
+        Texto("Resumo", fonte, 36, Color.white, 30f, vitoria ? ResumoDaVitoria(andar) : Resumo(andar));
         Texto("Itens", fonte, 28, new Color(0.85f, 0.85f, 0.85f), -70f, Itens(andar));
 
         if (liberados != null && liberados.Count > 0)
@@ -165,10 +166,14 @@ public class TelaDeFimDeJogo : MonoBehaviour
             List<string> nomes = liberados.ConvertAll(h => h.Nome);
             Texto("Liberados", fonte, 34, new Color(0.5f, 1f, 0.55f), -125f, "Heroi liberado: " + string.Join(", ", nomes));
         }
-        Texto("Recomecar", fonte, 34, new Color(1f, 0.85f, 0.4f), -220f, vitoria ? "R  jogar de novo" : "R  recomecar do andar 1");
+        TelaSimples.LinhaDeTeclas(transform, "Recomecar", -280f, vitoria ? "[R] jogar de novo" : "[R] recomecar do andar 1",
+            34, new Color(1f, 0.85f, 0.4f));
 
-        TelaSimples.Painel(transform, "Painel do botao", ArteImportada.PainelAzul, -220f, new Vector2(640f, 100f));
-        TelaSimples.Painel(transform, "Painel do resumo", ArteImportada.PainelMarrom, -15f, new Vector2(1300f, 290f));
+        // Dragon Regalia: faixa atras do titulo (rosa na vitoria, azul na morte), moldura
+        // dourada no resumo e o botao embaixo.
+        TelaSimples.Painel(transform, "Botao", ArteDaInterface.Botao(vitoria ? 1 : 2), -280f, new Vector2(620f, 105f));
+        TelaSimples.Painel(transform, "Painel do resumo", ArteDaInterface.MolduraGrande, -40f, new Vector2(1300f, 320f));
+        TelaSimples.Faixa(transform, "Faixa do titulo", vitoria ? ArteDaInterface.FaixaRosa : ArteDaInterface.FaixaAzul, 190f, 1000f);
     }
 
     private static string Resumo(Andar andar)
