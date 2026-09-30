@@ -15,7 +15,7 @@ Criar o repositório público `ThePrettie-Releases` no GitHub (vazio, sem códig
 
 ## Gerar uma versão nova
 
-1. No Unity, faça o build do Windows em `Builds\Windows`.
+1. No Unity, faça o build do Windows em `Builds\Windows`, com o nome `ThePrettie.exe` (sem espaço). Se a pasta já tiver um build com outro nome, apague a pasta antes.
 2. Rode, na raiz do projeto:
    `powershell -ExecutionPolicy Bypass -File Lancador\gerar-versao.ps1 -Versao 1.1.0`
    Isso compila o lançador, copia para o build, grava `versao.txt` e cria `Builds\ThePrettie-Windows-1.1.0.zip`.
