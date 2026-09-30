@@ -166,7 +166,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
             List<string> nomes = liberados.ConvertAll(h => h.Nome);
             Texto("Liberados", fonte, 34, new Color(0.5f, 1f, 0.55f), -125f, "Heroi liberado: " + string.Join(", ", nomes));
         }
-        TelaSimples.LinhaDeTeclas(transform, "Recomecar", -280f, vitoria ? "[R] jogar de novo || [Pad A] jogar de novo" : "[R] recomecar do andar 1 || [Pad A] recomecar do andar 1",
+        TelaSimples.LinhaDeTeclas(transform, "Recomecar", -280f, vitoria ? "[R] jogar de novo || [Pad A] jogar de novo" : "[R] recomecar do mundo 1 || [Pad A] recomecar do mundo 1",
             34, new Color(1f, 0.85f, 0.4f));
 
         // Dragon Regalia: faixa atras do titulo (rosa na vitoria, azul na morte), moldura
@@ -181,7 +181,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
         if (andar == null)
             return "";
 
-        return $"Chegou ate o andar {andar.NumeroDoAndar}\n" +
+        return $"Chegou ate {andar.NomeDaFase} ({andar.Tema.Nome})\n" +
                $"<size=24><color=#999999>semente {andar.SementeUsada}</color></size>";
     }
 
@@ -190,7 +190,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
         if (andar == null)
             return "";
 
-        return $"O Olho do Porao caiu. Voce desceu {andar.NumeroDoAndar} andares\n" +
+        return $"O Olho do Porao caiu. Voce venceu {andar.QuantidadeDeMundos} mundos, {andar.NumeroDoAndar} fases\n" +
                $"<size=24><color=#999999>semente {andar.SementeUsada}</color></size>";
     }
 

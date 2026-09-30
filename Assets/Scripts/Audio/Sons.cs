@@ -30,6 +30,8 @@ public enum Som
     MenuFechar,
     MenuNegado,
     Aviso,
+    Dash,
+    Corte,
     Destranca,
     BauAbre
 }
@@ -248,6 +250,20 @@ public static class Sons
             case Som.MenuNegado:
                 a = new float[Amostras(0.18f)];
                 Sintetizador.Varredura(a, 0, 0.18f, 140f, 120f, Sintetizador.Quadrada, 0.3f, 0.5f);
+                break;
+
+            case Som.Dash:
+                // Sopro curto que sobe: o vento da arrancada.
+                a = new float[Amostras(0.18f)];
+                Sintetizador.Chiado(a, 0, 0.18f, 0.55f, 23, 1.5f, 0.6f);
+                Sintetizador.Varredura(a, 0, 0.14f, 180f, 420f, Sintetizador.Triangulo, 0.18f, 1.5f);
+                break;
+
+            case Som.Corte:
+                // Lamina cortando o ar: chiado agudo e rapido que desce.
+                a = new float[Amostras(0.12f)];
+                Sintetizador.Chiado(a, 0, 0.12f, 0.5f, 41, 2.5f, 0.2f);
+                Sintetizador.Varredura(a, 0, 0.1f, 1400f, 500f, Sintetizador.Serra, 0.12f, 2f);
                 break;
 
             case Som.Aviso:

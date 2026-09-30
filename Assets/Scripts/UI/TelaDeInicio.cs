@@ -77,14 +77,14 @@ public class TelaDeInicio : MonoBehaviour
 
         textoDoTitulo = TelaSimples.Texto(transform, "Titulo", 100, new Color(1f, 0.93f, 0.8f), 400f, titulo);
         TelaSimples.Texto(transform, "Subtitulo", 30, new Color(0.75f, 0.65f, 0.65f), 268f,
-            $"Desca {(andar != null ? andar.AndarFinal : 4)} andares e derrote o Olho do Porao");
+            $"Atravesse {(andar != null ? andar.QuantidadeDeMundos : 4)} mundos de {(andar != null ? andar.FasesPorMundo : 3)} fases e derrote o Olho do Porao");
 
         MontarEscolhaDoHeroi(88f);
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(transform, "Controles", -158f,
-            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba",
+            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad RB] dash",
             28, corDasDicas);
         TelaSimples.LinhaDeTeclas(transform, "Opcoes", -212f,
             "[O] opcoes | [Esc] pausar | [M] musica | [N] efeitos || [Pad X] opcoes | [Pad Start] pausar | [Pad LB] musica | [Pad RB] efeitos", 28, corDasDicas);
@@ -184,7 +184,7 @@ public class TelaDeInicio : MonoBehaviour
         Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
 
         if (andar != null)
-            Musica.Tocar(Musica.DoAndar(andar.NumeroDoAndar));
+            Musica.Tocar(Musica.DoAndar(andar.Mundo));
 
         Destroy(gameObject);
     }

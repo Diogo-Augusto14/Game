@@ -20,10 +20,16 @@ public static class TabelaDeDrops
         return TipoDeColetavel.Chave;
     }
 
+    /// <summary>
+    /// Multiplica toda chance de soltar premio (item Amuleto da Sorte). Quem ajusta e o
+    /// <see cref="EfeitosDosItens"/>, que volta pra 1 quando o jogador some.
+    /// </summary>
+    public static float Sorte = 1f;
+
     /// <summary>Com a chance dada, poe um coletavel sorteado no ponto. Devolve null se nao caiu nada.</summary>
     public static Coletavel TalvezSoltar(float chance, Vector2 ponto, Transform pai)
     {
-        if (Random.value >= chance)
+        if (Random.value >= Mathf.Clamp01(chance * Sorte))
             return null;
 
         return Coletavel.Criar(Sortear(), ponto, pai);
