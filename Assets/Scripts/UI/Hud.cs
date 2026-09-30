@@ -266,12 +266,37 @@ public class Hud : MonoBehaviour
             return;
         }
 
-        // Uma linha no canto de baixo, com o desenho das teclas do pacote Controllers and Keyboard.
-        RectTransform linha = TelaSimples.LinhaDeTeclas(transform, "Controles", 0f, textoDosControles,
-            tamanhoDaFonte, new Color(1f, 1f, 1f, 0.85f));
-        linha.anchorMin = linha.anchorMax = Vector2.zero;
-        linha.pivot = Vector2.zero;
-        linha.anchoredPosition = margem;
+        // Linhas no canto de baixo a esquerda, com o desenho das teclas do pacote Controllers
+        // and Keyboard. Um "\n" no texto quebra a lista em mais linhas (nas duas versoes,
+        // teclado e controle): uma linha so ficava comprida demais e chegava na porta de
+        // baixo. A primeira linha fica embaixo; as outras vao empilhando pra cima.
+        string teclado = textoDosControles;
+        string controle = null;
+        int corte = textoDosControles.IndexOf("||", System.StringComparison.Ordinal);
+
+        if (corte >= 0)
+        {
+            teclado = textoDosControles.Substring(0, corte);
+            controle = textoDosControles.Substring(corte + 2);
+        }
+
+        string[] linhasDoTeclado = teclado.Split('\n');
+        string[] linhasDoControle = controle?.Split('\n');
+        float passo = Mathf.Round(tamanhoDaFonte * 1.6f) + 6f;
+
+        for (int i = 0; i < linhasDoTeclado.Length; i++)
+        {
+            string conteudo = linhasDoTeclado[i].Trim();
+
+            if (linhasDoControle != null)
+                conteudo += " || " + (i < linhasDoControle.Length ? linhasDoControle[i].Trim() : "");
+
+            RectTransform linha = TelaSimples.LinhaDeTeclas(transform, $"Controles {i}", 0f, conteudo,
+                tamanhoDaFonte, new Color(1f, 1f, 1f, 0.85f));
+            linha.anchorMin = linha.anchorMax = Vector2.zero;
+            linha.pivot = Vector2.zero;
+            linha.anchoredPosition = margem + new Vector2(0f, i * passo);
+        }
     }
 
     private static Font FonteEmbutida()

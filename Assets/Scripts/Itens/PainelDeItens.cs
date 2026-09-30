@@ -22,16 +22,20 @@ public class PainelDeItens : MonoBehaviour
     [SerializeField, Min(0.5f)] private float tempoDaCaixa = 4f;
 
     // Na tela de referencia (1920x1080): margem da direita, onde a coluna comeca (o
-    // minimapa ocupa o canto de cima) e a altura maxima dela.
+    // minimapa ocupa o canto de cima) e a altura maxima dela. A coluna para ANTES da porta
+    // da direita (e dos enfeites em volta dela, no meio da altura da tela): com mais itens,
+    // abre colunas pra esquerda em vez de descer por cima da porta.
     private const float Margem = 24f;
     private const float Topo = 230f;
-    private const float AlturaMaxima = 540f;
-    private const float Espaco = 8f;
+    private const float AlturaMaxima = 150f;
+    private const float Espaco = 6f;
+    private const float Recheio = 6f;             // do fundo escuro ate os itens
     private const float LarguraDaCaixa = 420f;
     private const float Folga = 26f;              // do texto ate a borda da caixa
     private const float DuracaoDoPulo = 0.6f;
 
     private static readonly Color CorDaCasa = new Color(0f, 0f, 0f, 0.55f);
+    private static readonly Color CorDoFundo = new Color(0.04f, 0.03f, 0.06f, 0.72f);
     private static readonly Color CorDaCasaAcesa = new Color(1f, 0.8f, 0.3f, 0.75f);
 
     private class Casa
@@ -49,7 +53,7 @@ public class PainelDeItens : MonoBehaviour
     private Image iconeDaCaixa;
     private Text textoDaCaixa;
     private RectTransform dica;
-    private int dicaDesenhadaCom = -1;
+    private RectTransform fundo;
     private float lado = 48f;
     private int linhas = 1;
 
@@ -201,7 +205,7 @@ public class PainelDeItens : MonoBehaviour
     private void Arrumar()
     {
         int total = casas.Count;
-        lado = total <= 18 ? 48f : total <= 33 ? 40f : 32f;
+        lado = total <= 12 ? 44f : total <= 24 ? 36f : 28f;
         float passo = lado + Espaco;
         linhas = Mathf.Max(1, Mathf.FloorToInt((AlturaMaxima + Espaco) / passo));
 
@@ -212,8 +216,37 @@ public class PainelDeItens : MonoBehaviour
             rt.anchoredPosition = new Vector2(-(i / linhas) * passo - lado * 0.5f, -(i % linhas) * passo - lado * 0.5f);
         }
 
+        ArrumarFundo(total, passo);
         ArrumarDica(total, passo);
         mostrado = -2;   // a caixa pode ter mudado de lugar
+    }
+
+    /// <summary>
+    /// Fundo escuro atras dos itens: a parede de algumas salas tem desenho (estatuas,
+    /// enfeites) e os icones sumiam em cima dele. So aparece com pelo menos um item.
+    /// </summary>
+    private void ArrumarFundo(int total, float passo)
+    {
+        if (fundo == null)
+        {
+            fundo = NovoRetangulo("Fundo", raiz);
+            fundo.SetAsFirstSibling();
+            fundo.anchorMin = fundo.anchorMax = fundo.pivot = Vector2.one;
+            fundo.anchoredPosition = new Vector2(Recheio, Recheio);
+
+            Image imagem = fundo.gameObject.AddComponent<Image>();
+            imagem.color = CorDoFundo;
+            imagem.raycastTarget = false;
+        }
+
+        fundo.gameObject.SetActive(total > 0);
+
+        if (total == 0)
+            return;
+
+        int colunas = (total + linhas - 1) / linhas;
+        int usadas = Mathf.Min(total, linhas);
+        fundo.sizeDelta = new Vector2(colunas * passo - Espaco + Recheio * 2f, usadas * passo - Espaco + Recheio * 2f);
     }
 
     /// <summary>"[I] ver itens" embaixo da coluna, so quando tem item pra ver.</summary>
@@ -235,12 +268,7 @@ public class PainelDeItens : MonoBehaviour
         }
 
         int usadas = Mathf.Min(total, linhas);
-
-        if (usadas != dicaDesenhadaCom)
-        {
-            dica.anchoredPosition = new Vector2(-Margem, -Topo - usadas * passo - 4f);
-            dicaDesenhadaCom = usadas;
-        }
+        dica.anchoredPosition = new Vector2(-Margem, -Topo - usadas * passo - Recheio - 2f);
 
         dica.gameObject.SetActive(true);
     }
