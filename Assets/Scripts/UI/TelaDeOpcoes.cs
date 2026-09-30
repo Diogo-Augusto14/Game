@@ -77,7 +77,8 @@ public class TelaDeOpcoes : MonoBehaviour
         atual = this;
         quadroQueAbriu = Time.frameCount;
 
-        TelaSimples.Montar(gameObject, 120, new Color(0f, 0f, 0f, 0.85f));
+        // Fundo opaco: o menu ou a pausa de baixo nao aparecem embolados com as linhas daqui.
+        TelaSimples.Montar(gameObject, 120, new Color(0.03f, 0.02f, 0.03f, 1f));
         TelaSimples.Titulo(transform, "Titulo", 110, new Color(1f, 0.95f, 0.85f), 330f, "Configurações");
 
         for (int i = 0; i < Nomes.Length; i++)

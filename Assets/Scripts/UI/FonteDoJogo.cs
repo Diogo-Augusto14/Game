@@ -4,7 +4,10 @@ using UnityEngine;
 /// As fontes do jogo, lidas de <c>Assets/Arte/Resources/Fontes</c> (as duas com licenca
 /// aberta OFL, arquivo da licenca do lado):
 ///
-///   <see cref="Texto"/>   Pixelify Sans: pixel, facil de ler, com todos os acentos. Todo texto.
+///   <see cref="Texto"/>   Jersey 15: pixel, facil de ler, numeros bem distintos (5 nao
+///                         parece S) e todos os acentos. Todo texto. O arquivo tem o
+///                         unitsPerEm diminuido (1350 -> 1080) pra desenhar do tamanho da
+///                         fonte antiga com o mesmo fontSize.
 ///   <see cref="Titulo"/>  Jacquard 12: pixel gotica, de masmorra. So titulos grandes, em
 ///                         maiusculas e minusculas ("Você morreu"): em caixa alta fica ilegivel.
 ///
@@ -15,7 +18,7 @@ public static class FonteDoJogo
     private static Font texto;
     private static Font titulo;
 
-    public static Font Texto => texto != null ? texto : texto = Carregar("Fontes/PixelifySans");
+    public static Font Texto => texto != null ? texto : texto = Carregar("Fontes/Jersey15");
 
     public static Font Titulo => titulo != null ? titulo : titulo = Carregar("Fontes/Jacquard12", Texto);
 

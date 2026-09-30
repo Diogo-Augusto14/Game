@@ -121,8 +121,8 @@ public class TelaDeInicio : MonoBehaviour
         atual = this;
         abriu = Time.unscaledTime;
 
-        // O fundo deixa ver a primeira sala, bem escura, atras do menu.
-        grupo = TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 0.9f));
+        // Fundo opaco: a HUD e a sala do jogo, montadas por baixo, nao aparecem atras do menu.
+        grupo = TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 1f));
 
         // Topo: faixa rosa do Dragon Regalia e o nome na fonte gotica.
         topo = TelaSimples.Camada(transform, "Topo");
@@ -175,7 +175,7 @@ public class TelaDeInicio : MonoBehaviour
 
         TelaSimples.Texto(pai, "Creditos", 16, new Color(0.5f, 0.47f, 0.5f), -514f,
             "Sons de interface: Nathan Gibson (CC BY 4.0)    Interface: Tiny RPG Dragon Regalia GUI    Teclas: Vryell    " +
-            "Fontes: Pixelify Sans e Jacquard 12 (OFL)");
+            "Fontes: Jersey 15 e Jacquard 12 (OFL)");
     }
 
     private void Update()
