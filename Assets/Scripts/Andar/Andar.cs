@@ -141,7 +141,7 @@ public class Andar : MonoBehaviour
     // do "||" vem a mesma linha com os botoes do controle.
     private const string CONTROLES =
         "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Esc] pausa || " +
-        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad Start] pausa";
+        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LT] bomba | [Pad LB] trocar flecha | [Pad Start] pausa";
 
     // ---------------- estado ----------------
     private Sala[,] noMundo;
