@@ -66,6 +66,13 @@ public class AtiradorTopDown : MonoBehaviour
     private Color corOriginal;
     private bool guardouCor;
 
+    // ---------------- tiro de espada (onda de corte) ----------------
+    private Sprite[] quadrosDoTiro;
+    private float quadrosPorSegundoDoTiro = 12f;
+    private float raioDoTiro = 0.5f;
+    private bool sempreAtravessa;
+    private Som somDoTiro = Som.Tiro;
+
     // ---------------- estado ----------------
     private Entrada entrada;
     private MovimentoTopDown movimento;
@@ -155,7 +162,7 @@ public class AtiradorTopDown : MonoBehaviour
         Vector2 origem = (Vector2)transform.position + direcao * distanciaDoCorpo + lado;
         Vector2 heranca = movimento != null ? movimento.Velocidade * herancaDaVelocidade : Vector2.zero;
 
-        Sons.Tocar(Som.Tiro, 0.55f);
+        Sons.Tocar(somDoTiro, 0.55f);
         AoAtirar?.Invoke(direcao);
 
         Lagrima doMeio = null;
@@ -181,7 +188,7 @@ public class AtiradorTopDown : MonoBehaviour
     {
         Lagrima lagrima = CriarLagrima(origem);
         lagrima.Disparar(gameObject, velocidade, dano, alcance, forcaEmpurrao);
-        lagrima.DefinirEfeitos(atravessa, teleguiada);
+        lagrima.DefinirEfeitos(atravessa || sempreAtravessa, teleguiada);
         return lagrima;
     }
 
@@ -214,9 +221,10 @@ public class AtiradorTopDown : MonoBehaviour
         desenho.color = cor;
         desenho.sortingOrder = 20;
 
-        // O circulo gerado tem 1 unidade de diametro: raio 0.5 bate com o desenho.
+        // O circulo gerado tem 1 unidade de diametro: raio 0.5 bate com o desenho. A onda de
+        // corte e maior que a escala do tiro, entao tem raio proprio.
         CircleCollider2D colisor = obj.AddComponent<CircleCollider2D>();
-        colisor.radius = 0.5f;
+        colisor.radius = raioDoTiro;
 
         obj.AddComponent<Rigidbody2D>();
 
@@ -224,6 +232,9 @@ public class AtiradorTopDown : MonoBehaviour
 
         if (apontarLagrima)
             lagrima.ApontarProRumo();
+
+        if (quadrosDoTiro != null && quadrosDoTiro.Length > 0)
+            obj.AddComponent<AnimacaoDoTiro>().Configurar(quadrosDoTiro, quadrosPorSegundoDoTiro);
 
         return lagrima;
     }
@@ -257,6 +268,29 @@ public class AtiradorTopDown : MonoBehaviour
         apontarLagrima = apontar;
         cor = novaCor;
         guardouCor = false;
+
+        // Trocar de heroi tira a onda de corte do anterior; o de espada liga de novo.
+        quadrosDoTiro = null;
+        raioDoTiro = 0.5f;
+        sempreAtravessa = false;
+        somDoTiro = Som.Tiro;
+    }
+
+    /// <summary>
+    /// Tiro de heroi de espada: a onda de corte voa animada (<paramref name="quadros"/>),
+    /// com colisor de <paramref name="raio"/> (na escala do tiro), atravessa os inimigos e
+    /// tem som de lamina. Chame depois do <see cref="DefinirVisual"/>.
+    /// </summary>
+    public void DefinirOndaDeCorte(Sprite[] quadros, float quadrosPorSegundo, float raio)
+    {
+        if (quadros == null || quadros.Length == 0)
+            return;
+
+        quadrosDoTiro = quadros;
+        quadrosPorSegundoDoTiro = Mathf.Max(1f, quadrosPorSegundo);
+        raioDoTiro = Mathf.Max(0.1f, raio);
+        sempreAtravessa = true;
+        somDoTiro = Som.Corte;
     }
 
     /// <summary>Aponta o filho que mostra a direcao do olhar.</summary>
