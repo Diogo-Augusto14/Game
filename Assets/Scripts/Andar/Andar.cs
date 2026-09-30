@@ -69,6 +69,19 @@ public class Andar : MonoBehaviour
     [Tooltip("Chance da sala do tesouro ter dois pedestais: pega um, o outro some")]
     [SerializeField, Range(0f, 1f)] private float chanceDeDuasOpcoes = 0.3f;
 
+    [Header("Chaves e baus")]
+    [Tooltip("Baus de ferro trancados por andar (em salas comuns longe do inicio)")]
+    [SerializeField, Min(0)] private int bausTrancadosPorAndar = 1;
+
+    [Tooltip("A partir deste andar aparece um bau trancado a mais")]
+    [SerializeField, Min(1)] private int bauExtraAPartirDoAndar = 3;
+
+    [Tooltip("Chance do bau de ferro ter um item passivo (senao, coletaveis variados)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeItemNoBau = 0.35f;
+
+    [Tooltip("Chance da sala comum, ao ser limpa, soltar um bau de madeira no lugar do premio")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeBauNaSala = 0.1f;
+
     [Header("Sala de desafio")]
     [Tooltip("Ondas de inimigos depois de pegar o item: na primeira fase e depois dela (+1 no ultimo mundo)")]
     [SerializeField] private Vector2Int ondasDoDesafio = new Vector2Int(2, 3);
@@ -147,6 +160,9 @@ public class Andar : MonoBehaviour
 
     // Itens que ja apareceram nesta partida: o proximo pedestal sorteia outro.
     private readonly HashSet<ItemPassivo> itensQueJaSairam = new HashSet<ItemPassivo>();
+
+    // Salas comuns deste andar sorteadas pra ter bau de ferro trancado.
+    private readonly HashSet<SalaDoAndar> comBauTrancado = new HashSet<SalaDoAndar>();
 
     public static Andar Atual { get; private set; }
 
@@ -305,6 +321,7 @@ public class Andar : MonoBehaviour
         raizDasSalas.SetParent(transform, false);
         noMundo = new Sala[Mapa.Largura, Mapa.Altura];
         salaDoMapa.Clear();
+        SortearBausTrancados();
 
         foreach (SalaDoAndar sala in Mapa.Salas)
             noMundo[sala.X, sala.Y] = MontarSala(sala);
@@ -738,9 +755,12 @@ public class Andar : MonoBehaviour
     ///             as vezes dois pedestais, escolha um
     ///   Desafio -> pedestal com item; pegou, as portas fecham e vem ondas de inimigos
     ///   Amaldicoada -> item ou bau; a porta com espinhos custa meio coracao por passagem
-    ///   Chefe  -> pedestal com item quando a sala e limpa
-    ///   Normal -> chance de um coletavel no meio quando a sala e limpa
-    ///   Inicio -> uma chave de brinde nos andares com sala do item trancada
+    ///   Chefe  -> pedestal com item e a chave dourada quando a sala e limpa (a chave abre a
+    ///             sala do tesouro trancada do andar seguinte, ou um bau de ferro)
+    ///   Normal -> chance de um coletavel (ou, as vezes, um bau de madeira) quando a sala e
+    ///             limpa; algumas tem um bau de ferro trancado
+    /// Chave e rara de proposito: vem do chefe, da loja, do bau da sala amaldicoada e,
+    /// raramente, de um inimigo.
     /// </summary>
     private void PorPremios(Sala sala, SalaDoAndar casa)
     {
@@ -786,17 +806,27 @@ public class Andar : MonoBehaviour
                     Pedestal.Criar(doChefe, centro, sala.transform);
                     Alcapao.Criar(centro + LongeDaPorta(sala, distanciaDoAlcapao), sala.transform);
                     PorMoedasDoChefe(sala, moedas);
+
+                    // A chave dourada fica entre a porta e o pedestal: no caminho de quem vem pegar o item.
+                    ChaveDoChefe.Criar(centro - LongeDaPorta(sala, distanciaDoAlcapao), sala.transform);
                     Musica.Tocar(Musica.DoAndar(mundo));
 
-                    if (fechouOMundo)
-                        AnunciarLiberados(Progresso.VenceuMundo(mundo));
+                    List<Herois.Heroi> liberados = fechouOMundo ? Progresso.VenceuMundo(mundo) : new List<Herois.Heroi>();
+
+                    if (liberados.Count == 0)
+                        AvisoDoAndar.Mostrar("O chefe deixou uma chave dourada!");
+
+                    AnunciarLiberados(liberados);
                 });
                 break;
 
             case TipoDeSala.Normal:
+                if (comBauTrancado.Contains(casa))
+                    PorBauTrancado(sala);
+
                 // Beco que nao virou sala especial: premio garantido pra quem explorou ate ali.
                 float chanceDePremio = casa.Recompensa ? 1f : Mathf.Min(0.75f, chanceDePremioDaSala + Dificuldade.BonusDePremioDaSala);
-                sala.AoLimpar.AddListener(() => TabelaDeDrops.TalvezSoltar(chanceDePremio, centro, sala.transform));
+                sala.AoLimpar.AddListener(() => PremioDaSala(sala, chanceDePremio));
                 break;
 
             case TipoDeSala.Loja:
@@ -807,10 +837,6 @@ public class Andar : MonoBehaviour
                 PorTesouroSecreto(sala);
                 break;
 
-            case TipoDeSala.Inicio:
-                if (ItemTrancado)
-                    Coletavel.Criar(TipoDeColetavel.Chave, centro + Vector2.down * 1.5f, sala.transform);
-                break;
         }
 
         // A porta da sala vizinha que leva ao item ganha um cadeado.
@@ -840,6 +866,90 @@ public class Andar : MonoBehaviour
     }
 
     private bool ItemTrancado => numeroDoAndar >= trancarItemAPartirDoAndar;
+
+    /// <summary>
+    /// Escolhe as salas comuns que ganham bau de ferro: de preferencia as mais longe do
+    /// inicio (premio pra quem explora), sem repetir sala.
+    /// </summary>
+    private void SortearBausTrancados()
+    {
+        comBauTrancado.Clear();
+        int quantos = bausTrancadosPorAndar + (numeroDoAndar >= bauExtraAPartirDoAndar ? 1 : 0);
+
+        List<SalaDoAndar> comuns = Mapa.Salas.FindAll(s => s.Tipo == TipoDeSala.Normal);
+        List<SalaDoAndar> longe = comuns.FindAll(s => s.Distancia >= 2);
+
+        if (longe.Count >= quantos)
+            comuns = longe;
+
+        for (int i = 0; i < quantos && comuns.Count > 0; i++)
+        {
+            int sorteada = UnityEngine.Random.Range(0, comuns.Count);
+            comBauTrancado.Add(comuns[sorteada]);
+            comuns.RemoveAt(sorteada);
+        }
+    }
+
+    /// <summary>Bau de ferro num canto livre da sala, com um tesouro sorteado ja na montagem.</summary>
+    private void PorBauTrancado(Sala sala)
+    {
+        ItemPassivo item = UnityEngine.Random.value < chanceDeItemNoBau ? CatalogoDeItens.Sortear(itensQueJaSairam) : null;
+        TipoDeColetavel[] tesouro = item != null ? new TipoDeColetavel[0] : Bau.SortearTesouro(numeroDoAndar);
+        Bau.CriarTrancado((Vector2)sala.transform.position + PontoParaBau(sala), sala.transform, item, tesouro);
+    }
+
+    /// <summary>
+    /// Premio da sala comum limpa: as vezes um bau de madeira com dois ou tres coletaveis,
+    /// senao a chance de sempre de um coletavel no meio.
+    /// </summary>
+    private void PremioDaSala(Sala sala, float chanceDePremio)
+    {
+        Vector2 centro = sala.transform.position;
+
+        if (UnityEngine.Random.value < chanceDeBauNaSala)
+        {
+            TipoDeColetavel[] dentro = new TipoDeColetavel[UnityEngine.Random.Range(2, 4)];
+
+            for (int i = 0; i < dentro.Length; i++)
+                dentro[i] = TabelaDeDrops.Sortear();
+
+            Vector2 ponto = sala.Livre(Vector2.zero, 0.8f) ? Vector2.zero : PontoParaBau(sala);
+            Bau.Criar(centro + ponto, sala.transform, dentro);
+            return;
+        }
+
+        TabelaDeDrops.TalvezSoltar(chanceDePremio, centro, sala.transform);
+    }
+
+    /// <summary>
+    /// Ponto livre pra um bau: longe das paredes (sobra lugar pro pedestal e pros coletaveis
+    /// em volta), das pedras e das portas.
+    /// </summary>
+    private Vector2 PontoParaBau(Sala sala)
+    {
+        Vector2 centro = sala.transform.position;
+        Vector2 melhor = Vector2.zero;
+
+        for (int tentativa = 0; tentativa < 30; tentativa++)
+        {
+            Vector2 ponto = sala.PontoLivreAleatorio(2.2f);
+
+            if (!sala.Livre(ponto, 0.8f))
+                continue;
+
+            melhor = ponto;
+            bool longe = true;
+
+            foreach (Porta porta in sala.Portas)
+                if (porta.Existe && Vector2.Distance(centro + ponto, porta.PontoDeChegada) < distanciaDasPortas)
+                    longe = false;
+
+            if (longe)
+                break;
+        }
+
+        return melhor;
+    }
 
     private TemaMusical MusicaDoChefe => UltimoAndar ? TemaMusical.ChefeFinal : TemaMusical.Chefe;
 

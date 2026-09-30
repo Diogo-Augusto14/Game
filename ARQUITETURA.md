@@ -62,7 +62,7 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | Arquivo | Assunto |
 |---|---|
 | `Sala.cs` | Chão, 4 paredes, portas; fecha ao entrar, abre quando morre o último inimigo |
-| `Porta.cs` | Aberta / fechada / não existe (vira parede); avisa `AoAtravessar` |
+| `Porta.cs` | Aberta / fechada / não existe (vira parede); avisa `AoAtravessar`. Abrir e fechar são animados (o portão sobe e desce quadro a quadro, com tremor e um pulinho no fim); fechando bloqueia na hora, abrindo só deixa passar quando o portão chegou em cima (`Passavel`). `AbrirNaHora` é a montagem sem animação |
 | `InimigoDeSala.cs` | Base: dormir, acordar, dano por encostar, empurrão na direção do golpe |
 | `InimigoPerseguidor.cs` | Vai atrás do jogador em zigue-zague |
 | `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira |
@@ -169,6 +169,7 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | `Masmorra/Esqueleto`, `EsqueletoFoice`, `Vampiro` | Enemy Animations Set (tiras de 32×32) | Inimigos `Esqueleto`, `EsqueletoFoice` e `Vampiro`, com a própria animação de morte |
 | `Masmorra/Tocha`, `Candelabro`, `Objetos` | 2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon Asset Pack v2.0 | Tochas acesas na parede de cima de toda sala, candelabro num canto, caveira e ossos entre os enfeites de chão |
 | `Masmorra/Chao`, `Parede`, `Portao`, `Espinhos`, `Ladrilhos` | 2D Dungeon Asset Pack v5.2 | Chão e tijolos das salas (a cor do andar só tinge de leve), portão de grade nas portas e na tranca, espinhos, buraco do alçapão. Da folha `Objetos`: frasco (coração), moeda, chave, altar do pedestal, mesas da loja, estandartes das portas especiais, gema do tiro dos inimigos e o ícone de cada item passivo |
+| `Masmorra/Bau`, `ChaveDourada` e `Masmorra/BauDeFerro` | 2D Dungeon Asset Pack v5.2 (items_animation) e 2D Pixel Dungeon Asset Pack v2.0 (chest e chest_open juntos numa tira) | Baú de madeira abrindo, chave dourada girando que o chefe deixa (`Itens/ChaveDoChefe.cs`) e baú de ferro trancado respirando e abrindo com brilho (`Itens/Bau.cs`) |
 | `Masmorra/Temas` | 2D Pixel Dungeon Asset Pack v2.0 e 2D Dungeon Asset Pack v5.2 (ladrilhos recortados e juntados) | Chão e parede de cada tema de andar (`Andar/TemaDoAndar.cs`): `ChaoPorao`/`ParedePorao` (tijolos marrons do v2.0), `ChaoCripta`/`ParedeCripta` (laje rachada e friso azul do v5.2), `ChaoAbismo`/`ParedeAbismo` (pedra lisa e friso vermelho do v5.2) e a `Runa` vermelha do chão do Abismo. As Catacumbas usam o `Chao`/`Parede` padrão |
 | `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Goblins da tocha e da dinamite, barril de TNT, arqueiro sombrio, flecha, dinamite, explosão (bomba do jogador também), caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`); o jogador é o arqueiro azul (`TopDown/ArqueiroDoJogador.cs`) e atira flechas; pedras das salas; a dinamite é a bomba |
 

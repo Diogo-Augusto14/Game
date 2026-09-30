@@ -6,14 +6,17 @@ using UnityEngine;
 /// </summary>
 public static class TabelaDeDrops
 {
-    /// <summary>Sorteia um tipo, com peso: moeda e o mais comum, chave o mais raro.</summary>
+    /// <summary>
+    /// Sorteia um tipo, com peso: moeda e o mais comum, chave bem rara (a chave de verdade
+    /// vem do chefe; ver <see cref="ChaveDoChefe"/>).
+    /// </summary>
     public static TipoDeColetavel Sortear()
     {
         float r = Random.value;
 
-        if (r < 0.40f) return TipoDeColetavel.Moeda;
-        if (r < 0.65f) return TipoDeColetavel.Coracao;
-        if (r < 0.85f) return TipoDeColetavel.Bomba;
+        if (r < 0.45f) return TipoDeColetavel.Moeda;
+        if (r < 0.72f) return TipoDeColetavel.Coracao;
+        if (r < 0.95f) return TipoDeColetavel.Bomba;
         return TipoDeColetavel.Chave;
     }
 
