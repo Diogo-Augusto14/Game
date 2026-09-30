@@ -104,7 +104,7 @@ public static class TelaSimples
     private static readonly System.Collections.Generic.Dictionary<string, KeyCode> ApelidosDeTecla =
         new System.Collections.Generic.Dictionary<string, KeyCode>(System.StringComparer.OrdinalIgnoreCase)
         {
-            { "Enter", KeyCode.Return }, { "Esc", KeyCode.Escape }, { "Espaco", KeyCode.Space },
+            { "Enter", KeyCode.Return }, { "Esc", KeyCode.Escape }, { "Espaco", KeyCode.Space }, { "Shift", KeyCode.LeftShift },
             { "Cima", KeyCode.UpArrow }, { "Baixo", KeyCode.DownArrow },
             { "Esquerda", KeyCode.LeftArrow }, { "Direita", KeyCode.RightArrow },
         };

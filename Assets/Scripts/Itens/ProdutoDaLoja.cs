@@ -1,6 +1,10 @@
 using UnityEngine;
 
-/// <summary>Uma coisa a venda: um coletavel ou um item passivo, com preco em moedas.</summary>
+/// <summary>
+/// Uma coisa a venda: um coletavel ou um item passivo, com preco em moedas. Com o jogador
+/// perto, mostra uma etiqueta com o nome e o que faz; o preco fica amarelo quando da pra
+/// pagar e vermelho quando nao da.
+/// </summary>
 [DisallowMultipleComponent]
 public class ProdutoDaLoja : MonoBehaviour
 {
@@ -16,8 +20,25 @@ public class ProdutoDaLoja : MonoBehaviour
     private Transform desenho;
     private float piscarAte;
     private bool vendido;
+    private int precoMostrado = -1;
+    private Transform jogador;
+    private Inventario inventarioDoJogador;
+    private GameObject etiqueta;
 
+    [Tooltip("Distancia em que a etiqueta com nome e efeito aparece")]
+    [SerializeField, Min(0.5f)] private float distanciaDaEtiqueta = 1.6f;
+
+    /// <summary>Alguem comprou um produto (o comerciante agradece).</summary>
+    public static event System.Action<ProdutoDaLoja> AoVender;
+
+    /// <summary>Tentou comprar e nao deu; true = faltou moeda, false = nao serve agora.</summary>
+    public static event System.Action<ProdutoDaLoja, bool> AoRecusar;
+
+    /// <summary>O preco de tabela, sem desconto.</summary>
     public int Preco => preco;
+
+    /// <summary>O que o jogador paga agora (com o desconto dos itens).</summary>
+    public int PrecoAtual => Loja.ComDesconto(preco);
 
     public bool Vendido => vendido;
 
@@ -123,10 +144,144 @@ public class ProdutoDaLoja : MonoBehaviour
         if (desenho != null)
             desenho.localPosition = new Vector3(0f, 0.1f + Mathf.Sin(Time.time * 3f + transform.position.x) * 0.05f, 0f);
 
+        if (jogador == null)
+        {
+            GameObject achado = GameObject.FindWithTag(tagDoJogador);
+
+            if (achado != null)
+            {
+                jogador = achado.transform;
+                inventarioDoJogador = achado.GetComponent<Inventario>();
+            }
+        }
+
+        int agora = PrecoAtual;
+
+        if (textoDoPreco != null && agora != precoMostrado)
+        {
+            precoMostrado = agora;
+            textoDoPreco.text = agora.ToString();
+        }
+
+        bool daPraPagar = inventarioDoJogador == null || inventarioDoJogador.Moedas >= agora;
+
         if (textoDoPreco != null)
             textoDoPreco.color = Time.time < piscarAte && Mathf.Repeat(Time.time * 10f, 1f) < 0.5f
                 ? new Color(1f, 0.3f, 0.3f)
-                : Color.white;
+                : daPraPagar ? new Color(1f, 0.92f, 0.55f) : new Color(1f, 0.55f, 0.5f);
+
+        bool perto = jogador != null
+                     && ((Vector2)(jogador.position - transform.position)).sqrMagnitude <= distanciaDaEtiqueta * distanciaDaEtiqueta;
+
+        if (perto && etiqueta == null)
+            etiqueta = CriarEtiqueta();
+
+        if (etiqueta != null && etiqueta.activeSelf != perto)
+            etiqueta.SetActive(perto);
+    }
+
+    /// <summary>Nome em amarelo e o efeito embaixo, numa plaquinha acima do produto.</summary>
+    private GameObject CriarEtiqueta()
+    {
+        string nome, efeito;
+
+        if (ehItem)
+        {
+            nome = item != null ? item.nome : "?";
+            efeito = item != null ? item.Efeito : "";
+        }
+        else
+        {
+            nome = NomeDe(coletavel);
+            efeito = EfeitoDe(coletavel);
+        }
+
+        string corpo = Quebrar(efeito, 26);
+        int linhas = 1 + (string.IsNullOrEmpty(corpo) ? 0 : corpo.Split('\n').Length);
+        int largura = Mathf.Max(nome.Length, MaiorLinha(corpo));
+
+        GameObject obj = new GameObject("Etiqueta");
+        obj.transform.SetParent(transform, false);
+        obj.transform.localPosition = new Vector3(0f, 0.75f + linhas * 0.1f, 0f);
+
+        Sprite placa = ArteImportada.PlacaNoMundo;
+
+        if (placa != null)
+        {
+            SpriteRenderer sr = FormasDaSala.Desenho(obj.transform, "Fundo", placa, Color.white, Vector2.zero, Vector2.one, 32);
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.size = new Vector2(0.35f + largura * 0.085f, 0.2f + linhas * 0.19f);
+        }
+
+        TextMesh texto = Texto(obj.transform, "", Vector2.zero);
+        texto.characterSize = 0.036f;
+        texto.richText = true;
+        texto.text = string.IsNullOrEmpty(corpo)
+            ? $"<color=#ffd24a>{nome}</color>"
+            : $"<color=#ffd24a>{nome}</color>\n{corpo}";
+        texto.GetComponent<MeshRenderer>().sortingOrder = 33;
+        return obj;
+    }
+
+    private static string NomeDe(TipoDeColetavel tipo)
+    {
+        switch (tipo)
+        {
+            case TipoDeColetavel.Coracao: return "Coracao";
+            case TipoDeColetavel.Bomba: return "Bomba";
+            case TipoDeColetavel.Chave: return "Chave";
+            default: return "Moeda";
+        }
+    }
+
+    private static string EfeitoDe(TipoDeColetavel tipo)
+    {
+        switch (tipo)
+        {
+            case TipoDeColetavel.Coracao: return "Recupera um coracao de vida.";
+            case TipoDeColetavel.Bomba: return "Mais uma bomba (tecla E).";
+            case TipoDeColetavel.Chave: return "Abre portas e baus trancados.";
+            default: return "";
+        }
+    }
+
+    /// <summary>Quebra o texto em linhas de ate <paramref name="largura"/> letras, sem cortar palavra.</summary>
+    private static string Quebrar(string texto, int largura)
+    {
+        if (string.IsNullOrEmpty(texto))
+            return "";
+
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        int naLinha = 0;
+
+        foreach (string palavra in texto.Split(' '))
+        {
+            if (naLinha > 0 && naLinha + 1 + palavra.Length > largura)
+            {
+                sb.Append('\n');
+                naLinha = 0;
+            }
+            else if (naLinha > 0)
+            {
+                sb.Append(' ');
+                naLinha++;
+            }
+
+            sb.Append(palavra);
+            naLinha += palavra.Length;
+        }
+
+        return sb.ToString();
+    }
+
+    private static int MaiorLinha(string texto)
+    {
+        int maior = 0;
+
+        foreach (string l in texto.Split('\n'))
+            maior = Mathf.Max(maior, l.Length);
+
+        return maior;
     }
 
     private void OnTriggerEnter2D(Collider2D outro)
@@ -148,14 +303,18 @@ public class ProdutoDaLoja : MonoBehaviour
         if (vendido || inventario == null)
             return false;
 
-        if (inventario.Moedas < preco || !Serve(jogador, inventario))
+        int custo = PrecoAtual;
+        bool faltouMoeda = inventario.Moedas < custo;
+
+        if (faltouMoeda || !Serve(jogador, inventario))
         {
             piscarAte = Time.time + 0.6f;
             Sons.Tocar(Som.Negado);
+            AoRecusar?.Invoke(this, faltouMoeda);
             return false;
         }
 
-        inventario.Adicionar(TipoDeColetavel.Moeda, -preco);
+        inventario.Adicionar(TipoDeColetavel.Moeda, -custo);
         vendido = true;
 
         if (ehItem)
@@ -177,6 +336,7 @@ public class ProdutoDaLoja : MonoBehaviour
         }
 
         Sons.Tocar(Som.Compra);
+        AoVender?.Invoke(this);
         Destroy(gameObject);
         return true;
     }

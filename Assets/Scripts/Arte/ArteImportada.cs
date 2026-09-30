@@ -428,6 +428,19 @@ public static class ArteImportada
             case "Bussola Maldita": return Objeto(11, 2);
             case "Olho na Nuca": return Objeto(10, 3);
             case "Pimenta": return Objeto(10, 1);
+            case "Pena da Fenix": return IconeDaInterface(80, 260, 80, 40, 64f);
+            case "Escudo Sagrado": return ObjetoV2(4, 0);
+            case "Sangue de Vampiro": return ObjetoV2(9, 1);
+            case "Prego Enferrujado": return Objeto(0, 3);
+            case "Pedra-Ima": return Objeto(8, 1);
+            case "Amuleto da Sorte": return IconeDaInterface(134, 216, 36, 32, 38f);
+            case "Bolsa do Mercador": return SacoDeOuro;
+            case "Brasa da Furia": return IconeDaInterface(86, 216, 36, 32, 38f);
+            case "Elixir de Nevoa": return ObjetoV2(7, 2);
+            case "Orbe Guardiao": return IconeDaInterface(182, 216, 36, 32, 38f);
+            case "Barril de Polvora": return Objeto(4, 4);
+            case "Carne Assada": return CarneAssada;
+            case "Pacto de Sangue": return ObjetoV2(7, 0);
         }
 
         (int, int)[] reserva = { (7, 1), (8, 1), (8, 2), (1, 3), (1, 4) };
@@ -439,6 +452,37 @@ public static class ArteImportada
         (int coluna, int linha) = reserva[Mathf.Abs(h) % reserva.Length];
         return Objeto(coluna, linha);
     }
+
+    /// <summary>
+    /// Uma celula de 16x16 da folha <c>Masmorra/ObjetosV2</c> (as tres ultimas linhas do
+    /// tileset do 2D Pixel Dungeon Asset Pack v2.0): linha 0 tem o escudo (4) e a caveira (7);
+    /// linha 1 moeda (6), frasco azul (7), chave (8) e frasco vermelho (9); linha 2 frasco
+    /// azul grande (7), frasquinho vermelho (8) e chave dourada (9).
+    /// </summary>
+    public static Sprite ObjetoV2(int coluna, int linha)
+        => Celula("Masmorra/ObjetosV2", coluna, linha);
+
+    /// <summary>Saco de ouro do Tiny Swords (Resources), ~1 unidade.</summary>
+    public static Sprite SacoDeOuro
+        => Unico("TinySwords/Ouro", 128, new RectInt(46, 50, 48, 50), new Vector2(70f, 75f), 48f);
+
+    /// <summary>Pedaco de carne do Tiny Swords (Resources), ~1 unidade.</summary>
+    public static Sprite CarneAssada
+        => Unico("TinySwords/Carne", 128, new RectInt(40, 57, 56, 45), new Vector2(68f, 79.5f), 52f);
+
+    /// <summary>Um desenho da folha inteira do Pixel UI pack 3 (InterfacePixel/All), pra usar no mundo.</summary>
+    public static Sprite IconeDaInterface(int x, int y, int largura, int altura, float pixelsPorUnidade)
+        => Interface("All", x, y, largura, altura, Vector4.zero, pixelsPorUnidade);
+
+    /// <summary>A gema azul do Pixel UI pack 3: o orbe que gira em volta do jogador.</summary>
+    public static Sprite OrbeAzul => IconeDaInterface(182, 216, 36, 32, 38f);
+
+    /// <summary>
+    /// O comerciante da loja: o homem de chapeu de aba larga e casaco do 2D Pixel Dungeon
+    /// Asset Pack v2.0 (Dungeon_Character_2), 16x16, pivo no pe. Gente, nao monstro.
+    /// </summary>
+    public static Sprite Comerciante
+        => Unico("Masmorra/Moradores", 16, new RectInt(32, 0, 16, 16), new Vector2(40f, 16f), PixelsDoLadrilho);
 
     /// <summary>Uma das quatro pedras do Tiny Swords, sorteada; ~1 unidade de lado.</summary>
     public static Sprite PedraAleatoria()
@@ -480,6 +524,26 @@ public static class ArteImportada
     /// <summary>O risco de luz no fim dos cristais: vira o corte dos herois de espada e machado.</summary>
     public static Sprite Corte(float pixelsPorUnidade)
         => Unico("Personagens/Projeteis/Cristais", 100, new RectInt(839, 30, 25, 35), new Vector2(851.5f, 47.5f), pixelsPorUnidade);
+
+    /// <summary>
+    /// A onda de corte dos herois de espada e machado: os rastros de golpe do Tiny RPG
+    /// (Knight, Knight Templar, Swordsman), recortados em <c>Projeteis/Cortes</c>, uma linha
+    /// por heroi, celulas de 40 px, desenhados voando pra direita. Linha 0 = cavaleiro,
+    /// 1 = templario, 2 = espadachim (corte em X), 3 = machadeiro (meia-lua de fogo).
+    /// </summary>
+    public static Sprite[] OndaDeCorte(int linha, float pixelsPorUnidade)
+    {
+        int quantos = linha == 3 ? 3 : 2;
+        return Linha("Personagens/Projeteis/Cortes", 40, linha, quantos, new RectInt(0, 0, 40, 40), new Vector2(20f, 20f), pixelsPorUnidade);
+    }
+
+    /// <summary>O brilho de lamina do espadachim (Tiny RPG): pisca no disparo e quando o dash recarrega.</summary>
+    public static Sprite[] Brilho(float pixelsPorUnidade)
+        => Linha("Personagens/Projeteis/Cortes", 40, 4, 3, new RectInt(0, 0, 40, 40), new Vector2(20f, 20f), pixelsPorUnidade);
+
+    /// <summary>A nuvem de poeira do Tiny Swords (Particle FX, Dust_01): 8 quadros de 64 px.</summary>
+    public static Sprite[] Poeira(float pixelsPorUnidade)
+        => Linha("TinySwords/Poeira", 64, 0, 8, new RectInt(0, 0, 64, 64), new Vector2(32f, 32f), pixelsPorUnidade);
 
     private static Sprite Unico(string caminho, int celula, RectInt recorte, Vector2 centro, float pixelsPorUnidade,
                                 int alturaDaCelula = 0)
