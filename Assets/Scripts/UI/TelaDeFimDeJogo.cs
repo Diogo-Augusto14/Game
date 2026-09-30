@@ -262,12 +262,12 @@ public class TelaDeFimDeJogo : MonoBehaviour
 
         // Os itens tem no maximo duas linhas dentro do quadro: com muitos itens, os mais
         // antigos viram "+N" (ver EncaixarItens) e nada vaza pra semente ou pra fora.
-        Text itens = LinhaDeTexto(pai, "Itens", -84f, 24, new Color(0.85f, 0.85f, 0.85f), "");
+        Text itens = LinhaDeTexto(pai, "Itens", -76f, 24, new Color(0.85f, 0.85f, 0.85f), "");
         itens.rectTransform.sizeDelta = new Vector2(1080f, 64f);
         EncaixarItens(itens, Estatisticas(andar), "Itens: ", "Nenhum item pego", 2);
 
         if (andar != null)
-            LinhaDeTexto(pai, "Semente", -134f, 18, new Color(0.6f, 0.6f, 0.6f), $"semente {andar.SementeUsada}");
+            LinhaDeTexto(pai, "Semente", -128f, 18, new Color(0.6f, 0.6f, 0.6f), $"semente {andar.SementeUsada}");
 
         if (liberados != null && liberados.Count > 0)
         {
@@ -417,7 +417,9 @@ public class TelaDeFimDeJogo : MonoBehaviour
         for (int i = primeiro; i < estatisticas.Itens.Count; i++)
         {
             ItemPassivo item = estatisticas.Itens[i];
-            nomes.Add($"<color=#{ColorUtility.ToHtmlStringRGB(item.cor)}>{item.nome}</color>");
+            // Espaco que nao quebra dentro do nome: "Lágrima de Chumbo" nunca fica partido entre linhas.
+            string nome = item.nome.Replace(' ', '\u00A0');
+            nomes.Add($"<color=#{ColorUtility.ToHtmlStringRGB(item.cor)}>{nome}</color>");
         }
 
         string texto = string.Join("   ", nomes);
