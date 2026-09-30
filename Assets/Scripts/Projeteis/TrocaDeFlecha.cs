@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// (<see cref="ItemPassivo.flecha"/>) fica pra sempre na aljava: pegar um novo ja troca pra
 /// ele, e Q (ou LT no controle) passa pra proxima, voltando na normal no fim da volta.
 ///
-/// Mostra no canto de baixo, a esquerda, o desenho e o nome da flecha em uso. So aparece
+/// Mostra no canto de baixo, a direita, o desenho e o nome da flecha em uso. So aparece
 /// depois da primeira flecha especial. Fica no jogador; o <see cref="EstatisticasDoJogador"/>
 /// poe na hora de dar o item.
 /// </summary>
@@ -149,13 +149,15 @@ public class TrocaDeFlecha : MonoBehaviour
         escala.referenceResolution = new Vector2(1920f, 1080f);
         escala.matchWidthOrHeight = 1f;
 
-        // Painel no canto de baixo a esquerda: desenho da flecha, nome e a tecla de trocar.
+        // Painel no canto de baixo a DIREITA: desenho da flecha, nome e a tecla de trocar. O canto
+        // de baixo a esquerda e da linha de teclas da HUD, o meio de baixo e da barra do chefe e
+        // a lateral direita, de cima pra baixo, e do minimapa e dos itens.
         GameObject objPainel = new GameObject("Painel", typeof(RectTransform));
         objPainel.transform.SetParent(hud.transform, false);
         painel = (RectTransform)objPainel.transform;
-        painel.anchorMin = painel.anchorMax = Vector2.zero;
-        painel.pivot = new Vector2(0f, 0f);
-        painel.anchoredPosition = new Vector2(24f, 24f);
+        painel.anchorMin = painel.anchorMax = new Vector2(1f, 0f);
+        painel.pivot = new Vector2(1f, 0f);
+        painel.anchoredPosition = new Vector2(-24f, 24f);
         painel.sizeDelta = new Vector2(340f, 96f);
 
         Image fundo = objPainel.AddComponent<Image>();

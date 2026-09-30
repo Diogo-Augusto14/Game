@@ -141,7 +141,7 @@ Pasta `Assets/Scripts/Projeteis/`.
 **Flechas do jogador.** Cada tipo de flecha sai de um item do mesmo nome (o `CatalogoDeItens`
 cria um item por flecha, campo `ItemPassivo.flecha`). A flecha fica na aljava pelo resto da
 partida: pegar uma nova já troca pra ela, e `Q` (ou `LT` no controle; a bomba no controle fica só no `LB`) passa pra próxima,
-voltando na normal. O painel no canto de baixo à esquerda mostra a flecha em uso.
+voltando na normal. O painel no canto de baixo à direita mostra a flecha em uso (o canto esquerdo é da linha de teclas da HUD).
 
 | Flecha | Desenho | O que faz |
 |---|---|---|
