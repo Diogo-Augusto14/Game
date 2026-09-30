@@ -260,7 +260,11 @@ public class TelaDeFimDeJogo : MonoBehaviour
         for (int i = 0; i < dados.GetLength(0); i++)
             LinhaDeDado(pai, 175f - i * 48f, dados[i, 0], dados[i, 1]);
 
-        LinhaDeTexto(pai, "Itens", -85f, 24, new Color(0.85f, 0.85f, 0.85f), Itens(andar));
+        // Os itens tem no maximo duas linhas dentro do quadro: com muitos itens, os mais
+        // antigos viram "+N" (ver EncaixarItens) e nada vaza pra semente ou pra fora.
+        Text itens = LinhaDeTexto(pai, "Itens", -76f, 24, new Color(0.85f, 0.85f, 0.85f), "");
+        itens.rectTransform.sizeDelta = new Vector2(1080f, 64f);
+        EncaixarItens(itens, Estatisticas(andar), "Itens: ", "Nenhum item pego", 2);
 
         if (andar != null)
             LinhaDeTexto(pai, "Semente", -128f, 18, new Color(0.6f, 0.6f, 0.6f), $"semente {andar.SementeUsada}");
@@ -292,13 +296,14 @@ public class TelaDeFimDeJogo : MonoBehaviour
         texto.rectTransform.anchoredPosition = new Vector2(100f, y);
     }
 
-    private void LinhaDeTexto(Transform pai, string nome, float y, int tamanho, Color cor, string conteudo)
+    private Text LinhaDeTexto(Transform pai, string nome, float y, int tamanho, Color cor, string conteudo)
     {
         CanvasGroup linha = TelaSimples.Camada(pai, "Linha " + nome);
         linhas.Add(linha);
 
         Text texto = TelaSimples.Texto(linha.transform, nome, tamanho, cor, y, conteudo);
         texto.rectTransform.sizeDelta = new Vector2(1080f, tamanho * 3f);
+        return texto;
     }
 
     /// <summary>O heroi na esquerda do resumo: caindo (morte) ou parado respirando (vitoria).</summary>
@@ -369,20 +374,40 @@ public class TelaDeFimDeJogo : MonoBehaviour
         TelaDeInicio.VoltarAoMenu();
     }
 
-    private static string Itens(Andar andar)
+    private static EstatisticasDoJogador Estatisticas(Andar andar)
     {
-        EstatisticasDoJogador estatisticas = andar != null && andar.Jogador != null
-            ? andar.Jogador.GetComponent<EstatisticasDoJogador>()
-            : null;
+        return andar != null && andar.Jogador != null ? andar.Jogador.GetComponent<EstatisticasDoJogador>() : null;
+    }
 
-        return estatisticas == null || estatisticas.Itens.Count == 0
-            ? "Nenhum item pego"
-            : "Itens: " + ListaDeItens(estatisticas, 8);
+    /// <summary>
+    /// Escreve os itens pegos em <paramref name="texto"/> sem passar de <paramref name="maximoDeLinhas"/>
+    /// linhas na largura dele: se nao cabem todos, tira os mais antigos (viram "+N") ate caber.
+    /// Mede com a fonte de verdade, entao funciona com 3 ou com 40 itens e nomes de qualquer tamanho.
+    /// </summary>
+    internal static void EncaixarItens(Text texto, EstatisticasDoJogador estatisticas, string prefixo, string vazio, int maximoDeLinhas)
+    {
+        if (estatisticas == null || estatisticas.Itens.Count == 0)
+        {
+            texto.text = vazio;
+            return;
+        }
+
+        // Altura de uma linha nesta fonte e tamanho; a folga cobre o arredondamento.
+        texto.text = prefixo + "Ág";
+        float limite = texto.preferredHeight * (maximoDeLinhas + 0.5f);
+
+        for (int cabem = estatisticas.Itens.Count; cabem >= 1; cabem--)
+        {
+            texto.text = prefixo + ListaDeItens(estatisticas, cabem);
+
+            if (texto.preferredHeight < limite)
+                return;
+        }
     }
 
     /// <summary>
     /// Os nomes dos itens pegos, cada um na cor dele. Passando de <paramref name="cabem"/>,
-    /// mostra so os ultimos e o resto vira "+N" (a linha nao invade o que vem embaixo).
+    /// mostra so os ultimos e o resto vira "+N". Pra caber num espaco certo, use <see cref="EncaixarItens"/>.
     /// </summary>
     internal static string ListaDeItens(EstatisticasDoJogador estatisticas, int cabem)
     {
@@ -392,7 +417,9 @@ public class TelaDeFimDeJogo : MonoBehaviour
         for (int i = primeiro; i < estatisticas.Itens.Count; i++)
         {
             ItemPassivo item = estatisticas.Itens[i];
-            nomes.Add($"<color=#{ColorUtility.ToHtmlStringRGB(item.cor)}>{item.nome}</color>");
+            // Espaco que nao quebra dentro do nome: "Lágrima de Chumbo" nunca fica partido entre linhas.
+            string nome = item.nome.Replace(' ', '\u00A0');
+            nomes.Add($"<color=#{ColorUtility.ToHtmlStringRGB(item.cor)}>{nome}</color>");
         }
 
         string texto = string.Join("   ", nomes);
