@@ -67,7 +67,7 @@ static class Lancador
 
         string json;
         using (var web = NovoCliente())
-            json = web.DownloadString("https://api.github.com/repos/" + Repositorio + "/releases/latest");
+            json = web.DownloadString(UrlDaUltimaVersao());
 
         string tag = Pegar(json, "\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
         string url = Pegar(json, "\"browser_download_url\"\\s*:\\s*\"([^\"]+\\.zip)\"");
@@ -109,6 +109,15 @@ static class Lancador
             try { File.Delete(zip); } catch { }
             try { if (Directory.Exists(extraido)) Directory.Delete(extraido, true); } catch { }
         }
+    }
+
+    // Só para testes: a variável de ambiente PRETTIE_URL_TESTE troca a origem (ex.: servidor local).
+    // O usuário final não tem essa variável definida, então sempre usa o repositório oficial.
+    static string UrlDaUltimaVersao()
+    {
+        string teste = Environment.GetEnvironmentVariable("PRETTIE_URL_TESTE");
+        if (!string.IsNullOrEmpty(teste)) return teste;
+        return "https://api.github.com/repos/" + Repositorio + "/releases/latest";
     }
 
     static WebClient NovoCliente()

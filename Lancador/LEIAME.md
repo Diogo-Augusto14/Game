@@ -32,3 +32,7 @@ Mandar o zip da versão mais recente uma única vez. Depois disso, as atualizaç
 - O lançador não se sobrescreve durante a atualização; para trocar o próprio lançador, mande um zip novo.
 - Só a última release marcada como "Latest" conta (rascunhos e pré-lançamentos são ignorados).
 - O número da tag segue o formato `v1.2.3`; o `v` é ignorado na comparação.
+
+## Testar sem o repositório público
+
+Defina a variável de ambiente `PRETTIE_URL_TESTE` com a URL de um JSON no mesmo formato da API do GitHub (precisa de `tag_name` e `browser_download_url` terminando em `.zip`), por exemplo servido por `python -m http.server`, e abra o lançador na mesma janela do terminal. Sem essa variável, ele sempre usa o repositório oficial.
