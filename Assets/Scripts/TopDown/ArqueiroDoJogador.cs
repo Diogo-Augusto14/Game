@@ -4,6 +4,8 @@ using UnityEngine;
 /// Anima o jogador com o heroi escolhido (<see cref="Herois"/>): parado ou correndo conforme
 /// a velocidade, o golpe a cada disparo do <see cref="AtiradorTopDown"/> (o arqueiro azul
 /// tem tiro pra cima, pro lado e pra baixo; os do Tiny RPG, so de lado) e a morte.
+/// Os herois de espada alternam os ataques da folha a cada golpe (combo de 2 ou 3), e no
+/// dash o heroi corre acelerado (o rastro e a poeira sao do <see cref="RastroDoDash"/>).
 ///
 /// O desenho e o SpriteRenderer da raiz (o Vida pisca ele); aqui so troca o sprite e o flipX.
 /// </summary>
@@ -18,13 +20,19 @@ public class ArqueiroDoJogador : MonoBehaviour
     [Tooltip("Segundos da animacao de tiro (encurta se a cadencia for mais rapida)")]
     [SerializeField, Min(0.05f)] private float duracaoDoTiro = 0.3f;
 
+    [Tooltip("Quanto a corrida acelera durante o dash")]
+    [SerializeField, Min(1f)] private float aceleracaoNoDash = 2.5f;
+
     private int primeiroQuadroDoTiro = 3;
+    private bool emCombo;
+    private int golpeDoCombo;
 
     private ClipesDePersonagem clipes;
     private SpriteRenderer desenho;
     private Rigidbody2D corpo;
     private AtiradorTopDown atirador;
     private Vida vida;
+    private MovimentoTopDown movimento;
 
     private Sprite[] tocando;
     private float inicio;
@@ -36,17 +44,21 @@ public class ArqueiroDoJogador : MonoBehaviour
     /// Liga a animacao (ou troca de heroi, chamando de novo). O tiro sai na hora, entao o
     /// golpe comeca em <paramref name="quadroDoTiro"/>, com o arco ja puxado; -1 = no meio.
     /// </summary>
-    public void Configurar(ClipesDePersonagem novosClipes, SpriteRenderer renderizador, int quadroDoTiro = 3)
+    public void Configurar(ClipesDePersonagem novosClipes, SpriteRenderer renderizador, int quadroDoTiro = 3,
+                           bool alternarAtaques = false)
     {
         Desligar();
 
         clipes = novosClipes;
         primeiroQuadroDoTiro = quadroDoTiro;
+        emCombo = alternarAtaques;
+        golpeDoCombo = 0;
         morto = false;
         desenho = renderizador;
         corpo = GetComponent<Rigidbody2D>();
         atirador = GetComponent<AtiradorTopDown>();
         vida = GetComponent<Vida>();
+        movimento = GetComponent<MovimentoTopDown>();
 
         if (atirador != null)
             atirador.AoAtirar += Atirou;
@@ -76,7 +88,7 @@ public class ArqueiroDoJogador : MonoBehaviour
         if (morto)
             return;
 
-        Sprite[] quadros = clipes.Ataque;
+        Sprite[] quadros = emCombo ? GolpeDoCombo() : clipes.Ataque;
 
         if (Mathf.Abs(direcao.y) > Mathf.Abs(direcao.x))
             quadros = (direcao.y > 0f ? clipes.AtaqueCima : clipes.AtaqueBaixo) ?? quadros;
@@ -95,6 +107,23 @@ public class ArqueiroDoJogador : MonoBehaviour
         Tocar(soltando, soltando.Length / duracao, true);
     }
 
+    /// <summary>Ataque 1, ataque 2 e (se a folha tiver) ataque 3, em roda.</summary>
+    private Sprite[] GolpeDoCombo()
+    {
+        Sprite[][] golpes = { clipes.Ataque, clipes.AtaqueEspecial, clipes.AtaqueForte };
+
+        for (int tentativa = 0; tentativa < golpes.Length; tentativa++)
+        {
+            Sprite[] golpe = golpes[golpeDoCombo % golpes.Length];
+            golpeDoCombo = (golpeDoCombo + 1) % golpes.Length;
+
+            if (golpe != null && golpe.Length > 0)
+                return golpe;
+        }
+
+        return clipes.Ataque;
+    }
+
     private void Morreu()
     {
         morto = true;
@@ -111,7 +140,10 @@ public class ArqueiroDoJogador : MonoBehaviour
 
         bool terminou = (Time.time - inicio) * fps >= tocando.Length;
 
-        if (!morto && (!umaVez || terminou))
+        // O dash corta o golpe no meio: a arrancada tem que aparecer na hora.
+        bool dashando = movimento != null && movimento.Dashando;
+
+        if (!morto && (!umaVez || terminou || dashando))
             EscolherPeloMovimento();
 
         int quadro = Mathf.FloorToInt((Time.time - inicio) * fps);
@@ -128,9 +160,10 @@ public class ArqueiroDoJogador : MonoBehaviour
             desenho.flipX = velocidade.x < 0f;
 
         Sprite[] alvo = andando ? clipes.Andando : clipes.Parado;
+        float alvoFps = andando && movimento != null && movimento.Dashando ? quadrosPorSegundo * aceleracaoNoDash : quadrosPorSegundo;
 
-        if (tocando != alvo || umaVez)
-            Tocar(alvo, quadrosPorSegundo, false);
+        if (tocando != alvo || umaVez || !Mathf.Approximately(fps, alvoFps))
+            Tocar(alvo, alvoFps, false);
     }
 
     private void Tocar(Sprite[] quadros, float novoFps, bool soUmaVez)

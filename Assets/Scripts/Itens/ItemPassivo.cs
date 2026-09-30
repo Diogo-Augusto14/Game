@@ -17,6 +17,9 @@ public class ItemPassivo
     [Tooltip("Uma frase curta, a que aparece na tela ao pegar (como no Isaac)")]
     public string descricao;
 
+    [Tooltip("O efeito explicado por inteiro: aparece ao passar o mouse no item da lateral (e na loja)")]
+    public string Descricao;
+
     public Color cor = Color.white;
 
     [Header("Tiro")]
@@ -57,6 +60,9 @@ public class ItemPassivo
         this.descricao = descricao;
         this.cor = cor;
     }
+
+    /// <summary>O efeito completo; item sem <see cref="Descricao"/> usa a frase curta.</summary>
+    public string Efeito => string.IsNullOrEmpty(Descricao) ? descricao : Descricao;
 }
 
 /// <summary>
@@ -74,46 +80,88 @@ public static class CatalogoDeItens
         return new List<ItemPassivo>
         {
             new ItemPassivo("Cebola Triste", "Chora mais rapido", new Color(0.85f, 0.75f, 0.95f))
-                { somaCadencia = 0.7f },
+                {
+                    Descricao = "Atira mais rapido: +0.7 lagrima por segundo.",
+                    somaCadencia = 0.7f
+                },
 
             new ItemPassivo("Seringa Vermelha", "Dano para cima", new Color(0.9f, 0.2f, 0.2f))
-                { somaDano = 1.5f },
+                {
+                    Descricao = "Cada lagrima causa +1.5 de dano.",
+                    somaDano = 1.5f
+                },
 
             new ItemPassivo("Tenis Velho", "Velocidade para cima", new Color(0.3f, 0.6f, 0.95f))
-                { somaVelocidade = 1f },
+                {
+                    Descricao = "Anda mais rapido: +1 de velocidade.",
+                    somaVelocidade = 1f
+                },
 
             new ItemPassivo("Olho Triplo", "Tres lagrimas por vez", new Color(0.95f, 0.95f, 0.8f))
-                { lagrimasExtras = 2, multiplicaCadencia = 0.7f },
+                {
+                    Descricao = "Solta tres lagrimas de uma vez, mas atira 30% mais devagar.",
+                    lagrimasExtras = 2, multiplicaCadencia = 0.7f
+                },
 
             new ItemPassivo("Olho Gemeo", "Duas lagrimas por vez", new Color(0.7f, 0.9f, 1f))
-                { lagrimasExtras = 1, somaDano = 0.3f },
+                {
+                    Descricao = "Solta duas lagrimas de uma vez e ganha +0.3 de dano.",
+                    lagrimasExtras = 1, somaDano = 0.3f
+                },
 
             new ItemPassivo("Luneta", "Alcance e tiro mais rapido", new Color(0.55f, 0.5f, 0.35f))
-                { somaAlcance = 3f, somaVelocidadeDoTiro = 3f },
+                {
+                    Descricao = "Lagrimas vao mais longe (+3 de alcance) e voam mais rapido.",
+                    somaAlcance = 3f, somaVelocidadeDoTiro = 3f
+                },
 
             new ItemPassivo("Coracao Extra", "Vida maxima para cima", new Color(1f, 0.35f, 0.45f))
-                { somaVidaMaxima = 20f },
+                {
+                    Descricao = "Ganha um coracao a mais de vida maxima, ja cheio.",
+                    somaVidaMaxima = 20f
+                },
 
             new ItemPassivo("Lagrima de Chumbo", "Lagrimas grandes e pesadas", new Color(0.45f, 0.45f, 0.5f))
-                { multiplicaDano = 1.5f, somaTamanhoDaLagrima = 0.12f, somaVelocidadeDoTiro = -2f, somaVelocidade = -0.4f },
+                {
+                    Descricao = "Dano x1.5 e lagrimas maiores, mas o tiro e o heroi ficam mais lentos.",
+                    multiplicaDano = 1.5f, somaTamanhoDaLagrima = 0.12f, somaVelocidadeDoTiro = -2f, somaVelocidade = -0.4f
+                },
 
             new ItemPassivo("Cafe", "Tudo mais rapido", new Color(0.45f, 0.28f, 0.15f))
-                { somaVelocidade = 0.6f, somaCadencia = 0.4f },
+                {
+                    Descricao = "Anda mais rapido (+0.6) e atira mais rapido (+0.4 lagrima por segundo).",
+                    somaVelocidade = 0.6f, somaCadencia = 0.4f
+                },
 
             new ItemPassivo("Saco de Moedas", "Moedas, chave e bombas", new Color(0.95f, 0.8f, 0.2f))
-                { moedas = 10, chaves = 1, bombas = 3 },
+                {
+                    Descricao = "Ganha na hora 10 moedas, 1 chave e 3 bombas.",
+                    moedas = 10, chaves = 1, bombas = 3
+                },
 
             new ItemPassivo("Lagrima Fantasma", "Lagrimas atravessam inimigos", new Color(0.85f, 0.95f, 1f))
-                { atravessa = true, corDaLagrima = new Color(0.85f, 0.95f, 1f, 0.55f) },
+                {
+                    Descricao = "As lagrimas atravessam os inimigos e acertam quem estiver atras.",
+                    atravessa = true, corDaLagrima = new Color(0.85f, 0.95f, 1f, 0.55f)
+                },
 
             new ItemPassivo("Bussola Maldita", "Lagrimas perseguem inimigos", new Color(0.7f, 0.35f, 0.95f))
-                { teleguiada = true, corDaLagrima = new Color(0.75f, 0.45f, 1f) },
+                {
+                    Descricao = "As lagrimas fazem curva sozinhas atras do inimigo mais perto.",
+                    teleguiada = true, corDaLagrima = new Color(0.75f, 0.45f, 1f)
+                },
 
             new ItemPassivo("Olho na Nuca", "Chora pra tras tambem", new Color(0.4f, 0.8f, 0.55f))
-                { paraTras = true },
+                {
+                    Descricao = "Cada disparo solta tambem uma lagrima para tras.",
+                    paraTras = true
+                },
 
             new ItemPassivo("Pimenta", "Lagrimas de fogo, dano para cima", new Color(1f, 0.35f, 0.1f))
-                { multiplicaDano = 1.3f, somaVelocidadeDoTiro = 1f, corDaLagrima = new Color(1f, 0.45f, 0.15f) },
+                {
+                    Descricao = "Lagrimas de fogo: dano x1.3 e tiro um pouco mais rapido.",
+                    multiplicaDano = 1.3f, somaVelocidadeDoTiro = 1f, corDaLagrima = new Color(1f, 0.45f, 0.15f)
+                },
         };
     }
 

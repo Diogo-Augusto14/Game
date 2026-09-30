@@ -33,6 +33,12 @@ public static class Herois
         public Color CorDoTiro = Color.white;
 
         /// <summary>
+        /// Heroi de espada ou machado: linha da onda de corte em <see cref="ArteImportada.OndaDeCorte"/>
+        /// (-1 = nao e). A onda voa animada, atravessa os inimigos e o corpo golpeia em combo.
+        /// </summary>
+        public int OndaDeCorte = -1;
+
+        /// <summary>
         /// Vencer o chefe da ultima fase deste mundo libera o heroi (0 = nao e por chefe).
         /// Mundo 1 = Porao, 2 = Catacumbas, 3 = Cripta.
         /// </summary>
@@ -66,6 +72,12 @@ public static class Herois
     /// <summary>Pixels por unidade do arqueiro azul: o corpo (uns 75 px) fica com ~1 unidade na escala 0.8.</summary>
     private const float PixelsDoArqueiroAzul = 60f;
 
+    /// <summary>Pixels por unidade da onda de corte: a meia-lua (uns 29 px) fica com ~0.85 unidade no tamanho 0.45.</summary>
+    private const float PixelsDaOnda = 16f;
+
+    /// <summary>Raio do colisor da onda, na escala do tiro: acerta o que a meia-lua cobre, nao so o miolo.</summary>
+    private const float RaioDaOnda = 0.8f;
+
     public static readonly Heroi[] Todos =
     {
         new Heroi
@@ -85,9 +97,9 @@ public static class Herois
         {
             Nome = "Cavaleiro", Pasta = "Cavaleiro",
             LiberaNoMundo = 3,
-            Descricao = "Muita vida. Corte de espada forte, mas curto.",
+            Descricao = "Muita vida. Onda de corte forte, mas curta.",
             Vida = 140f, Velocidade = 3.8f, Dano = 5f, Cadencia = 2f, Alcance = 3.5f,
-            VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.45f, TipoDoTiro = Tiro.Corte,
+            VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.45f, TipoDoTiro = Tiro.Corte, OndaDeCorte = 0,
         },
         new Heroi
         {
@@ -95,7 +107,7 @@ public static class Herois
             LiberaComVitorias = 3,
             Descricao = "O que mais aguenta, e o mais lento.",
             Vida = 160f, Velocidade = 3.5f, Dano = 4f, Cadencia = 2.2f, Alcance = 4f,
-            VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.45f, TipoDoTiro = Tiro.Corte,
+            VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.45f, TipoDoTiro = Tiro.Corte, OndaDeCorte = 1,
             CorDoTiro = new Color(1f, 0.85f, 0.45f),
         },
         new Heroi
@@ -112,7 +124,7 @@ public static class Herois
             LiberaZerandoCom = "Cavaleiro",
             Descricao = "Rapido e com cortes rapidos, mas pouca vida.",
             Vida = 80f, Velocidade = 5.2f, Dano = 4f, Cadencia = 3.2f, Alcance = 3.2f,
-            TamanhoDoTiro = 0.4f, TipoDoTiro = Tiro.Corte,
+            TamanhoDoTiro = 0.4f, TipoDoTiro = Tiro.Corte, OndaDeCorte = 2,
             CorDoTiro = new Color(1f, 0.7f, 0.75f),
         },
         new Heroi
@@ -121,8 +133,8 @@ public static class Herois
             LiberaZerandoCom = "Arqueiro",
             Descricao = "O golpe mais forte do jogo, bem devagar.",
             Vida = 120f, Velocidade = 3.8f, Dano = 6.5f, Cadencia = 1.5f, Alcance = 3.8f,
-            VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.5f, TipoDoTiro = Tiro.Corte,
-            CorDoTiro = new Color(1f, 0.6f, 0.4f),
+            VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.5f, TipoDoTiro = Tiro.Corte, OndaDeCorte = 3,
+            CorDoTiro = new Color(1f, 0.92f, 0.85f),
         },
         new Heroi
         {
@@ -228,6 +240,29 @@ public static class Herois
 
             if (desenhoDoTiro != null)
                 atirador.DefinirVisual(desenhoDoTiro, apontar, heroi.CorDoTiro);
+
+            // Espada e machado: a onda de corte do pacote, animada e apontada pro rumo.
+            Sprite[] onda = heroi.OndaDeCorte >= 0 ? ArteImportada.OndaDeCorte(heroi.OndaDeCorte, PixelsDaOnda) : null;
+
+            if (onda != null)
+            {
+                atirador.DefinirVisual(onda[0], true, heroi.CorDoTiro);
+                atirador.DefinirOndaDeCorte(onda, 12f, RaioDaOnda);
+            }
+        }
+
+        GolpeDeEspada golpe = jogador.GetComponent<GolpeDeEspada>();
+
+        if (heroi.OndaDeCorte >= 0)
+        {
+            if (golpe == null)
+                golpe = jogador.AddComponent<GolpeDeEspada>();
+
+            golpe.Configurar(heroi.CorDoTiro);
+        }
+        else if (golpe != null)
+        {
+            Object.Destroy(golpe);
         }
 
         CuraDoHeroi cura = jogador.GetComponent<CuraDoHeroi>();
@@ -258,6 +293,7 @@ public static class Herois
             animacao = jogador.AddComponent<ArqueiroDoJogador>();
 
         // O arqueiro azul comeca o tiro com o arco puxado; os do Tiny RPG no meio do golpe.
-        animacao.Configurar(clipes, corpo, heroi.Pasta == null ? 3 : -1);
+        // Os de espada alternam os ataques da folha (combo).
+        animacao.Configurar(clipes, corpo, heroi.Pasta == null ? 3 : -1, heroi.OndaDeCorte >= 0);
     }
 }

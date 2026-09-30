@@ -181,6 +181,8 @@ public static class ArteDaInterface
         {
             case KeyCode.Escape: celula = new Vector2Int(8, 0); return true;
             case KeyCode.Tab: celula = new Vector2Int(8, 2); return true;
+            case KeyCode.LeftShift:
+            case KeyCode.RightShift: celula = new Vector2Int(8, 5); return true;
             case KeyCode.Space: celula = new Vector2Int(8, 8); return true;
             case KeyCode.Backspace: celula = new Vector2Int(8, 23); return true;
             case KeyCode.Return: celula = new Vector2Int(8, 25); return true;
