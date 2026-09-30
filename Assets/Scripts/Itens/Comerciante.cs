@@ -27,6 +27,9 @@ public class Comerciante : MonoBehaviour
         "Bom proveito!",
     };
 
+    /// <summary>Quanto o pe do comerciante fica acima do pe do balcao (so as pernas ficam atras dele).</summary>
+    private const float AlturaDoCorpo = 0.3f;
+
     private Transform corpo;
     private SpriteRenderer desenho;
     private Transform jogador;
@@ -60,7 +63,8 @@ public class Comerciante : MonoBehaviour
 
         if (pessoa != null)
         {
-            desenho = FormasDaSala.Desenho(corpo, "Desenho", pessoa, Color.white, Vector2.zero, Vector2.one * 1.15f, 8);
+            // Grande e acima do balcao: o balcao so cobre as pernas, o corpo todo aparece.
+            desenho = FormasDaSala.Desenho(corpo, "Desenho", pessoa, Color.white, new Vector2(0f, AlturaDoCorpo), Vector2.one * 1.5f, 8);
         }
         else
         {
@@ -74,17 +78,17 @@ public class Comerciante : MonoBehaviour
         Sprite balcao = ArteImportada.Objeto(0, 2);
 
         if (balcao != null)
-            FormasDaSala.Desenho(transform, "Balcao", balcao, Color.white, new Vector2(0f, 0.05f), Vector2.one * 1.4f, 9);
+            FormasDaSala.Desenho(transform, "Balcao", balcao, Color.white, new Vector2(0f, -0.15f), Vector2.one * 1.2f, 9);
 
         Sprite ouro = ArteImportada.SacoDeOuro;
 
         if (ouro != null)
-            FormasDaSala.Desenho(transform, "Saco de ouro", ouro, Color.white, new Vector2(0.5f, 0.45f), Vector2.one * 0.5f, 10);
+            FormasDaSala.Desenho(transform, "Saco de ouro", ouro, Color.white, new Vector2(0.5f, 0.3f), Vector2.one * 0.5f, 10);
 
         Sprite moeda = ArteImportada.Objeto(3, 3);
 
         if (moeda != null)
-            FormasDaSala.Desenho(transform, "Moedas", moeda, Color.white, new Vector2(-0.45f, 0.35f), Vector2.one * 0.55f, 10);
+            FormasDaSala.Desenho(transform, "Moedas", moeda, Color.white, new Vector2(-0.45f, 0.2f), Vector2.one * 0.55f, 10);
 
         // Enfeites de mercador dos lados.
         Sprite barril = ArteImportada.Objeto(4, 4);
@@ -98,12 +102,12 @@ public class Comerciante : MonoBehaviour
             FormasDaSala.Desenho(transform, "Caixa", caixa, Color.white, new Vector2(1.5f, 0.1f), Vector2.one * 1.1f, 7);
 
         // Placa de LOJA acima da cabeca.
-        Placa("LOJA", new Vector2(0f, 1.75f), new Color(1f, 0.85f, 0.35f));
+        Placa("LOJA", new Vector2(0f, 2.05f), new Color(1f, 0.85f, 0.35f));
 
         // O balao de fala comeca escondido.
         GameObject balao = new GameObject("Balao");
         balao.transform.SetParent(transform, false);
-        balao.transform.localPosition = new Vector3(1.9f, 1.3f, 0f);
+        balao.transform.localPosition = new Vector3(1.9f, 1.4f, 0f);
 
         Sprite placa = ArteImportada.PlacaNoMundo;
 

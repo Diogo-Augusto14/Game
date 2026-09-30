@@ -36,6 +36,6 @@ public static class Loja
         ProdutoDaLoja.Criar(TipoDeColetavel.Chave, PrecoDaChave, centro + new Vector2(4f, linha), sala);
 
         // O comerciante, no alto da sala, atras do balcao.
-        Comerciante.Criar(centro + new Vector2(0f, 1.9f), sala);
+        Comerciante.Criar(centro + new Vector2(0f, 1.3f), sala);
     }
 }
