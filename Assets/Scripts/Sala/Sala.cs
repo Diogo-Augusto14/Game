@@ -221,15 +221,22 @@ public class Sala : MonoBehaviour
     ///   - <paramref name="quantos"/> enfeites de chao (cogumelo, pedrinha, osso) em pontos livres;
     ///   - duas tochas acesas na parede de cima, uma de cada lado da porta;
     ///   - as vezes um candelabro num canto livre.
+    /// Com um <see cref="TemaDoAndar"/> em jogo, ele muda a mistura (ossos, runas, candelabro).
     /// Sem a arte, a parte que faltar simplesmente nao aparece.
     /// </summary>
     public void Enfeitar(int quantos)
     {
         Montar();
 
+        // O tema do andar decide quanto osso, runa e candelabro aparece.
+        TemaDoAndar tema = TemaDoAndar.Atual;
+
         for (int i = 0; i < quantos; i++)
         {
-            Sprite sprite = ArteImportada.EnfeiteAleatorio();
+            Sprite sprite = tema != null && Random.value < tema.ChanceDeRuna ? ArteImportada.Runa : null;
+
+            if (sprite == null)
+                sprite = tema != null ? ArteImportada.EnfeiteAleatorio(tema.ChanceDeOsso) : ArteImportada.EnfeiteAleatorio();
 
             if (sprite == null)
                 break;
@@ -256,7 +263,7 @@ public class Sala : MonoBehaviour
         // Candelabro: meia chance, num canto que nao tenha pedra nem espinho.
         Sprite[] candelabro = ArteImportada.Candelabro(16f);
 
-        if (candelabro != null && Random.value < 0.5f)
+        if (candelabro != null && Random.value < (tema != null ? tema.ChanceDeCandelabro : 0.5f))
         {
             Vector2Int canto = new Vector2Int(Random.value < 0.5f ? -1 : 1, Random.value < 0.5f ? -1 : 1);
             Vector2 local = new Vector2(canto.x * (meio.x - 0.6f), canto.y * (meio.y - 0.6f));
@@ -266,16 +273,19 @@ public class Sala : MonoBehaviour
         }
     }
 
-    /// <summary>Troca a cor do chao e das paredes (cada andar tem a sua).</summary>
-    public void Pintar(Color chao, Color parede)
+    /// <summary>
+    /// Troca a cor do chao e das paredes (cada andar tem a sua). Com a arte do pacote,
+    /// <paramref name="forca"/> diz quanto a cor puxa os ladrilhos pro tom dela.
+    /// </summary>
+    public void Pintar(Color chao, Color parede, float forca = 0.4f)
     {
         Montar();
 
-        // Os ladrilhos do pacote ja tem cor: a do andar so puxa de leve pro tom dele.
+        // Os ladrilhos do pacote ja tem cor: a do andar so puxa pro tom dele.
         if (ArteGerada.CenarioDoPacote)
         {
-            chao = Color.Lerp(Color.white, chao, 0.4f);
-            parede = Color.Lerp(Color.white, parede, 0.4f);
+            chao = Color.Lerp(Color.white, chao, forca);
+            parede = Color.Lerp(Color.white, parede, forca);
         }
 
         corDoChao = chao;
