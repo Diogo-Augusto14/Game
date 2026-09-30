@@ -129,7 +129,7 @@ public class TelaDeInicio : MonoBehaviour
         TelaSimples.Faixa(topo.transform, "Faixa do titulo", ArteDaInterface.FaixaRosa, YDoTitulo, 1150f);
         textoDoTitulo = TelaSimples.Titulo(topo.transform, "Titulo", 150, new Color(1f, 0.93f, 0.8f), YDoTitulo, titulo);
         TelaSimples.Texto(topo.transform, "Subtitulo", 30, new Color(0.8f, 0.7f, 0.7f), 282f,
-            $"Desça {(andar != null ? andar.AndarFinal : 4)} andares e derrote o Olho do Porão");
+            $"Atravesse {(andar != null ? andar.QuantidadeDeMundos : 4)} mundos de {(andar != null ? andar.FasesPorMundo : 3)} fases e derrote o Olho do Porão");
 
         painelDoHeroi = TelaSimples.Camada(transform, "Heroi");
         MontarEscolhaDoHeroi(painelDoHeroi.transform, 105f);
@@ -166,8 +166,8 @@ public class TelaDeInicio : MonoBehaviour
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(pai, "Controles", -408f,
-            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Esc] pausar || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad Start] pausar",
+            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash | [Esc] pausar || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad RB] dash | [Pad Start] pausar",
             24, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
             "[M] música | [N] efeitos | Bomba abre parede rachada. Moeda compra na loja. || " +
@@ -283,7 +283,7 @@ public class TelaDeInicio : MonoBehaviour
         TelaSimples.TravarJogador(jogador, false);
 
         if (andar != null)
-            Musica.Tocar(Musica.DoAndar(andar.NumeroDoAndar));
+            Musica.Tocar(Musica.DoAndar(andar.Mundo));
 
         Destroy(gameObject);
     }

@@ -28,20 +28,27 @@ removido do projeto.
 | `W A S D` | Andar em 8 direções |
 | `Setas` | Atirar (só as 4 retas; vale a última seta apertada) |
 | `E` | Bomba |
+| `Shift` (controle: `RB` ou `RT`) | Dash: arrancada curta, sem tomar dano durante ela, com recarga |
 | `Esc` | Pausa |
 | `M` / `N` | Liga/desliga música / efeitos |
+| `I` (Select no controle) | Mostra o efeito dos itens pegos, um por um (ou passe o mouse no item) |
 
 | Script | O que faz |
 |---|---|
-| `TopDown/MovimentoTopDown.cs` | Andar com aceleração/freio, gravidade zero, recebe empurrão do `Vida` |
+| `TopDown/MovimentoTopDown.cs` | Andar com aceleração/freio, gravidade zero, recebe empurrão do `Vida`; o dash (velocidade, duração, recarga e a proteção que faz dele esquiva) |
+| `TopDown/RastroDoDash.cs` | O que se vê no dash: poeira do Tiny Swords, rastro azulado do herói e o brilho quando a recarga acaba |
+| `TopDown/GolpeDeEspada.cs` | Heróis de espada/machado: brilho de lâmina a cada golpe |
+| `TopDown/AnimacaoDoTiro.cs` | Tiro animado: a onda de corte tremula e se abre ao sair |
 | `TopDown/AtiradorTopDown.cs` | Dano, alcance, cadência, velocidade do tiro; o desenho do tiro vem do herói |
 | `TopDown/Lagrima.cs` | O projétil: voa até o alcance, bate em `IDanificavel` ou parede e estoura |
-| `TopDown/Herois.cs` | Os heróis jogáveis e os números de cada um |
+| `TopDown/Herois.cs` | Os heróis jogáveis e os números de cada um. Cavaleiro, templário, espadachim e machadeiro (`OndaDeCorte`) disparam ondas de corte que atravessam inimigos e golpeiam em combo (ataque 1, 2 e 3 da folha) |
 | `TopDown/Progresso.cs` | O que fica salvo entre partidas (PlayerPrefs): vitórias e heróis liberados. Só o Arqueiro Azul começa livre; os outros saem vencendo chefes e zerando (condições em `Herois.cs`). `Tools ▸ Jogo ▸ Apagar progresso salvo` bloqueia tudo de novo |
 | `TopDown/BootstrapTopDown.cs` | `CriarJogador` (usado pelo `Andar`) e a sala de treino |
 | `combate/Vida.cs` | Vida, dano, invencibilidade e empurrão de tudo que apanha |
 | `Jogador/Entrada.cs` | Teclado (WASD e setas separados) |
-| `UI/Hud.cs` | Corações e a lista de controles |
+| `UI/Hud.cs` | Corações (numa área de altura fixa: vida a mais encolhe os corações em vez de empurrar o resto) e a lista de controles |
+| `Itens/HudDoInventario.cs` | Moedas, chaves e bombas em coluna embaixo da vida, e o aviso do item pego |
+| `Itens/PainelDeItens.cs` | Itens pegos na lateral direita; mouse ou `I`/Select mostra o nome e o efeito (`ItemPassivo.Descricao`) |
 
 ---
 
@@ -55,7 +62,7 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | Arquivo | Assunto |
 |---|---|
 | `Sala.cs` | Chão, 4 paredes, portas; fecha ao entrar, abre quando morre o último inimigo |
-| `Porta.cs` | Aberta / fechada / não existe (vira parede); avisa `AoAtravessar` |
+| `Porta.cs` | Aberta / fechada / não existe (vira parede); avisa `AoAtravessar`. Abrir e fechar são animados (o portão sobe e desce quadro a quadro, com tremor e um pulinho no fim); fechando bloqueia na hora, abrindo só deixa passar quando o portão chegou em cima (`Passavel`). `AbrirNaHora` é a montagem sem animação |
 | `InimigoDeSala.cs` | Base: dormir, acordar, dano por encostar, empurrão na direção do golpe |
 | `InimigoPerseguidor.cs` | Vai atrás do jogador em zigue-zague |
 | `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira |
@@ -87,22 +94,63 @@ jogador quando ele chega por aquela porta.
 
 ---
 
-### Tema de cada andar
+### Tema de cada mundo
 
-`Andar/TemaDoAndar.cs` dá a cara de cada andar: nome (aparece no aviso "Andar 2: Catacumbas"
+`Andar/TemaDoAndar.cs` dá a cara de cada mundo: nome (aparece no aviso "Mundo 2 - Fase 1: Catacumbas"
 e na pausa), chão, parede, tom, quantos ossos/runas/candelabros enfeitam as salas e a lista
 de inimigos comuns com peso. O `Andar` escolhe o tema antes de montar as salas e
 `ArteGerada.Chao`/`Tijolo` desenham o chão e a parede dele.
 
-| Andar | Tema | Inimigos comuns |
+| Mundo | Tema | Inimigos comuns |
 |---|---|---|
 | 1 | Porão | goblins da tocha, barril, gosmas, bolhas, morcegos, cão infernal, orc, bruxo, minotauro, monstro de sangue |
 | 2 | Catacumbas | saltador, orcs, goblin da dinamite, arqueiro sombrio, lobisomem, esqueletos, cavaleiro do escudo, sentinela |
 | 3 | Cripta | esqueletos (foice, espadão, arqueiro...), vampiro, necromante, fogo-fátuo, cavaleiros, sentinela, urso |
-| último | Abismo | demônios e demônias, monstro de sangue, cão infernal, bolha, fogo-fátuo, orc elite, minotauro, vampiro |
+| 4 (último) | Abismo | demônios e demônias, monstro de sangue, cão infernal, bolha, fogo-fátuo, orc elite, minotauro, vampiro |
 
 Chefes, salas especiais e desbloqueios não mudam com o tema. A sala de desafio usa a
 lista do tema nas ondas.
+
+---
+
+### Mundos, fases e dificuldade
+
+O jogo tem 4 mundos com 3 fases cada (`Andar.quantidadeDeMundos` e `Andar.fasesPorMundo`).
+Cada mundo usa um tema da tabela acima: Mundo 1 Porão, 2 Catacumbas, 3 Cripta e 4 Abismo.
+`Andar.NumeroDoAndar` conta todas as fases (1 a 12); `Andar.Mundo`, `Andar.Fase` e
+`Andar.NomeDaFase` ("Mundo 2 - Fase 3") saem dele. Toda fase termina num chefe e no
+alçapão; a última fase do último mundo tem o Olho do Porão e termina a partida.
+
+| Mundo | Chefes das fases 1 e 2 (a 2 nunca repete a 1) | Chefe da fase 3 (o mais forte) |
+|---|---|---|
+| 1 Porão | Monstrão ou Minotauro Furioso | Sapão |
+| 2 Catacumbas | Monstrão ou Sapão | Minotauro Furioso |
+| 3 Cripta | Sapão ou Minotauro Furioso | Rei Necromante |
+| 4 Abismo | Minotauro Furioso ou Rei Necromante | Olho do Porão (final) |
+
+`Andar/DificuldadeDaFase.cs` guarda todos os números que sobem aos poucos, a cada fase:
+
+- inimigos: vida +8% e velocidade +2,5% por fase; +1 inimigo por sala a cada mundo e mais
+  um na fase 3 (máximo +3); na fase 1 de cada mundo só aparece o começo da lista do tema,
+  e a variedade abre até a lista inteira na fase 3; do mundo 2 em diante, 15% de chance de
+  um inimigo do mundo anterior;
+- inimigos campeões (`Sala/Campeao.cs`): nenhum na primeira fase, depois +3% por fase até
+  30%. Vermelho tem o dobro da vida, amarelo é bem mais rápido, roxo (mundo 3+) as duas
+  coisas; sempre solta prêmio;
+- comportamentos novos: sentinela atira em 8 direções na fase 3 de cada mundo e do mundo 2
+  em diante; o monstro de sangue solta mais gotas do mundo 2 em diante;
+- chefes: vida +6% por fase, e o da fase 3 mais 15%; o Olho do Porão ganha no máximo 50%;
+- dano no jogador (`Vida.MultiplicadorDeDanoRecebido`): normal nos mundos 1 e 2, 1,5x no
+  mundo 3, coração inteiro (2x) no mundo 4. Vale pra tiro, encostada e espinho;
+- armadilhas e salas: menos salas vazias (-2% por fase), espinhos da fase 2 em diante,
+  sala de desafio com mais inimigos por onda e uma onda a mais no mundo 4;
+- recompensas: drop de inimigo +1% e prêmio de sala +2% por fase; o chefe deixa moedas
+  (uma por mundo, o dobro no chefe da fase 3);
+- tamanho do mapa: o gerador recebe `TamanhoDoMapa` (sobe a cada duas fases, de 1 a 6).
+
+Desbloqueios: Soldado, Arqueiro e Cavaleiro saem ao vencer o chefe da fase 3 dos mundos
+1, 2 e 3 (`Herois.Heroi.LiberaNoMundo`, `Progresso.VenceuMundo`). Os que dependem de zerar
+continuam iguais.
 
 ## 8. Arte importada (pacotes)
 
@@ -122,6 +170,7 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | `Masmorra/Esqueleto`, `EsqueletoFoice`, `Vampiro` | Enemy Animations Set (tiras de 32×32) | Inimigos `Esqueleto`, `EsqueletoFoice` e `Vampiro`, com a própria animação de morte |
 | `Masmorra/Tocha`, `Candelabro`, `Objetos` | 2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon Asset Pack v2.0 | Tochas acesas na parede de cima de toda sala, candelabro num canto, caveira e ossos entre os enfeites de chão |
 | `Masmorra/Chao`, `Parede`, `Portao`, `Espinhos`, `Ladrilhos` | 2D Dungeon Asset Pack v5.2 | Chão e tijolos das salas (a cor do andar só tinge de leve), portão de grade nas portas e na tranca, espinhos, buraco do alçapão. Da folha `Objetos`: frasco (coração), moeda, chave, altar do pedestal, mesas da loja, estandartes das portas especiais, gema do tiro dos inimigos e o ícone de cada item passivo |
+| `Masmorra/Bau`, `ChaveDourada` e `Masmorra/BauDeFerro` | 2D Dungeon Asset Pack v5.2 (items_animation) e 2D Pixel Dungeon Asset Pack v2.0 (chest e chest_open juntos numa tira) | Baú de madeira abrindo, chave dourada girando que o chefe deixa (`Itens/ChaveDoChefe.cs`) e baú de ferro trancado respirando e abrindo com brilho (`Itens/Bau.cs`) |
 | `Masmorra/Temas` | 2D Pixel Dungeon Asset Pack v2.0 e 2D Dungeon Asset Pack v5.2 (ladrilhos recortados e juntados) | Chão e parede de cada tema de andar (`Andar/TemaDoAndar.cs`): `ChaoPorao`/`ParedePorao` (tijolos marrons do v2.0), `ChaoCripta`/`ParedeCripta` (laje rachada e friso azul do v5.2), `ChaoAbismo`/`ParedeAbismo` (pedra lisa e friso vermelho do v5.2) e a `Runa` vermelha do chão do Abismo. As Catacumbas usam o `Chao`/`Parede` padrão |
 | `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Goblins da tocha e da dinamite, barril de TNT, arqueiro sombrio, flecha, dinamite, explosão (bomba do jogador também), caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`); o jogador é o arqueiro azul (`TopDown/ArqueiroDoJogador.cs`) e atira flechas; pedras das salas; a dinamite é a bomba |
 

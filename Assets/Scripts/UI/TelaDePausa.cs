@@ -187,7 +187,7 @@ public class TelaDePausa : MonoBehaviour
         if (tela == null)
             return;
 
-        resumo.text = $"{(andar.UltimoAndar ? "Último andar" : $"Andar {andar.NumeroDoAndar}")} de {andar.AndarFinal}: {andar.Tema.Nome}";
+        resumo.text = $"{andar.NomeDaFase} de {andar.QuantidadeDeMundos} mundos: {andar.Tema.Nome}{(andar.UltimoAndar ? " (última fase)" : "")}";
         itens.text = Itens();
         TelaSimples.TrocarLinhaDeTeclas(opcoes,
             $"[M] música: {Musica()} | [N] efeitos: {Efeitos()} || [Pad LB] música: {Musica()} | [Pad RB] efeitos: {Efeitos()}",

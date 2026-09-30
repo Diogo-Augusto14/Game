@@ -46,6 +46,10 @@ public static class LadoDaPortaExtensoes
 ///   Fechada     -> bloqueia, desenho vermelho (tem inimigo vivo na sala)
 ///   Aberta      -> passa; encostar no fundo do vao dispara <see cref="AoAtravessar"/>
 ///
+/// Abrir e fechar sao animados: o portao de grade sobe (ou desce) quadro a quadro, com
+/// um tremor no caminho e um pulinho quando termina. Fechando, bloqueia na hora (ninguem
+/// escapa da luta); abrindo, so deixa passar quando o portao chegou em cima.
+///
 /// A porta NAO decide quando abrir: quem manda e a Sala. E ela NAO troca de sala:
 /// so avisa que o jogador passou. Quem gera o andar escuta o aviso e leva o jogador
 /// (e a camera) pra sala vizinha.
@@ -66,6 +70,12 @@ public class Porta : MonoBehaviour
 
     [SerializeField] private Color corDeParede = new Color(0.35f, 0.3f, 0.28f);
 
+    [Header("Animacao")]
+    [Tooltip("Segundos pro portao subir inteiro (ou descer)")]
+    [SerializeField, Min(0.01f)] private float tempoDeAbrir = 0.35f;
+
+    [SerializeField, Min(0.01f)] private float tempoDeFechar = 0.2f;
+
     [Tooltip("Disparado quando o jogador entra no vao com a porta aberta")]
     public UnityEvent<Porta> AoAtravessar = new UnityEvent<Porta>();
 
@@ -74,11 +84,19 @@ public class Porta : MonoBehaviour
     private SpriteRenderer desenho;
     private Vector2 tamanhoDoVao;
 
+    // 0 = portao todo embaixo (fechado), 1 = todo em cima (aberto). Anda ate o alvo.
+    private float progresso = 1f;
+    private float pulinho;
+
     public LadoDaPorta Lado => lado;
 
     public bool Existe => existe;
 
+    /// <summary>A porta foi mandada abrir (pode estar ainda no meio da animacao).</summary>
     public bool Aberta { get; private set; } = true;
+
+    /// <summary>Aberta e com o portao ja la em cima: so assim da pra passar.</summary>
+    public bool Passavel => existe && Aberta && progresso >= 1f;
 
     /// <summary>Porta secreta ainda nao descoberta: parece parede ate uma bomba explodir perto.</summary>
     public bool Escondida { get; private set; }
@@ -128,12 +146,14 @@ public class Porta : MonoBehaviour
         tamanhoDoVao = tamanho;
         desenho = FormasDaSala.Desenho(transform, "Desenho", FormasDaSala.Quadrado(), corDeParede, Vector2.zero, tamanho, 1);
 
+        // Na montagem nao tem animacao: a sala ja nasce com as portas abertas.
         if (existe)
-            Abrir();
+            AbrirNaHora();
         else
             Emparedar();
     }
 
+    /// <summary>Abre com a animacao do portao subindo. So da pra passar quando ele termina.</summary>
     public void Abrir()
     {
         if (!existe || Escondida)
@@ -143,12 +163,24 @@ public class Porta : MonoBehaviour
         AplicarEstado();
     }
 
+    /// <summary>Fecha com o portao descendo. Bloqueia ja no primeiro quadro.</summary>
     public void Fechar()
     {
         if (!existe)
             return;
 
         Aberta = false;
+        AplicarEstado();
+    }
+
+    /// <summary>Abre sem animacao (montagem da sala).</summary>
+    public void AbrirNaHora()
+    {
+        if (!existe || Escondida)
+            return;
+
+        Aberta = true;
+        progresso = 1f;
         AplicarEstado();
     }
 
@@ -167,6 +199,7 @@ public class Porta : MonoBehaviour
 
         Escondida = true;
         Aberta = false;
+        progresso = 0f;
         AplicarEstado();
 
         // A dica do Isaac: uma rachadura na parede, pra quem prestar atencao.
@@ -209,27 +242,62 @@ public class Porta : MonoBehaviour
     private void Emparedar()
     {
         Aberta = false;
+        progresso = 0f;
+        AplicarEstado();
+    }
+
+    private void Update()
+    {
+        float alvo = Aberta ? 1f : 0f;
+
+        if (progresso == alvo && pulinho <= 0f)
+            return;
+
+        if (progresso != alvo)
+        {
+            float passo = Time.deltaTime / (Aberta ? tempoDeAbrir : tempoDeFechar);
+            progresso = Mathf.MoveTowards(progresso, alvo, passo);
+
+            // Chegou no fim: um pulinho no desenho marca que terminou de abrir/fechar.
+            if (progresso == alvo)
+                pulinho = 1f;
+        }
+        else
+        {
+            pulinho = Mathf.Max(0f, pulinho - Time.deltaTime / 0.15f);
+        }
+
         AplicarEstado();
     }
 
     private void AplicarEstado()
     {
+        bool passavel = Passavel;
+
+        // Fechando, o bloqueio volta ja; abrindo, so sai quando o portao chegou em cima.
         if (bloqueio != null)
-            bloqueio.enabled = !Aberta;
+            bloqueio.enabled = !passavel;
 
         if (passagem != null)
-            passagem.enabled = existe && Aberta;
+            passagem.enabled = passavel;
 
         if (desenho == null)
             return;
 
         // Sem porta (ou porta secreta), o vao vira tijolo igual ao resto da parede.
         bool parede = !existe || Escondida;
-        Sprite portao = parede ? null : ArteImportada.Portao(Aberta);
+        Sprite[] quadros = parede ? null : ArteImportada.QuadrosDoPortao;
+        Sprite portao = quadros != null ? quadros[Mathf.RoundToInt(progresso * (quadros.Length - 1))] : null;
+
+        // Tremor enquanto o portao anda e um pulinho quando para: da pra ver que mexeu.
+        bool andando = !parede && progresso > 0f && progresso < 1f;
+        Vector2 eixo = lado.Horizontal() ? Vector2.right : Vector2.up;
+        desenho.transform.localPosition = andando ? eixo * (Mathf.Sin(Time.time * 70f) * 0.03f) : Vector3.zero;
+        float pulo = parede ? 1f : 1f + Mathf.Sin(pulinho * Mathf.PI) * 0.08f;
 
         // Porta dos lados aberta: o portao e desenhado de frente e, deitado, sobrava batente
         // pra fora da parede. Ali o vao vira so o chao da masmorra passando pela parede.
-        if (portao != null && Aberta && !lado.Horizontal() && ArteGerada.CenarioDoPacote)
+        if (portao != null && passavel && !lado.Horizontal() && ArteGerada.CenarioDoPacote)
         {
             desenho.transform.localRotation = Quaternion.identity;
             desenho.transform.localScale = Vector3.one;
@@ -247,16 +315,16 @@ public class Porta : MonoBehaviour
             desenho.sprite = portao;
             desenho.color = Color.white;
             desenho.transform.localRotation = Quaternion.Euler(0f, 0f, RotacaoDoPortao());
-            desenho.transform.localScale = new Vector3(Mathf.Max(tamanhoDoVao.x, tamanhoDoVao.y), Mathf.Min(tamanhoDoVao.x, tamanhoDoVao.y), 1f);
+            desenho.transform.localScale = new Vector3(Mathf.Max(tamanhoDoVao.x, tamanhoDoVao.y), Mathf.Min(tamanhoDoVao.x, tamanhoDoVao.y), 1f) * pulo;
             return;
         }
 
         desenho.transform.localRotation = Quaternion.identity;
-        desenho.transform.localScale = Vector3.one;
+        desenho.transform.localScale = Vector3.one * pulo;
         desenho.drawMode = SpriteDrawMode.Tiled;
         desenho.sprite = parede ? ArteGerada.Tijolo() : FormasDaSala.Quadrado();
         desenho.size = tamanhoDoVao;
-        desenho.color = parede ? corDeParede : Aberta ? corAberta : corFechada;
+        desenho.color = parede ? corDeParede : Color.Lerp(corFechada, corAberta, progresso);
     }
 
     /// <summary>O portao e desenhado na parede de cima; nas outras gira pra a frente dar pra sala.</summary>
@@ -273,7 +341,7 @@ public class Porta : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D outro)
     {
-        if (!existe || !Aberta)
+        if (!Passavel)
             return;
 
         GameObject quem = outro.attachedRigidbody != null ? outro.attachedRigidbody.gameObject : outro.gameObject;

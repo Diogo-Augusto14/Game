@@ -245,13 +245,13 @@ public class TelaDeFimDeJogo : MonoBehaviour
     {
         Herois.Heroi heroi = Herois.Atual;
         string andarAlcancado = andar == null ? "?"
-            : vitoria ? $"Todos os {andar.AndarFinal}, até o Olho do Porão"
-            : $"{andar.NumeroDoAndar} de {andar.AndarFinal}: {andar.Tema.Nome}";
+            : vitoria ? $"Os {andar.QuantidadeDeMundos} mundos ({andar.NumeroDoAndar} fases), até o Olho do Porão"
+            : $"{andar.NomeDaFase}: {andar.Tema.Nome}";
 
         string[,] dados =
         {
             { "Herói", heroi != null ? heroi.Nome : "?" },
-            { vitoria ? "Andares" : "Chegou ao andar", andarAlcancado },
+            { vitoria ? "Venceu" : "Chegou até", andarAlcancado },
             { "Tempo", ResumoDaPartida.TempoFormatado() },
             { "Inimigos derrotados", ResumoDaPartida.InimigosDerrotados.ToString() },
             { "Salas exploradas", ResumoDaPartida.SalasExploradas.ToString() },

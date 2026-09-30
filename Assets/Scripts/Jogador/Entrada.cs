@@ -120,7 +120,12 @@ public class Entrada : MonoBehaviour
         if (Input.GetButtonUp("Jump"))
             puloSoltou = true;
 
-        if (Input.GetKeyDown(teclaDash))
+        // Com o jogo parado (pausa, menu) o aperto nao fica guardado: o RB do controle
+        // liga/desliga os efeitos na pausa e o buffer nao conta tempo com timeScale 0.
+        bool pediuDash = Input.GetKeyDown(teclaDash) || Input.GetKeyDown(KeyCode.RightShift)
+                         || (modoTopDown && (Controle.Apertou(BotaoDoControle.RB) || Controle.Apertou(BotaoDoControle.RT)));
+
+        if (pediuDash && Time.timeScale > 0f)
             dashGuardado.Forcar(bufferDoDash);
 
         if (Input.GetKeyDown(teclaAtaque) || Input.GetMouseButtonDown(0))

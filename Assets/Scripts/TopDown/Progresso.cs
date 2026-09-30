@@ -6,7 +6,7 @@ using UnityEngine;
 /// zerado e quais herois ja foram liberados. Como no Isaac, voce comeca so com um e ganha
 /// os outros jogando (as condicoes de cada um estao em <see cref="Herois"/>).
 ///
-/// O <see cref="Andar"/> avisa aqui quando um chefe cai e quando o jogo e zerado; cada
+/// O <see cref="Andar"/> avisa aqui quando um mundo e fechado e quando o jogo e zerado; cada
 /// heroi novo aparece num aviso na tela e fica liberado no menu dali em diante.
 /// </summary>
 public static class Progresso
@@ -19,10 +19,13 @@ public static class Progresso
 
     public static bool HeroiLiberado(string nome) => PlayerPrefs.GetInt(ChaveDoHeroi(nome), 0) == 1;
 
-    /// <summary>Um chefe comum caiu. Devolve os herois liberados agora (lista vazia se nenhum).</summary>
-    public static List<Herois.Heroi> VenceuChefe(int andar)
+    /// <summary>
+    /// O chefe da ultima fase do mundo <paramref name="mundo"/> caiu. Devolve os herois
+    /// liberados agora (lista vazia se nenhum).
+    /// </summary>
+    public static List<Herois.Heroi> VenceuMundo(int mundo)
     {
-        return Liberar(h => h.LiberaNoChefeDoAndar > 0 && andar >= h.LiberaNoChefeDoAndar);
+        return Liberar(h => h.LiberaNoMundo > 0 && mundo >= h.LiberaNoMundo);
     }
 
     /// <summary>O chefe final caiu com <paramref name="heroi"/>. Devolve os herois liberados agora.</summary>
@@ -33,10 +36,10 @@ public static class Progresso
         int vitorias = Vitorias;
         string nome = heroi != null ? heroi.Nome : null;
 
-        // Zerar tambem conta como ter vencido os chefes de todos os andares.
+        // Zerar tambem conta como ter fechado todos os mundos.
         return Liberar(h => (h.LiberaComVitorias > 0 && vitorias >= h.LiberaComVitorias)
                          || (h.LiberaZerandoCom != null && h.LiberaZerandoCom == nome)
-                         || h.LiberaNoChefeDoAndar > 0);
+                         || h.LiberaNoMundo > 0);
     }
 
     /// <summary>Zera tudo: so o heroi livre volta a ficar disponivel.</summary>
