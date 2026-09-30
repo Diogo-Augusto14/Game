@@ -54,7 +54,7 @@ public class Musica : MonoBehaviour
 
     public static TemaMusical? Atual => instancia != null ? instancia.atual : null;
 
-    /// <summary>A musica de cada andar: os temas se repetem de tres em tres.</summary>
+    /// <summary>A musica de cada mundo (o Andar passa o numero do mundo): os temas se repetem de tres em tres.</summary>
     public static TemaMusical DoAndar(int andar)
     {
         switch ((Mathf.Max(1, andar) - 1) % 3)

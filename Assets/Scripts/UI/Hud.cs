@@ -52,6 +52,24 @@ public class Hud : MonoBehaviour
     /// <summary>Altura que os coracoes ocupam na tela (cada um tem 12 px desenhados 4x).</summary>
     public const float LadoDoCoracao = 48f;
 
+    /// <summary>Espaco entre dois coracoes.</summary>
+    public const float EspacoDosCoracoes = 4f;
+
+    /// <summary>
+    /// Linhas de coracoes que cabem na area da vida. Passou disso, os coracoes encolhem em
+    /// vez de abrir uma linha nova: a area nunca cresce e nao empurra o que vem embaixo.
+    /// </summary>
+    public const int LinhasDeCoracoes = 2;
+
+    /// <summary>Canto de cima a esquerda da area da vida (a mesma margem padrao da HUD).</summary>
+    public static readonly Vector2 CantoDaVida = new Vector2(24f, 20f);
+
+    /// <summary>
+    /// Altura FIXA reservada pra vida, cheia ou nao, com 1 ou 20 coracoes. Quem desenha
+    /// embaixo dela (moedas, chaves, bombas) se posiciona por aqui, nunca pelos coracoes.
+    /// </summary>
+    public const float AlturaDaVida = LinhasDeCoracoes * (LadoDoCoracao + EspacoDosCoracoes);
+
     // Quem monta a HUD por codigo pode trocar a lista (o top-down tem outras teclas).
     private string textoDosControles = TEXTO_DOS_CONTROLES;
 
@@ -162,10 +180,14 @@ public class Hud : MonoBehaviour
 
     private void MontarRaizDosCoracoes()
     {
+        // Area de tamanho fixo: o que muda dentro dela (quantos coracoes, de que tamanho)
+        // nunca mexe no resto da HUD.
         raizDosCoracoes = CriarPainel("Coracoes", Color.clear);
         Ancorar(raizDosCoracoes, new Vector2(0f, 1f), new Vector2(margem.x, -margem.y),
-            new Vector2(coracoesPorLinha * (LadoDoCoracao + 4f), LadoDoCoracao));
+            new Vector2(LarguraDosCoracoes, AlturaDaVida));
     }
+
+    private float LarguraDosCoracoes => coracoesPorLinha * (LadoDoCoracao + EspacoDosCoracoes);
 
     /// <summary>
     /// Um coracao a cada <see cref="vidaPorCoracao"/> de vida maxima. A vida atual e
@@ -185,13 +207,12 @@ public class Hud : MonoBehaviour
 
         while (coracoes.Count < total)
         {
-            int i = coracoes.Count;
-            RectTransform rt = CriarPainel($"Coracao {i}", Color.white, raizDosCoracoes);
-            Ancorar(rt, new Vector2(0f, 1f),
-                new Vector2((i % coracoesPorLinha) * (LadoDoCoracao + 4f), -(i / coracoesPorLinha) * (LadoDoCoracao + 4f)),
-                Vector2.one * LadoDoCoracao);
+            RectTransform rt = CriarPainel($"Coracao {coracoes.Count}", Color.white, raizDosCoracoes);
             coracoes.Add(rt.GetComponent<Image>());
         }
+
+        if (total != coracoesDesenhados)
+            ArrumarCoracoes(total);
 
         for (int i = 0; i < coracoes.Count; i++)
         {
@@ -201,10 +222,37 @@ public class Hud : MonoBehaviour
             coracoes[i].sprite = cheio >= 2 ? ArteImportada.CoracaoCheio
                                : cheio == 1 ? ArteImportada.CoracaoMeio
                                : ArteImportada.CoracaoVazio;
+
+            // O meio coracao do pacote tem o vermelho na DIREITA: a fileira parecia
+            // esvaziar ao contrario (buraco cinza antes do vermelho). Espelhado, o vermelho
+            // fica na esquerda e a vida some da direita pra esquerda, como deve.
+            coracoes[i].rectTransform.localScale = new Vector3(cheio == 1 ? -1f : 1f, 1f, 1f);
         }
 
         coracoesDesenhados = total;
         metadesDesenhadas = metades;
+    }
+
+    /// <summary>
+    /// Poe cada coracao no lugar. Ate <see cref="LinhasDeCoracoes"/> linhas de
+    /// <see cref="coracoesPorLinha"/> ficam no tamanho normal; com mais vida que isso, a
+    /// linha fica mais comprida e os coracoes menores, sempre dentro da mesma area.
+    /// </summary>
+    private void ArrumarCoracoes(int total)
+    {
+        int porLinha = Mathf.Max(coracoesPorLinha, Mathf.CeilToInt(total / (float)LinhasDeCoracoes));
+        float passo = Mathf.Min(LadoDoCoracao + EspacoDosCoracoes, LarguraDosCoracoes / porLinha);
+        float lado = passo - EspacoDosCoracoes;
+
+        for (int i = 0; i < coracoes.Count; i++)
+        {
+            // Pivo no meio: o meio coracao espelha no proprio lugar, sem pular pro lado.
+            RectTransform rt = coracoes[i].rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = Vector2.one * lado;
+            rt.anchoredPosition = new Vector2((i % porLinha) * passo + lado * 0.5f, -(i / porLinha) * passo - lado * 0.5f);
+        }
     }
 
     private void MontarControles()
@@ -228,13 +276,7 @@ public class Hud : MonoBehaviour
 
     private static Font FonteEmbutida()
     {
-        // O nome da fonte embutida mudou entre versoes da Unity: tenta as duas.
-        Font fonte = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        if (fonte == null)
-            fonte = Resources.GetBuiltinResource<Font>("Arial.ttf");
-
-        return fonte;
+        return FonteDoJogo.Texto;
     }
 
     // ---------------- helpers de UI ----------------

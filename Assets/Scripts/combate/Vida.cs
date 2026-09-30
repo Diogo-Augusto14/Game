@@ -95,12 +95,33 @@ public class Vida : MonoBehaviour, IDanificavel
     /// <summary>Time.time do ultimo golpe. -1 se nunca levou.</summary>
     public float MomentoDoUltimoGolpe { get; private set; } = -1f;
 
+    /// <summary>
+    /// Multiplica todo golpe recebido, antes da defesa. O <see cref="Andar"/> usa no jogador
+    /// pra dificuldade de cada mundo (ver <see cref="DificuldadeDaFase.DanoNoJogador"/>).
+    /// </summary>
+    public float MultiplicadorDeDanoRecebido { get; set; } = 1f;
+
     /// <summary>Fracao de 0 a 1 — pronta pra uma Image em Filled.</summary>
     public float Fracao => vidaMaxima <= 0f ? 0f : VidaAtual / vidaMaxima;
 
     /// <summary>Invencivel por tempo (pos-golpe) ou porque o controlador mandou (dash).</summary>
     public bool EstaInvencivel => Time.time < fimDaInvencibilidade
                                || (controlador != null && controlador.IgnorandoDano);
+
+    /// <summary>Segundos de invencibilidade depois de cada golpe (o que DefinirInvencibilidade ajustou).</summary>
+    public float TempoInvencivel => tempoInvencivel;
+
+    /// <summary>
+    /// Chamado antes de um golpe tirar vida. Devolvendo true, o golpe e bloqueado inteiro
+    /// (escudo de item). Vazio = nada bloqueia.
+    /// </summary>
+    public System.Func<DanoInfo, bool> Bloquear;
+
+    /// <summary>
+    /// Chamado quando um golpe zeraria a vida. Devolvendo true, fica com metade da vida em
+    /// vez de morrer (item de renascer). Vazio = morre normal.
+    /// </summary>
+    public System.Func<bool> AntesDeMorrer;
 
     // ---------------- ciclo de vida ----------------
     private void Awake()
@@ -142,13 +163,26 @@ public class Vida : MonoBehaviour, IDanificavel
         if (EstaMorto)
             return;
 
+        // Escudo de item: o golpe nem chega (e nao gasta o escudo durante a invencibilidade).
+        if (Bloquear != null && (!EstaInvencivel || info.IgnoraInvencibilidade) && Bloquear(info))
+        {
+            fimDaInvencibilidade = Time.time + tempoInvencivel;
+            return;
+        }
+
         if (EstaInvencivel && !info.IgnoraInvencibilidade)
             return;
 
-        float danoReal = Mathf.Max(1f, info.Quantidade - defesa);
+        float danoReal = Mathf.Max(1f, info.Quantidade * MultiplicadorDeDanoRecebido - defesa);
 
         VidaAtual = Mathf.Max(0f, VidaAtual - danoReal);
         fimDaInvencibilidade = Time.time + tempoInvencivel;
+
+        if (VidaAtual <= 0f && AntesDeMorrer != null && AntesDeMorrer())
+        {
+            VidaAtual = Mathf.Max(1f, Mathf.Round(vidaMaxima * 0.5f));
+            fimDaInvencibilidade = Time.time + Mathf.Max(tempoInvencivel, 2f);
+        }
 
         // Reclassifica o peso: um golpe fraquinho de um inimigo forte nao deve jogar o
         // boneco do outro lado da tela, e um golpe que tira 1/3 da vida tem que doer.
@@ -230,6 +264,15 @@ public class Vida : MonoBehaviour, IDanificavel
 
         VidaAtual = vidaMaxima;
         AoMudarVida?.Invoke();
+    }
+
+    /// <summary>Troca a cor que o sprite volta a ter depois do flash (inimigo campeao).</summary>
+    public void TrocarCorBase(Color cor)
+    {
+        corOriginal = cor;
+
+        if (sprite != null)
+            sprite.color = cor;
     }
 
     /// <summary>Segundos de invencibilidade depois de cada golpe. 0 = toma todos (inimigo do Isaac).</summary>

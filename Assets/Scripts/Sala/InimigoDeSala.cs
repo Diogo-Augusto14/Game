@@ -82,6 +82,9 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     private float raioDoCorpo;
     private float ladoDoDesvio = 1f;
 
+    /// <summary>Algum inimigo (chefe incluido) acabou de morrer. Itens que curam ao matar escutam aqui.</summary>
+    public static event System.Action<InimigoDeSala> AlgumMorreu;
+
     /// <summary>Todo inimigo ligado na cena (lagrima teleguiada procura aqui, sem Find).</summary>
     public static readonly System.Collections.Generic.List<InimigoDeSala> Ativos = new System.Collections.Generic.List<InimigoDeSala>();
 
@@ -96,6 +99,23 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
     /// <summary>Fracao da velocidade ao andar: 1 = normal, menos = gelado (flecha de gelo).</summary>
     public float MultiplicadorDeVelocidade { get; set; } = 1f;
+
+    /// <summary>Velocidade maxima andando agora (a dificuldade da fase multiplica em cima dela).</summary>
+    public float Velocidade => velocidade;
+
+    /// <summary>
+    /// Troca a cor base do desenho (inimigo campeao). O flash de dano, a sala acordando e o
+    /// <see cref="Vida"/> voltam pra esta cor, nao pra original.
+    /// </summary>
+    public void Tingir(Color cor)
+    {
+        if (desenho == null)
+            return;
+
+        corOriginal = cor;
+        desenho.color = cor;
+        vida?.TrocarCorBase(cor);
+    }
 
     /// <summary>Do inimigo ate o jogador (zero sem jogador). A animacao usa pra virar pro alvo.</summary>
     public Vector2 DirecaoDoJogador => rb != null ? ParaOJogador() : Vector2.zero;
@@ -130,6 +150,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         Ativos.Add(this);
         vida.AoTomarDano.AddListener(AoLevarGolpe);
         vida.AoMorrer.AddListener(Morrer);
+        vida.AoMorrer.AddListener(AvisarMorte);
     }
 
     protected virtual void OnDisable()
@@ -137,6 +158,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         Ativos.Remove(this);
         vida.AoTomarDano.RemoveListener(AoLevarGolpe);
         vida.AoMorrer.RemoveListener(Morrer);
+        vida.AoMorrer.RemoveListener(AvisarMorte);
     }
 
     /// <summary>A sala chama quando o jogador entra. Chamar de novo nao faz nada.</summary>
@@ -368,6 +390,8 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
         atordoamento.Armar(travaSegundos);
     }
+
+    private void AvisarMorte() => AlgumMorreu?.Invoke(this);
 
     protected virtual void Morrer()
     {

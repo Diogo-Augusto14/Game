@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Letreiro que aparece no meio da tela ao comecar um andar ("Andar 2"), fica um pouco e
+/// Letreiro que aparece no meio da tela ao comecar uma fase ("Mundo 1 - Fase 2"), fica um pouco e
 /// some sozinho. Um de cada vez: um aviso novo troca o texto do que ja esta na tela.
 /// </summary>
 [DisallowMultipleComponent]

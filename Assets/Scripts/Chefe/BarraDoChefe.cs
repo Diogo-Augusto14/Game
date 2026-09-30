@@ -6,6 +6,11 @@ using UnityEngine.UI;
 /// Tem um "rastro" claro atras da parte vermelha: o pedaco que acabou de sair demora um
 /// pouco pra sumir, entao da pra ver o tamanho de cada golpe.
 ///
+/// A parte vermelha e SEMPRE a vida de agora (lida todo quadro, nao so no evento). O rastro
+/// espera um instante a partir do primeiro golpe e depois corre atras: antes ele esperava
+/// o jogador PARAR de acertar, e com tiro seguido ficava cheio a luta toda, parecendo que
+/// a barra nao descia.
+///
 /// Canvas proprio. Monte com <see cref="Mostrar"/>; some sozinha quando o chefe morre.
 /// </summary>
 [DisallowMultipleComponent]
@@ -19,8 +24,11 @@ public class BarraDoChefe : MonoBehaviour
     [Tooltip("Velocidade com que o rastro alcanca a vida de verdade (fracao por segundo)")]
     [SerializeField, Min(0.01f)] private float velocidadeDoRastro = 0.6f;
 
-    [Tooltip("Segundos que o rastro espera antes de comecar a descer")]
-    [SerializeField, Min(0f)] private float atrasoDoRastro = 0.4f;
+    [Tooltip("Segundos que o rastro espera, a partir do primeiro golpe, antes de comecar a descer")]
+    [SerializeField, Min(0f)] private float atrasoDoRastro = 0.35f;
+
+    [Tooltip("Segundos que o rastro leva, no maximo, pra alcancar a vida depois de comecar a descer")]
+    [SerializeField, Min(0.05f)] private float tempoParaAlcancar = 0.35f;
 
     [SerializeField] private Color corDaVida = new Color(0.85f, 0.12f, 0.12f);
 
@@ -32,7 +40,7 @@ public class BarraDoChefe : MonoBehaviour
     private RectTransform rastro;
     private Image imagemDaVida;
     private float fracaoDoRastro = 1f;
-    private float momentoDoUltimoGolpe;
+    private float rastroEsperandoDesde = -1f;   // -1 = rastro colado na vida
     private bool sumindo;
 
     public static BarraDoChefe Mostrar(IChefe chefe)
@@ -106,13 +114,10 @@ public class BarraDoChefe : MonoBehaviour
             corDaSegundaFase = new Color(1f, 0.7f, 0.35f);
             fundo.GetComponent<Image>().color = Color.white;
             moldura.GetComponent<Image>().color = Color.white;
-            rastro.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.85f);
+            rastro.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.6f);   // mais apagado que a vida: e so o rastro
         }
 
-        Font fonte = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        if (fonte == null)
-            fonte = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        Font fonte = FonteDoJogo.Texto;
 
         GameObject objNome = new GameObject("Nome", typeof(RectTransform));
         objNome.transform.SetParent(moldura, false);
@@ -137,6 +142,8 @@ public class BarraDoChefe : MonoBehaviour
             chefe.Vida.AoMorrer.AddListener(Sumir);
         }
 
+        // Chefe que acordou ja machucado (bomba antes da luta): o rastro comeca junto da vida.
+        fracaoDoRastro = Fracao;
         Aplicar(preenchimento, Fracao);
         Aplicar(rastro, fracaoDoRastro);
     }
@@ -150,7 +157,7 @@ public class BarraDoChefe : MonoBehaviour
         }
     }
 
-    private float Fracao => Existe ? chefe.Vida.Fracao : 0f;
+    private float Fracao => Existe ? Mathf.Clamp01(chefe.Vida.Fracao) : 0f;
 
     /// <summary>
     /// O chefe chega como interface, e o "== null" da Unity (que ve objeto destruido) so
@@ -160,7 +167,6 @@ public class BarraDoChefe : MonoBehaviour
 
     private void AoMudarVida()
     {
-        momentoDoUltimoGolpe = Time.time;
         Aplicar(preenchimento, Fracao);
     }
 
@@ -191,10 +197,27 @@ public class BarraDoChefe : MonoBehaviour
 
         float fracao = sumindo ? 0f : Fracao;
 
-        if (fracaoDoRastro > fracao && Time.time - momentoDoUltimoGolpe >= atrasoDoRastro)
-            fracaoDoRastro = Mathf.MoveTowards(fracaoDoRastro, fracao, velocidadeDoRastro * Time.deltaTime);
-        else if (fracaoDoRastro < fracao)
+        // A vida de verdade todo quadro: nada que mude a vida sem avisar deixa a barra pra tras.
+        Aplicar(preenchimento, fracao);
+
+        if (fracaoDoRastro > fracao)
+        {
+            // Conta a espera a partir do PRIMEIRO golpe; golpes seguidos nao zeram o relogio.
+            if (rastroEsperandoDesde < 0f)
+                rastroEsperandoDesde = Time.time;
+
+            if (Time.time - rastroEsperandoDesde >= atrasoDoRastro)
+            {
+                // Pedaco grande desce rapido, pedaco pequeno na velocidade minima.
+                float velocidade = Mathf.Max(velocidadeDoRastro, (fracaoDoRastro - fracao) / tempoParaAlcancar);
+                fracaoDoRastro = Mathf.MoveTowards(fracaoDoRastro, fracao, velocidade * Time.deltaTime);
+            }
+        }
+        else
+        {
             fracaoDoRastro = fracao;
+            rastroEsperandoDesde = -1f;
+        }
 
         Aplicar(rastro, fracaoDoRastro);
     }

@@ -29,7 +29,11 @@ public enum Som
     MenuAbrir,
     MenuFechar,
     MenuNegado,
-    Aviso
+    Aviso,
+    Dash,
+    Corte,
+    Destranca,
+    BauAbre
 }
 
 /// <summary>
@@ -248,9 +252,46 @@ public static class Sons
                 Sintetizador.Varredura(a, 0, 0.18f, 140f, 120f, Sintetizador.Quadrada, 0.3f, 0.5f);
                 break;
 
+            case Som.Dash:
+                // Sopro curto que sobe: o vento da arrancada.
+                a = new float[Amostras(0.18f)];
+                Sintetizador.Chiado(a, 0, 0.18f, 0.55f, 23, 1.5f, 0.6f);
+                Sintetizador.Varredura(a, 0, 0.14f, 180f, 420f, Sintetizador.Triangulo, 0.18f, 1.5f);
+                break;
+
+            case Som.Corte:
+                // Lamina cortando o ar: chiado agudo e rapido que desce.
+                a = new float[Amostras(0.12f)];
+                Sintetizador.Chiado(a, 0, 0.12f, 0.5f, 41, 2.5f, 0.2f);
+                Sintetizador.Varredura(a, 0, 0.1f, 1400f, 500f, Sintetizador.Serra, 0.12f, 2f);
+                break;
+
             case Som.Aviso:
                 a = Arpejo(new[] { 67, 72, 76, 79 }, 0.08f, Sintetizador.Triangulo, 0.4f);
                 break;
+
+            case Som.Destranca:
+                // Clique do cadeado: dois estalos metalicos curtos, o segundo mais agudo.
+                a = new float[Amostras(0.22f)];
+                Sintetizador.Varredura(a, 0, 0.05f, 1800f, 1200f, Sintetizador.Quadrada, 0.3f, 2f);
+                Sintetizador.Chiado(a, 0, 0.04f, 0.3f, 11, 3f, 0.9f);
+                Sintetizador.Varredura(a, Amostras(0.09f), 0.08f, 2600f, 2200f, Sintetizador.Quadrada, 0.3f, 2f);
+                Sintetizador.Chiado(a, Amostras(0.09f), 0.05f, 0.3f, 13, 3f, 0.9f);
+                break;
+
+            case Som.BauAbre:
+            {
+                // Rangido da tampa subindo e o brilho do tesouro.
+                a = new float[Amostras(0.8f)];
+                Sintetizador.Varredura(a, 0, 0.3f, 90f, 180f, Sintetizador.Serra, 0.3f, 0.6f);
+                float[] brilho = Arpejo(new[] { 76, 79, 83, 88 }, 0.07f, Sintetizador.Triangulo, 0.35f);
+                int depois = Amostras(0.28f);
+
+                for (int i = 0; i < brilho.Length && depois + i < a.Length; i++)
+                    a[depois + i] += brilho[i];
+
+                break;
+            }
 
             default: // Menu, MenuAbrir, MenuFechar
                 a = new float[Amostras(0.08f)];

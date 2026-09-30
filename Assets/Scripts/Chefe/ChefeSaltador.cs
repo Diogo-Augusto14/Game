@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// O segundo chefe, o Sapao: aparece nos andares pares, no lugar do <see cref="ChefeDoAndar"/>.
+/// O Sapao: fecha o mundo 1 e aparece nas fases do mundo 2 e 3 (ver Andar.ChefesPorMundo).
 /// Onde o primeiro corre e atira, este PULA. Alterna entre quatro ataques, cada um com
 /// o seu aviso:
 ///
@@ -27,7 +27,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
     }
 
     [Header("Chefe")]
-    [SerializeField] private string nomeDoChefe = "Sapao";
+    [SerializeField] private string nomeDoChefe = "Sapão";
 
     [Tooltip("Segundos andando entre um ataque e outro")]
     [SerializeField, Min(0.1f)] private float intervaloEntreAtaques = 1.1f;

@@ -24,6 +24,7 @@ public class EstatisticasDoJogador : MonoBehaviour
     private MovimentoTopDown movimento;
     private Vida vida;
     private Inventario inventario;
+    private EfeitosDosItens efeitos;
     private bool temBase;
 
     private float danoBase, alcanceBase, cadenciaBase, velocidadeDoTiroBase, tamanhoBase, velocidadeBase;
@@ -40,6 +41,10 @@ public class EstatisticasDoJogador : MonoBehaviour
         movimento = GetComponent<MovimentoTopDown>();
         vida = GetComponent<Vida>();
         inventario = GetComponent<Inventario>();
+
+        // Os itens de efeito especial (escudo, ima, orbe...) moram num componente proprio.
+        if (!TryGetComponent(out efeitos))
+            efeitos = gameObject.AddComponent<EfeitosDosItens>();
     }
 
     private void GuardarBase()
@@ -74,8 +79,16 @@ public class EstatisticasDoJogador : MonoBehaviour
         Recalcular();
 
         // Vida maxima e brindes nao sao "de base": aplicam uma vez, na hora de pegar.
+        // Item que tira vida maxima (Pacto de Sangue) nunca deixa menos de um coracao.
         if (vida != null && !Mathf.Approximately(item.somaVidaMaxima, 0f))
-            vida.AumentarVidaMaxima(item.somaVidaMaxima);
+        {
+            float quanto = item.somaVidaMaxima;
+
+            if (quanto < 0f)
+                quanto = Mathf.Max(quanto, Mathf.Min(0f, 20f - vida.VidaMaxima));
+
+            vida.AumentarVidaMaxima(quanto);
+        }
 
         if (inventario == null)
             inventario = GetComponent<Inventario>();
@@ -94,6 +107,13 @@ public class EstatisticasDoJogador : MonoBehaviour
         Sons.Tocar(Som.Item);
         Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
         AoPegarItem?.Invoke(item);
+    }
+
+    /// <summary>Refaz as contas sem item novo (a furia liga e desliga conforme a vida).</summary>
+    public void Atualizar()
+    {
+        if (temBase)
+            Recalcular();
     }
 
     private void Recalcular()
@@ -122,6 +142,12 @@ public class EstatisticasDoJogador : MonoBehaviour
             // O ultimo item com cor de lagrima manda na cor.
             if (i.corDaLagrima.a > 0f)
                 corDaLagrima = i.corDaLagrima;
+        }
+
+        if (efeitos != null)
+        {
+            efeitos.Aplicar(itens);
+            multDano *= efeitos.MultiplicadorDeDano;
         }
 
         if (atirador != null)

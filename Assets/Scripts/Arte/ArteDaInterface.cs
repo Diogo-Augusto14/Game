@@ -5,7 +5,8 @@ using UnityEngine;
 /// A interface que veio de pacote, lida de <c>Assets/Arte/Resources</c>:
 ///
 ///   InterfaceDragao/...  (Tiny RPG - Dragon Regalia GUI, CC0)
-///       molduras douradas, faixas de titulo, botao, setas, ponteiro, barra e o cursor
+///       molduras douradas, faixas de titulo, botao, setas, ponteiro, barra, cursor e os
+///       icones redondos de sair e de configuracoes
 ///   Teclas/Teclado.png  (Controllers and Keyboard, da Vryell)
 ///       teclas de 16x16 em grade: coluna 0 solta, coluna 2 apertada
 ///   Teclas/ControleXbox.png, ControlePlayStation.png, Analogicos.png  (o mesmo pacote)
@@ -60,6 +61,12 @@ public static class ArteDaInterface
     public static Sprite Ponteiro(int quadro) => Quadro("Ponteiro", 26, 26, quadro % 5, Vector4.zero, 100f);
 
     public const int QuadrosDoPonteiro = 5;
+
+    /// <summary>Moeda dourada com a porta de saida: 0 solta, 1 acesa, 2 apertada, 3 apagada.</summary>
+    public static Sprite IconeSair(int estado) => Quadro("BotaoSair", 24, 24, estado, Vector4.zero, 100f);
+
+    /// <summary>Moeda dourada com a chave de boca (configuracoes): 0 solta, 1 acesa, 2 apertada, 3 apagada.</summary>
+    public static Sprite IconeOpcoes(int estado) => Quadro("BotaoOpcoes", 24, 24, estado, Vector4.zero, 100f);
 
     // ================================================================ teclas
     /// <summary>
@@ -181,6 +188,8 @@ public static class ArteDaInterface
         {
             case KeyCode.Escape: celula = new Vector2Int(8, 0); return true;
             case KeyCode.Tab: celula = new Vector2Int(8, 2); return true;
+            case KeyCode.LeftShift:
+            case KeyCode.RightShift: celula = new Vector2Int(8, 5); return true;
             case KeyCode.Space: celula = new Vector2Int(8, 8); return true;
             case KeyCode.Backspace: celula = new Vector2Int(8, 23); return true;
             case KeyCode.Return: celula = new Vector2Int(8, 25); return true;

@@ -22,7 +22,8 @@ using UnityEngine;
 public class Andar : MonoBehaviour
 {
     [Header("Geracao")]
-    [Tooltip("1 = primeiro andar. Cada andar tem umas 3 salas a mais")]
+    [Tooltip("Fase em que a partida comeca, contando todas: 1 = Mundo 1 Fase 1, 4 = Mundo 2 Fase 1. " +
+             "A dificuldade (DificuldadeDaFase) sobe a cada fase")]
     [SerializeField, Min(1)] private int numeroDoAndar = 1;
 
     [Tooltip("0 = sorteia um andar novo a cada Play. Qualquer outro numero repete sempre o mesmo andar")]
@@ -42,47 +43,65 @@ public class Andar : MonoBehaviour
     [Tooltip("Inimigo nao nasce mais perto que isto de uma porta")]
     [SerializeField, Min(0f)] private float distanciaDasPortas = 3f;
 
-    [Tooltip("A cada tantos andares, um inimigo a mais por sala (0 = nunca)")]
-    [SerializeField, Min(0)] private int andaresPorInimigoExtra = 2;
-
     [Tooltip("Sentinelas no maximo por sala: sao paradas, em excesso a sala vira tiroteio")]
     [SerializeField, Min(0)] private int maximoDeSentinelas = 2;
 
     [Header("Variedade das salas")]
-    [Tooltip("Chance de uma sala comum nao ter pedra nem espinho")]
-    [SerializeField, Range(0f, 1f)] private float chanceDeSalaVazia = 0.25f;
+    [Tooltip("Chance de uma sala comum nao ter pedra nem espinho na primeira fase (cai 2% por fase; nunca duas vizinhas vazias)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeSalaVazia = 0.15f;
 
-    [Tooltip("Espinhos so aparecem a partir deste andar")]
+    [Tooltip("Salas logo depois da inicial vem com um inimigo a menos; as perto do chefe, com um a mais")]
+    [SerializeField] private bool dosarPelaDistancia = true;
+
+    [Tooltip("Espinhos so aparecem a partir desta fase (contando todas: 2 = Mundo 1 Fase 2)")]
     [SerializeField, Min(1)] private int espinhosAPartirDoAndar = 2;
 
     [Header("Itens e coletaveis")]
-    [Tooltip("Chance de cada inimigo soltar coracao, moeda, bomba ou chave ao morrer")]
+    [Tooltip("Chance de cada inimigo soltar coracao, moeda, bomba ou chave ao morrer, na primeira fase (+1% por fase)")]
     [SerializeField, Range(0f, 1f)] private float chanceDeDropDoInimigo = 0.15f;
 
-    [Tooltip("Chance de cair um premio no meio da sala quando ela e limpa")]
+    [Tooltip("Chance de cair um premio no meio da sala quando ela e limpa, na primeira fase (+2% por fase)")]
     [SerializeField, Range(0f, 1f)] private float chanceDePremioDaSala = 0.5f;
 
-    [Tooltip("A partir deste andar a porta da sala do item fica trancada (precisa de chave)")]
+    [Tooltip("A partir desta fase (contando todas) a porta da sala do item fica trancada (precisa de chave)")]
     [SerializeField, Min(1)] private int trancarItemAPartirDoAndar = 2;
 
     [Tooltip("Chance da sala do tesouro ter dois pedestais: pega um, o outro some")]
     [SerializeField, Range(0f, 1f)] private float chanceDeDuasOpcoes = 0.3f;
 
+    [Header("Chaves e baus")]
+    [Tooltip("Baus de ferro trancados por andar (em salas comuns longe do inicio)")]
+    [SerializeField, Min(0)] private int bausTrancadosPorAndar = 1;
+
+    [Tooltip("A partir deste andar aparece um bau trancado a mais")]
+    [SerializeField, Min(1)] private int bauExtraAPartirDoAndar = 3;
+
+    [Tooltip("Chance do bau de ferro ter um item passivo (senao, coletaveis variados)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeItemNoBau = 0.35f;
+
+    [Tooltip("Chance da sala comum, ao ser limpa, soltar um bau de madeira no lugar do premio")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeBauNaSala = 0.1f;
+
     [Header("Sala de desafio")]
-    [Tooltip("Ondas de inimigos depois de pegar o item: no andar 1 e depois dele")]
+    [Tooltip("Ondas de inimigos depois de pegar o item: na primeira fase e depois dela (+1 no ultimo mundo)")]
     [SerializeField] private Vector2Int ondasDoDesafio = new Vector2Int(2, 3);
 
-    [Tooltip("Inimigos por onda no andar 1; a cada dois andares vem mais um")]
+    [Tooltip("Inimigos por onda na primeira fase; a cada 3 fases vem mais um")]
     [SerializeField, Min(1)] private int inimigosPorOnda = 3;
 
     [Header("Fim do andar")]
     [Tooltip("Distancia do centro da sala do chefe ate o alcapao, pro lado oposto da porta (o pedestal fica no centro)")]
     [SerializeField, Min(0f)] private float distanciaDoAlcapao = 2f;
 
-    [Tooltip("O andar do chefe final. Vencer ele termina a partida (sem alcapao)")]
-    [SerializeField, Min(1)] private int andarFinal = 4;
+    [Header("Mundos e fases")]
+    [Tooltip("Quantos mundos o jogo tem. Cada um e um tema (Porao, Catacumbas, Cripta); o ultimo e sempre o Abismo, " +
+             "com o chefe final na ultima fase")]
+    [SerializeField, Min(1)] private int quantidadeDeMundos = 4;
 
-    [Tooltip("Mostra 'Andar N' no meio da tela a cada andar novo")]
+    [Tooltip("Fases em cada mundo. Toda fase termina num chefe; o da ultima e o mais forte do mundo")]
+    [SerializeField, Min(1)] private int fasesPorMundo = 3;
+
+    [Tooltip("Mostra 'Mundo 1 - Fase 2' no meio da tela a cada fase nova")]
     [SerializeField] private bool avisarAndarNovo = true;
 
     [Header("Menu")]
@@ -124,8 +143,8 @@ public class Andar : MonoBehaviour
     // Teclas entre colchetes aparecem desenhadas na HUD (TelaSimples.LinhaDeTeclas); depois
     // do "||" vem a mesma linha com os botoes do controle.
     private const string CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Esc] pausa || " +
-        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad Start] pausa";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash | [Esc] pausa || " +
+        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad RB] dash | [Pad Start] pausa";
 
     // ---------------- estado ----------------
     private Sala[,] noMundo;
@@ -142,19 +161,49 @@ public class Andar : MonoBehaviour
     // Itens que ja apareceram nesta partida: o proximo pedestal sorteia outro.
     private readonly HashSet<ItemPassivo> itensQueJaSairam = new HashSet<ItemPassivo>();
 
+    // Salas comuns deste andar sorteadas pra ter bau de ferro trancado.
+    private readonly HashSet<SalaDoAndar> comBauTrancado = new HashSet<SalaDoAndar>();
+
     public static Andar Atual { get; private set; }
 
     public MapaDoAndar Mapa { get; private set; }
 
     public SalaDoAndar SalaAtual { get; private set; }
 
+    /// <summary>A fase contando todas, desde a primeira do jogo (1 = Mundo 1 Fase 1).</summary>
     public int NumeroDoAndar => numeroDoAndar;
+
+    /// <summary>O mundo em jogo, de 1 ate <see cref="QuantidadeDeMundos"/>.</summary>
+    public int Mundo => (numeroDoAndar - 1) / fasesPorMundo + 1;
+
+    /// <summary>A fase dentro do mundo, de 1 ate <see cref="FasesPorMundo"/>.</summary>
+    public int Fase => (numeroDoAndar - 1) % fasesPorMundo + 1;
+
+    public int QuantidadeDeMundos => quantidadeDeMundos;
+
+    public int FasesPorMundo => fasesPorMundo;
+
+    /// <summary>"Mundo 2 - Fase 3", pro aviso na tela, a pausa e o fim de jogo.</summary>
+    public string NomeDaFase => $"Mundo {Mundo} - Fase {Fase}";
+
+    /// <summary>Os numeros da dificuldade desta fase (vida e velocidade dos inimigos, premios...).</summary>
+    public DificuldadeDaFase Dificuldade { get; private set; } = new DificuldadeDaFase(1, 1, 3);
 
     /// <summary>Porao, Catacumbas, Cripta ou Abismo: a cara e os inimigos deste andar.</summary>
     public TemaDoAndar Tema { get; private set; } = TemaDoAndar.Porao;
 
     /// <summary>A semente que gerou este andar. Anote quando achar um andar com problema.</summary>
     public int SementeUsada { get; private set; }
+
+    /// <summary>Os parametros com que este andar foi gerado (depois do <see cref="AoPrepararGeracao"/>).</summary>
+    public ParametrosDoAndar ParametrosUsados { get; private set; }
+
+    /// <summary>
+    /// Chamado logo antes de sortear cada andar, com os parametros padrao daquele andar
+    /// (quantas salas, tamanho da grade, circuitos, salas especiais...). Quem cuida da
+    /// dificuldade ou dos mundos muda os numeros aqui, sem mexer no gerador.
+    /// </summary>
+    public event Action<ParametrosDoAndar> AoPrepararGeracao;
 
     /// <summary>Distancia entre o centro de duas salas vizinhas: o tamanho total de uma sala.</summary>
     public static Vector2 Passo => Sala.TamanhoPadrao + Vector2.one * 2f;
@@ -218,12 +267,17 @@ public class Andar : MonoBehaviour
 
     // ---------------- api ----------------
     /// <summary>
-    /// Desce pro proximo andar: mais salas, semente nova. O jogador continua o mesmo, com a
+    /// Desce pra proxima fase (depois da ultima fase de um mundo, a primeira do mundo
+    /// seguinte): mais salas, semente nova. O jogador continua o mesmo, com a
     /// vida, os itens e o inventario que tinha. O <see cref="Alcapao"/> chama isto.
     /// </summary>
     public void ProximoAndar()
     {
         if (vidaDoJogador != null && vidaDoJogador.EstaMorto)
+            return;
+
+        // Depois da ultima fase do ultimo mundo nao tem mais nada: o chefe final termina a partida.
+        if (UltimoAndar)
             return;
 
         numeroDoAndar++;
@@ -245,12 +299,20 @@ public class Andar : MonoBehaviour
             Destroy(raizDasSalas.gameObject);
         }
 
-        // Chao, paredes, enfeites e inimigos do andar (TemaDoAndar). Antes de montar as salas.
-        Tema = TemaDoAndar.DoNumero(numeroDoAndar, UltimoAndar);
+        // Chao, paredes, enfeites e inimigos do mundo (TemaDoAndar). Antes de montar as salas.
+        Dificuldade = new DificuldadeDaFase(Mundo, Fase, fasesPorMundo);
+        Tema = TemaDoAndar.DoMundo(Mundo, quantidadeDeMundos);
         TemaDoAndar.Usar(Tema);
 
+        // O mapa cresce a cada duas fases (DificuldadeDaFase.TamanhoDoMapa), nao a cada uma:
+        // com 12 fases, contar todas deixaria as do fim enormes.
         SementeUsada = semente != 0 ? semente : Environment.TickCount;
-        Mapa = GeradorDeAndar.Gerar(numeroDoAndar, SementeUsada, larguraDaGrade, alturaDaGrade);
+        ParametrosDoAndar parametros = ParametrosDoAndar.Padrao(Dificuldade.TamanhoDoMapa, larguraDaGrade, alturaDaGrade);
+        parametros.Desenhos = DisposicoesDaSala.Permitidos(numeroDoAndar >= espinhosAPartirDoAndar);
+        parametros.ChanceDeSalaVazia = Mathf.Max(0.05f, chanceDeSalaVazia - Dificuldade.MenosSalasVazias);
+        AoPrepararGeracao?.Invoke(parametros);
+        ParametrosUsados = parametros;
+        Mapa = GeradorDeAndar.Gerar(parametros, SementeUsada);
 
         // Mesma semente = mesmos inimigos nos mesmos lugares, nao so a mesma planta.
         UnityEngine.Random.InitState(SementeUsada);
@@ -259,13 +321,19 @@ public class Andar : MonoBehaviour
         raizDasSalas.SetParent(transform, false);
         noMundo = new Sala[Mapa.Largura, Mapa.Altura];
         salaDoMapa.Clear();
+        SortearBausTrancados();
 
         foreach (SalaDoAndar sala in Mapa.Salas)
             noMundo[sala.X, sala.Y] = MontarSala(sala);
 
-        Debug.Log($"[Andar] andar {numeroDoAndar}, {Mapa.Salas.Count} salas, semente {SementeUsada}");
+        Debug.Log($"[Andar] {NomeDaFase} ({Tema.Nome}), {Mapa.Salas.Count} salas, semente {SementeUsada}. {Dificuldade}");
 
         GarantirJogador();
+
+        // Do mundo 3 em diante cada golpe no jogador pesa mais (DificuldadeDaFase.DanoNoJogador).
+        if (vidaDoJogador != null)
+            vidaDoJogador.MultiplicadorDeDanoRecebido = Dificuldade.DanoNoJogador;
+
         GarantirCamera();
 
         SalaAtual = null;
@@ -273,7 +341,7 @@ public class Andar : MonoBehaviour
         Entrar(Mapa.Inicio, null);
 
         if (avisarAndarNovo)
-            AvisoDoAndar.Mostrar(UltimoAndar ? $"Ultimo andar: {Tema.Nome}" : $"Andar {numeroDoAndar}: {Tema.Nome}");
+            AvisoDoAndar.Mostrar(UltimoAndar ? $"{NomeDaFase}: {Tema.Nome} (última fase)" : $"{NomeDaFase}: {Tema.Nome}");
     }
 
     // ---------------- troca de sala ----------------
@@ -303,6 +371,10 @@ public class Andar : MonoBehaviour
     private void Entrar(SalaDoAndar sala, LadoDaPorta? saiuPor)
     {
         SalaAtual = sala;
+
+        if (!sala.Visitada)
+            ResumoDaPartida.ContarSala();
+
         Mapa.Visitar(sala);
         Sala destino = NoMundo(sala);
 
@@ -324,7 +396,7 @@ public class Andar : MonoBehaviour
                 chegada.Revelar();
         }
 
-        Musica.Tocar(sala.Tipo == TipoDeSala.Chefe && !destino.Limpa ? MusicaDoChefe : Musica.DoAndar(numeroDoAndar));
+        Musica.Tocar(sala.Tipo == TipoDeSala.Chefe && !destino.Limpa ? MusicaDoChefe : Musica.DoAndar(Mundo));
 
         MoverCamera(destino.transform.position, saiuPor.HasValue ? tempoDaTransicao : 0f);
         AoEntrarNaSala?.Invoke(destino);
@@ -490,14 +562,16 @@ public class Andar : MonoBehaviour
                 portas.Add(ParaLado(d));
 
         Vector2 centro = (Vector2)transform.position + new Vector2(casa.X * Passo.x, casa.Y * Passo.y);
-        Sala sala = Sala.Criar($"Sala {casa.Tipo} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
+        string nome = casa.Tipo == TipoDeSala.Normal ? $"Sala {DisposicoesDaSala.Nome(casa.Desenho)}" : $"Sala {casa.Tipo}";
+        Sala sala = Sala.Criar($"{nome} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
         salaDoMapa[sala] = casa;
 
         sala.Pintar(Tema.CorDoChao, Tema.CorDaParede, Tema.ForcaDaCor);
 
-        // So sala comum ganha obstaculo: inicio, item e chefe ficam com o chao livre.
+        // So sala comum ganha obstaculo: inicio, item e chefe ficam com o chao livre. O
+        // desenho vem do gerador, que nao repete o de uma vizinha.
         if (casa.Tipo == TipoDeSala.Normal)
-            DisposicoesDaSala.Sortear(sala, chanceDeSalaVazia, numeroDoAndar >= espinhosAPartirDoAndar);
+            DisposicoesDaSala.Aplicar(sala, casa.Desenho, casa.EspelharX, casa.EspelharY);
 
         foreach (Porta porta in sala.Portas)
         {
@@ -527,8 +601,10 @@ public class Andar : MonoBehaviour
 
         // Toda sala ganha tochas; loja e chefe ficam sem enfeite de chao (a loja tem as
         // mercadorias, o chefe precisa do chao todo).
+        // Sala comum sem obstaculo ganha mais enfeite, pra nao parecer um chao vazio.
         bool chaoLimpo = casa.Tipo == TipoDeSala.Loja || casa.Tipo == TipoDeSala.Chefe;
-        sala.Enfeitar(chaoLimpo ? 0 : UnityEngine.Random.Range(enfeitesPorSala.x, enfeitesPorSala.y + 1));
+        int extras = casa.Tipo == TipoDeSala.Normal && casa.Desenho < 0 ? 3 : 0;
+        sala.Enfeitar(chaoLimpo ? 0 : UnityEngine.Random.Range(enfeitesPorSala.x, enfeitesPorSala.y + 1) + extras);
 
         Povoar(sala, casa);
         PorPremios(sala, casa);
@@ -542,16 +618,27 @@ public class Andar : MonoBehaviour
         switch (casa.Tipo)
         {
             case TipoDeSala.Normal:
-                quantos = UnityEngine.Random.Range(inimigosPorSala.x, inimigosPorSala.y + 1);
+                quantos = UnityEngine.Random.Range(inimigosPorSala.x, inimigosPorSala.y + 1) + Dificuldade.InimigosExtras;
 
-                if (andaresPorInimigoExtra > 0)
-                    quantos += Mathf.Min(2, (numeroDoAndar - 1) / andaresPorInimigoExtra);
+                // A fase esquenta no caminho: perto da inicial e mais leve, perto do chefe
+                // vem um a mais.
+                if (dosarPelaDistancia)
+                {
+                    if (casa.Distancia <= 1)
+                        quantos = Mathf.Max(1, quantos - 1);
+                    else if (casa.Profundidade >= 0.75f)
+                        quantos++;
+                }
 
                 break;
             case TipoDeSala.Chefe:
                 // No meio da sala, longe de todas as portas. O pedestal do premio nasce no
-                // mesmo lugar quando ele morre (PorPremios). Qual chefe: ChefeDoNumero.
-                sala.CriarInimigo(UltimoAndar ? TipoDeInimigo.ChefeFinal : ChefeDoNumero(numeroDoAndar), Vector2.zero);
+                // mesmo lugar quando ele morre (PorPremios). Qual chefe: ChefeDaFase.
+                InimigoDeSala chefe = sala.CriarInimigo(UltimoAndar ? TipoDeInimigo.ChefeFinal : ChefeDaFase(Mundo, Fase), Vector2.zero);
+
+                if (chefe != null && chefe.Vida != null)
+                    chefe.Vida.AumentarVidaMaxima(chefe.Vida.VidaMaxima * ((UltimoAndar ? Dificuldade.VidaDoChefeFinal : Dificuldade.VidaDoChefe) - 1f));
+
                 return;
             default:
                 return; // inicio e item: sala tranquila, como no Isaac
@@ -569,38 +656,90 @@ public class Andar : MonoBehaviour
             InimigoDeSala inimigo = sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
 
             if (inimigo is InimigoSentinela sentinela)
-                sentinela.UsarOitoDirecoes(numeroDoAndar >= 3);
+                sentinela.UsarOitoDirecoes(Dificuldade.SentinelaEmOitoDirecoes);
 
-            if (inimigo is InimigoDeSangue sangue && numeroDoAndar >= 3)
+            if (inimigo is InimigoDeSangue sangue && Dificuldade.SangueEndurecido)
                 sangue.Endurecer();
 
-            if (inimigo != null && chanceDeDropDoInimigo > 0f)
-                inimigo.gameObject.AddComponent<SoltaColetavel>().Configurar(chanceDeDropDoInimigo, sala.transform);
+            Fortalecer(inimigo, sala);
         }
     }
 
     /// <summary>
-    /// Os chefes que podem aparecer em cada andar (o ultimo tem sempre o chefe final):
-    ///   1 -> Monstrao ou Minotauro Furioso (sorteado pela semente do andar)
-    ///   2 -> Sapao
-    ///   3 -> Rei Necromante
-    /// Do andar 4 em diante (se o chefe final vier mais tarde) a lista recomeca.
+    /// Aplica a dificuldade da fase num inimigo comum recem-criado: mais vida e velocidade,
+    /// as vezes vira campeao (que sempre solta premio), e a chance de drop da fase.
     /// </summary>
-    private static readonly TipoDeInimigo[][] ChefesPorAndar =
+    private void Fortalecer(InimigoDeSala inimigo, Sala sala)
     {
-        new[] { TipoDeInimigo.Chefe, TipoDeInimigo.ChefeMinotauro },
-        new[] { TipoDeInimigo.ChefeSaltador },
-        new[] { TipoDeInimigo.ChefeNecromante },
-    };
+        if (inimigo == null)
+            return;
 
-    public static TipoDeInimigo ChefeDoNumero(int andar)
-    {
-        TipoDeInimigo[] opcoes = ChefesPorAndar[(Mathf.Max(1, andar) - 1) % ChefesPorAndar.Length];
-        return opcoes[UnityEngine.Random.Range(0, opcoes.Length)];
+        if (inimigo.Vida != null)
+            inimigo.Vida.AumentarVidaMaxima(inimigo.Vida.VidaMaxima * (Dificuldade.VidaDosInimigos - 1f));
+
+        inimigo.DefinirVelocidade(inimigo.Velocidade * Dificuldade.VelocidadeDosInimigos);
+
+        bool campeao = UnityEngine.Random.value < Dificuldade.ChanceDeCampeao && Campeao.Aplicar(inimigo, Mundo) != null;
+        float chance = campeao ? 1f : chanceDeDropDoInimigo + Dificuldade.BonusDeDrop;
+
+        if (chance > 0f)
+            inimigo.gameObject.AddComponent<SoltaColetavel>().Configurar(chance, sala.transform);
     }
 
-    /// <summary>Um inimigo comum do andar: cada tema tem a sua lista (ver <see cref="TemaDoAndar"/>).</summary>
-    private TipoDeInimigo SortearInimigo() => Tema.SortearInimigo();
+    /// <summary>
+    /// Os chefes de cada mundo. Nas fases do comeco sai um da lista de "comuns" (a fase 2
+    /// nunca repete o da fase 1); na ultima fase vem o chefe do mundo, o mais forte, com
+    /// 15% a mais de vida (DificuldadeDaFase.VidaDoChefe):
+    ///   Mundo 1 Porao      -> Monstrao ou Minotauro Furioso; fecha com o Sapao
+    ///   Mundo 2 Catacumbas -> Monstrao ou Sapao; fecha com o Minotauro Furioso (chama orcs)
+    ///   Mundo 3 Cripta     -> Sapao ou Minotauro Furioso; fecha com o Rei Necromante (chama esqueletos)
+    ///   Mundo 4 Abismo     -> Minotauro Furioso ou Rei Necromante; fecha com o Olho do Porao (chefe final)
+    /// Com mais de 4 mundos, os do meio repetem a lista.
+    /// </summary>
+    private static readonly (TipoDeInimigo[] comuns, TipoDeInimigo final)[] ChefesPorMundo =
+    {
+        (new[] { TipoDeInimigo.Chefe, TipoDeInimigo.ChefeMinotauro }, TipoDeInimigo.ChefeSaltador),
+        (new[] { TipoDeInimigo.Chefe, TipoDeInimigo.ChefeSaltador }, TipoDeInimigo.ChefeMinotauro),
+        (new[] { TipoDeInimigo.ChefeSaltador, TipoDeInimigo.ChefeMinotauro }, TipoDeInimigo.ChefeNecromante),
+        (new[] { TipoDeInimigo.ChefeMinotauro, TipoDeInimigo.ChefeNecromante }, TipoDeInimigo.ChefeFinal),
+    };
+
+    // O chefe comum que ja saiu neste mundo: a fase seguinte sorteia o outro.
+    private TipoDeInimigo? chefeComumDoMundo;
+    private int mundoDoChefeComum;
+
+    private TipoDeInimigo ChefeDaFase(int mundo, int fase)
+    {
+        // O ultimo mundo usa sempre a ultima linha (Abismo); os outros vao repetindo as de antes.
+        int linha = mundo >= quantidadeDeMundos ? ChefesPorMundo.Length - 1 : (mundo - 1) % (ChefesPorMundo.Length - 1);
+        var (comuns, final) = ChefesPorMundo[linha];
+
+        if (fase >= fasesPorMundo)
+            return final;
+
+        List<TipoDeInimigo> opcoes = new List<TipoDeInimigo>(comuns);
+
+        if (mundoDoChefeComum == mundo && chefeComumDoMundo.HasValue && opcoes.Count > 1)
+            opcoes.Remove(chefeComumDoMundo.Value);
+
+        TipoDeInimigo escolhido = opcoes[UnityEngine.Random.Range(0, opcoes.Count)];
+        chefeComumDoMundo = escolhido;
+        mundoDoChefeComum = mundo;
+        return escolhido;
+    }
+
+    /// <summary>
+    /// Um inimigo comum da fase: cada tema tem a sua lista (ver <see cref="TemaDoAndar"/>).
+    /// Na primeira fase do mundo so os do comeco da lista; do mundo 2 em diante, as vezes um
+    /// do mundo anterior aparece no meio.
+    /// </summary>
+    private TipoDeInimigo SortearInimigo()
+    {
+        if (Mundo >= 2 && UnityEngine.Random.value < Dificuldade.ChanceDeInimigoDoMundoAnterior)
+            return TemaDoAndar.DoMundo(Mundo - 1, quantidadeDeMundos).SortearInimigo(1f);
+
+        return Tema.SortearInimigo(Dificuldade.VariedadeDoTema);
+    }
 
     // ---------------- itens e coletaveis ----------------
     /// <summary>Letreiro no meio da tela pra cada heroi que o chefe liberou.</summary>
@@ -610,7 +749,7 @@ public class Andar : MonoBehaviour
             return;
 
         List<string> nomes = liberados.ConvertAll(h => h.Nome);
-        AvisoDoAndar.Mostrar("Heroi liberado: " + string.Join(", ", nomes) + "!");
+        AvisoDoAndar.Mostrar((nomes.Count > 1 ? "Heróis liberados: " : "Herói liberado: ") + string.Join(", ", nomes) + "!");
         Sons.Tocar(Som.Aviso);
     }
 
@@ -620,9 +759,12 @@ public class Andar : MonoBehaviour
     ///             as vezes dois pedestais, escolha um
     ///   Desafio -> pedestal com item; pegou, as portas fecham e vem ondas de inimigos
     ///   Amaldicoada -> item ou bau; a porta com espinhos custa meio coracao por passagem
-    ///   Chefe  -> pedestal com item quando a sala e limpa
-    ///   Normal -> chance de um coletavel no meio quando a sala e limpa
-    ///   Inicio -> uma chave de brinde nos andares com sala do item trancada
+    ///   Chefe  -> pedestal com item e a chave dourada quando a sala e limpa (a chave abre a
+    ///             sala do tesouro trancada do andar seguinte, ou um bau de ferro)
+    ///   Normal -> chance de um coletavel (ou, as vezes, um bau de madeira) quando a sala e
+    ///             limpa; algumas tem um bau de ferro trancado
+    /// Chave e rara de proposito: vem do chefe, da loja, do bau da sala amaldicoada e,
+    /// raramente, de um inimigo.
     /// </summary>
     private void PorPremios(Sala sala, SalaDoAndar casa)
     {
@@ -635,9 +777,9 @@ public class Andar : MonoBehaviour
                 break;
 
             case TipoDeSala.Desafio:
-                int ondas = numeroDoAndar <= 1 ? ondasDoDesafio.x : ondasDoDesafio.y;
+                int ondas = (numeroDoAndar <= 1 ? ondasDoDesafio.x : ondasDoDesafio.y) + Dificuldade.OndasExtrasDoDesafio;
                 SalaDeDesafio.Montar(sala, CatalogoDeItens.Sortear(itensQueJaSairam), ondas,
-                                     inimigosPorOnda + (numeroDoAndar - 1) / 2, InimigoDoDesafio);
+                                     inimigosPorOnda + Dificuldade.InimigosExtrasPorOnda, InimigoDoDesafio);
                 break;
 
             case TipoDeSala.Amaldicoada:
@@ -658,18 +800,37 @@ public class Andar : MonoBehaviour
                     break;
                 }
 
+                // Chefe da ultima fase do mundo: e ele que libera herois (Progresso.VenceuMundo).
                 ItemPassivo doChefe = CatalogoDeItens.Sortear(itensQueJaSairam);
+                int mundo = Mundo;
+                bool fechouOMundo = Dificuldade.FaseFinalDoMundo;
+                int moedas = Dificuldade.MoedasDoChefe;
                 sala.AoLimpar.AddListener(() =>
                 {
                     Pedestal.Criar(doChefe, centro, sala.transform);
                     Alcapao.Criar(centro + LongeDaPorta(sala, distanciaDoAlcapao), sala.transform);
-                    Musica.Tocar(Musica.DoAndar(numeroDoAndar));
-                    AnunciarLiberados(Progresso.VenceuChefe(numeroDoAndar));
+                    PorMoedasDoChefe(sala, moedas);
+
+                    // A chave dourada fica entre a porta e o pedestal: no caminho de quem vem pegar o item.
+                    ChaveDoChefe.Criar(centro - LongeDaPorta(sala, distanciaDoAlcapao), sala.transform);
+                    Musica.Tocar(Musica.DoAndar(mundo));
+
+                    List<Herois.Heroi> liberados = fechouOMundo ? Progresso.VenceuMundo(mundo) : new List<Herois.Heroi>();
+
+                    if (liberados.Count == 0)
+                        AvisoDoAndar.Mostrar("O chefe deixou uma chave dourada!");
+
+                    AnunciarLiberados(liberados);
                 });
                 break;
 
             case TipoDeSala.Normal:
-                sala.AoLimpar.AddListener(() => TabelaDeDrops.TalvezSoltar(chanceDePremioDaSala, centro, sala.transform));
+                if (comBauTrancado.Contains(casa))
+                    PorBauTrancado(sala);
+
+                // Beco que nao virou sala especial: premio garantido pra quem explorou ate ali.
+                float chanceDePremio = casa.Recompensa ? 1f : Mathf.Min(0.75f, chanceDePremioDaSala + Dificuldade.BonusDePremioDaSala);
+                sala.AoLimpar.AddListener(() => PremioDaSala(sala, chanceDePremio));
                 break;
 
             case TipoDeSala.Loja:
@@ -680,10 +841,6 @@ public class Andar : MonoBehaviour
                 PorTesouroSecreto(sala);
                 break;
 
-            case TipoDeSala.Inicio:
-                if (ItemTrancado)
-                    Coletavel.Criar(TipoDeColetavel.Chave, centro + Vector2.down * 1.5f, sala.transform);
-                break;
         }
 
         // A porta da sala vizinha que leva ao item ganha um cadeado.
@@ -714,12 +871,114 @@ public class Andar : MonoBehaviour
 
     private bool ItemTrancado => numeroDoAndar >= trancarItemAPartirDoAndar;
 
+    /// <summary>
+    /// Escolhe as salas comuns que ganham bau de ferro: de preferencia as mais longe do
+    /// inicio (premio pra quem explora), sem repetir sala.
+    /// </summary>
+    private void SortearBausTrancados()
+    {
+        comBauTrancado.Clear();
+        int quantos = bausTrancadosPorAndar + (numeroDoAndar >= bauExtraAPartirDoAndar ? 1 : 0);
+
+        List<SalaDoAndar> comuns = Mapa.Salas.FindAll(s => s.Tipo == TipoDeSala.Normal);
+        List<SalaDoAndar> longe = comuns.FindAll(s => s.Distancia >= 2);
+
+        if (longe.Count >= quantos)
+            comuns = longe;
+
+        for (int i = 0; i < quantos && comuns.Count > 0; i++)
+        {
+            int sorteada = UnityEngine.Random.Range(0, comuns.Count);
+            comBauTrancado.Add(comuns[sorteada]);
+            comuns.RemoveAt(sorteada);
+        }
+    }
+
+    /// <summary>Bau de ferro num canto livre da sala, com um tesouro sorteado ja na montagem.</summary>
+    private void PorBauTrancado(Sala sala)
+    {
+        ItemPassivo item = UnityEngine.Random.value < chanceDeItemNoBau ? CatalogoDeItens.Sortear(itensQueJaSairam) : null;
+        TipoDeColetavel[] tesouro = item != null ? new TipoDeColetavel[0] : Bau.SortearTesouro(numeroDoAndar);
+        Bau.CriarTrancado((Vector2)sala.transform.position + PontoParaBau(sala), sala.transform, item, tesouro);
+    }
+
+    /// <summary>
+    /// Premio da sala comum limpa: as vezes um bau de madeira com dois ou tres coletaveis,
+    /// senao a chance de sempre de um coletavel no meio.
+    /// </summary>
+    private void PremioDaSala(Sala sala, float chanceDePremio)
+    {
+        Vector2 centro = sala.transform.position;
+
+        if (UnityEngine.Random.value < chanceDeBauNaSala)
+        {
+            TipoDeColetavel[] dentro = new TipoDeColetavel[UnityEngine.Random.Range(2, 4)];
+
+            for (int i = 0; i < dentro.Length; i++)
+                dentro[i] = TabelaDeDrops.Sortear();
+
+            Vector2 ponto = sala.Livre(Vector2.zero, 0.8f) ? Vector2.zero : PontoParaBau(sala);
+            Bau.Criar(centro + ponto, sala.transform, dentro);
+            return;
+        }
+
+        TabelaDeDrops.TalvezSoltar(chanceDePremio, centro, sala.transform);
+    }
+
+    /// <summary>
+    /// Ponto livre pra um bau: longe das paredes (sobra lugar pro pedestal e pros coletaveis
+    /// em volta), das pedras e das portas.
+    /// </summary>
+    private Vector2 PontoParaBau(Sala sala)
+    {
+        Vector2 centro = sala.transform.position;
+        Vector2 melhor = Vector2.zero;
+
+        for (int tentativa = 0; tentativa < 30; tentativa++)
+        {
+            Vector2 ponto = sala.PontoLivreAleatorio(2.2f);
+
+            if (!sala.Livre(ponto, 0.8f))
+                continue;
+
+            melhor = ponto;
+            bool longe = true;
+
+            foreach (Porta porta in sala.Portas)
+                if (porta.Existe && Vector2.Distance(centro + ponto, porta.PontoDeChegada) < distanciaDasPortas)
+                    longe = false;
+
+            if (longe)
+                break;
+        }
+
+        return melhor;
+    }
+
     private TemaMusical MusicaDoChefe => UltimoAndar ? TemaMusical.ChefeFinal : TemaMusical.Chefe;
 
-    /// <summary>O andar do chefe final: vencer ele termina a partida.</summary>
-    public bool UltimoAndar => numeroDoAndar >= andarFinal;
+    /// <summary>A ultima fase do ultimo mundo, a do chefe final: vencer ele termina a partida.</summary>
+    public bool UltimoAndar => numeroDoAndar >= AndarFinal;
 
-    public int AndarFinal => andarFinal;
+    /// <summary>Quantas fases o jogo tem ao todo (mundos x fases por mundo).</summary>
+    public int AndarFinal => quantidadeDeMundos * fasesPorMundo;
+
+    /// <summary>
+    /// As moedas que o chefe deixa alem do item (DificuldadeDaFase.MoedasDoChefe), num arco
+    /// em volta do pedestal do lado da porta, longe do alcapao (que fica do lado oposto).
+    /// </summary>
+    private static void PorMoedasDoChefe(Sala sala, int quantas)
+    {
+        Vector2 centro = sala.transform.position;
+        Vector2 praPorta = -LongeDaPorta(sala, 1f);
+        float meio = Mathf.Atan2(praPorta.y, praPorta.x) * Mathf.Rad2Deg;
+
+        for (int i = 0; i < quantas; i++)
+        {
+            float angulo = (meio - 70f + 140f * (quantas == 1 ? 0.5f : i / (quantas - 1f))) * Mathf.Deg2Rad;
+            Coletavel.Criar(TipoDeColetavel.Moeda, centro + new Vector2(Mathf.Cos(angulo), Mathf.Sin(angulo)) * 1.6f, sala.transform);
+        }
+    }
 
     /// <summary>
     /// O premio de quem acha a sala secreta: as vezes um item, senao um monte de moedas
@@ -780,10 +1039,7 @@ public class Andar : MonoBehaviour
             tipo = TipoDeInimigo.Perseguidor;
 
         InimigoDeSala inimigo = sala.CriarInimigo(tipo, ponto);
-
-        if (inimigo != null && chanceDeDropDoInimigo > 0f)
-            inimigo.gameObject.AddComponent<SoltaColetavel>().Configurar(chanceDeDropDoInimigo, sala.transform);
-
+        Fortalecer(inimigo, sala);
         return inimigo;
     }
 
