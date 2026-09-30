@@ -13,5 +13,14 @@ Set-Content -Path (Join-Path $build 'versao.txt') -Value $Versao -NoNewline
 
 $zip = Join-Path $raiz "Builds\ThePrettie-Windows-$Versao.zip"
 if (Test-Path $zip) { Remove-Item $zip }
-Compress-Archive -Path (Join-Path $build '*') -DestinationPath $zip
+# Monta o zip numa pasta temporaria, sem as pastas de debug do Burst (*DoNotShip*) e sem restos de
+# builds antigos que ficaram em Builds\Windows com outro nome (aula_*, "The Prettie*" com espaco).
+$tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("ThePrettie-zip-" + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory $tmp | Out-Null
+try {
+    Get-ChildItem $build | Where-Object { $_.Name -notlike '*DoNotShip*' -and $_.Name -notlike 'aula_*' -and $_.Name -notlike 'The Prettie*' } |
+        ForEach-Object { Copy-Item $_.FullName $tmp -Recurse -Force }
+    Compress-Archive -Path (Join-Path $tmp '*') -DestinationPath $zip
+}
+finally { Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue }
 Write-Host "Zip pronto: $zip"
