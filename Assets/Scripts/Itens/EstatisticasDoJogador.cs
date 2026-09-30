@@ -87,6 +87,10 @@ public class EstatisticasDoJogador : MonoBehaviour
             inventario.Adicionar(TipoDeColetavel.Bomba, item.bombas);
         }
 
+        // Flecha nova vai pra aljava e ja entra em uso.
+        if (item.flecha != TipoDeFlecha.Normal)
+            TrocaDeFlecha.Em(gameObject).Ganhar(item.flecha);
+
         Sons.Tocar(Som.Item);
         Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
         AoPegarItem?.Invoke(item);

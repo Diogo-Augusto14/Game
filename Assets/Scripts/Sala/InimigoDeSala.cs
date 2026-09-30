@@ -94,6 +94,9 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     /// <summary>Troca a velocidade andando (a fabrica usa nas variacoes de um mesmo comportamento).</summary>
     public void DefinirVelocidade(float nova) => velocidade = Mathf.Max(0f, nova);
 
+    /// <summary>Fracao da velocidade ao andar: 1 = normal, menos = gelado (flecha de gelo).</summary>
+    public float MultiplicadorDeVelocidade { get; set; } = 1f;
+
     /// <summary>Do inimigo ate o jogador (zero sem jogador). A animacao usa pra virar pro alvo.</summary>
     public Vector2 DirecaoDoJogador => rb != null ? ParaOJogador() : Vector2.zero;
 
@@ -242,6 +245,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     /// <summary>Anda na direcao dada (normalizada ou nao), acelerando. Contorna pedra no caminho.</summary>
     protected void Andar(Vector2 direcao, float velocidadeAlvo)
     {
+        velocidadeAlvo *= MultiplicadorDeVelocidade;
         Vector2 alvo = direcao.sqrMagnitude > 0.0001f ? Desviar(direcao.normalized) * velocidadeAlvo : Vector2.zero;
 
         rb.linearVelocity = aceleracao > 0f

@@ -42,6 +42,10 @@ public class ItemPassivo
     [Tooltip("Muda a cor da lagrima (alfa 0 = nao muda)")]
     public Color corDaLagrima = new Color(0f, 0f, 0f, 0f);
 
+    [Header("Flecha")]
+    [Tooltip("Tipo de flecha que o item da (fica na aljava; Q/RB troca). Normal = nenhum")]
+    public TipoDeFlecha flecha;
+
     [Header("Corpo")]
     public float somaVelocidade;
     public float somaVidaMaxima;
@@ -71,7 +75,7 @@ public static class CatalogoDeItens
 
     private static List<ItemPassivo> Montar()
     {
-        return new List<ItemPassivo>
+        List<ItemPassivo> lista = new List<ItemPassivo>
         {
             new ItemPassivo("Cebola Triste", "Chora mais rapido", new Color(0.85f, 0.75f, 0.95f))
                 { somaCadencia = 0.7f },
@@ -115,6 +119,12 @@ public static class CatalogoDeItens
             new ItemPassivo("Pimenta", "Lagrimas de fogo, dano para cima", new Color(1f, 0.35f, 0.1f))
                 { multiplicaDano = 1.3f, somaVelocidadeDoTiro = 1f, corDaLagrima = new Color(1f, 0.45f, 0.15f) },
         };
+
+        // Um item pra cada flecha especial, com o nome e o efeito dela (ver CatalogoDeFlechas).
+        foreach (DefinicaoDeFlecha f in CatalogoDeFlechas.Especiais())
+            lista.Add(new ItemPassivo(f.nome, f.descricao, f.cor) { flecha = f.tipo });
+
+        return lista;
     }
 
     /// <summary>

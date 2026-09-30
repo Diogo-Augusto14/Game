@@ -393,6 +393,12 @@ public static class ArteImportada
     /// </summary>
     public static Sprite IconeDoItem(string nome)
     {
+        // Item de flecha: o desenho da propria flecha.
+        Sprite flecha = CatalogoDeFlechas.IconeDoItem(nome);
+
+        if (flecha != null)
+            return flecha;
+
         switch (nome)
         {
             case "Cebola Triste": return Objeto(9, 2);
@@ -461,6 +467,69 @@ public static class ArteImportada
     /// <summary>O risco de luz no fim dos cristais: vira o corte dos herois de espada e machado.</summary>
     public static Sprite Corte(float pixelsPorUnidade)
         => Unico("Personagens/Projeteis/Cristais", 100, new RectInt(839, 30, 25, 35), new Vector2(851.5f, 47.5f), pixelsPorUnidade);
+
+    // ---------------- flechas especiais e tiros dos inimigos ----------------
+    /// <summary>A bola de fogo do mago voando (quadros 0 a 3, com o rastro pra tras): aponta pra direita.</summary>
+    public static Sprite[] BolaDeFogoVoando(float pixelsPorUnidade)
+        => Linha("Personagens/Projeteis/BolaDeFogo", 100, 0, 4, new RectInt(36, 40, 30, 24), new Vector2(55f, 51.5f), pixelsPorUnidade);
+
+    /// <summary>A bola de fogo estourando (quadros 4 a 6 da mesma tira).</summary>
+    public static Sprite[] BolaDeFogoEstourando(float pixelsPorUnidade)
+        => Fatia(Linha("Personagens/Projeteis/BolaDeFogo", 100, 0, 7, new RectInt(36, 36, 32, 32), new Vector2(54f, 52f), pixelsPorUnidade), 4, 3);
+
+    /// <summary>A estrela azul de cristal girando (quadros 2 a 5 dos cristais do mago).</summary>
+    public static Sprite[] CristalGirando(float pixelsPorUnidade)
+        => Fatia(Linha("Personagens/Projeteis/Cristais", 100, 0, 6, new RectInt(34, 30, 36, 40), new Vector2(53f, 50f), pixelsPorUnidade), 2, 4);
+
+    /// <summary>Os cristais se juntando (quadros 0 e 1): o gelo prendendo o inimigo.</summary>
+    public static Sprite[] CristaisSeJuntando(float pixelsPorUnidade)
+        => Linha("Personagens/Projeteis/Cristais", 100, 0, 2, new RectInt(22, 12, 66, 78), new Vector2(55f, 51f), pixelsPorUnidade);
+
+    /// <summary>O raio verde do necromante caindo (quadros 0 e 1): aponta pra BAIXO.</summary>
+    public static Sprite[] MagiaVerde(float pixelsPorUnidade)
+        => Linha("Personagens/Projeteis/MagiaVerde", 100, 0, 2, new RectInt(42, 14, 14, 30), new Vector2(49f, 36f), pixelsPorUnidade);
+
+    /// <summary>A nuvem verde em que o raio do necromante estoura (quadros 3 a 5).</summary>
+    public static Sprite[] MagiaVerdeEstourando(float pixelsPorUnidade)
+        => Fatia(Linha("Personagens/Projeteis/MagiaVerde", 100, 0, 6, new RectInt(28, 20, 50, 42), new Vector2(53f, 44f), pixelsPorUnidade), 3, 3);
+
+    /// <summary>A bala do cavaleiro do canhao.</summary>
+    public static Sprite BalaDeCanhao(float pixelsPorUnidade)
+        => Unico("Personagens/Projeteis/BolaDeCanhao", 32, new RectInt(11, 12, 11, 9), new Vector2(16.5f, 16.5f), pixelsPorUnidade);
+
+    /// <summary>Uma das quatro pedras do Tiny Swords, no tamanho pedido (1 a 4).</summary>
+    public static Sprite Pedra(int qual, float pixelsPorUnidade)
+        => Inteira($"TinySwords/Pedra{Mathf.Clamp(qual, 1, 4)}", pixelsPorUnidade);
+
+    /// <summary>Nuvem de poeira (Tiny Swords Free Pack, 8 quadros).</summary>
+    public static Sprite[] Poeira(float pixelsPorUnidade)
+        => Linha("Efeitos/Poeira", 64, 0, 8, new RectInt(12, 10, 40, 40), new Vector2(32f, 30f), pixelsPorUnidade);
+
+    /// <summary>Explosao pequena (Tiny Swords Free Pack, 8 quadros): a da flecha explosiva.</summary>
+    public static Sprite[] ExplosaoPequena(float pixelsPorUnidade)
+        => Linha("Efeitos/ExplosaoPequena", 192, 0, 8, new RectInt(58, 56, 74, 72), new Vector2(95f, 92f), pixelsPorUnidade);
+
+    /// <summary>Respingo d'agua (Tiny Swords Free Pack, 9 quadros); tingido vira gelo, sangue, bolha.</summary>
+    public static Sprite[] Respingo(float pixelsPorUnidade)
+        => Linha("Efeitos/Respingo", 192, 0, 9, new RectInt(48, 54, 100, 92), new Vector2(97f, 98f), pixelsPorUnidade);
+
+    /// <summary>A bolhinha redonda do primeiro quadro do respingo.</summary>
+    public static Sprite Bolhinha(float pixelsPorUnidade)
+        => Unico("Efeitos/Respingo", 192, new RectInt(82, 83, 28, 27), new Vector2(95.5f, 96f), pixelsPorUnidade);
+
+    /// <summary>Chama subindo (Tiny Swords Free Pack, 10 quadros): o rastro da flecha explosiva.</summary>
+    public static Sprite[] Chama(float pixelsPorUnidade)
+        => Linha("Efeitos/Chama", 64, 0, 10, new RectInt(14, 20, 38, 44), new Vector2(33f, 44f), pixelsPorUnidade);
+
+    private static Sprite[] Fatia(Sprite[] quadros, int inicio, int quantos)
+    {
+        if (quadros == null || quadros.Length < inicio + quantos)
+            return null;
+
+        Sprite[] parte = new Sprite[quantos];
+        System.Array.Copy(quadros, inicio, parte, 0, quantos);
+        return parte;
+    }
 
     private static Sprite Unico(string caminho, int celula, RectInt recorte, Vector2 centro, float pixelsPorUnidade,
                                 int alturaDaCelula = 0)

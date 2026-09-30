@@ -20,6 +20,7 @@ public class BolhaQueEstoura : MonoBehaviour
     public static void Colocar(TiroDaSala tiro, float tempoAteEstourar, int estilhacos, float velocidade,
                                float dano, Color cor, GameObject dono)
     {
+        tiro.Vestir(EstiloDeTiro.Bolha);
         BolhaQueEstoura bolha = tiro.gameObject.AddComponent<BolhaQueEstoura>();
         bolha.tempo = tempoAteEstourar;
         bolha.estilhacos = estilhacos;
@@ -32,7 +33,7 @@ public class BolhaQueEstoura : MonoBehaviour
     private void Start()
     {
         nascimento = Time.time;
-        desenho = GetComponent<SpriteRenderer>();
+        desenho = GetComponent<TiroDaSala>().Desenho;
     }
 
     private void Update()
@@ -55,6 +56,7 @@ public class BolhaQueEstoura : MonoBehaviour
             TiroDaSala.Disparar(centro + rumo * 0.2f, rumo * velocidade, dano, dono, true, cor);
         }
 
+        GetComponent<TiroDaSala>().MostrarImpacto();
         Destroy(gameObject);
     }
 }
