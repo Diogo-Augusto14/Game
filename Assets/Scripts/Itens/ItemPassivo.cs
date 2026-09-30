@@ -49,6 +49,43 @@ public class ItemPassivo
     public float somaVelocidade;
     public float somaVidaMaxima;
 
+    [Header("Efeitos especiais (EfeitosDosItens)")]
+    [Tooltip("Uma vez por partida: em vez de morrer, volta com metade da vida")]
+    public bool renasce;
+
+    [Tooltip("Bloqueia o primeiro golpe de cada sala")]
+    public bool escudoPorSala;
+
+    [Tooltip("A cada tantos inimigos derrotados, cura meio coracao (0 = nao cura)")]
+    public int inimigosParaCurar;
+
+    [Tooltip("Dano nos inimigos em volta sempre que o jogador leva dano (0 = nada)")]
+    public float danoDeEspinhos;
+
+    [Tooltip("Raio em que moedas, chaves, bombas e coracoes vem sozinhos ate o jogador")]
+    public float raioDoIma;
+
+    [Tooltip("Multiplica a chance de inimigos e salas soltarem premio")]
+    public float multiplicaSorte = 1f;
+
+    [Tooltip("Fracao do preco que a loja desconta (0.3 = 30% mais barato)")]
+    public float descontoNaLoja;
+
+    [Tooltip("Dano extra (0.5 = +50%) enquanto a vida estiver baixa")]
+    public float furia;
+
+    [Tooltip("Segundos a mais de invencibilidade depois de levar dano")]
+    public float somaInvencibilidade;
+
+    [Tooltip("Orbes que giram em volta do jogador, bloqueiam tiros e ferem inimigos")]
+    public int orbes;
+
+    [Tooltip("Multiplica raio e dano das bombas do jogador")]
+    public float multiplicaBomba = 1f;
+
+    [Tooltip("Vida recuperada ao limpar uma sala (20 = um coracao)")]
+    public float curaAoLimparSala;
+
     [Header("Coletaveis de brinde")]
     public int moedas;
     public int chaves;
@@ -161,6 +198,85 @@ public static class CatalogoDeItens
                 {
                     Descricao = "Lagrimas de fogo: dano x1.3 e tiro um pouco mais rapido.",
                     multiplicaDano = 1.3f, somaVelocidadeDoTiro = 1f, corDaLagrima = new Color(1f, 0.45f, 0.15f)
+                },
+
+            // ---------------- efeitos especiais (EfeitosDosItens) ----------------
+            new ItemPassivo("Pena da Fenix", "Uma segunda chance", new Color(1f, 0.45f, 0.3f))
+                {
+                    Descricao = "Uma vez por partida: quando a vida acabaria, voce renasce com metade da vida.",
+                    renasce = true
+                },
+
+            new ItemPassivo("Escudo Sagrado", "Bloqueia o primeiro golpe", new Color(0.95f, 0.8f, 0.35f))
+                {
+                    Descricao = "O primeiro golpe que voce levaria em cada sala e bloqueado. O escudo volta ao entrar em outra sala.",
+                    escudoPorSala = true
+                },
+
+            new ItemPassivo("Sangue de Vampiro", "Matar cura", new Color(0.75f, 0.1f, 0.2f))
+                {
+                    Descricao = "A cada 5 inimigos derrotados, recupera meio coracao.",
+                    inimigosParaCurar = 5
+                },
+
+            new ItemPassivo("Prego Enferrujado", "Quem bate, apanha", new Color(0.7f, 0.7f, 0.75f))
+                {
+                    Descricao = "Sempre que voce leva dano, espinhos saem de voce e ferem os inimigos em volta.",
+                    danoDeEspinhos = 12f
+                },
+
+            new ItemPassivo("Pedra-Ima", "Coletaveis vem ate voce", new Color(1f, 0.55f, 0.15f))
+                {
+                    Descricao = "Moedas, chaves, bombas e coracoes perto de voce sao puxados sozinhos.",
+                    raioDoIma = 3.5f
+                },
+
+            new ItemPassivo("Amuleto da Sorte", "Mais premios", new Color(0.4f, 0.85f, 0.35f))
+                {
+                    Descricao = "Inimigos e salas limpas soltam premios com bem mais frequencia.",
+                    multiplicaSorte = 1.75f
+                },
+
+            new ItemPassivo("Bolsa do Mercador", "Loja mais barata", new Color(1f, 0.85f, 0.3f))
+                {
+                    Descricao = "Tudo na loja custa 35% menos. Vem com 5 moedas.",
+                    descontoNaLoja = 0.35f, moedas = 5
+                },
+
+            new ItemPassivo("Brasa da Furia", "Mais forte ferido", new Color(1f, 0.5f, 0.25f))
+                {
+                    Descricao = "Com um coracao de vida ou menos, suas flechas causam 60% mais dano.",
+                    furia = 0.6f
+                },
+
+            new ItemPassivo("Elixir de Nevoa", "Mais tempo invencivel", new Color(0.6f, 0.8f, 1f))
+                {
+                    Descricao = "Depois de levar dano, fica invencivel por bem mais tempo.",
+                    somaInvencibilidade = 0.7f
+                },
+
+            new ItemPassivo("Orbe Guardiao", "Um orbe te protege", new Color(0.3f, 0.75f, 1f))
+                {
+                    Descricao = "Um orbe gira em volta de voce: bloqueia tiros inimigos e fere quem encostar.",
+                    orbes = 1
+                },
+
+            new ItemPassivo("Barril de Polvora", "Bombas mais fortes", new Color(0.55f, 0.35f, 0.2f))
+                {
+                    Descricao = "Suas bombas explodem numa area 50% maior e com 50% mais dano. Vem com 2 bombas.",
+                    multiplicaBomba = 1.5f, bombas = 2
+                },
+
+            new ItemPassivo("Carne Assada", "Cura a cada sala", new Color(0.85f, 0.4f, 0.35f))
+                {
+                    Descricao = "Ao limpar uma sala de inimigos, recupera meio coracao.",
+                    curaAoLimparSala = 10f
+                },
+
+            new ItemPassivo("Pacto de Sangue", "Poder por um preco", new Color(0.5f, 0.05f, 0.1f))
+                {
+                    Descricao = "Suas flechas causam 60% mais dano, mas voce perde um coracao de vida maxima.",
+                    multiplicaDano = 1.6f, somaVidaMaxima = -20f
                 },
         };
     }

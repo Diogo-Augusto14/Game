@@ -107,6 +107,16 @@ public class TiroDaSala : MonoBehaviour
         Gastar();
     }
 
+    /// <summary>Tiro de inimigo (so acerta o jogador)?</summary>
+    public bool AtingeJogador => atingeJogador;
+
+    /// <summary>Some sem acertar ninguem (bloqueado por um orbe, por exemplo).</summary>
+    public void Anular()
+    {
+        if (!gasto)
+            Gastar();
+    }
+
     private bool EhAlvo(GameObject quem)
     {
         if (atingeJogador)
