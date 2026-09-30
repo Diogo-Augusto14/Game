@@ -97,6 +97,23 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     /// <summary>Troca a velocidade andando (a fabrica usa nas variacoes de um mesmo comportamento).</summary>
     public void DefinirVelocidade(float nova) => velocidade = Mathf.Max(0f, nova);
 
+    /// <summary>Velocidade maxima andando agora (a dificuldade da fase multiplica em cima dela).</summary>
+    public float Velocidade => velocidade;
+
+    /// <summary>
+    /// Troca a cor base do desenho (inimigo campeao). O flash de dano, a sala acordando e o
+    /// <see cref="Vida"/> voltam pra esta cor, nao pra original.
+    /// </summary>
+    public void Tingir(Color cor)
+    {
+        if (desenho == null)
+            return;
+
+        corOriginal = cor;
+        desenho.color = cor;
+        vida?.TrocarCorBase(cor);
+    }
+
     /// <summary>Do inimigo ate o jogador (zero sem jogador). A animacao usa pra virar pro alvo.</summary>
     public Vector2 DirecaoDoJogador => rb != null ? ParaOJogador() : Vector2.zero;
 

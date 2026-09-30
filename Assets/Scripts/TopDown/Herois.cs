@@ -38,8 +38,11 @@ public static class Herois
         /// </summary>
         public int OndaDeCorte = -1;
 
-        /// <summary>Vencer o chefe deste andar libera o heroi (0 = nao e por chefe).</summary>
-        public int LiberaNoChefeDoAndar;
+        /// <summary>
+        /// Vencer o chefe da ultima fase deste mundo libera o heroi (0 = nao e por chefe).
+        /// Mundo 1 = Porao, 2 = Catacumbas, 3 = Cripta.
+        /// </summary>
+        public int LiberaNoMundo;
 
         /// <summary>Zerar o jogo com este heroi libera (null = nao e por ele).</summary>
         public string LiberaZerandoCom;
@@ -48,11 +51,11 @@ public static class Herois
         public int LiberaComVitorias;
 
         /// <summary>Livre desde o comeco: nenhuma condicao acima.</summary>
-        public bool Livre => LiberaNoChefeDoAndar <= 0 && LiberaZerandoCom == null && LiberaComVitorias <= 0;
+        public bool Livre => LiberaNoMundo <= 0 && LiberaZerandoCom == null && LiberaComVitorias <= 0;
 
         /// <summary>O que falta fazer, pro menu mostrar no heroi bloqueado.</summary>
         public string Requisito =>
-            LiberaNoChefeDoAndar > 0 ? $"Venca o chefe do andar {LiberaNoChefeDoAndar}"
+            LiberaNoMundo > 0 ? $"Venca o chefe final do mundo {LiberaNoMundo}"
             : LiberaZerandoCom != null ? $"Zere o jogo com o {LiberaZerandoCom}"
             : LiberaComVitorias > 1 ? $"Zere o jogo {LiberaComVitorias} vezes"
             : LiberaComVitorias == 1 ? "Zere o jogo"
@@ -85,7 +88,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Soldado", Pasta = "Soldado",
-            LiberaNoChefeDoAndar = 1,
+            LiberaNoMundo = 1,
             Descricao = "Aguenta mais pancada e atira um pouco mais rapido.",
             Vida = 120f, Dano = 3f, Cadencia = 3f, Alcance = 6f,
             TipoDoTiro = Tiro.FlechaDoSoldado,
@@ -93,7 +96,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Cavaleiro", Pasta = "Cavaleiro",
-            LiberaNoChefeDoAndar = 3,
+            LiberaNoMundo = 3,
             Descricao = "Muita vida. Onda de corte forte, mas curta.",
             Vida = 140f, Velocidade = 3.8f, Dano = 5f, Cadencia = 2f, Alcance = 3.5f,
             VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.45f, TipoDoTiro = Tiro.Corte, OndaDeCorte = 0,
@@ -136,7 +139,7 @@ public static class Herois
         new Heroi
         {
             Nome = "Arqueiro", Pasta = "Arqueiro",
-            LiberaNoChefeDoAndar = 2,
+            LiberaNoMundo = 2,
             Descricao = "Pouca vida, mas atira rapido e longe.",
             Vida = 80f, Velocidade = 4.8f, Dano = 3f, Cadencia = 4f, Alcance = 8.5f,
             VelocidadeDoTiro = 11f, TamanhoDoTiro = 0.26f, TipoDoTiro = Tiro.FlechaDoArqueiro,
