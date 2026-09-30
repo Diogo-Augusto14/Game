@@ -275,11 +275,11 @@ public class Minimapa : MonoBehaviour
         fundo.rectTransform.offsetMax = -Vector2.one * 4f;
     }
 
-    /// <summary>Titulo com o nome do andar e a legenda dos desenhos, no mapa grande.</summary>
+    /// <summary>Titulo com o mundo, a fase e a legenda dos desenhos, no mapa grande.</summary>
     private void Legenda(RectTransform quadro, MapaDoAndar mapa)
     {
         float meiaAltura = quadro.sizeDelta.y * 0.5f;
-        string titulo = andar.UltimoAndar ? $"Ultimo andar: {andar.Tema.Nome}" : $"Andar {andar.NumeroDoAndar}: {andar.Tema.Nome}";
+        string titulo = andar.UltimoAndar ? $"{andar.NomeDaFase}: {andar.Tema.Nome} (última fase)" : $"{andar.NomeDaFase}: {andar.Tema.Nome}";
         TelaSimples.Texto(quadro, "Titulo", 40, new Color(1f, 0.9f, 0.55f), meiaAltura - 50f, titulo);
 
         (TipoDeSala tipo, string nome)[] itens =
