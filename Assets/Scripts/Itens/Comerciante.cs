@@ -107,7 +107,9 @@ public class Comerciante : MonoBehaviour
         // O balao de fala comeca escondido.
         GameObject balao = new GameObject("Balao");
         balao.transform.SetParent(transform, false);
-        balao.transform.localPosition = new Vector3(1.9f, 1.4f, 0f);
+        // O balao fala pro lado do meio da sala (a banca pode estar encostada na direita).
+        bool bancaNaDireita = sala != null && transform.position.x > sala.position.x + 0.5f;
+        balao.transform.localPosition = new Vector3(bancaNaDireita ? -1.9f : 1.9f, 1.4f, 0f);
 
         Sprite placa = ArteImportada.PlacaNoMundo;
 
