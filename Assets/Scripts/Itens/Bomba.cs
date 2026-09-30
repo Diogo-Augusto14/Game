@@ -35,6 +35,15 @@ public class Bomba : MonoBehaviour
 
         Bomba bomba = obj.AddComponent<Bomba>();
         bomba.dono = quemSoltou;
+
+        // Item de bomba forte (Barril de Polvora): mais raio e mais dano, e a bomba e maior.
+        if (quemSoltou != null && quemSoltou.TryGetComponent(out EfeitosDosItens efeitos) && efeitos.PotenciaDaBomba > 1f)
+        {
+            bomba.raio *= efeitos.PotenciaDaBomba;
+            bomba.dano *= efeitos.PotenciaDaBomba;
+            obj.transform.localScale *= Mathf.Sqrt(efeitos.PotenciaDaBomba);
+        }
+
         return bomba;
     }
 
