@@ -7,6 +7,9 @@ using UnityEngine;
 /// Serve pros dois lados: <c>atingeJogador</c> ligado = tiro de inimigo (so acerta quem tem
 /// a tag do jogador); desligado = tiro do jogador (so acerta <see cref="InimigoDeSala"/>).
 /// Assim inimigo nao mata inimigo e o jogador nao se acerta.
+///
+/// O tiro de inimigo sai no estilo de quem atirou (<see cref="EstilosDeTiro"/>): bola de
+/// fogo, raio verde, bala de canhao, flecha, pedra... Quem nao tem estilo usa a gema.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
@@ -59,9 +62,43 @@ public class TiroDaSala : MonoBehaviour
         corpo.linearVelocity = velocidade;
 
         if (atingeJogador)
+        {
+            EstilosDeTiro.Aplicar(p, EstilosDeTiro.DoAtirador(dono));
             Sons.Tocar(Som.TiroInimigo, 0.4f);
+        }
 
         return p;
+    }
+
+    /// <summary>O desenho do tiro (o do estilo, se tiver; senao o da raiz).</summary>
+    public SpriteRenderer Desenho
+    {
+        get
+        {
+            if (TryGetComponent(out VisualDoProjetil visual) && visual.Desenho != null)
+                return visual.Desenho;
+
+            return GetComponent<SpriteRenderer>();
+        }
+    }
+
+    /// <summary>Troca o estilo deste tiro (a bolha do chefe saltador, por exemplo).</summary>
+    public void Vestir(EstiloDeTiro estilo)
+    {
+        if (TryGetComponent(out ComportamentoDoTiro antigo))
+        {
+            antigo.enabled = false;
+            Destroy(antigo);
+        }
+
+        EstilosDeTiro.Aplicar(this, estilo);
+    }
+
+    /// <summary>Mostra o efeito de impacto do estilo, onde o tiro esta.</summary>
+    public void MostrarImpacto()
+    {
+        if (TryGetComponent(out VisualDoProjetil visual))
+            visual.MostrarImpacto();
     }
 
     private void Awake()
@@ -128,6 +165,7 @@ public class TiroDaSala : MonoBehaviour
     private void Gastar()
     {
         gasto = true;
+        MostrarImpacto();
         Destroy(gameObject);
     }
 }

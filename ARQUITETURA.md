@@ -170,6 +170,7 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | `Masmorra/Esqueleto`, `EsqueletoFoice`, `Vampiro` | Enemy Animations Set (tiras de 32×32) | Inimigos `Esqueleto`, `EsqueletoFoice` e `Vampiro`, com a própria animação de morte |
 | `Masmorra/Tocha`, `Candelabro`, `Objetos` | 2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon Asset Pack v2.0 | Tochas acesas na parede de cima de toda sala, candelabro num canto, caveira e ossos entre os enfeites de chão |
 | `Masmorra/Chao`, `Parede`, `Portao`, `Espinhos`, `Ladrilhos` | 2D Dungeon Asset Pack v5.2 | Chão e tijolos das salas (a cor do andar só tinge de leve), portão de grade nas portas e na tranca, espinhos, buraco do alçapão. Da folha `Objetos`: frasco (coração), moeda, chave, altar do pedestal, mesas da loja, estandartes das portas especiais, gema do tiro dos inimigos e o ícone de cada item passivo |
+| `Efeitos/Poeira`, `ExplosaoPequena`, `Respingo`, `Chama` e `Personagens/Projeteis/MagiaVerde` | Tiny Swords Free Pack (Particle FX) e Tiny RPG Pack 01 v2.0 (magia do necromante) | Impacto e rastro das flechas especiais e dos tiros dos inimigos (seção 9) |
 | `Masmorra/Bau`, `ChaveDourada` e `Masmorra/BauDeFerro` | 2D Dungeon Asset Pack v5.2 (items_animation) e 2D Pixel Dungeon Asset Pack v2.0 (chest e chest_open juntos numa tira) | Baú de madeira abrindo, chave dourada girando que o chefe deixa (`Itens/ChaveDoChefe.cs`) e baú de ferro trancado respirando e abrindo com brilho (`Itens/Bau.cs`) |
 | `Masmorra/Temas` | 2D Pixel Dungeon Asset Pack v2.0 e 2D Dungeon Asset Pack v5.2 (ladrilhos recortados e juntados) | Chão e parede de cada tema de andar (`Andar/TemaDoAndar.cs`): `ChaoPorao`/`ParedePorao` (tijolos marrons do v2.0), `ChaoCripta`/`ParedeCripta` (laje rachada e friso azul do v5.2), `ChaoAbismo`/`ParedeAbismo` (pedra lisa e friso vermelho do v5.2) e a `Runa` vermelha do chão do Abismo. As Catacumbas usam o `Chao`/`Parede` padrão |
 | `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Goblins da tocha e da dinamite, barril de TNT, arqueiro sombrio, flecha, dinamite, explosão (bomba do jogador também), caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`); o jogador é o arqueiro azul (`TopDown/ArqueiroDoJogador.cs`) e atira flechas; pedras das salas; a dinamite é a bomba |
@@ -202,3 +203,44 @@ As folhas do Tiny Swords são grades (uma linha por animação, células de 192,
 `ArteImportada.Linha` recorta uma linha com o pivô no centro do corpo. A explosão fica
 com o tamanho do raio de dano (`Combate/Explosao.cs`).
 Se uma imagem sumir, `ArteImportada` devolve null e cada tela volta ao desenho antigo.
+
+---
+
+## 9. Flechas e projéteis
+
+Pasta `Assets/Scripts/Projeteis/`.
+
+**Flechas do jogador.** Cada tipo de flecha sai de um item do mesmo nome (o `CatalogoDeItens`
+cria um item por flecha, campo `ItemPassivo.flecha`). A flecha fica na aljava pelo resto da
+partida: pegar uma nova já troca pra ela, e `Q` (ou `LT` no controle; a bomba no controle fica só no `LB`) passa pra próxima,
+voltando na normal. O painel no canto de baixo à direita mostra a flecha em uso (o canto esquerdo é da linha de teclas da HUD).
+
+| Flecha | Desenho | O que faz |
+|---|---|---|
+| Rápida | flecha de pena dourada (arqueiro do Tiny RPG), rastro | 1,6x velocidade, 1,25x cadência, 0,8x dano |
+| Pesada | flecha grossa do soldado, balançando | 1,8x dano, 3x empurrão, maior e mais lenta |
+| Explosiva | flecha do demônio com pavio piscando e chama | explode ao bater ou cair (raio 1,1; só machuca inimigo) |
+| Perfurante | flecha do esqueleto com rastro de luz | atravessa todos os inimigos, voa mais longe |
+| de Gelo | estrela de cristal do mago girando | inimigo fica com 45% da velocidade por 2,5 s |
+| Venenosa | raio verde do necromante | 3 mordidas de veneno depois do golpe |
+| Ricochete | flecha do Tiny Swords dourada | quica nas paredes até 3 vezes |
+
+| Arquivo | Assunto |
+|---|---|
+| `TipoDeFlecha.cs` | Os tipos, os números e a aparência de cada um (`CatalogoDeFlechas`) |
+| `TrocaDeFlecha.cs` | Aljava do jogador, troca com Q/RB e o painel da HUD |
+| `EfeitoDaFlecha.cs` | Explodir, gelar, envenenar e quicar (a `Lagrima` chama) |
+| `CondicaoDoInimigo.cs` | Gelo e veneno no inimigo (`InimigoDeSala.MultiplicadorDeVelocidade`) |
+| `AparenciaDoProjetil.cs` / `VisualDoProjetil.cs` | Desenho animado de qualquer projétil: quadros, apontar, girar, pulsar, piscar, rastro, faíscas e impacto |
+
+**Tiros dos inimigos.** O `TiroDaSala` descobre sozinho o estilo de quem atirou
+(`EstiloDeTiro.cs`): primeiro um `EstiloDoAtirador` no bicho, se tiver, senão pelo nome
+que a `FabricaDeInimigos` dá. Bruxo: orbe roxo ondulando. Demônia: bola de fogo que
+acelera. Fogo fátuo: chama azul em zigue-zague. Necromante: raio verde que persegue um
+pouco (o do chefe não persegue). Cavaleiro do canhão: bala girando. Monstro de sangue:
+gota que freia. Arqueiros: cada um com a própria flecha. Chefes: pedra (golem), brasa e
+bolha (demônio do martelo), raio verde (Rei Necromante), onda de choque (Minotauro),
+estrela vermelha (Olho do Porão). Inimigo sem estilo continua com a gema. Pra dar estilo a
+um inimigo novo: `EstiloDoAtirador.Marcar(obj, EstiloDeTiro.X)` ou uma linha em
+`EstilosDeTiro.porNome`.
+

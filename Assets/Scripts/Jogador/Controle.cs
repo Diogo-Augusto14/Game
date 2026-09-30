@@ -18,7 +18,7 @@ public enum BotaoDoControle
 /// Player aceita os dois sistemas). Todo o resto pergunta pra ca:
 ///
 ///   analogico esquerdo / cruz   andar          analogico direito / A B X Y   atirar
-///   LB ou LT                     bomba          Start                          pausa
+///   LB bomba, LT troca de flecha                                 Start          pausa
 ///   menus: A ou Start confirma, cruz troca o heroi, Select sai; LB musica e RB efeitos
 ///
 /// <see cref="EmUso"/> diz se o ultimo aparelho mexido foi o controle (as dicas trocam o
@@ -213,8 +213,8 @@ public static class Controle
         }
     }
 
-    /// <summary>Soltar bomba: LB ou LT, neste quadro.</summary>
-    public static bool ApertouBomba => Apertou(BotaoDoControle.LB) || Apertou(BotaoDoControle.LT);
+    /// <summary>Soltar bomba: LB, neste quadro (LT troca de flecha).</summary>
+    public static bool ApertouBomba => Apertou(BotaoDoControle.LB);
 
     /// <summary>Confirmar num menu: A ou Start.</summary>
     public static bool ApertouConfirmar => Apertou(BotaoDoControle.A) || Apertou(BotaoDoControle.Start);

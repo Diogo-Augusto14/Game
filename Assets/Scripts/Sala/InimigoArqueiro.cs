@@ -103,8 +103,12 @@ public class InimigoArqueiro : InimigoComArte
                                                 danoDaFlecha, gameObject, true, new Color(0.9f, 0.85f, 0.7f),
                                                 DiametroDaFlecha);
 
-        // Troca a bolinha pela flecha, apontada pra onde voa. O objeto ja esta escalado
+        // Cada arqueiro ja sai com a flecha dele (EstilosDeTiro). Variacao sem estilo: troca a
+        // bolinha pela flecha do Tiny Swords, apontada pra onde voa. O objeto ja esta escalado
         // pelo diametro, entao os pixels por unidade compensam essa escala.
+        if (flecha.TryGetComponent(out VisualDoProjetil _))
+            return;
+
         Sprite sprite = ArteImportada.Flecha(48f * DiametroDaFlecha / ComprimentoDaFlecha);
 
         if (sprite != null && flecha.TryGetComponent(out SpriteRenderer sr))

@@ -29,6 +29,7 @@ public class Lagrima : MonoBehaviour
     private bool teleguiada;
     private bool apontar;
     private readonly HashSet<IDanificavel> acertados = new HashSet<IDanificavel>();
+    private EfeitoDaFlecha efeito;
 
     /// <summary>Graus por segundo que a lagrima teleguiada consegue virar.</summary>
     private const float GiroDaTeleguiada = 300f;
@@ -84,6 +85,12 @@ public class Lagrima : MonoBehaviour
         apontar = true;
     }
 
+    /// <summary>Flecha especial (explosiva, gelo, veneno, ricochete...): ela cuida do resto.</summary>
+    public void UsarEfeito(EfeitoDaFlecha novo)
+    {
+        efeito = novo;
+    }
+
     /// <summary>Efeitos de item: atravessar inimigos e/ou curvar atras do mais perto.</summary>
     public void DefinirEfeitos(bool atravessaInimigos, bool perseguir)
     {
@@ -126,6 +133,10 @@ public class Lagrima : MonoBehaviour
         // pode quebrar pedra.
         if (!outro.isTrigger && (Camadas.MascaraDeParede & (1 << outro.gameObject.layer)) != 0)
         {
+            // Flecha ricochete: quica em vez de quebrar.
+            if (efeito != null && efeito.Ricochetear(outro))
+                return;
+
             Estourar();
             return;
         }
@@ -140,6 +151,9 @@ public class Lagrima : MonoBehaviour
 
             Vector2 direcao = rb.linearVelocity.sqrMagnitude > 0.0001f ? rb.linearVelocity : Vector2.right;
             alvo.TomarDano(new DanoInfo(dano, direcao, forcaEmpurrao, transform.position, dono));
+
+            if (efeito != null)
+                efeito.AoAcertar(alvo);
 
             if (!atravessa)
                 Estourar();
@@ -191,6 +205,9 @@ public class Lagrima : MonoBehaviour
         acabou = true;
         rb.linearVelocity = Vector2.zero;
         corpo.enabled = false;
+
+        if (efeito != null)
+            efeito.AoEstourar();
 
         StartCoroutine(RotinaEstouro());
     }

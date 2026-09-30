@@ -66,6 +66,9 @@ public class AtiradorTopDown : MonoBehaviour
     private Color corOriginal;
     private bool guardouCor;
 
+    // ---------------- tipo de flecha ----------------
+    private DefinicaoDeFlecha flecha;
+
     // ---------------- tiro de espada (onda de corte) ----------------
     private Sprite[] quadrosDoTiro;
     private float quadrosPorSegundoDoTiro = 12f;
@@ -98,6 +101,12 @@ public class AtiradorTopDown : MonoBehaviour
     public float Tamanho => tamanho;
 
     public int LagrimasPorDisparo => lagrimasPorDisparo;
+
+    /// <summary>A flecha que sai agora (a <see cref="TrocaDeFlecha"/> escolhe).</summary>
+    public TipoDeFlecha TipoDeFlecha => flecha != null ? flecha.tipo : TipoDeFlecha.Normal;
+
+    /// <summary>Tiros por segundo de verdade, ja com o tipo de flecha.</summary>
+    public float CadenciaAtual => tirosPorSegundo * (flecha != null ? flecha.multiplicaCadencia : 1f);
 
     /// <summary>Pra onde o boneco olha: o tiro manda, senao o andar.</summary>
     public Vector2 Olhando => olhando;
@@ -142,7 +151,7 @@ public class AtiradorTopDown : MonoBehaviour
         if (entrada.Atirando && !recarga.Ativo)
         {
             Atirar(entrada.Tiro);
-            recarga.Forcar(1f / tirosPorSegundo);
+            recarga.Forcar(1f / CadenciaAtual);
         }
     }
 
@@ -161,6 +170,7 @@ public class AtiradorTopDown : MonoBehaviour
 
         Vector2 origem = (Vector2)transform.position + direcao * distanciaDoCorpo + lado;
         Vector2 heranca = movimento != null ? movimento.Velocidade * herancaDaVelocidade : Vector2.zero;
+        float velocidade = velocidadeDoTiro * (flecha != null ? flecha.multiplicaVelocidade : 1f);
 
         Sons.Tocar(somDoTiro, 0.55f);
         AoAtirar?.Invoke(direcao);
@@ -171,7 +181,7 @@ public class AtiradorTopDown : MonoBehaviour
         for (int i = 0; i < lagrimasPorDisparo; i++)
         {
             Vector2 rumo = Quaternion.Euler(0f, 0f, primeiroAngulo + aberturaDoLeque * i) * direcao;
-            Lagrima lagrima = Soltar(origem, rumo * velocidadeDoTiro + heranca);
+            Lagrima lagrima = Soltar(origem, rumo * velocidade + heranca);
 
             if (i == lagrimasPorDisparo / 2)
                 doMeio = lagrima;
@@ -179,7 +189,7 @@ public class AtiradorTopDown : MonoBehaviour
 
         // Olho na Nuca: uma lagrima pra tras, do outro lado do corpo.
         if (paraTras)
-            Soltar((Vector2)transform.position - direcao * distanciaDoCorpo, -direcao * velocidadeDoTiro + heranca);
+            Soltar((Vector2)transform.position - direcao * distanciaDoCorpo, -direcao * velocidade + heranca);
 
         return doMeio;
     }
@@ -187,8 +197,24 @@ public class AtiradorTopDown : MonoBehaviour
     private Lagrima Soltar(Vector2 origem, Vector2 velocidade)
     {
         Lagrima lagrima = CriarLagrima(origem);
-        lagrima.Disparar(gameObject, velocidade, dano, alcance, forcaEmpurrao);
-        lagrima.DefinirEfeitos(atravessa || sempreAtravessa, teleguiada);
+
+        if (flecha == null || !flecha.Especial)
+        {
+            lagrima.Disparar(gameObject, velocidade, dano, alcance, forcaEmpurrao);
+            lagrima.DefinirEfeitos(atravessa || sempreAtravessa, teleguiada);
+            return lagrima;
+        }
+
+        // Flecha especial: os numeros dela por cima dos do heroi e dos itens.
+        float danoDaFlecha = dano * flecha.multiplicaDano;
+        lagrima.Disparar(gameObject, velocidade, danoDaFlecha, alcance * flecha.multiplicaAlcance,
+                         forcaEmpurrao * flecha.multiplicaEmpurrao);
+        lagrima.DefinirEfeitos(atravessa || sempreAtravessa || flecha.atravessa, teleguiada);
+
+        VisualDoProjetil.Vestir(lagrima.gameObject, flecha.aparencia);
+        EfeitoDaFlecha efeito = lagrima.gameObject.AddComponent<EfeitoDaFlecha>();
+        efeito.Configurar(flecha, danoDaFlecha, gameObject);
+        lagrima.UsarEfeito(efeito);
         return lagrima;
     }
 
@@ -212,9 +238,11 @@ public class AtiradorTopDown : MonoBehaviour
 
     private Lagrima CriarLagrima(Vector2 posicao)
     {
-        GameObject obj = new GameObject("Lagrima");
+        bool especial = flecha != null && flecha.Especial;
+
+        GameObject obj = new GameObject(especial ? flecha.nome : "Lagrima");
         obj.transform.position = posicao;
-        obj.transform.localScale = Vector3.one * tamanho;
+        obj.transform.localScale = Vector3.one * tamanho * (especial ? flecha.multiplicaTamanho : 1f);
 
         SpriteRenderer desenho = obj.AddComponent<SpriteRenderer>();
         desenho.sprite = sprite;
@@ -222,18 +250,20 @@ public class AtiradorTopDown : MonoBehaviour
         desenho.sortingOrder = 20;
 
         // O circulo gerado tem 1 unidade de diametro: raio 0.5 bate com o desenho. A onda de
-        // corte e maior que a escala do tiro, entao tem raio proprio.
+        // corte e maior que a escala do tiro, entao tem raio proprio (a flecha especial nao).
         CircleCollider2D colisor = obj.AddComponent<CircleCollider2D>();
-        colisor.radius = raioDoTiro;
+        colisor.radius = especial ? 0.5f : raioDoTiro;
 
         obj.AddComponent<Rigidbody2D>();
 
         Lagrima lagrima = obj.AddComponent<Lagrima>();
 
-        if (apontarLagrima)
+        // A flecha especial se desenha num filho que ja aponta sozinho.
+        if (apontarLagrima && !especial)
             lagrima.ApontarProRumo();
 
-        if (quadrosDoTiro != null && quadrosDoTiro.Length > 0)
+        // A flecha especial tem o desenho dela (VisualDoProjetil) no lugar da onda de corte.
+        if (!especial && quadrosDoTiro != null && quadrosDoTiro.Length > 0)
             obj.AddComponent<AnimacaoDoTiro>().Configurar(quadrosDoTiro, quadrosPorSegundoDoTiro);
 
         return lagrima;
@@ -291,6 +321,12 @@ public class AtiradorTopDown : MonoBehaviour
         raioDoTiro = Mathf.Max(0.1f, raio);
         sempreAtravessa = true;
         somDoTiro = Som.Corte;
+    }
+
+    /// <summary>Troca o tipo de flecha (Normal = o tiro do heroi). Quem chama e a <see cref="TrocaDeFlecha"/>.</summary>
+    public void DefinirTipoDeFlecha(TipoDeFlecha tipo)
+    {
+        flecha = tipo == TipoDeFlecha.Normal ? null : CatalogoDeFlechas.De(tipo);
     }
 
     /// <summary>Aponta o filho que mostra a direcao do olhar.</summary>
