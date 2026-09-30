@@ -49,8 +49,11 @@ public class Andar : MonoBehaviour
     [SerializeField, Min(0)] private int maximoDeSentinelas = 2;
 
     [Header("Variedade das salas")]
-    [Tooltip("Chance de uma sala comum nao ter pedra nem espinho")]
-    [SerializeField, Range(0f, 1f)] private float chanceDeSalaVazia = 0.25f;
+    [Tooltip("Chance de uma sala comum nao ter pedra nem espinho (nunca duas vizinhas vazias)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeSalaVazia = 0.15f;
+
+    [Tooltip("Salas logo depois da inicial vem com um inimigo a menos; as perto do chefe, com um a mais")]
+    [SerializeField] private bool dosarPelaDistancia = true;
 
     [Tooltip("Espinhos so aparecem a partir deste andar")]
     [SerializeField, Min(1)] private int espinhosAPartirDoAndar = 2;
@@ -156,6 +159,16 @@ public class Andar : MonoBehaviour
     /// <summary>A semente que gerou este andar. Anote quando achar um andar com problema.</summary>
     public int SementeUsada { get; private set; }
 
+    /// <summary>Os parametros com que este andar foi gerado (depois do <see cref="AoPrepararGeracao"/>).</summary>
+    public ParametrosDoAndar ParametrosUsados { get; private set; }
+
+    /// <summary>
+    /// Chamado logo antes de sortear cada andar, com os parametros padrao daquele andar
+    /// (quantas salas, tamanho da grade, circuitos, salas especiais...). Quem cuida da
+    /// dificuldade ou dos mundos muda os numeros aqui, sem mexer no gerador.
+    /// </summary>
+    public event Action<ParametrosDoAndar> AoPrepararGeracao;
+
     /// <summary>Distancia entre o centro de duas salas vizinhas: o tamanho total de uma sala.</summary>
     public static Vector2 Passo => Sala.TamanhoPadrao + Vector2.one * 2f;
 
@@ -250,7 +263,12 @@ public class Andar : MonoBehaviour
         TemaDoAndar.Usar(Tema);
 
         SementeUsada = semente != 0 ? semente : Environment.TickCount;
-        Mapa = GeradorDeAndar.Gerar(numeroDoAndar, SementeUsada, larguraDaGrade, alturaDaGrade);
+        ParametrosDoAndar parametros = ParametrosDoAndar.Padrao(numeroDoAndar, larguraDaGrade, alturaDaGrade);
+        parametros.Desenhos = DisposicoesDaSala.Permitidos(numeroDoAndar >= espinhosAPartirDoAndar);
+        parametros.ChanceDeSalaVazia = chanceDeSalaVazia;
+        AoPrepararGeracao?.Invoke(parametros);
+        ParametrosUsados = parametros;
+        Mapa = GeradorDeAndar.Gerar(parametros, SementeUsada);
 
         // Mesma semente = mesmos inimigos nos mesmos lugares, nao so a mesma planta.
         UnityEngine.Random.InitState(SementeUsada);
@@ -490,14 +508,16 @@ public class Andar : MonoBehaviour
                 portas.Add(ParaLado(d));
 
         Vector2 centro = (Vector2)transform.position + new Vector2(casa.X * Passo.x, casa.Y * Passo.y);
-        Sala sala = Sala.Criar($"Sala {casa.Tipo} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
+        string nome = casa.Tipo == TipoDeSala.Normal ? $"Sala {DisposicoesDaSala.Nome(casa.Desenho)}" : $"Sala {casa.Tipo}";
+        Sala sala = Sala.Criar($"{nome} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
         salaDoMapa[sala] = casa;
 
         sala.Pintar(Tema.CorDoChao, Tema.CorDaParede, Tema.ForcaDaCor);
 
-        // So sala comum ganha obstaculo: inicio, item e chefe ficam com o chao livre.
+        // So sala comum ganha obstaculo: inicio, item e chefe ficam com o chao livre. O
+        // desenho vem do gerador, que nao repete o de uma vizinha.
         if (casa.Tipo == TipoDeSala.Normal)
-            DisposicoesDaSala.Sortear(sala, chanceDeSalaVazia, numeroDoAndar >= espinhosAPartirDoAndar);
+            DisposicoesDaSala.Aplicar(sala, casa.Desenho, casa.EspelharX, casa.EspelharY);
 
         foreach (Porta porta in sala.Portas)
         {
@@ -527,8 +547,10 @@ public class Andar : MonoBehaviour
 
         // Toda sala ganha tochas; loja e chefe ficam sem enfeite de chao (a loja tem as
         // mercadorias, o chefe precisa do chao todo).
+        // Sala comum sem obstaculo ganha mais enfeite, pra nao parecer um chao vazio.
         bool chaoLimpo = casa.Tipo == TipoDeSala.Loja || casa.Tipo == TipoDeSala.Chefe;
-        sala.Enfeitar(chaoLimpo ? 0 : UnityEngine.Random.Range(enfeitesPorSala.x, enfeitesPorSala.y + 1));
+        int extras = casa.Tipo == TipoDeSala.Normal && casa.Desenho < 0 ? 3 : 0;
+        sala.Enfeitar(chaoLimpo ? 0 : UnityEngine.Random.Range(enfeitesPorSala.x, enfeitesPorSala.y + 1) + extras);
 
         Povoar(sala, casa);
         PorPremios(sala, casa);
@@ -546,6 +568,16 @@ public class Andar : MonoBehaviour
 
                 if (andaresPorInimigoExtra > 0)
                     quantos += Mathf.Min(2, (numeroDoAndar - 1) / andaresPorInimigoExtra);
+
+                // O andar esquenta no caminho: perto da inicial e mais leve, perto do chefe
+                // vem um a mais.
+                if (dosarPelaDistancia)
+                {
+                    if (casa.Distancia <= 1)
+                        quantos = Mathf.Max(1, quantos - 1);
+                    else if (casa.Profundidade >= 0.75f)
+                        quantos++;
+                }
 
                 break;
             case TipoDeSala.Chefe:
@@ -669,7 +701,9 @@ public class Andar : MonoBehaviour
                 break;
 
             case TipoDeSala.Normal:
-                sala.AoLimpar.AddListener(() => TabelaDeDrops.TalvezSoltar(chanceDePremioDaSala, centro, sala.transform));
+                // Beco que nao virou sala especial: premio garantido pra quem explorou ate ali.
+                float chance = casa.Recompensa ? 1f : chanceDePremioDaSala;
+                sala.AoLimpar.AddListener(() => TabelaDeDrops.TalvezSoltar(chance, centro, sala.transform));
                 break;
 
             case TipoDeSala.Loja:
