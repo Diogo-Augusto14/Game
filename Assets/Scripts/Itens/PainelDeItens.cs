@@ -26,7 +26,8 @@ public class PainelDeItens : MonoBehaviour
     // da direita (e dos enfeites em volta dela, no meio da altura da tela): com mais itens,
     // abre colunas pra esquerda em vez de descer por cima da porta.
     private const float Margem = 24f;
-    private const float Topo = 230f;
+    private const float Topo = 252f;
+    private const float TopoDaDica = 230f;
     private const float AlturaMaxima = 150f;
     private const float Espaco = 6f;
     private const float Recheio = 6f;             // do fundo escuro ate os itens
@@ -249,7 +250,7 @@ public class PainelDeItens : MonoBehaviour
         fundo.sizeDelta = new Vector2(colunas * passo - Espaco + Recheio * 2f, usadas * passo - Espaco + Recheio * 2f);
     }
 
-    /// <summary>"[I] ver itens" embaixo da coluna, so quando tem item pra ver.</summary>
+    /// <summary>"[I] ver itens" FIXO em cima da coluna (embaixo ela passava por cima dos enfeites da sala com muitos itens), so quando tem item pra ver.</summary>
     private void ArrumarDica(int total, float passo)
     {
         if (total == 0)
@@ -267,8 +268,7 @@ public class PainelDeItens : MonoBehaviour
             dica.anchorMin = dica.anchorMax = dica.pivot = Vector2.one;
         }
 
-        int usadas = Mathf.Min(total, linhas);
-        dica.anchoredPosition = new Vector2(-Margem, -Topo - usadas * passo - Recheio - 2f);
+        dica.anchoredPosition = new Vector2(-Margem, -TopoDaDica);
 
         dica.gameObject.SetActive(true);
     }
