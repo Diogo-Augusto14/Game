@@ -46,7 +46,7 @@ public class BootstrapTopDown : MonoBehaviour
 
     // Teclas entre colchetes aparecem desenhadas (TelaSimples.LinhaDeTeclas).
     private const string CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash";
 
     private Vector2 gravidadeAnterior;
     private bool mexeuNaGravidade;
@@ -181,6 +181,9 @@ public class BootstrapTopDown : MonoBehaviour
         vida.UsarEmpurraoTopDown();
 
         AtiradorTopDown atirador = raiz.AddComponent<AtiradorTopDown>();
+
+        // Poeira, rastro e brilho de recarga do dash.
+        raiz.AddComponent<RastroDoDash>();
 
         // O heroi escolhido no menu (vida, arma e desenho) no lugar do rosto gerado.
         Herois.Aplicar(raiz, Herois.Atual);

@@ -28,15 +28,19 @@ removido do projeto.
 | `W A S D` | Andar em 8 direções |
 | `Setas` | Atirar (só as 4 retas; vale a última seta apertada) |
 | `E` | Bomba |
+| `Shift` (controle: `RB` ou `RT`) | Dash: arrancada curta, sem tomar dano durante ela, com recarga |
 | `Esc` | Pausa |
 | `M` / `N` | Liga/desliga música / efeitos |
 
 | Script | O que faz |
 |---|---|
-| `TopDown/MovimentoTopDown.cs` | Andar com aceleração/freio, gravidade zero, recebe empurrão do `Vida` |
+| `TopDown/MovimentoTopDown.cs` | Andar com aceleração/freio, gravidade zero, recebe empurrão do `Vida`; o dash (velocidade, duração, recarga e a proteção que faz dele esquiva) |
+| `TopDown/RastroDoDash.cs` | O que se vê no dash: poeira do Tiny Swords, rastro azulado do herói e o brilho quando a recarga acaba |
+| `TopDown/GolpeDeEspada.cs` | Heróis de espada/machado: brilho de lâmina a cada golpe |
+| `TopDown/AnimacaoDoTiro.cs` | Tiro animado: a onda de corte tremula e se abre ao sair |
 | `TopDown/AtiradorTopDown.cs` | Dano, alcance, cadência, velocidade do tiro; o desenho do tiro vem do herói |
 | `TopDown/Lagrima.cs` | O projétil: voa até o alcance, bate em `IDanificavel` ou parede e estoura |
-| `TopDown/Herois.cs` | Os heróis jogáveis e os números de cada um |
+| `TopDown/Herois.cs` | Os heróis jogáveis e os números de cada um. Cavaleiro, templário, espadachim e machadeiro (`OndaDeCorte`) disparam ondas de corte que atravessam inimigos e golpeiam em combo (ataque 1, 2 e 3 da folha) |
 | `TopDown/Progresso.cs` | O que fica salvo entre partidas (PlayerPrefs): vitórias e heróis liberados. Só o Arqueiro Azul começa livre; os outros saem vencendo chefes e zerando (condições em `Herois.cs`). `Tools ▸ Jogo ▸ Apagar progresso salvo` bloqueia tudo de novo |
 | `TopDown/BootstrapTopDown.cs` | `CriarJogador` (usado pelo `Andar`) e a sala de treino |
 | `combate/Vida.cs` | Vida, dano, invencibilidade e empurrão de tudo que apanha |

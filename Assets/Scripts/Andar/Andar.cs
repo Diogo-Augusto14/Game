@@ -124,8 +124,8 @@ public class Andar : MonoBehaviour
     // Teclas entre colchetes aparecem desenhadas na HUD (TelaSimples.LinhaDeTeclas); depois
     // do "||" vem a mesma linha com os botoes do controle.
     private const string CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Esc] pausa || " +
-        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad Start] pausa";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash | [Esc] pausa || " +
+        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad RB] dash | [Pad Start] pausa";
 
     // ---------------- estado ----------------
     private Sala[,] noMundo;
