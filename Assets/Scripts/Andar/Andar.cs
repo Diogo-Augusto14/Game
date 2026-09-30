@@ -247,6 +247,10 @@ public class Andar : MonoBehaviour
         if (vidaDoJogador != null && vidaDoJogador.EstaMorto)
             return;
 
+        // Depois da ultima fase do ultimo mundo nao tem mais nada: o chefe final termina a partida.
+        if (UltimoAndar)
+            return;
+
         numeroDoAndar++;
         semente = 0;
         Gerar();
@@ -580,7 +584,7 @@ public class Andar : MonoBehaviour
                 InimigoDeSala chefe = sala.CriarInimigo(UltimoAndar ? TipoDeInimigo.ChefeFinal : ChefeDaFase(Mundo, Fase), Vector2.zero);
 
                 if (chefe != null && chefe.Vida != null)
-                    chefe.Vida.AumentarVidaMaxima(chefe.Vida.VidaMaxima * (Dificuldade.VidaDoChefe - 1f));
+                    chefe.Vida.AumentarVidaMaxima(chefe.Vida.VidaMaxima * ((UltimoAndar ? Dificuldade.VidaDoChefeFinal : Dificuldade.VidaDoChefe) - 1f));
 
                 return;
             default:
@@ -632,7 +636,7 @@ public class Andar : MonoBehaviour
     /// <summary>
     /// Os chefes de cada mundo. Nas fases do comeco sai um da lista de "comuns" (a fase 2
     /// nunca repete o da fase 1); na ultima fase vem o chefe do mundo, o mais forte, com
-    /// 20% a mais de vida (DificuldadeDaFase.VidaDoChefe):
+    /// 15% a mais de vida (DificuldadeDaFase.VidaDoChefe):
     ///   Mundo 1 Porao      -> Monstrao ou Minotauro Furioso; fecha com o Sapao
     ///   Mundo 2 Catacumbas -> Monstrao ou Sapao; fecha com o Minotauro Furioso (chama orcs)
     ///   Mundo 3 Cripta     -> Sapao ou Minotauro Furioso; fecha com o Rei Necromante (chama esqueletos)

@@ -38,10 +38,16 @@ public sealed class DificuldadeDaFase
     public float VelocidadeDosInimigos => 1f + 0.025f * Nivel;
 
     /// <summary>
-    /// Vida dos chefes: +12% por fase, e o chefe da ultima fase do mundo vem 20% mais forte
+    /// Vida dos chefes: +6% por fase, e o chefe da ultima fase do mundo vem 15% mais forte
     /// ainda (e o desafio final do mundo).
     /// </summary>
-    public float VidaDoChefe => (1f + 0.12f * Nivel) * (FaseFinalDoMundo ? 1.2f : 1f);
+    public float VidaDoChefe => (1f + 0.06f * Nivel) * (FaseFinalDoMundo ? 1.15f : 1f);
+
+    /// <summary>
+    /// O Olho do Porao ja e o chefe mais longo do jogo: ganha no maximo 50% a mais de vida,
+    /// pra luta final ser dificil sem virar uma espera cansativa.
+    /// </summary>
+    public float VidaDoChefeFinal => Mathf.Min(1.5f, VidaDoChefe);
 
     /// <summary>
     /// Quanto o golpe no jogador pesa. Mundos 1 e 2: meio coracao, como sempre. Mundo 3: um

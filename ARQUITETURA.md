@@ -132,7 +132,7 @@ alçapão; a última fase do último mundo tem o Olho do Porão e termina a part
   coisas; sempre solta prêmio;
 - comportamentos novos: sentinela atira em 8 direções na fase 3 de cada mundo e do mundo 2
   em diante; o monstro de sangue solta mais gotas do mundo 2 em diante;
-- chefes: vida +12% por fase, e o da fase 3 mais 20%;
+- chefes: vida +6% por fase, e o da fase 3 mais 15%; o Olho do Porão ganha no máximo 50%;
 - dano no jogador (`Vida.MultiplicadorDeDanoRecebido`): normal nos mundos 1 e 2, 1,5x no
   mundo 3, coração inteiro (2x) no mundo 4. Vale pra tiro, encostada e espinho;
 - armadilhas e salas: menos salas vazias (-2% por fase), espinhos da fase 2 em diante,
