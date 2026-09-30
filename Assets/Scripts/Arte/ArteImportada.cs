@@ -525,6 +525,26 @@ public static class ArteImportada
     public static Sprite Corte(float pixelsPorUnidade)
         => Unico("Personagens/Projeteis/Cristais", 100, new RectInt(839, 30, 25, 35), new Vector2(851.5f, 47.5f), pixelsPorUnidade);
 
+    /// <summary>
+    /// A onda de corte dos herois de espada e machado: os rastros de golpe do Tiny RPG
+    /// (Knight, Knight Templar, Swordsman), recortados em <c>Projeteis/Cortes</c>, uma linha
+    /// por heroi, celulas de 40 px, desenhados voando pra direita. Linha 0 = cavaleiro,
+    /// 1 = templario, 2 = espadachim (corte em X), 3 = machadeiro (meia-lua de fogo).
+    /// </summary>
+    public static Sprite[] OndaDeCorte(int linha, float pixelsPorUnidade)
+    {
+        int quantos = linha == 3 ? 3 : 2;
+        return Linha("Personagens/Projeteis/Cortes", 40, linha, quantos, new RectInt(0, 0, 40, 40), new Vector2(20f, 20f), pixelsPorUnidade);
+    }
+
+    /// <summary>O brilho de lamina do espadachim (Tiny RPG): pisca no disparo e quando o dash recarrega.</summary>
+    public static Sprite[] Brilho(float pixelsPorUnidade)
+        => Linha("Personagens/Projeteis/Cortes", 40, 4, 3, new RectInt(0, 0, 40, 40), new Vector2(20f, 20f), pixelsPorUnidade);
+
+    /// <summary>A nuvem de poeira do Tiny Swords (Particle FX, Dust_01): 8 quadros de 64 px.</summary>
+    public static Sprite[] Poeira(float pixelsPorUnidade)
+        => Linha("TinySwords/Poeira", 64, 0, 8, new RectInt(0, 0, 64, 64), new Vector2(32f, 32f), pixelsPorUnidade);
+
     private static Sprite Unico(string caminho, int celula, RectInt recorte, Vector2 centro, float pixelsPorUnidade,
                                 int alturaDaCelula = 0)
     {
