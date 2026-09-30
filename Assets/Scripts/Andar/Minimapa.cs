@@ -245,8 +245,16 @@ public class Minimapa : MonoBehaviour
         if (comLegenda)
             Legenda(quadro, mapa);
         else
-            TelaSimples.LinhaDeTeclas(quadro, "Dica", -quadro.sizeDelta.y * 0.5f - 18f, "[Tab] mapa || [Pad AnalogicoEsquerdo] afundar: mapa", 18,
-                                      new Color(0.8f, 0.8f, 0.8f));
+        {
+            // A dica fica do lado ESQUERDO do minimapa, alinhada pela base. Centralizada
+            // embaixo, ela era mais larga que um minimapa pequeno e saia pela borda direita da
+            // tela ("afundar: map"); embaixo tambem batia na coluna de itens da lateral.
+            RectTransform dica = TelaSimples.LinhaDeTeclas(quadro, "Dica", 0f,
+                "[Tab] mapa || [Pad AnalogicoEsquerdo] afundar: mapa", 18, new Color(0.8f, 0.8f, 0.8f));
+            dica.anchorMin = dica.anchorMax = Vector2.zero;
+            dica.pivot = new Vector2(1f, 0f);
+            dica.anchoredPosition = new Vector2(-10f, 0f);
+        }
 
         return marca;
     }
