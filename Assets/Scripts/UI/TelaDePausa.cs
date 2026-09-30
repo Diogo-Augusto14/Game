@@ -121,7 +121,7 @@ public class TelaDePausa : MonoBehaviour
 
         resumo = TelaSimples.Texto(pai, "Resumo", 32, Color.white, 262f, "");
         itens = TelaSimples.Texto(pai, "Itens", 24, Color.white, 218f, "");
-        itens.rectTransform.sizeDelta = new Vector2(880f, itens.rectTransform.sizeDelta.y);
+        itens.rectTransform.sizeDelta = new Vector2(880f, 64f);
 
         menu = new MenuDeBotoes(pai, 0f, new Vector2(520f, 76f), 34) { IntervaloDaEntrada = 0.03f };
         menu.Adicionar("Continuar", 140f, Continuar, "[Esc] || [Pad Start]");
@@ -188,7 +188,8 @@ public class TelaDePausa : MonoBehaviour
             return;
 
         resumo.text = $"{andar.NomeDaFase} de {andar.QuantidadeDeMundos} mundos: {andar.Tema.Nome}{(andar.UltimoAndar ? " (última fase)" : "")}";
-        itens.text = Itens();
+        EstatisticasDoJogador estatisticas = andar.Jogador != null ? andar.Jogador.GetComponent<EstatisticasDoJogador>() : null;
+        TelaDeFimDeJogo.EncaixarItens(itens, estatisticas, "", "<color=#aaaaaa>Nenhum item ainda</color>", 2);
         TelaSimples.TrocarLinhaDeTeclas(opcoes,
             $"[M] música: {Musica()} | [N] efeitos: {Efeitos()} || [Pad LB] música: {Musica()} | [Pad RB] efeitos: {Efeitos()}",
             26, new Color(1f, 0.85f, 0.4f));
@@ -197,14 +198,4 @@ public class TelaDePausa : MonoBehaviour
     private static string Musica() => Opcoes.MusicaLigada ? "ligada" : "desligada";
 
     private static string Efeitos() => Opcoes.EfeitosLigados ? "ligados" : "desligados";
-
-    private string Itens()
-    {
-        EstatisticasDoJogador estatisticas = andar.Jogador != null ? andar.Jogador.GetComponent<EstatisticasDoJogador>() : null;
-
-        if (estatisticas == null || estatisticas.Itens.Count == 0)
-            return "<color=#aaaaaa>Nenhum item ainda</color>";
-
-        return TelaDeFimDeJogo.ListaDeItens(estatisticas, 8);
-    }
 }
