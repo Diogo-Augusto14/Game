@@ -22,6 +22,10 @@ using UnityEngine;
 ///   Masmorra/Chao, Parede, Portao, Espinhos, Ladrilhos  (2D Dungeon Asset Pack v5.2)
 ///       chao, tijolos, portao de grade, espinhos, o tileset inteiro (buraco do alcapao)
 ///       e, na folha Objetos, moeda, frasco, chave, mesas e os icones dos itens
+///   Masmorra/Bau, ChaveDourada  (2D Dungeon Asset Pack v5.2, items_animation)
+///       bau de madeira abrindo (4 quadros) e a chave dourada girando (8 quadros)
+///   Masmorra/BauDeFerro  (2D Pixel Dungeon Asset Pack v2.0, chest e chest_open juntos)
+///       bau trancado: 4 quadros parado e 4 abrindo, com o brilho do tesouro
 ///
 /// Tudo e recortado aqui com Sprite.Create, sem fatiar no Sprite Editor: quem clonar o
 /// projeto nao precisa preparar nada. Se uma imagem sumir, quem pediu recebe null e volta
@@ -376,9 +380,35 @@ public static class ArteImportada
     /// <summary>Portao de grade: quadro 0 fechado, 4 aberto (a parte de cima da folha, 16x16).</summary>
     public static Sprite Portao(bool aberto)
     {
-        Sprite[] quadros = Linha("Masmorra/Portao", 16, 0, 5, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho, 32);
-        return quadros != null ? quadros[aberto ? 4 : 0] : null;
+        Sprite[] quadros = QuadrosDoPortao;
+        return quadros != null ? quadros[aberto ? quadros.Length - 1 : 0] : null;
     }
+
+    /// <summary>Os 5 quadros do portao subindo, do fechado (0) ao aberto (4): a animacao da porta.</summary>
+    public static Sprite[] QuadrosDoPortao
+        => Linha("Masmorra/Portao", 16, 0, 5, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho, 32);
+
+    /// <summary>Bau de madeira abrindo (4 quadros de 16x16): fechado, tampa tremendo, aberto, aberto com o ouro.</summary>
+    public static Sprite[] BauAbrindo
+        => Linha("Masmorra/Bau", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
+
+    /// <summary>Bau de ferro trancado parado (4 quadros, respirando), com o pivo no meio.</summary>
+    public static Sprite[] BauDeFerroParado
+        => Linha("Masmorra/BauDeFerro", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
+
+    /// <summary>Bau de ferro abrindo (4 quadros, o ultimo com o brilho do tesouro).</summary>
+    public static Sprite[] BauDeFerroAbrindo
+    {
+        get
+        {
+            Sprite[] todos = Linha("Masmorra/BauDeFerro", 16, 0, 8, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
+            return todos != null && todos.Length >= 8 ? new[] { todos[4], todos[5], todos[6], todos[7] } : null;
+        }
+    }
+
+    /// <summary>Chave dourada girando (8 quadros de 16x16): a chave que o chefe deixa.</summary>
+    public static Sprite[] ChaveDourada
+        => Linha("Masmorra/ChaveDourada", 16, 0, 8, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
 
     /// <summary>Espinhos saindo do chao (5 quadros de 16x16, o ultimo todo pra fora).</summary>
     public static Sprite[] EspinhosDoChao
