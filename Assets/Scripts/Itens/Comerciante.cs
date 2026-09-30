@@ -109,7 +109,9 @@ public class Comerciante : MonoBehaviour
         balao.transform.SetParent(transform, false);
         // O balao fala pro lado do meio da sala (a banca pode estar encostada na direita).
         bool bancaNaDireita = sala != null && transform.position.x > sala.position.x + 0.5f;
-        balao.transform.localPosition = new Vector3(bancaNaDireita ? -1.9f : 1.9f, 1.4f, 0f);
+        // Na direita, a porta de cima fica logo ao lado: o balao desce um pouco pra nao
+        // encostar no heroi que acabou de entrar por ela.
+        balao.transform.localPosition = bancaNaDireita ? new Vector3(-2.1f, 0.75f, 0f) : new Vector3(1.9f, 1.4f, 0f);
 
         Sprite placa = ArteImportada.PlacaNoMundo;
 
