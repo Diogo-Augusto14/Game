@@ -82,6 +82,9 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     private float raioDoCorpo;
     private float ladoDoDesvio = 1f;
 
+    /// <summary>Algum inimigo (chefe incluido) acabou de morrer. Itens que curam ao matar escutam aqui.</summary>
+    public static event System.Action<InimigoDeSala> AlgumMorreu;
+
     /// <summary>Todo inimigo ligado na cena (lagrima teleguiada procura aqui, sem Find).</summary>
     public static readonly System.Collections.Generic.List<InimigoDeSala> Ativos = new System.Collections.Generic.List<InimigoDeSala>();
 
@@ -127,6 +130,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         Ativos.Add(this);
         vida.AoTomarDano.AddListener(AoLevarGolpe);
         vida.AoMorrer.AddListener(Morrer);
+        vida.AoMorrer.AddListener(AvisarMorte);
     }
 
     protected virtual void OnDisable()
@@ -134,6 +138,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         Ativos.Remove(this);
         vida.AoTomarDano.RemoveListener(AoLevarGolpe);
         vida.AoMorrer.RemoveListener(Morrer);
+        vida.AoMorrer.RemoveListener(AvisarMorte);
     }
 
     /// <summary>A sala chama quando o jogador entra. Chamar de novo nao faz nada.</summary>
@@ -364,6 +369,8 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
         atordoamento.Armar(travaSegundos);
     }
+
+    private void AvisarMorte() => AlgumMorreu?.Invoke(this);
 
     protected virtual void Morrer()
     {
