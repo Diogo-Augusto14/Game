@@ -5,7 +5,7 @@ using UnityEngine.UI;
 /// <summary>
 /// As flechas que o jogador ja tem e qual esta em uso. Cada item de flecha
 /// (<see cref="ItemPassivo.flecha"/>) fica pra sempre na aljava: pegar um novo ja troca pra
-/// ele, e Q (ou LB no controle) passa pra proxima, voltando na normal no fim da volta.
+/// ele, e Q (ou LT no controle) passa pra proxima, voltando na normal no fim da volta.
 ///
 /// Mostra no canto de baixo, a esquerda, o desenho e o nome da flecha em uso. So aparece
 /// depois da primeira flecha especial. Fica no jogador; o <see cref="EstatisticasDoJogador"/>
@@ -35,7 +35,7 @@ public class TrocaDeFlecha : MonoBehaviour
 
     public IReadOnlyList<TipoDeFlecha> Aljava => aljava;
 
-    /// <summary>Trocou de flecha (pegou uma nova ou apertou Q/LB).</summary>
+    /// <summary>Trocou de flecha (pegou uma nova ou apertou Q/LT).</summary>
     public event System.Action<TipoDeFlecha> AoTrocar;
 
     public static TrocaDeFlecha Em(GameObject jogador)
@@ -96,9 +96,9 @@ public class TrocaDeFlecha : MonoBehaviour
 
     private void Update()
     {
-        // Com o jogo parado (pausa, menu), Q e LB sao dos menus.
+        // Com o jogo parado (pausa, menu), Q e LT sao dos menus.
         if (Time.timeScale > 0f && aljava.Count > 1
-            && (Input.GetKeyDown(teclaTrocar) || Controle.Apertou(BotaoDoControle.LB)))
+            && (Input.GetKeyDown(teclaTrocar) || Controle.Apertou(BotaoDoControle.LT)))
             Proxima();
 
         if (painel != null)
@@ -180,7 +180,7 @@ public class TrocaDeFlecha : MonoBehaviour
         contagem = Texto("Contagem", fonte, 18, new Vector2(96f, -24f), new Vector2(60f, 30f), TextAnchor.MiddleLeft);
         contagem.color = new Color(1f, 1f, 1f, 0.75f);
 
-        RectTransform dica = TelaSimples.LinhaDeTeclas(painel, "Dica", -24f, "[Q] trocar || [Pad LB] trocar", 18,
+        RectTransform dica = TelaSimples.LinhaDeTeclas(painel, "Dica", -24f, "[Q] trocar || [Pad LT] trocar", 18,
                                                       new Color(1f, 1f, 1f, 0.85f));
         dica.anchorMin = dica.anchorMax = new Vector2(0f, 0.5f);
         dica.pivot = new Vector2(0f, 0.5f);

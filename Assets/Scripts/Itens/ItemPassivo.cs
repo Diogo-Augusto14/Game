@@ -43,7 +43,7 @@ public class ItemPassivo
     public Color corDaLagrima = new Color(0f, 0f, 0f, 0f);
 
     [Header("Flecha")]
-    [Tooltip("Tipo de flecha que o item da (fica na aljava; Q/LB troca). Normal = nenhum")]
+    [Tooltip("Tipo de flecha que o item da (fica na aljava; Q/LT troca). Normal = nenhum")]
     public TipoDeFlecha flecha;
 
     [Header("Corpo")]

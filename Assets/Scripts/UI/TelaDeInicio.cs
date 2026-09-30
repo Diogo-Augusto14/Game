@@ -84,7 +84,7 @@ public class TelaDeInicio : MonoBehaviour
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(transform, "Controles", -158f,
             "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LT] bomba | [Pad LB] trocar flecha",
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba",
             28, corDasDicas);
         TelaSimples.LinhaDeTeclas(transform, "Opcoes", -212f,
             "[O] opcoes | [Esc] pausar | [M] musica | [N] efeitos || [Pad X] opcoes | [Pad Start] pausar | [Pad LB] musica | [Pad RB] efeitos", 28, corDasDicas);
