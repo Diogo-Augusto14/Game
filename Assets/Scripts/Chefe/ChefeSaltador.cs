@@ -27,7 +27,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
     }
 
     [Header("Chefe")]
-    [SerializeField] private string nomeDoChefe = "Sapao";
+    [SerializeField] private string nomeDoChefe = "Sapão";
 
     [Tooltip("Segundos andando entre um ataque e outro")]
     [SerializeField, Min(0.1f)] private float intervaloEntreAtaques = 1.1f;

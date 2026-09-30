@@ -3,9 +3,19 @@ using UnityEngine.UI;
 
 /// <summary>
 /// O menu inicial: nome do jogo, a escolha do heroi (esquerda e direita trocam, ver
-/// <see cref="Herois"/>), os controles e "Enter pra jogar". Aparece so na primeira
-/// vez que a cena abre; recomecar depois de morrer (R) vai direto pro andar 1, como no
+/// <see cref="Herois"/>) e os botoes Jogar, Configuracoes e Sair do jogo. Aparece so na
+/// primeira vez que a cena abre; recomecar depois de morrer vai direto pro andar 1, como no
 /// Isaac. Com o menu na tela o jogo fica congelado e o jogador nao anda.
+///
+///   W/S ou Cima/Baixo   escolhe o botao       A/D ou Esquerda/Direita   troca o heroi
+///   Enter / Espaco      aperta                O                         configuracoes
+///   Esc                 vai pro "Sair do jogo" (de novo: sai)
+///
+/// No controle: cruz, A aperta, Start joga, X configuracoes, Select vai pro sair. O mouse
+/// escolhe e clica nos botoes e nas setas do heroi.
+///
+/// Abre com animacao (o titulo cai no lugar, o heroi e os botoes sobem) e, no Jogar, some
+/// aos poucos antes de soltar o jogador.
 ///
 /// O <see cref="Andar"/> monta por <see cref="Mostrar"/>. Sair pro menu pela pausa chama
 /// <see cref="VoltarAoMenu"/>, que recarrega a cena com o menu de novo.
@@ -13,15 +23,20 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class TelaDeInicio : MonoBehaviour
 {
-    private static readonly KeyCode[] TeclasDeJogar = { KeyCode.Return, KeyCode.KeypadEnter, KeyCode.Space };
+    private const float TempoDeSair = 0.4f;
+    private const float YDoTitulo = 390f;
 
-    private string titulo = "THE PRETTIE";
+    private string titulo = "The Prettie";
     private Transform jogador;
     private Andar andar;
+    private CanvasGroup grupo;
+    private CanvasGroup topo;
+    private CanvasGroup painelDoHeroi;
+    private CanvasGroup rodape;
     private Text textoDoTitulo;
-    private RectTransform linhaDeJogar;
-    private Image botaoDeJogar;
-    private Image ponteiro;
+    private MenuDeBotoes menu;
+    private int botaoJogar;
+    private int botaoSair;
     private Image setaEsquerda;
     private Image setaDireita;
     private int ladoAceso;
@@ -33,6 +48,7 @@ public class TelaDeInicio : MonoBehaviour
     private Image retratoDoHeroi;
     private ClipesDePersonagem clipesDoRetrato;
     private float abriu;
+    private float saindoDesde = -1f;
 
     /// <summary>O menu ja passou nesta sessao: recomecar nao mostra de novo.</summary>
     public static bool JaPassou { get; private set; }
@@ -40,6 +56,7 @@ public class TelaDeInicio : MonoBehaviour
     public static bool Aberta => atual != null;
 
     private static TelaDeInicio atual;
+    private static bool jaAbriuOJogo;
 
     // Com "Enter Play Mode" sem recarregar o dominio, o estatico sobreviveria entre Plays.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -47,6 +64,7 @@ public class TelaDeInicio : MonoBehaviour
     {
         JaPassou = false;
         atual = null;
+        jaAbriuOJogo = false;
     }
 
     public static void Mostrar(Andar andar, string titulo)
@@ -56,16 +74,46 @@ public class TelaDeInicio : MonoBehaviour
 
         TelaDeInicio tela = new GameObject("Menu inicial").AddComponent<TelaDeInicio>();
         tela.andar = andar;
-        tela.titulo = string.IsNullOrEmpty(titulo) ? tela.titulo : titulo;
+        tela.titulo = string.IsNullOrEmpty(titulo) ? tela.titulo : NomeParaOTitulo(titulo);
         tela.jogador = andar != null ? andar.Jogador : null;
         tela.Montar();
     }
 
-    /// <summary>Pela pausa: recarrega a cena e mostra o menu de novo.</summary>
+    /// <summary>Pela pausa ou pelo fim de jogo: escurece, recarrega a cena e mostra o menu de novo.</summary>
     public static void VoltarAoMenu()
     {
-        JaPassou = false;
-        TelaDeFimDeJogo.RecarregarCena();
+        TransicaoDeTela.Trocar(() =>
+        {
+            JaPassou = false;
+            TelaDeFimDeJogo.RecarregarCena();
+        });
+    }
+
+    /// <summary>Fecha o jogo (no editor, sai do Play), com a tela escurecendo antes.</summary>
+    public static void SairDoJogo()
+    {
+        Sons.Tocar(Som.MenuFechar, 1f, 0f);
+        TransicaoDeTela.Trocar(() =>
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        });
+    }
+
+    /// <summary>
+    /// A fonte gotica do titulo fica ilegivel em caixa alta: "THE PRETTIE" vira "The Prettie".
+    /// Nome ja em maiusculas e minusculas passa como esta.
+    /// </summary>
+    private static string NomeParaOTitulo(string nome)
+    {
+        if (nome != nome.ToUpperInvariant())
+            return nome;
+
+        System.Globalization.TextInfo texto = System.Globalization.CultureInfo.InvariantCulture.TextInfo;
+        return texto.ToTitleCase(nome.ToLowerInvariant());
     }
 
     private void Montar()
@@ -73,40 +121,61 @@ public class TelaDeInicio : MonoBehaviour
         atual = this;
         abriu = Time.unscaledTime;
 
-        TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 1f));
+        // O fundo deixa ver a primeira sala, bem escura, atras do menu.
+        grupo = TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 0.9f));
 
-        textoDoTitulo = TelaSimples.Texto(transform, "Titulo", 100, new Color(1f, 0.93f, 0.8f), 400f, titulo);
-        TelaSimples.Texto(transform, "Subtitulo", 30, new Color(0.75f, 0.65f, 0.65f), 268f,
-            $"Desca {(andar != null ? andar.AndarFinal : 4)} andares e derrote o Olho do Porao");
+        // Topo: faixa rosa do Dragon Regalia e o nome na fonte gotica.
+        topo = TelaSimples.Camada(transform, "Topo");
+        TelaSimples.Faixa(topo.transform, "Faixa do titulo", ArteDaInterface.FaixaRosa, YDoTitulo, 1150f);
+        textoDoTitulo = TelaSimples.Titulo(topo.transform, "Titulo", 150, new Color(1f, 0.93f, 0.8f), YDoTitulo, titulo);
+        TelaSimples.Texto(topo.transform, "Subtitulo", 30, new Color(0.8f, 0.7f, 0.7f), 282f,
+            $"Desça {(andar != null ? andar.AndarFinal : 4)} andares e derrote o Olho do Porão");
 
-        MontarEscolhaDoHeroi(88f);
+        painelDoHeroi = TelaSimples.Camada(transform, "Heroi");
+        MontarEscolhaDoHeroi(painelDoHeroi.transform, 105f);
 
-        Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
-        TelaSimples.LinhaDeTeclas(transform, "Controles", -158f,
-            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba",
-            28, corDasDicas);
-        TelaSimples.LinhaDeTeclas(transform, "Opcoes", -212f,
-            "[O] opcoes | [Esc] pausar | [M] musica | [N] efeitos || [Pad X] opcoes | [Pad Start] pausar | [Pad LB] musica | [Pad RB] efeitos", 28, corDasDicas);
-        TelaSimples.Texto(transform, "Dica", 24, new Color(0.8f, 0.85f, 0.95f), -260f,
-            "Bomba abre parede rachada. Moeda compra na loja.");
+        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, 82f), 38) { AtrasoDaEntrada = 0.3f, IntervaloDaEntrada = 0.06f };
+        botaoJogar = menu.Adicionar("Jogar", -140f, Jogar, "[Enter] || [Pad A]");
+        menu.Adicionar("Configurações", -232f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
+        botaoSair = menu.Adicionar("Sair do jogo", -324f, SairDoJogo, "[Esc] || [Pad Select]", IconeDoBotao.Sair, perigo: true);
 
-        linhaDeJogar = TelaSimples.LinhaDeTeclas(transform, "Jogar", -376f, "", 40, new Color(1f, 0.85f, 0.35f));
-        MontarPonteiro(-376f);
-        TelaSimples.LinhaDeTeclas(transform, "Sair", -462f, "[Esc] sair do jogo || [Pad Select] sair do jogo", 24, new Color(0.65f, 0.6f, 0.6f));
-        TelaSimples.Texto(transform, "Creditos", 17, new Color(0.45f, 0.42f, 0.45f), -514f,
-            "Sons de interface: Nathan Gibson (CC BY 4.0)    Interface: Tiny RPG Dragon Regalia GUI    Teclas: Vryell");
-
-        // Molduras do Dragon Regalia atras de tudo (Painel poe logo acima do fundo escuro).
-        botaoDeJogar = TelaSimples.Painel(transform, "Botao de jogar", ArteDaInterface.Botao(0), -376f, new Vector2(470f, 105f));
-        TelaSimples.Painel(transform, "Painel dos controles", ArteDaInterface.MolduraPequena, -208f, new Vector2(1300f, 200f));
-        TelaSimples.Faixa(transform, "Faixa do titulo", ArteDaInterface.FaixaRosa, 400f, 1150f);
+        MontarRodape();
         MostrarHeroi();
 
-        // Congela o jogo e segura o jogador ate apertar Enter.
+        // Congela o jogo e segura o jogador ate apertar Jogar.
         Time.timeScale = 0f;
         TelaSimples.TravarJogador(jogador, true);
         Musica.Tocar(TemaMusical.Menu);
+
+        // Primeira vez que o jogo abre: sai do preto. (Voltando ao menu, a transicao ja clareia.)
+        if (!jaAbriuOJogo)
+        {
+            jaAbriuOJogo = true;
+            TransicaoDeTela.Revelar(0.8f);
+        }
+
+        Animar(Time.unscaledTime);
+    }
+
+    private void MontarRodape()
+    {
+        rodape = TelaSimples.Camada(transform, "Rodape");
+        Transform pai = rodape.transform;
+
+        TelaSimples.Painel(pai, "Painel dos controles", ArteDaInterface.MolduraPequena, -428f, new Vector2(1500f, 118f));
+
+        Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
+        TelaSimples.LinhaDeTeclas(pai, "Controles", -408f,
+            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Esc] pausar || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad Start] pausar",
+            24, corDasDicas);
+        TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
+            "[M] música | [N] efeitos | Bomba abre parede rachada. Moeda compra na loja. || " +
+            "[Pad LB] música | [Pad RB] efeitos | Bomba abre parede rachada. Moeda compra na loja.", 22, new Color(0.8f, 0.85f, 0.95f));
+
+        TelaSimples.Texto(pai, "Creditos", 16, new Color(0.5f, 0.47f, 0.5f), -514f,
+            "Sons de interface: Nathan Gibson (CC BY 4.0)    Interface: Tiny RPG Dragon Regalia GUI    Teclas: Vryell    " +
+            "Fontes: Pixelify Sans e Jacquard 12 (OFL)");
     }
 
     private void Update()
@@ -119,56 +188,87 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         float t = Time.unscaledTime;
-        textoDoTitulo.transform.localScale = Vector3.one * (1f + Mathf.Sin(t * 1.5f) * 0.03f);
+        Animar(t);
 
-        AnimarRetrato(t);
-        AnimarPonteiro(t);
-        AnimarSetas(t);
+        if (saindoDesde >= 0f)
+        {
+            Sair(t);
+            return;
+        }
 
         // Com as opcoes por cima, as teclas sao delas (o Esc de la nao pode sair do jogo).
-        if (TelaDeOpcoes.Ocupada)
-            return;
+        menu.Ligado = !TelaDeOpcoes.Ocupada && t - abriu >= 0.4f;
 
+        if (menu.Ligado && !TransicaoDeTela.Ocupada)
+            LerAtalhos();
+
+        menu.Atualizar();
+    }
+
+    /// <summary>As teclas do menu que nao sao dos botoes (o W/S/Enter/mouse o menu le sozinho).</summary>
+    private void LerAtalhos()
+    {
         Opcoes.LerTeclas();
 
-        // Meio segundo de respiro: o Enter que abriu o Play nao pula o menu.
-        if (t - abriu < 0.4f)
-            return;
-
-        // No .exe e o unico jeito de fechar sem Alt+F4. No editor, sai do Play.
+        // Esc nao fecha direto: primeiro vai pro botao de sair, e o segundo Esc sai.
         if (Input.GetKeyDown(KeyCode.Escape) || Controle.Apertou(BotaoDoControle.Select))
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-            return;
+            if (menu.Escolhido == botaoSair)
+                menu.Apertar(botaoSair);
+            else
+                menu.Escolher(botaoSair);
         }
-
-        if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
+        else if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
         {
-            TelaDeOpcoes.Abrir();
+            AbrirOpcoes();
+        }
+        else if (Controle.Apertou(BotaoDoControle.Start))
+        {
+            menu.Apertar(botaoJogar);
+        }
+        else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A) || Controle.Apertou(BotaoDoControle.CruzEsquerda)
+                 || Clicou(setaEsquerda))
+        {
+            TrocarHeroi(-1);
+        }
+        else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D) || Controle.Apertou(BotaoDoControle.CruzDireita)
+                 || Clicou(setaDireita))
+        {
+            TrocarHeroi(1);
+        }
+    }
+
+    private static bool Clicou(Image imagem)
+    {
+        return imagem != null && imagem.enabled && Input.GetMouseButtonDown(0)
+               && RectTransformUtility.RectangleContainsScreenPoint(imagem.rectTransform, Input.mousePosition, null);
+    }
+
+    private void Jogar()
+    {
+        if (!Herois.Liberado(Herois.Atual))
+        {
+            Sons.Tocar(Som.MenuNegado, 0.8f, 0f);
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A) || Controle.Apertou(BotaoDoControle.CruzEsquerda))
-            TrocarHeroi(-1);
-        else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D) || Controle.Apertou(BotaoDoControle.CruzDireita))
-            TrocarHeroi(1);
+        Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
+        menu.Ligado = false;
+        saindoDesde = Time.unscaledTime;
+    }
 
-        bool confirmou = Controle.ApertouConfirmar;
+    private static void AbrirOpcoes() => TelaDeOpcoes.Abrir();
 
-        foreach (KeyCode tecla in TeclasDeJogar)
-            confirmou |= Input.GetKeyDown(tecla);
+    /// <summary>O menu some crescendo de leve; no fim, o jogo comeca.</summary>
+    private void Sair(float agora)
+    {
+        float t = (agora - saindoDesde) / TempoDeSair;
+        grupo.alpha = 1f - TelaSimples.Freando(t);
+        topo.transform.localScale = painelDoHeroi.transform.localScale = Vector3.one * (1f + TelaSimples.Freando(t) * 0.06f);
+        menu.Atualizar();
 
-        if (!confirmou)
-            return;
-
-        if (Herois.Liberado(Herois.Atual))
+        if (t >= 1f)
             Comecar();
-        else
-            Sons.Tocar(Som.MenuNegado, 0.8f, 0f);
     }
 
     private void Comecar()
@@ -181,7 +281,6 @@ public class TelaDeInicio : MonoBehaviour
             Herois.Aplicar(jogador.gameObject, Herois.Atual);
 
         TelaSimples.TravarJogador(jogador, false);
-        Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
 
         if (andar != null)
             Musica.Tocar(Musica.DoAndar(andar.NumeroDoAndar));
@@ -189,13 +288,34 @@ public class TelaDeInicio : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // ---------------- escolha do heroi ----------------
-    private void MontarEscolhaDoHeroi(float y)
+    // ---------------- animacao ----------------
+    private void Animar(float t)
     {
-        TelaSimples.Painel(transform, "Painel do heroi", ArteDaInterface.MolduraGrande, y, new Vector2(1300f, 320f));
+        float desde = t - abriu;
+
+        // O titulo cai de cima e passa um pouco do ponto; depois respira devagar.
+        float queda = TelaSimples.PassaEVolta(desde / 0.7f);
+        topo.alpha = Mathf.Clamp01(desde / 0.35f);
+        textoDoTitulo.rectTransform.anchoredPosition = new Vector2(0f, YDoTitulo + (1f - queda) * 160f);
+        textoDoTitulo.transform.localScale = Vector3.one * (1f + Mathf.Sin(t * 1.5f) * 0.025f);
+
+        // O heroi sobe um pouco depois, e o rodape aparece por ultimo.
+        float heroi = TelaSimples.Freando((desde - 0.25f) / 0.4f);
+        painelDoHeroi.alpha = heroi;
+        ((RectTransform)painelDoHeroi.transform).anchoredPosition = new Vector2(0f, (1f - heroi) * -40f);
+        rodape.alpha = TelaSimples.Freando((desde - 0.7f) / 0.5f);
+
+        AnimarRetrato(t);
+        AnimarSetas(t);
+    }
+
+    // ---------------- escolha do heroi ----------------
+    private void MontarEscolhaDoHeroi(Transform pai, float y)
+    {
+        TelaSimples.Painel(pai, "Painel do heroi", ArteDaInterface.MolduraGrande, y, new Vector2(1300f, 300f));
 
         GameObject obj = new GameObject("Retrato do heroi", typeof(RectTransform));
-        obj.transform.SetParent(transform, false);
+        obj.transform.SetParent(pai, false);
         RectTransform rt = (RectTransform)obj.transform;
         rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
         rt.pivot = new Vector2(0.5f, 0.5f);
@@ -205,14 +325,14 @@ public class TelaDeInicio : MonoBehaviour
         retratoDoHeroi.preserveAspect = true;
         retratoDoHeroi.raycastTarget = false;
 
-        textoDoHeroi = TelaSimples.Texto(transform, "Nome do heroi", 46, new Color(1f, 0.9f, 0.6f), y + 88f, "");
-        descricaoDoHeroi = TelaSimples.Texto(transform, "Descricao do heroi", 28, new Color(1f, 0.97f, 0.92f), y + 35f, "");
-        numerosDoHeroi = TelaSimples.Texto(transform, "Numeros do heroi", 24, new Color(0.85f, 0.93f, 1f), y - 15f, "");
-        dicaDoHeroi = TelaSimples.LinhaDeTeclas(transform, "Dica do heroi", y - 68f, "", 22, new Color(0.85f, 0.93f, 1f));
+        textoDoHeroi = TelaSimples.Texto(pai, "Nome do heroi", 46, new Color(1f, 0.9f, 0.6f), y + 85f, "");
+        descricaoDoHeroi = TelaSimples.Texto(pai, "Descricao do heroi", 28, new Color(1f, 0.97f, 0.92f), y + 32f, "");
+        numerosDoHeroi = TelaSimples.Texto(pai, "Numeros do heroi", 24, new Color(0.85f, 0.93f, 1f), y - 18f, "");
+        dicaDoHeroi = TelaSimples.LinhaDeTeclas(pai, "Dica do heroi", y - 72f, "", 22, new Color(0.85f, 0.93f, 1f));
         dicaDoHeroi.anchoredPosition = new Vector2(120f, dicaDoHeroi.anchoredPosition.y);
 
-        setaEsquerda = Imagem("Seta esquerda", new Vector2(-590f, y), 64f);
-        setaDireita = Imagem("Seta direita", new Vector2(590f, y), 64f);
+        setaEsquerda = Imagem(pai, "Seta esquerda", new Vector2(-590f, y), 64f);
+        setaDireita = Imagem(pai, "Seta direita", new Vector2(590f, y), 64f);
 
         foreach (Text texto in new[] { textoDoHeroi, descricaoDoHeroi, numerosDoHeroi })
         {
@@ -220,8 +340,6 @@ public class TelaDeInicio : MonoBehaviour
             rtTexto.anchoredPosition = new Vector2(120f, rtTexto.anchoredPosition.y);
             rtTexto.sizeDelta = new Vector2(860f, rtTexto.sizeDelta.y);
         }
-
-        MostrarHeroi();
     }
 
     private void TrocarHeroi(int passo)
@@ -239,29 +357,23 @@ public class TelaDeInicio : MonoBehaviour
         bool liberado = Herois.Liberado(heroi);
 
         textoDoHeroi.text = liberado ? heroi.Nome : $"{heroi.Nome}  (bloqueado)";
-        descricaoDoHeroi.text = liberado ? heroi.Descricao : $"<color=#ff9966>Pra liberar: {heroi.Requisito}</color>";
+        descricaoDoHeroi.text = liberado ? heroi.Descricao : $"<color=#ff9966>Para liberar: {heroi.Requisito}</color>";
         numerosDoHeroi.text = liberado
             ? $"Vida {heroi.Vida / 20f:0.#}     Velocidade {heroi.Velocidade:0.#}     Dano {heroi.Dano:0.#}     " +
               $"Tiros/s {heroi.Cadencia:0.#}     Alcance {heroi.Alcance:0.#}"
             : "? ? ?";
 
         TelaSimples.TrocarLinhaDeTeclas(dicaDoHeroi,
-            $"[A][D] ou [Esquerda][Direita] troca o heroi ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados) || " +
-            $"[Pad CruzEsquerda][Pad CruzDireita] troca o heroi ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)",
+            $"[A][D] ou [Esquerda][Direita] troca o herói ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados) || " +
+            $"[Pad CruzEsquerda][Pad CruzDireita] troca o herói ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)",
             22, new Color(0.85f, 0.93f, 1f));
 
-        // Na montagem, o nome e a descricao vem antes do botao de jogar existir.
-        if (linhaDeJogar != null)
+        // Herói bloqueado: o botao de jogar apaga e avisa.
+        if (menu != null)
         {
-            TelaSimples.TrocarLinhaDeTeclas(linhaDeJogar, liberado ? "[Enter] jogar || [Pad A] jogar" : "Heroi bloqueado", 40,
-                liberado ? new Color(1f, 0.85f, 0.35f) : new Color(1f, 0.6f, 0.4f));
+            menu.Apagar(botaoJogar, !liberado);
+            menu.TrocarRotulo(botaoJogar, liberado ? "Jogar" : "Herói bloqueado");
         }
-
-        if (botaoDeJogar != null)
-            botaoDeJogar.sprite = ArteDaInterface.Botao(liberado ? 0 : 3);
-
-        if (ponteiro != null)
-            ponteiro.enabled = liberado && ponteiro.sprite != null;
 
         clipesDoRetrato = Herois.Clipes(heroi);
         retratoDoHeroi.enabled = clipesDoRetrato != null && clipesDoRetrato.Parado != null;
@@ -287,10 +399,10 @@ public class TelaDeInicio : MonoBehaviour
         return total;
     }
 
-    private Image Imagem(string nome, Vector2 posicao, float lado)
+    private static Image Imagem(Transform pai, string nome, Vector2 posicao, float lado)
     {
         GameObject obj = new GameObject(nome, typeof(RectTransform));
-        obj.transform.SetParent(transform, false);
+        obj.transform.SetParent(pai, false);
         RectTransform rt = (RectTransform)obj.transform;
         rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
         rt.pivot = new Vector2(0.5f, 0.5f);
@@ -300,24 +412,6 @@ public class TelaDeInicio : MonoBehaviour
         Image imagem = obj.AddComponent<Image>();
         imagem.raycastTarget = false;
         return imagem;
-    }
-
-    /// <summary>O ponteiro dourado que aponta pro botao de jogar.</summary>
-    private void MontarPonteiro(float y)
-    {
-        ponteiro = Imagem("Ponteiro", new Vector2(-300f, y), 78f);
-        ponteiro.sprite = ArteDaInterface.Ponteiro(0);
-        ponteiro.enabled = ponteiro.sprite != null;
-    }
-
-    private void AnimarPonteiro(float tempo)
-    {
-        if (ponteiro == null || !ponteiro.enabled)
-            return;
-
-        ponteiro.sprite = ArteDaInterface.Ponteiro(Mathf.FloorToInt(tempo * 8f));
-        RectTransform rt = ponteiro.rectTransform;
-        rt.anchoredPosition = new Vector2(-300f + Mathf.Abs(Mathf.Sin(tempo * 4f)) * 12f, rt.anchoredPosition.y);
     }
 
     /// <summary>A seta do lado que trocou acende por um instante.</summary>

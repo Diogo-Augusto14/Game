@@ -73,46 +73,46 @@ public static class CatalogoDeItens
     {
         return new List<ItemPassivo>
         {
-            new ItemPassivo("Cebola Triste", "Chora mais rapido", new Color(0.85f, 0.75f, 0.95f))
+            new ItemPassivo("Cebola Triste", "Chora mais rápido", new Color(0.85f, 0.75f, 0.95f))
                 { somaCadencia = 0.7f },
 
             new ItemPassivo("Seringa Vermelha", "Dano para cima", new Color(0.9f, 0.2f, 0.2f))
                 { somaDano = 1.5f },
 
-            new ItemPassivo("Tenis Velho", "Velocidade para cima", new Color(0.3f, 0.6f, 0.95f))
+            new ItemPassivo("Tênis Velho", "Velocidade para cima", new Color(0.3f, 0.6f, 0.95f))
                 { somaVelocidade = 1f },
 
-            new ItemPassivo("Olho Triplo", "Tres lagrimas por vez", new Color(0.95f, 0.95f, 0.8f))
+            new ItemPassivo("Olho Triplo", "Três lágrimas por vez", new Color(0.95f, 0.95f, 0.8f))
                 { lagrimasExtras = 2, multiplicaCadencia = 0.7f },
 
-            new ItemPassivo("Olho Gemeo", "Duas lagrimas por vez", new Color(0.7f, 0.9f, 1f))
+            new ItemPassivo("Olho Gêmeo", "Duas lágrimas por vez", new Color(0.7f, 0.9f, 1f))
                 { lagrimasExtras = 1, somaDano = 0.3f },
 
-            new ItemPassivo("Luneta", "Alcance e tiro mais rapido", new Color(0.55f, 0.5f, 0.35f))
+            new ItemPassivo("Luneta", "Alcance e tiro mais rápido", new Color(0.55f, 0.5f, 0.35f))
                 { somaAlcance = 3f, somaVelocidadeDoTiro = 3f },
 
-            new ItemPassivo("Coracao Extra", "Vida maxima para cima", new Color(1f, 0.35f, 0.45f))
+            new ItemPassivo("Coração Extra", "Vida máxima para cima", new Color(1f, 0.35f, 0.45f))
                 { somaVidaMaxima = 20f },
 
-            new ItemPassivo("Lagrima de Chumbo", "Lagrimas grandes e pesadas", new Color(0.45f, 0.45f, 0.5f))
+            new ItemPassivo("Lágrima de Chumbo", "Lágrimas grandes e pesadas", new Color(0.45f, 0.45f, 0.5f))
                 { multiplicaDano = 1.5f, somaTamanhoDaLagrima = 0.12f, somaVelocidadeDoTiro = -2f, somaVelocidade = -0.4f },
 
-            new ItemPassivo("Cafe", "Tudo mais rapido", new Color(0.45f, 0.28f, 0.15f))
+            new ItemPassivo("Café", "Tudo mais rápido", new Color(0.45f, 0.28f, 0.15f))
                 { somaVelocidade = 0.6f, somaCadencia = 0.4f },
 
             new ItemPassivo("Saco de Moedas", "Moedas, chave e bombas", new Color(0.95f, 0.8f, 0.2f))
                 { moedas = 10, chaves = 1, bombas = 3 },
 
-            new ItemPassivo("Lagrima Fantasma", "Lagrimas atravessam inimigos", new Color(0.85f, 0.95f, 1f))
+            new ItemPassivo("Lágrima Fantasma", "Lágrimas atravessam inimigos", new Color(0.85f, 0.95f, 1f))
                 { atravessa = true, corDaLagrima = new Color(0.85f, 0.95f, 1f, 0.55f) },
 
-            new ItemPassivo("Bussola Maldita", "Lagrimas perseguem inimigos", new Color(0.7f, 0.35f, 0.95f))
+            new ItemPassivo("Bússola Maldita", "Lágrimas perseguem inimigos", new Color(0.7f, 0.35f, 0.95f))
                 { teleguiada = true, corDaLagrima = new Color(0.75f, 0.45f, 1f) },
 
-            new ItemPassivo("Olho na Nuca", "Chora pra tras tambem", new Color(0.4f, 0.8f, 0.55f))
+            new ItemPassivo("Olho na Nuca", "Chora pra trás também", new Color(0.4f, 0.8f, 0.55f))
                 { paraTras = true },
 
-            new ItemPassivo("Pimenta", "Lagrimas de fogo, dano para cima", new Color(1f, 0.35f, 0.1f))
+            new ItemPassivo("Pimenta", "Lágrimas de fogo, dano para cima", new Color(1f, 0.35f, 0.1f))
                 { multiplicaDano = 1.3f, somaVelocidadeDoTiro = 1f, corDaLagrima = new Color(1f, 0.45f, 0.15f) },
         };
     }

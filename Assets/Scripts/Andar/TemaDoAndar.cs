@@ -80,7 +80,7 @@ public sealed class TemaDoAndar
     // ================================================================ os temas
     public static readonly TemaDoAndar Porao = new TemaDoAndar
     {
-        Nome = "Porao",
+        Nome = "Porão",
         Chao = "ChaoPorao",
         Parede = "ParedePorao",
         CorDoChao = new Color(0.26f, 0.19f, 0.14f),

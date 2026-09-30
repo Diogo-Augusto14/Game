@@ -50,7 +50,7 @@ public static class TelaSimples
         rt.sizeDelta = new Vector2(1600f, tamanho * 4f);
 
         Text texto = obj.AddComponent<Text>();
-        texto.font = TelaDeFimDeJogo.Fonte();
+        texto.font = FonteDoJogo.Texto;
         texto.fontSize = tamanho;
         texto.alignment = TextAnchor.MiddleCenter;
         texto.color = cor;
@@ -61,6 +61,57 @@ public static class TelaSimples
         texto.text = conteudo;
         obj.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.8f);
         return texto;
+    }
+
+    /// <summary>
+    /// Titulo grande na fonte gotica (<see cref="FonteDoJogo.Titulo"/>), com contorno e uma
+    /// sombra funda pra saltar do fundo. Escreva em maiusculas e minusculas ("Você morreu").
+    /// </summary>
+    public static Text Titulo(Transform pai, string nome, int tamanho, Color cor, float y, string conteudo)
+    {
+        Text texto = Texto(pai, nome, tamanho, cor, y, conteudo);
+        texto.font = FonteDoJogo.Titulo;
+        texto.horizontalOverflow = HorizontalWrapMode.Overflow;
+
+        Shadow sombra = texto.gameObject.AddComponent<Shadow>();
+        sombra.effectColor = new Color(0.08f, 0f, 0.04f, 0.9f);
+        sombra.effectDistance = new Vector2(5f, -5f);
+        return texto;
+    }
+
+    /// <summary>
+    /// Uma camada que cobre a tela inteira, com CanvasGroup: pra aparecer, sumir ou crescer
+    /// um pedaco da tela de uma vez (o painel da pausa, o topo do menu).
+    /// </summary>
+    public static CanvasGroup Camada(Transform pai, string nome)
+    {
+        GameObject obj = new GameObject(nome, typeof(RectTransform));
+        obj.transform.SetParent(pai, false);
+
+        RectTransform rt = (RectTransform)obj.transform;
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = rt.offsetMax = Vector2.zero;
+
+        CanvasGroup grupo = obj.AddComponent<CanvasGroup>();
+        grupo.interactable = false;
+        grupo.blocksRaycasts = false;
+        return grupo;
+    }
+
+    /// <summary>Curva de 0 a 1 que passa um pouco do ponto e volta (titulo caindo no lugar).</summary>
+    public static float PassaEVolta(float t)
+    {
+        t = Mathf.Clamp01(t) - 1f;
+        const float s = 1.7f;
+        return t * t * ((s + 1f) * t + s) + 1f;
+    }
+
+    /// <summary>Curva de 0 a 1 que comeca rapida e freia no fim.</summary>
+    public static float Freando(float t)
+    {
+        t = 1f - Mathf.Clamp01(t);
+        return 1f - t * t * t;
     }
 
     /// <summary>
@@ -279,7 +330,7 @@ public static class TelaSimples
         obj.transform.SetParent(linha, false);
 
         Text texto = obj.AddComponent<Text>();
-        texto.font = TelaDeFimDeJogo.Fonte();
+        texto.font = FonteDoJogo.Texto;
         texto.fontSize = tamanho;
         texto.alignment = TextAnchor.MiddleLeft;
         texto.color = cor;

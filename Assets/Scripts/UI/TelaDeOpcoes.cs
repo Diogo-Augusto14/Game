@@ -19,7 +19,7 @@ public class TelaDeOpcoes : MonoBehaviour
 {
     private enum Linha { Musica, Efeitos, TelaCheia, Resolucao, Voltar }
 
-    private static readonly string[] Nomes = { "Musica", "Efeitos", "Tela cheia", "Resolucao", "Voltar" };
+    private static readonly string[] Nomes = { "Música", "Efeitos", "Tela cheia", "Resolução", "Voltar" };
     private static readonly float[] Alturas = { 150f, 60f, -30f, -120f, -225f };
 
     private const float XDoNome = -330f;
@@ -78,7 +78,7 @@ public class TelaDeOpcoes : MonoBehaviour
         quadroQueAbriu = Time.frameCount;
 
         TelaSimples.Montar(gameObject, 120, new Color(0f, 0f, 0f, 0.85f));
-        TelaSimples.Texto(transform, "Titulo", 80, new Color(1f, 0.95f, 0.85f), 330f, "OPCOES");
+        TelaSimples.Titulo(transform, "Titulo", 110, new Color(1f, 0.95f, 0.85f), 330f, "Configurações");
 
         for (int i = 0; i < Nomes.Length; i++)
         {
@@ -108,14 +108,14 @@ public class TelaDeOpcoes : MonoBehaviour
         if (Application.isEditor)
         {
             TelaSimples.Texto(transform, "Aviso do editor", 20, new Color(0.65f, 0.6f, 0.6f), -400f,
-                "No editor a janela nao muda de tamanho: tela cheia e resolucao valem no jogo compilado.");
+                "No editor a janela não muda de tamanho: tela cheia e resolução valem no jogo compilado.");
         }
 
         // Moldura, botao de voltar e faixa do Dragon Regalia atras dos textos.
         botaoDeVoltar = TelaSimples.Painel(transform, "Botao de voltar", ArteDaInterface.Botao(0),
                                            Alturas[(int)Linha.Voltar], new Vector2(340f, 95f));
         TelaSimples.Painel(transform, "Painel", ArteDaInterface.MolduraGrande, -20f, new Vector2(1250f, 520f));
-        TelaSimples.Faixa(transform, "Faixa", ArteDaInterface.FaixaRosa, 330f, 700f);
+        TelaSimples.Faixa(transform, "Faixa", ArteDaInterface.FaixaRosa, 330f, 820f);
 
         Atualizar();
         Sons.Tocar(Som.MenuAbrir, 1f, 0f);

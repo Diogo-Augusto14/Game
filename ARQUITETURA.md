@@ -115,7 +115,8 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | `Personagens/*` (20 bichos) e `Personagens/Projeteis` | Tiny RPG Character Asset Pack 02 (versão com sombra quando existe) | Todos os inimigos antigos (perseguidor = cão infernal, atirador = bruxo, investidor = minotauro, saltador = gosma, sentinela = cavaleiro do canhão, divisor = bolha), os chefes (golem, demônio do martelo, monstro-olho), o vendedor da loja e as variações `Morcego`, `CavaleiroLanca`, `CavaleiroEscudo`, `DemonioTridente`, `DemonioLaminas`, `DemonioArqueiro`, `Demonia`, `FogoFatuo`, `DemoniaFoice`; do Pack 01 v2.0: `Orc`, `OrcBlindado`, `OrcElite`, `OrcMontado`, `EsqueletoGuerreiro`, `EsqueletoBlindado`, `EsqueletoEspadao`, `EsqueletoArqueiro`, `Geleia`, `Morceguinho`, `Lobisomem`, `Urso` e `Necromante`. Animados por `Animacao/AnimacaoDePersonagem.cs`, que toca o ataque sozinho no telégrafo |
 | `Personagens/Herois/*` e os tiros `FlechaDoSoldado`, `FlechaDoArqueiro`, `Dardo`, `BolaDeFogo`, `Cristais` | Tiny RPG Character Asset Pack 01 v2.0 | Os 9 heróis jogáveis (soldado, cavaleiro, templário, lanceiro, espadachim, machadeiro, arqueiro, mago, padre). `TopDown/Herois.cs` guarda vida, velocidade e tiro de cada um; o menu (`UI/TelaDeInicio.cs`) escolhe com esquerda/direita; o padre cura sozinho (`TopDown/CuraDoHeroi.cs`) |
 | `InterfacePixel` | Pixel UI pack 3 | Corações da vida, barras (vermelha/amarela) do chefe, placa de preço da loja |
-| `InterfaceDragao` | Tiny RPG Dragon Regalia GUI (CC0) | Molduras douradas do menu/pausa/fim de jogo, faixas de título e do aviso de andar, botão de jogar, setas e ponteiro da escolha de herói, moldura da barra do chefe, cursor do mouse (`ArteDaInterface.cs`) |
+| `InterfaceDragao` | Tiny RPG Dragon Regalia GUI (CC0) | Molduras douradas do menu/pausa/fim de jogo, faixas de título e do aviso de andar, botões dos menus, ícones redondos de configurações e de sair, setas e ponteiro, moldura da barra do chefe, cursor do mouse (`ArteDaInterface.cs`) |
+| `Fontes` | Pixelify Sans e Jacquard 12 (Google Fonts, licença OFL: `LICENCA-*.txt` do lado) | Pixelify Sans em todo texto do jogo; Jacquard 12 (gótica pixelada) nos títulos grandes: nome do jogo, Pausado, Você morreu, Configurações (`UI/FonteDoJogo.cs`) |
 | `Teclas` | Controllers and Keyboard (Vryell) | Desenho das teclas nas dicas de controle do menu, da pausa, do fim de jogo e da HUD (`TelaSimples.LinhaDeTeclas`, `IconeDeTecla`) |
 | `Sons` | Universal UI Soundpack (Nathan Gibson, CC BY 4.0: crédito no menu) | Sons de menu: navegar, confirmar, abrir/fechar pausa, herói bloqueado, herói liberado. `Sons.Tocar` usa `Resources/Sons/<Som>` quando existe |
 | `Masmorra/Esqueleto`, `EsqueletoFoice`, `Vampiro` | Enemy Animations Set (tiras de 32×32) | Inimigos `Esqueleto`, `EsqueletoFoice` e `Vampiro`, com a própria animação de morte |
@@ -123,6 +124,28 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | `Masmorra/Chao`, `Parede`, `Portao`, `Espinhos`, `Ladrilhos` | 2D Dungeon Asset Pack v5.2 | Chão e tijolos das salas (a cor do andar só tinge de leve), portão de grade nas portas e na tranca, espinhos, buraco do alçapão. Da folha `Objetos`: frasco (coração), moeda, chave, altar do pedestal, mesas da loja, estandartes das portas especiais, gema do tiro dos inimigos e o ícone de cada item passivo |
 | `Masmorra/Temas` | 2D Pixel Dungeon Asset Pack v2.0 e 2D Dungeon Asset Pack v5.2 (ladrilhos recortados e juntados) | Chão e parede de cada tema de andar (`Andar/TemaDoAndar.cs`): `ChaoPorao`/`ParedePorao` (tijolos marrons do v2.0), `ChaoCripta`/`ParedeCripta` (laje rachada e friso azul do v5.2), `ChaoAbismo`/`ParedeAbismo` (pedra lisa e friso vermelho do v5.2) e a `Runa` vermelha do chão do Abismo. As Catacumbas usam o `Chao`/`Parede` padrão |
 | `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Goblins da tocha e da dinamite, barril de TNT, arqueiro sombrio, flecha, dinamite, explosão (bomba do jogador também), caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`); o jogador é o arqueiro azul (`TopDown/ArqueiroDoJogador.cs`) e atira flechas; pedras das salas; a dinamite é a bomba |
+
+### Menus
+
+Todas as telas são montadas por código (`UI/TelaSimples.cs`) e os botões vêm de
+`UI/MenuDeBotoes.cs`: W/S ou setas escolhem, Enter/Espaço/A apertam, o mouse escolhe e
+clica. Cada botão mostra o atalho do lado. `UI/TransicaoDeTela.cs` escurece a tela antes
+de recarregar a cena (jogar de novo, voltar ao menu, sair).
+
+| Tela | Botões | Atalhos |
+|---|---|---|
+| Menu inicial (`TelaDeInicio`) | Jogar, Configurações, Sair do jogo | Enter jogar, O configurações, Esc vai pro Sair (de novo: sai), A/D troca o herói |
+| Pausa (`TelaDePausa`) | Continuar, Reiniciar partida, Configurações, Menu principal, Sair do jogo | Esc, R, O, Q |
+| Fim de jogo (`TelaDeFimDeJogo`) | Tentar de novo, Menu principal, Sair do jogo | R, Q, Esc |
+| Configurações (`TelaDeOpcoes`) | volumes, tela cheia, resolução, Voltar | Esc volta |
+
+Na morte a tela pisca vermelha, o jogo entra em câmera lenta enquanto o herói cai e depois
+aparece o resumo: herói, andar, tempo, inimigos derrotados, salas exploradas
+(`UI/ResumoDaPartida.cs`), itens e semente.
+
+Os textos do jogo têm acento. Onde um nome vira chave salva ou código (herói liberado no
+`Progresso`, ícone do item em `ArteImportada.IconeDoItem`), `FonteDoJogo.SemAcentos` tira
+os acentos, então o que já estava salvo continua valendo.
 
 Cada tira de personagem tem quadros de 100×100 com o bicho (uns 20 px) no meio. O
 recorte usado é 64×48 em volta do corpo, com o pivô no centro do corpo.

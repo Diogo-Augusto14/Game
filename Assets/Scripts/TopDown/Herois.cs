@@ -46,7 +46,7 @@ public static class Herois
 
         /// <summary>O que falta fazer, pro menu mostrar no heroi bloqueado.</summary>
         public string Requisito =>
-            LiberaNoChefeDoAndar > 0 ? $"Venca o chefe do andar {LiberaNoChefeDoAndar}"
+            LiberaNoChefeDoAndar > 0 ? $"Vença o chefe do andar {LiberaNoChefeDoAndar}"
             : LiberaZerandoCom != null ? $"Zere o jogo com o {LiberaZerandoCom}"
             : LiberaComVitorias > 1 ? $"Zere o jogo {LiberaComVitorias} vezes"
             : LiberaComVitorias == 1 ? "Zere o jogo"
@@ -74,7 +74,7 @@ public static class Herois
         {
             Nome = "Soldado", Pasta = "Soldado",
             LiberaNoChefeDoAndar = 1,
-            Descricao = "Aguenta mais pancada e atira um pouco mais rapido.",
+            Descricao = "Aguenta mais pancada e atira um pouco mais rápido.",
             Vida = 120f, Dano = 3f, Cadencia = 3f, Alcance = 6f,
             TipoDoTiro = Tiro.FlechaDoSoldado,
         },
@@ -88,9 +88,9 @@ public static class Herois
         },
         new Heroi
         {
-            Nome = "Templario", Pasta = "Templario",
+            Nome = "Templário", Pasta = "Templario",
             LiberaComVitorias = 3,
-            Descricao = "O que mais aguenta, e o mais lento.",
+            Descricao = "O que mais aguenta, e é o mais lento.",
             Vida = 160f, Velocidade = 3.5f, Dano = 4f, Cadencia = 2.2f, Alcance = 4f,
             VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.45f, TipoDoTiro = Tiro.Corte,
             CorDoTiro = new Color(1f, 0.85f, 0.45f),
@@ -99,7 +99,7 @@ public static class Herois
         {
             Nome = "Lanceiro", Pasta = "Lanceiro",
             LiberaZerandoCom = "Soldado",
-            Descricao = "A cavalo: o mais rapido. Dardos fortes e velozes.",
+            Descricao = "A cavalo: o mais rápido. Dardos fortes e velozes.",
             Velocidade = 5.5f, Dano = 4f, Cadencia = 2f, Alcance = 5.5f,
             VelocidadeDoTiro = 11f, TamanhoDoTiro = 0.3f, TipoDoTiro = Tiro.Dardo,
         },
@@ -107,7 +107,7 @@ public static class Herois
         {
             Nome = "Espadachim", Pasta = "Espadachim",
             LiberaZerandoCom = "Cavaleiro",
-            Descricao = "Rapido e com cortes rapidos, mas pouca vida.",
+            Descricao = "Rápido e com cortes rápidos, mas pouca vida.",
             Vida = 80f, Velocidade = 5.2f, Dano = 4f, Cadencia = 3.2f, Alcance = 3.2f,
             TamanhoDoTiro = 0.4f, TipoDoTiro = Tiro.Corte,
             CorDoTiro = new Color(1f, 0.7f, 0.75f),
@@ -125,7 +125,7 @@ public static class Herois
         {
             Nome = "Arqueiro", Pasta = "Arqueiro",
             LiberaNoChefeDoAndar = 2,
-            Descricao = "Pouca vida, mas atira rapido e longe.",
+            Descricao = "Pouca vida, mas atira rápido e longe.",
             Vida = 80f, Velocidade = 4.8f, Dano = 3f, Cadencia = 4f, Alcance = 8.5f,
             VelocidadeDoTiro = 11f, TamanhoDoTiro = 0.26f, TipoDoTiro = Tiro.FlechaDoArqueiro,
         },
@@ -133,7 +133,7 @@ public static class Herois
         {
             Nome = "Mago", Pasta = "Mago",
             LiberaComVitorias = 1,
-            Descricao = "So tres coracoes, mas bolas de fogo fortes.",
+            Descricao = "Só três corações, mas bolas de fogo fortes.",
             Vida = 60f, Dano = 5.5f, Cadencia = 2f, Alcance = 7f,
             VelocidadeDoTiro = 7f, TamanhoDoTiro = 0.35f, TipoDoTiro = Tiro.BolaDeFogo,
         },
@@ -141,7 +141,7 @@ public static class Herois
         {
             Nome = "Padre", Pasta = "Padre",
             LiberaZerandoCom = "Mago",
-            Descricao = "Tiro fraco, mas cura meio coracao a cada 20 segundos.",
+            Descricao = "Tiro fraco, mas cura meio coração a cada 20 segundos.",
             Vida = 80f, Dano = 3f, VelocidadeDoTiro = 8f, TamanhoDoTiro = 0.35f,
             TipoDoTiro = Tiro.Estrela, CorDoTiro = new Color(1f, 0.95f, 0.6f),
             Cura = 10f, CuraACada = 20f,

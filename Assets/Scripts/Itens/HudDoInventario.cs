@@ -47,10 +47,7 @@ public class HudDoInventario : MonoBehaviour
         escala.referenceResolution = new Vector2(1920f, 1080f);
         escala.matchWidthOrHeight = 1f;
 
-        Font fonte = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        if (fonte == null)
-            fonte = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        Font fonte = FonteDoJogo.Texto;
 
         // Embaixo dos coracoes da Hud (margem 24,20 e coracoes de 48): icone + numero.
         const float y = -20f - Hud.LadoDoCoracao - 14f;

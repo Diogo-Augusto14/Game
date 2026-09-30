@@ -394,6 +394,7 @@ public class Sala : MonoBehaviour
 
     private void AoMorrerInimigo(InimigoDeSala inimigo)
     {
+        ResumoDaPartida.ContarInimigo();
         vivos = Mathf.Max(0, vivos - 1);
 
         if (vivos != 0 || !Ativa)

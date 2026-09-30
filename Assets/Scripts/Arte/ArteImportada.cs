@@ -412,7 +412,8 @@ public static class ArteImportada
     /// </summary>
     public static Sprite IconeDoItem(string nome)
     {
-        switch (nome)
+        // Os nomes ganharam acento ("Café"); os casos abaixo continuam sem.
+        switch (FonteDoJogo.SemAcentos(nome))
         {
             case "Cebola Triste": return Objeto(9, 2);
             case "Seringa Vermelha": return Objeto(9, 3);
