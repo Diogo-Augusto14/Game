@@ -42,7 +42,8 @@ public class Minimapa : MonoBehaviour
     [SerializeField, Min(1f)] private float escalaDoMapaGrande = 2.4f;
 
     [Header("Cores")]
-    [SerializeField] private Color corDoFundo = new Color(0.05f, 0.04f, 0.07f, 0.78f);
+    [Tooltip("Quase opaco: o heroi e os objetos da sala nao aparecem por tras das salas do mapa")]
+    [SerializeField] private Color corDoFundo = new Color(0.05f, 0.04f, 0.07f, 0.95f);
     [SerializeField] private Color corAtual = Color.white;
     [SerializeField] private Color corDaMarca = new Color(1f, 0.85f, 0.3f);
     [SerializeField] private Color corVisitada = new Color(0.62f, 0.62f, 0.66f);
@@ -54,6 +55,11 @@ public class Minimapa : MonoBehaviour
     [SerializeField] private Color corDaSecreta = new Color(0.55f, 0.5f, 0.65f);
     [SerializeField] private Color corDoDesafio = new Color(0.95f, 0.5f, 0.15f);
     [SerializeField] private Color corDaAmaldicoada = new Color(0.6f, 0.1f, 0.35f);
+
+    // Legenda do mapa grande: 3 colunas de 240 px, ate 2 linhas.
+    private const int COLUNAS_DA_LEGENDA = 3;
+    private const float LARGURA_DA_LEGENDA = 720f;
+    private const float ALTURA_DA_LEGENDA = 110f;
 
     private Andar andar;
     private RectTransform tela;
@@ -180,11 +186,11 @@ public class Minimapa : MonoBehaviour
         Vector2 miolo = new Vector2((xMax - xMin + 1) * passo.x - vao, (yMax - yMin + 1) * passo.y - vao);
         float borda = comLegenda ? recheio * 2f : recheio;
         float topo = comLegenda ? 70f : 0f;
-        float rodape = comLegenda ? 80f : 0f;
-        quadro.sizeDelta = new Vector2(Mathf.Max(miolo.x + borda * 2f, comLegenda ? 760f : 0f),
+        float rodape = comLegenda ? ALTURA_DA_LEGENDA : 0f;
+        quadro.sizeDelta = new Vector2(Mathf.Max(miolo.x + borda * 2f, comLegenda ? LARGURA_DA_LEGENDA + 80f : 0f),
                                        miolo.y + borda * 2f + topo + rodape);
 
-        Fundo(quadro);
+        Fundo(quadro, comLegenda);
 
         // Canto de baixo, a esquerda, das salas (as salas ficam centradas na largura).
         Vector2 origem = new Vector2((quadro.sizeDelta.x - miolo.x) * 0.5f, borda + rodape);
@@ -245,9 +251,14 @@ public class Minimapa : MonoBehaviour
         return marca;
     }
 
-    private void Fundo(RectTransform quadro)
+    private void Fundo(RectTransform quadro, bool opaco)
     {
-        Image fundo = Esticado(quadro, "Fundo", corDoFundo);
+        Color cor = corDoFundo;
+
+        if (opaco)
+            cor.a = 1f;
+
+        Image fundo = Esticado(quadro, "Fundo", cor);
 
         // Moldura dourada do Dragon Regalia em volta (a mesma do menu), fina.
         Sprite moldura = ArteDaInterface.MolduraPequena;
@@ -274,7 +285,7 @@ public class Minimapa : MonoBehaviour
         (TipoDeSala tipo, string nome)[] itens =
         {
             (TipoDeSala.Chefe, "Chefe"), (TipoDeSala.Item, "Tesouro"), (TipoDeSala.Loja, "Loja"),
-            (TipoDeSala.Desafio, "Desafio"), (TipoDeSala.Amaldicoada, "Amaldicoada"), (TipoDeSala.Secreta, "Secreta"),
+            (TipoDeSala.Desafio, "Desafio"), (TipoDeSala.Amaldicoada, "Amaldiçoada"), (TipoDeSala.Secreta, "Secreta"),
         };
 
         // So o que ja apareceu no mapa, pra legenda nao entregar a secreta.
@@ -288,26 +299,23 @@ public class Minimapa : MonoBehaviour
                     break;
                 }
 
-        GameObject obj = new GameObject("Legenda", typeof(RectTransform));
-        obj.transform.SetParent(quadro, false);
-        RectTransform linha = (RectTransform)obj.transform;
-        linha.anchorMin = linha.anchorMax = linha.pivot = new Vector2(0.5f, 0f);
-        linha.anchoredPosition = new Vector2(0f, 26f);
-
-        HorizontalLayoutGroup layout = obj.AddComponent<HorizontalLayoutGroup>();
-        layout.spacing = 22f;
-        layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.childControlWidth = layout.childControlHeight = true;
-        layout.childForceExpandWidth = layout.childForceExpandHeight = false;
-        ContentSizeFitter ajuste = obj.AddComponent<ContentSizeFitter>();
-        ajuste.horizontalFit = ajuste.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-        foreach ((TipoDeSala tipo, string nome) in vistos)
+        // Grade de 3 colunas (2 linhas com as 6), posicoes fixas: nunca passa da moldura.
+        for (int i = 0; i < vistos.Count; i++)
         {
-            GameObject icone = new GameObject(nome, typeof(RectTransform), typeof(Image), typeof(LayoutElement));
-            icone.transform.SetParent(linha, false);
-            LayoutElement tamanho = icone.GetComponent<LayoutElement>();
-            tamanho.preferredWidth = tamanho.preferredHeight = 30f;
+            (TipoDeSala tipo, string nome) = vistos[i];
+            int coluna = i % COLUNAS_DA_LEGENDA;
+            int linha = i / COLUNAS_DA_LEGENDA;
+            float larguraDaColuna = LARGURA_DA_LEGENDA / COLUNAS_DA_LEGENDA;
+            float x = -LARGURA_DA_LEGENDA * 0.5f + coluna * larguraDaColuna + 16f;
+            float y = ALTURA_DA_LEGENDA - 38f - linha * 42f;
+
+            GameObject icone = new GameObject(nome, typeof(RectTransform), typeof(Image));
+            icone.transform.SetParent(quadro, false);
+            RectTransform rtIcone = (RectTransform)icone.transform;
+            rtIcone.anchorMin = rtIcone.anchorMax = new Vector2(0.5f, 0f);
+            rtIcone.pivot = new Vector2(0f, 0.5f);
+            rtIcone.anchoredPosition = new Vector2(x, y);
+            rtIcone.sizeDelta = Vector2.one * 30f;
             Image imagem = icone.GetComponent<Image>();
             imagem.raycastTarget = false;
             imagem.preserveAspect = true;
@@ -315,7 +323,13 @@ public class Minimapa : MonoBehaviour
             imagem.sprite = desenho;
             imagem.color = desenho != null ? Color.white : CorDe(tipo);
 
-            Text texto = TelaSimples.Texto(linha, nome, 24, new Color(0.9f, 0.9f, 0.9f), 0f, nome);
+            Text texto = TelaSimples.Texto(quadro, nome, 24, new Color(0.9f, 0.9f, 0.9f), 0f, nome);
+            RectTransform rtTexto = texto.rectTransform;
+            rtTexto.anchorMin = rtTexto.anchorMax = new Vector2(0.5f, 0f);
+            rtTexto.pivot = new Vector2(0f, 0.5f);
+            rtTexto.anchoredPosition = new Vector2(x + 40f, y);
+            rtTexto.sizeDelta = new Vector2(larguraDaColuna - 60f, 36f);
+            texto.alignment = TextAnchor.MiddleLeft;
             texto.horizontalOverflow = HorizontalWrapMode.Overflow;
         }
 
