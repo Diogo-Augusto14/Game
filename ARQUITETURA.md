@@ -30,6 +30,7 @@ removido do projeto.
 | `E` | Bomba |
 | `Esc` | Pausa |
 | `M` / `N` | Liga/desliga música / efeitos |
+| `I` (Select no controle) | Mostra o efeito dos itens pegos, um por um (ou passe o mouse no item) |
 
 | Script | O que faz |
 |---|---|
@@ -41,7 +42,9 @@ removido do projeto.
 | `TopDown/BootstrapTopDown.cs` | `CriarJogador` (usado pelo `Andar`) e a sala de treino |
 | `combate/Vida.cs` | Vida, dano, invencibilidade e empurrão de tudo que apanha |
 | `Jogador/Entrada.cs` | Teclado (WASD e setas separados) |
-| `UI/Hud.cs` | Corações e a lista de controles |
+| `UI/Hud.cs` | Corações (numa área de altura fixa: vida a mais encolhe os corações em vez de empurrar o resto) e a lista de controles |
+| `Itens/HudDoInventario.cs` | Moedas, chaves e bombas em coluna embaixo da vida, e o aviso do item pego |
+| `Itens/PainelDeItens.cs` | Itens pegos na lateral direita; mouse ou `I`/Select mostra o nome e o efeito (`ItemPassivo.Descricao`) |
 
 ---
 
