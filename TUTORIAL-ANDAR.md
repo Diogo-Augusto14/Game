@@ -85,7 +85,7 @@ Andar.Atual.AoPrepararGeracao += p => { p.SalasMinimas += 2; p.SalasMaximas += 2
 | Sala secreta | só abre com bomba | baú (depois de entrar) |
 
 O minimapa mostra só o pedaço descoberto do andar, dentro da moldura dourada do Dragon
-Regalia. **Segurando Tab** (ou Select no controle) o mapa abre grande no meio da tela, com o
+Regalia. **Segurando Tab** (ou afundando o analógico esquerdo, L3, no controle) o mapa abre grande no meio da tela, com o
 nome do andar e a legenda das salas que já apareceram.
 
 ## Onde mexer

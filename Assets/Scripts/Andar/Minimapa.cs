@@ -16,7 +16,7 @@ using UnityEngine.UI;
 ///     tem parede entre elas.
 ///
 /// So o pedaco descoberto do andar aparece, entao o quadro cresce conforme voce explora.
-/// Segurando Tab (ou Select no controle) o mapa abre grande no meio da tela, com o nome
+/// Segurando Tab (ou afundando o analogico esquerdo, L3, no controle) o mapa abre grande no meio da tela, com o nome
 /// do andar e a legenda dos desenhos.
 ///
 /// Montado por codigo, igual a <see cref="Hud"/>. Refaz o desenho so quando algo muda
@@ -97,7 +97,7 @@ public class Minimapa : MonoBehaviour
     {
         // So com o jogo rodando: menu, pausa e fim de jogo param o tempo.
         bool segurando = Time.timeScale > 0f
-                         && (Input.GetKey(teclaDoMapa) || Controle.Segurando(BotaoDoControle.Select));
+                         && (Input.GetKey(teclaDoMapa) || AnalogicoEsquerdoAfundado);
 
         if (segurando != abertoGrande)
         {
@@ -110,6 +110,14 @@ public class Minimapa : MonoBehaviour
         Piscar(marcaPequena, brilho);
         Piscar(marcaGrande, brilho);
     }
+
+    /// <summary>
+    /// Clique do analogico esquerdo (L3), segurado. Os outros botoes ja tem dono: A B X Y
+    /// atiram, Start pausa, Select mostra os itens, LB/LT/RB/RT sao bomba, flecha e dash.
+    /// (Controle.Segurando(AnalogicoEsquerdo) diz se o analogico esta inclinado, nao clicado.)
+    /// </summary>
+    private static bool AnalogicoEsquerdoAfundado
+        => Controle.Atual != null && Controle.Atual.leftStickButton.isPressed;
 
     private void Piscar(Image marca, float brilho)
     {
@@ -231,7 +239,7 @@ public class Minimapa : MonoBehaviour
         if (comLegenda)
             Legenda(quadro, mapa);
         else
-            TelaSimples.LinhaDeTeclas(quadro, "Dica", -quadro.sizeDelta.y * 0.5f - 18f, "[Tab] mapa || [Pad Select] mapa", 18,
+            TelaSimples.LinhaDeTeclas(quadro, "Dica", -quadro.sizeDelta.y * 0.5f - 18f, "[Tab] mapa || [Pad AnalogicoEsquerdo] afundar: mapa", 18,
                                       new Color(0.8f, 0.8f, 0.8f));
 
         return marca;
@@ -311,7 +319,7 @@ public class Minimapa : MonoBehaviour
             texto.horizontalOverflow = HorizontalWrapMode.Overflow;
         }
 
-        TelaSimples.LinhaDeTeclas(quadro, "Dica", -meiaAltura - 26f, "[Tab] segure para ver o mapa || [Pad Select] segure para ver o mapa", 22,
+        TelaSimples.LinhaDeTeclas(quadro, "Dica", -meiaAltura - 26f, "[Tab] segure para ver o mapa || [Pad AnalogicoEsquerdo] afunde e segure para ver o mapa", 22,
                                   new Color(0.75f, 0.75f, 0.75f));
     }
 
