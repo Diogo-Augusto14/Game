@@ -95,6 +95,12 @@ public class Vida : MonoBehaviour, IDanificavel
     /// <summary>Time.time do ultimo golpe. -1 se nunca levou.</summary>
     public float MomentoDoUltimoGolpe { get; private set; } = -1f;
 
+    /// <summary>
+    /// Multiplica todo golpe recebido, antes da defesa. O <see cref="Andar"/> usa no jogador
+    /// pra dificuldade de cada mundo (ver <see cref="DificuldadeDaFase.DanoNoJogador"/>).
+    /// </summary>
+    public float MultiplicadorDeDanoRecebido { get; set; } = 1f;
+
     /// <summary>Fracao de 0 a 1 — pronta pra uma Image em Filled.</summary>
     public float Fracao => vidaMaxima <= 0f ? 0f : VidaAtual / vidaMaxima;
 
@@ -145,7 +151,7 @@ public class Vida : MonoBehaviour, IDanificavel
         if (EstaInvencivel && !info.IgnoraInvencibilidade)
             return;
 
-        float danoReal = Mathf.Max(1f, info.Quantidade - defesa);
+        float danoReal = Mathf.Max(1f, info.Quantidade * MultiplicadorDeDanoRecebido - defesa);
 
         VidaAtual = Mathf.Max(0f, VidaAtual - danoReal);
         fimDaInvencibilidade = Time.time + tempoInvencivel;
@@ -230,6 +236,15 @@ public class Vida : MonoBehaviour, IDanificavel
 
         VidaAtual = vidaMaxima;
         AoMudarVida?.Invoke();
+    }
+
+    /// <summary>Troca a cor que o sprite volta a ter depois do flash (inimigo campeao).</summary>
+    public void TrocarCorBase(Color cor)
+    {
+        corOriginal = cor;
+
+        if (sprite != null)
+            sprite.color = cor;
     }
 
     /// <summary>Segundos de invencibilidade depois de cada golpe. 0 = toma todos (inimigo do Isaac).</summary>

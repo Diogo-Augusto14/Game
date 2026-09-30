@@ -1,18 +1,20 @@
 using UnityEngine;
 
 /// <summary>
-/// A cara de cada andar: nome, chao, paredes, enfeites e quem mora nele.
-///   1 -> Porao      tijolos marrons do 2D Pixel Dungeon v2.0; goblins, orcs, gosmas e bichos
-///   2 -> Catacumbas pedra cinza do 2D Dungeon v5.2; feras, orcs e cavaleiros, ossos no chao
-///   3 -> Cripta     laje rachada e parede de friso azul (v5.2); mortos-vivos, velas acesas
-///   ultimo -> Abismo chao de pedra tingido de vermelho, parede de friso vermelho e runas; demonios
+/// A cara de cada mundo: nome, chao, paredes, enfeites e quem mora nele.
+///   Mundo 1 -> Porao      tijolos marrons do 2D Pixel Dungeon v2.0; goblins, orcs, gosmas e bichos
+///   Mundo 2 -> Catacumbas pedra cinza do 2D Dungeon v5.2; feras, orcs e cavaleiros, ossos no chao
+///   Mundo 3 -> Cripta     laje rachada e parede de friso azul (v5.2); mortos-vivos, velas acesas
+///   Mundo 4 (ultimo) -> Abismo chao de pedra tingido de vermelho, parede de friso vermelho e runas; demonios
+/// Cada tema e um mundo inteiro, com 3 fases (<see cref="DoMundo"/>); a primeira fase do
+/// mundo so tem os inimigos do comeco da lista e as outras vao abrindo o resto.
 /// O <see cref="Andar"/> escolhe o tema antes de montar as salas (<see cref="Usar"/>);
 /// <see cref="ArteGerada.Chao"/> e <see cref="ArteGerada.Tijolo"/> leem o tema atual.
 /// Chefes, salas especiais e desbloqueios nao dependem do tema.
 /// </summary>
 public sealed class TemaDoAndar
 {
-    /// <summary>Aparece no aviso do andar ("Andar 2: Catacumbas").</summary>
+    /// <summary>Aparece no aviso da fase ("Mundo 2 - Fase 1: Catacumbas").</summary>
     public string Nome { get; private set; }
 
     /// <summary>Imagem do chao em Resources/Masmorra/Temas, ou null pro chao padrao da masmorra.</summary>
@@ -56,25 +58,45 @@ public sealed class TemaDoAndar
         return Comuns[(Mathf.Max(1, andar) - 1) % Comuns.Length];
     }
 
-    /// <summary>Um inimigo comum do tema, sorteado pelo peso.</summary>
-    public TipoDeInimigo SortearInimigo()
+    /// <summary>
+    /// O tema do mundo <paramref name="mundo"/> (cada mundo tem 3 fases com a mesma cara).
+    /// O ultimo mundo e sempre o Abismo; antes dele Porao, Catacumbas e Cripta, nessa ordem.
+    /// </summary>
+    public static TemaDoAndar DoMundo(int mundo, int totalDeMundos)
     {
+        if (mundo >= totalDeMundos)
+            return Abismo;
+
+        return Comuns[(Mathf.Max(1, mundo) - 1) % Comuns.Length];
+    }
+
+    /// <summary>Um inimigo comum do tema, sorteado pelo peso.</summary>
+    public TipoDeInimigo SortearInimigo() => SortearInimigo(1f);
+
+    /// <summary>
+    /// Um inimigo comum do tema, sorteado pelo peso, so entre a primeira parte da lista
+    /// (<paramref name="variedade"/> de 0 a 1). As listas comecam pelos bichos mais simples,
+    /// entao a primeira fase do mundo tem os basicos e as outras vao abrindo o resto.
+    /// </summary>
+    public TipoDeInimigo SortearInimigo(float variedade)
+    {
+        int quantos = Mathf.Clamp(Mathf.CeilToInt(inimigos.Length * Mathf.Clamp01(variedade)), Mathf.Min(3, inimigos.Length), inimigos.Length);
         float total = 0f;
 
-        foreach (var linha in inimigos)
-            total += linha.peso;
+        for (int i = 0; i < quantos; i++)
+            total += inimigos[i].peso;
 
         float sorteio = Random.value * total;
 
-        foreach (var linha in inimigos)
+        for (int i = 0; i < quantos; i++)
         {
-            sorteio -= linha.peso;
+            sorteio -= inimigos[i].peso;
 
             if (sorteio <= 0f)
-                return linha.tipo;
+                return inimigos[i].tipo;
         }
 
-        return inimigos[inimigos.Length - 1].tipo;
+        return inimigos[quantos - 1].tipo;
     }
 
     // ================================================================ os temas
