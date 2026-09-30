@@ -47,7 +47,12 @@ static class Lancador
     static void Trabalhar()
     {
         try { Atualizar(); }
-        catch (Exception) { /* sem internet ou erro: abre o jogo mesmo assim */ }
+        catch (Exception)
+        {
+            // Sem internet ou erro: avisa rapidinho e abre o jogo instalado mesmo assim.
+            Status("Não foi possível atualizar, abrindo a versão instalada", null);
+            Thread.Sleep(1500);
+        }
         Status("Abrindo o jogo...", null);
         try
         {
@@ -71,7 +76,7 @@ static class Lancador
 
         string tag = Pegar(json, "\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
         string url = Pegar(json, "\"browser_download_url\"\\s*:\\s*\"([^\"]+\\.zip)\"");
-        if (tag == null || url == null) return;
+        if (tag == null || url == null) throw new InvalidDataException("Nenhuma versão publicada");
 
         string remota = tag.TrimStart('v', 'V');
         if (!EhMaisNova(remota, instalada)) return;
