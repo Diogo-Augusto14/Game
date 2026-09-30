@@ -117,10 +117,7 @@ public class BarraDoChefe : MonoBehaviour
             rastro.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.6f);   // mais apagado que a vida: e so o rastro
         }
 
-        Font fonte = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        if (fonte == null)
-            fonte = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        Font fonte = FonteDoJogo.Texto;
 
         GameObject objNome = new GameObject("Nome", typeof(RectTransform));
         objNome.transform.SetParent(moldura, false);

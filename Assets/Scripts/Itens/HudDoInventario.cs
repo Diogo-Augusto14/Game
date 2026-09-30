@@ -66,7 +66,7 @@ public class HudDoInventario : MonoBehaviour
         escala.referenceResolution = new Vector2(1920f, 1080f);
         escala.matchWidthOrHeight = 1f;
 
-        Font fonte = TelaDeFimDeJogo.Fonte();
+        Font fonte = FonteDoJogo.Texto;
 
         // Uma coluna embaixo da area da vida: moedas, chaves e bombas, uma por linha.
         float y = -Hud.CantoDaVida.y - Hud.AlturaDaVida - 12f;

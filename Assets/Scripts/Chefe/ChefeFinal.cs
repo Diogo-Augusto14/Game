@@ -28,7 +28,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
     }
 
     [Header("Chefe")]
-    [SerializeField] private string nomeDoChefe = "Olho do Porao";
+    [SerializeField] private string nomeDoChefe = "Olho do Porão";
 
     [SerializeField, Min(0.1f)] private float intervaloEntreAtaques = 1f;
 

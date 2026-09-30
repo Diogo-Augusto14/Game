@@ -276,13 +276,7 @@ public class Hud : MonoBehaviour
 
     private static Font FonteEmbutida()
     {
-        // O nome da fonte embutida mudou entre versoes da Unity: tenta as duas.
-        Font fonte = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        if (fonte == null)
-            fonte = Resources.GetBuiltinResource<Font>("Arial.ttf");
-
-        return fonte;
+        return FonteDoJogo.Texto;
     }
 
     // ---------------- helpers de UI ----------------

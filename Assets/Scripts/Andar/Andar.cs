@@ -341,7 +341,7 @@ public class Andar : MonoBehaviour
         Entrar(Mapa.Inicio, null);
 
         if (avisarAndarNovo)
-            AvisoDoAndar.Mostrar(UltimoAndar ? $"{NomeDaFase}: {Tema.Nome} (ultima fase)" : $"{NomeDaFase}: {Tema.Nome}");
+            AvisoDoAndar.Mostrar(UltimoAndar ? $"{NomeDaFase}: {Tema.Nome} (última fase)" : $"{NomeDaFase}: {Tema.Nome}");
     }
 
     // ---------------- troca de sala ----------------
@@ -371,6 +371,10 @@ public class Andar : MonoBehaviour
     private void Entrar(SalaDoAndar sala, LadoDaPorta? saiuPor)
     {
         SalaAtual = sala;
+
+        if (!sala.Visitada)
+            ResumoDaPartida.ContarSala();
+
         Mapa.Visitar(sala);
         Sala destino = NoMundo(sala);
 
@@ -745,7 +749,7 @@ public class Andar : MonoBehaviour
             return;
 
         List<string> nomes = liberados.ConvertAll(h => h.Nome);
-        AvisoDoAndar.Mostrar("Heroi liberado: " + string.Join(", ", nomes) + "!");
+        AvisoDoAndar.Mostrar((nomes.Count > 1 ? "Heróis liberados: " : "Herói liberado: ") + string.Join(", ", nomes) + "!");
         Sons.Tocar(Som.Aviso);
     }
 

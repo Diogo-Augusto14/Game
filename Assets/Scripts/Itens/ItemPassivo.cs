@@ -116,57 +116,57 @@ public static class CatalogoDeItens
     {
         return new List<ItemPassivo>
         {
-            new ItemPassivo("Cebola Triste", "Chora mais rapido", new Color(0.85f, 0.75f, 0.95f))
+            new ItemPassivo("Cebola Triste", "Chora mais rápido", new Color(0.85f, 0.75f, 0.95f))
                 {
-                    Descricao = "Atira mais rapido: +0.7 lagrima por segundo.",
+                    Descricao = "Atira mais rápido: +0.7 lágrima por segundo.",
                     somaCadencia = 0.7f
                 },
 
             new ItemPassivo("Seringa Vermelha", "Dano para cima", new Color(0.9f, 0.2f, 0.2f))
                 {
-                    Descricao = "Cada lagrima causa +1.5 de dano.",
+                    Descricao = "Cada lágrima causa +1.5 de dano.",
                     somaDano = 1.5f
                 },
 
-            new ItemPassivo("Tenis Velho", "Velocidade para cima", new Color(0.3f, 0.6f, 0.95f))
+            new ItemPassivo("Tênis Velho", "Velocidade para cima", new Color(0.3f, 0.6f, 0.95f))
                 {
-                    Descricao = "Anda mais rapido: +1 de velocidade.",
+                    Descricao = "Anda mais rápido: +1 de velocidade.",
                     somaVelocidade = 1f
                 },
 
-            new ItemPassivo("Olho Triplo", "Tres lagrimas por vez", new Color(0.95f, 0.95f, 0.8f))
+            new ItemPassivo("Olho Triplo", "Três lágrimas por vez", new Color(0.95f, 0.95f, 0.8f))
                 {
-                    Descricao = "Solta tres lagrimas de uma vez, mas atira 30% mais devagar.",
+                    Descricao = "Solta três lágrimas de uma vez, mas atira 30% mais devagar.",
                     lagrimasExtras = 2, multiplicaCadencia = 0.7f
                 },
 
-            new ItemPassivo("Olho Gemeo", "Duas lagrimas por vez", new Color(0.7f, 0.9f, 1f))
+            new ItemPassivo("Olho Gêmeo", "Duas lágrimas por vez", new Color(0.7f, 0.9f, 1f))
                 {
-                    Descricao = "Solta duas lagrimas de uma vez e ganha +0.3 de dano.",
+                    Descricao = "Solta duas lágrimas de uma vez e ganha +0.3 de dano.",
                     lagrimasExtras = 1, somaDano = 0.3f
                 },
 
-            new ItemPassivo("Luneta", "Alcance e tiro mais rapido", new Color(0.55f, 0.5f, 0.35f))
+            new ItemPassivo("Luneta", "Alcance e tiro mais rápido", new Color(0.55f, 0.5f, 0.35f))
                 {
-                    Descricao = "Lagrimas vao mais longe (+3 de alcance) e voam mais rapido.",
+                    Descricao = "Lágrimas vão mais longe (+3 de alcance) e voam mais rápido.",
                     somaAlcance = 3f, somaVelocidadeDoTiro = 3f
                 },
 
-            new ItemPassivo("Coracao Extra", "Vida maxima para cima", new Color(1f, 0.35f, 0.45f))
+            new ItemPassivo("Coração Extra", "Vida máxima para cima", new Color(1f, 0.35f, 0.45f))
                 {
-                    Descricao = "Ganha um coracao a mais de vida maxima, ja cheio.",
+                    Descricao = "Ganha um coração a mais de vida máxima, já cheio.",
                     somaVidaMaxima = 20f
                 },
 
-            new ItemPassivo("Lagrima de Chumbo", "Lagrimas grandes e pesadas", new Color(0.45f, 0.45f, 0.5f))
+            new ItemPassivo("Lágrima de Chumbo", "Lágrimas grandes e pesadas", new Color(0.45f, 0.45f, 0.5f))
                 {
-                    Descricao = "Dano x1.5 e lagrimas maiores, mas o tiro e o heroi ficam mais lentos.",
+                    Descricao = "Dano x1.5 e lágrimas maiores, mas o tiro e o herói ficam mais lentos.",
                     multiplicaDano = 1.5f, somaTamanhoDaLagrima = 0.12f, somaVelocidadeDoTiro = -2f, somaVelocidade = -0.4f
                 },
 
-            new ItemPassivo("Cafe", "Tudo mais rapido", new Color(0.45f, 0.28f, 0.15f))
+            new ItemPassivo("Café", "Tudo mais rápido", new Color(0.45f, 0.28f, 0.15f))
                 {
-                    Descricao = "Anda mais rapido (+0.6) e atira mais rapido (+0.4 lagrima por segundo).",
+                    Descricao = "Anda mais rápido (+0.6) e atira mais rápido (+0.4 lágrima por segundo).",
                     somaVelocidade = 0.6f, somaCadencia = 0.4f
                 },
 
@@ -176,64 +176,64 @@ public static class CatalogoDeItens
                     moedas = 10, chaves = 1, bombas = 3
                 },
 
-            new ItemPassivo("Lagrima Fantasma", "Lagrimas atravessam inimigos", new Color(0.85f, 0.95f, 1f))
+            new ItemPassivo("Lágrima Fantasma", "Lágrimas atravessam inimigos", new Color(0.85f, 0.95f, 1f))
                 {
-                    Descricao = "As lagrimas atravessam os inimigos e acertam quem estiver atras.",
+                    Descricao = "As lágrimas atravessam os inimigos e acertam quem estiver atrás.",
                     atravessa = true, corDaLagrima = new Color(0.85f, 0.95f, 1f, 0.55f)
                 },
 
-            new ItemPassivo("Bussola Maldita", "Lagrimas perseguem inimigos", new Color(0.7f, 0.35f, 0.95f))
+            new ItemPassivo("Bússola Maldita", "Lágrimas perseguem inimigos", new Color(0.7f, 0.35f, 0.95f))
                 {
-                    Descricao = "As lagrimas fazem curva sozinhas atras do inimigo mais perto.",
+                    Descricao = "As lágrimas fazem curva sozinhas atrás do inimigo mais perto.",
                     teleguiada = true, corDaLagrima = new Color(0.75f, 0.45f, 1f)
                 },
 
-            new ItemPassivo("Olho na Nuca", "Chora pra tras tambem", new Color(0.4f, 0.8f, 0.55f))
+            new ItemPassivo("Olho na Nuca", "Chora pra trás também", new Color(0.4f, 0.8f, 0.55f))
                 {
-                    Descricao = "Cada disparo solta tambem uma lagrima para tras.",
+                    Descricao = "Cada disparo solta também uma lágrima para trás.",
                     paraTras = true
                 },
 
-            new ItemPassivo("Pimenta", "Lagrimas de fogo, dano para cima", new Color(1f, 0.35f, 0.1f))
+            new ItemPassivo("Pimenta", "Lágrimas de fogo, dano para cima", new Color(1f, 0.35f, 0.1f))
                 {
-                    Descricao = "Lagrimas de fogo: dano x1.3 e tiro um pouco mais rapido.",
+                    Descricao = "Lágrimas de fogo: dano x1.3 e tiro um pouco mais rápido.",
                     multiplicaDano = 1.3f, somaVelocidadeDoTiro = 1f, corDaLagrima = new Color(1f, 0.45f, 0.15f)
                 },
 
             // ---------------- efeitos especiais (EfeitosDosItens) ----------------
-            new ItemPassivo("Pena da Fenix", "Uma segunda chance", new Color(1f, 0.45f, 0.3f))
+            new ItemPassivo("Pena da Fênix", "Uma segunda chance", new Color(1f, 0.45f, 0.3f))
                 {
-                    Descricao = "Uma vez por partida: quando a vida acabaria, voce renasce com metade da vida.",
+                    Descricao = "Uma vez por partida: quando a vida acabaria, você renasce com metade da vida.",
                     renasce = true
                 },
 
             new ItemPassivo("Escudo Sagrado", "Bloqueia o primeiro golpe", new Color(0.95f, 0.8f, 0.35f))
                 {
-                    Descricao = "O primeiro golpe que voce levaria em cada sala e bloqueado. O escudo volta ao entrar em outra sala.",
+                    Descricao = "O primeiro golpe que você levaria em cada sala é bloqueado. O escudo volta ao entrar em outra sala.",
                     escudoPorSala = true
                 },
 
             new ItemPassivo("Sangue de Vampiro", "Matar cura", new Color(0.75f, 0.1f, 0.2f))
                 {
-                    Descricao = "A cada 5 inimigos derrotados, recupera meio coracao.",
+                    Descricao = "A cada 5 inimigos derrotados, recupera meio coração.",
                     inimigosParaCurar = 5
                 },
 
             new ItemPassivo("Prego Enferrujado", "Quem bate, apanha", new Color(0.7f, 0.7f, 0.75f))
                 {
-                    Descricao = "Sempre que voce leva dano, espinhos saem de voce e ferem os inimigos em volta.",
+                    Descricao = "Sempre que você leva dano, espinhos saem de você e ferem os inimigos em volta.",
                     danoDeEspinhos = 12f
                 },
 
-            new ItemPassivo("Pedra-Ima", "Coletaveis vem ate voce", new Color(1f, 0.55f, 0.15f))
+            new ItemPassivo("Pedra-Ímã", "Coletáveis vêm até você", new Color(1f, 0.55f, 0.15f))
                 {
-                    Descricao = "Moedas, chaves, bombas e coracoes perto de voce sao puxados sozinhos.",
+                    Descricao = "Moedas, chaves, bombas e corações perto de você são puxados sozinhos.",
                     raioDoIma = 3.5f
                 },
 
-            new ItemPassivo("Amuleto da Sorte", "Mais premios", new Color(0.4f, 0.85f, 0.35f))
+            new ItemPassivo("Amuleto da Sorte", "Mais prêmios", new Color(0.4f, 0.85f, 0.35f))
                 {
-                    Descricao = "Inimigos e salas limpas soltam premios com bem mais frequencia.",
+                    Descricao = "Inimigos e salas limpas soltam prêmios com bem mais frequência.",
                     multiplicaSorte = 1.75f
                 },
 
@@ -243,39 +243,39 @@ public static class CatalogoDeItens
                     descontoNaLoja = 0.35f, moedas = 5
                 },
 
-            new ItemPassivo("Brasa da Furia", "Mais forte ferido", new Color(1f, 0.5f, 0.25f))
+            new ItemPassivo("Brasa da Fúria", "Mais forte ferido", new Color(1f, 0.5f, 0.25f))
                 {
-                    Descricao = "Com um coracao de vida ou menos, suas flechas causam 60% mais dano.",
+                    Descricao = "Com um coração de vida ou menos, suas flechas causam 60% mais dano.",
                     furia = 0.6f
                 },
 
-            new ItemPassivo("Elixir de Nevoa", "Mais tempo invencivel", new Color(0.6f, 0.8f, 1f))
+            new ItemPassivo("Elixir de Névoa", "Mais tempo invencível", new Color(0.6f, 0.8f, 1f))
                 {
-                    Descricao = "Depois de levar dano, fica invencivel por bem mais tempo.",
+                    Descricao = "Depois de levar dano, fica invencível por bem mais tempo.",
                     somaInvencibilidade = 0.7f
                 },
 
-            new ItemPassivo("Orbe Guardiao", "Um orbe te protege", new Color(0.3f, 0.75f, 1f))
+            new ItemPassivo("Orbe Guardião", "Um orbe te protege", new Color(0.3f, 0.75f, 1f))
                 {
-                    Descricao = "Um orbe gira em volta de voce: bloqueia tiros inimigos e fere quem encostar.",
+                    Descricao = "Um orbe gira em volta de você: bloqueia tiros inimigos e fere quem encostar.",
                     orbes = 1
                 },
 
-            new ItemPassivo("Barril de Polvora", "Bombas mais fortes", new Color(0.55f, 0.35f, 0.2f))
+            new ItemPassivo("Barril de Pólvora", "Bombas mais fortes", new Color(0.55f, 0.35f, 0.2f))
                 {
-                    Descricao = "Suas bombas explodem numa area 50% maior e com 50% mais dano. Vem com 2 bombas.",
+                    Descricao = "Suas bombas explodem numa área 50% maior e com 50% mais dano. Vem com 2 bombas.",
                     multiplicaBomba = 1.5f, bombas = 2
                 },
 
             new ItemPassivo("Carne Assada", "Cura a cada sala", new Color(0.85f, 0.4f, 0.35f))
                 {
-                    Descricao = "Ao limpar uma sala de inimigos, recupera meio coracao.",
+                    Descricao = "Ao limpar uma sala de inimigos, recupera meio coração.",
                     curaAoLimparSala = 10f
                 },
 
-            new ItemPassivo("Pacto de Sangue", "Poder por um preco", new Color(0.5f, 0.05f, 0.1f))
+            new ItemPassivo("Pacto de Sangue", "Poder por um preço", new Color(0.5f, 0.05f, 0.1f))
                 {
-                    Descricao = "Suas flechas causam 60% mais dano, mas voce perde um coracao de vida maxima.",
+                    Descricao = "Suas flechas causam 60% mais dano, mas você perde um coração de vida máxima.",
                     multiplicaDano = 1.6f, somaVidaMaxima = -20f
                 },
         };

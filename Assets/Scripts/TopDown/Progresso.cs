@@ -74,5 +74,6 @@ public static class Progresso
         return novos;
     }
 
-    private static string ChaveDoHeroi(string nome) => Prefixo + "heroi." + nome.Replace(' ', '_');
+    // Sem acento: os nomes ganharam acento depois ("Templário") e a chave salva continua a mesma.
+    private static string ChaveDoHeroi(string nome) => Prefixo + "heroi." + FonteDoJogo.SemAcentos(nome).Replace(' ', '_');
 }
