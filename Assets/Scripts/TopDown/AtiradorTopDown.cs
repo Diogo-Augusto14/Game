@@ -76,9 +76,8 @@ public class AtiradorTopDown : MonoBehaviour
     private bool sempreAtravessa;
     private Som somDoTiro = Som.Tiro;
 
-    // Heroi de espada, de magia ou de estrela: a flecha especial muda a cor e os efeitos do
-    // tiro dele, mas o desenho continua o dele (cavaleiro nao vira arqueiro).
-    private bool desenhoProprio;
+    // A flecha especial muda a cor e os efeitos do tiro, mas o desenho continua o do heroi
+    // (cavaleiro nao vira arqueiro, mago nao solta flecha). Uma aparencia pronta por tipo.
     private readonly System.Collections.Generic.Dictionary<TipoDeFlecha, AparenciaDoProjetil> rajadas =
         new System.Collections.Generic.Dictionary<TipoDeFlecha, AparenciaDoProjetil>();
 
@@ -217,7 +216,7 @@ public class AtiradorTopDown : MonoBehaviour
                          forcaEmpurrao * flecha.multiplicaEmpurrao);
         lagrima.DefinirEfeitos(atravessa || sempreAtravessa || flecha.atravessa, teleguiada);
 
-        VisualDoProjetil.Vestir(lagrima.gameObject, desenhoProprio ? RajadaComEfeito(flecha) : flecha.aparencia);
+        VisualDoProjetil.Vestir(lagrima.gameObject, RajadaComEfeito(flecha));
         EfeitoDaFlecha efeito = lagrima.gameObject.AddComponent<EfeitoDaFlecha>();
         efeito.Configurar(flecha, danoDaFlecha, gameObject);
         lagrima.UsarEfeito(efeito);
@@ -257,19 +256,19 @@ public class AtiradorTopDown : MonoBehaviour
         desenho.sortingOrder = 20;
 
         // O circulo gerado tem 1 unidade de diametro: raio 0.5 bate com o desenho. A onda de
-        // corte e maior que a escala do tiro, entao tem raio proprio (a flecha especial nao).
+        // corte e maior que a escala do tiro, entao tem raio proprio (com flecha especial tambem).
         CircleCollider2D colisor = obj.AddComponent<CircleCollider2D>();
-        colisor.radius = especial && !desenhoProprio ? 0.5f : raioDoTiro;
+        colisor.radius = raioDoTiro;
 
         obj.AddComponent<Rigidbody2D>();
 
         Lagrima lagrima = obj.AddComponent<Lagrima>();
 
-        // A flecha especial se desenha num filho que ja aponta sozinho.
+        // Com flecha especial o desenho fica num filho que ja aponta sozinho.
         if (apontarLagrima && !especial)
             lagrima.ApontarProRumo();
 
-        // A flecha especial tem o desenho dela (VisualDoProjetil) no lugar da onda de corte.
+        // Com flecha especial o mesmo desenho vem pelo VisualDoProjetil (RajadaComEfeito), com rastro e brilho.
         if (!especial && quadrosDoTiro != null && quadrosDoTiro.Length > 0)
             obj.AddComponent<AnimacaoDoTiro>().Configurar(quadrosDoTiro, quadrosPorSegundoDoTiro);
 
@@ -324,17 +323,6 @@ public class AtiradorTopDown : MonoBehaviour
         return nova;
     }
 
-    /// <summary>
-    /// Heroi que nao atira flecha (espada, machado, magia, estrela): as flechas especiais mudam a
-    /// cor e os efeitos do tiro dele em vez de trocar o desenho por uma flecha. Chame depois do
-    /// <see cref="DefinirVisual"/>.
-    /// </summary>
-    public void ManterDesenhoNasFlechasEspeciais(bool manter)
-    {
-        desenhoProprio = manter;
-        rajadas.Clear();
-    }
-
     /// <summary>Troca os numeros da arma (itens, power-ups). Valores fora do limite sao ajustados.</summary>
     public void Configurar(float novoDano, float novoAlcance, float novaCadencia)
     {
@@ -370,7 +358,6 @@ public class AtiradorTopDown : MonoBehaviour
         raioDoTiro = 0.5f;
         sempreAtravessa = false;
         somDoTiro = Som.Tiro;
-        desenhoProprio = false;
         rajadas.Clear();
     }
 
