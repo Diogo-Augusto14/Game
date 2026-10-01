@@ -136,7 +136,7 @@ public static class CatalogoDeFlechas
         lista[TipoDeFlecha.Normal] = new DefinicaoDeFlecha
         {
             tipo = TipoDeFlecha.Normal,
-            nome = "Flecha Normal",
+            nome = "Tiro Normal",
             descricao = "O tiro de sempre do heroi",
             cor = Color.white,
         };
@@ -145,7 +145,7 @@ public static class CatalogoDeFlechas
         lista[TipoDeFlecha.Rapida] = new DefinicaoDeFlecha
         {
             tipo = TipoDeFlecha.Rapida,
-            nome = "Flecha Rapida",
+            nome = "Encanto Ligeiro",
             descricao = "Voa bem mais rapido e sai mais seguido, mas bate um pouco mais fraco",
             cor = new Color(1f, 0.9f, 0.4f),
             multiplicaVelocidade = 1.6f,
@@ -166,8 +166,8 @@ public static class CatalogoDeFlechas
         lista[TipoDeFlecha.Pesada] = new DefinicaoDeFlecha
         {
             tipo = TipoDeFlecha.Pesada,
-            nome = "Flecha Pesada",
-            descricao = "Lenta e maior, quase o dobro do dano e empurra o inimigo longe",
+            nome = "Encanto Pesado",
+            descricao = "Tiro lento e maior, quase o dobro do dano e empurra o inimigo longe",
             cor = new Color(0.7f, 0.78f, 0.9f),
             multiplicaDano = 1.8f,
             multiplicaEmpurrao = 3f,
@@ -188,7 +188,7 @@ public static class CatalogoDeFlechas
         lista[TipoDeFlecha.Explosiva] = new DefinicaoDeFlecha
         {
             tipo = TipoDeFlecha.Explosiva,
-            nome = "Flecha Explosiva",
+            nome = "Encanto Explosivo",
             descricao = "Explode ao bater ou cair e machuca todo inimigo em volta",
             cor = new Color(1f, 0.5f, 0.25f),
             multiplicaCadencia = 0.8f,
@@ -209,7 +209,7 @@ public static class CatalogoDeFlechas
         lista[TipoDeFlecha.Perfurante] = new DefinicaoDeFlecha
         {
             tipo = TipoDeFlecha.Perfurante,
-            nome = "Flecha Perfurante",
+            nome = "Encanto Perfurante",
             descricao = "Atravessa todos os inimigos da fila e voa mais longe",
             cor = new Color(0.6f, 1f, 1f),
             atravessa = true,
@@ -233,8 +233,8 @@ public static class CatalogoDeFlechas
         lista[TipoDeFlecha.Gelo] = new DefinicaoDeFlecha
         {
             tipo = TipoDeFlecha.Gelo,
-            nome = "Flecha de Gelo",
-            descricao = "Cristal que congela: o inimigo atingido fica lento por um tempo",
+            nome = "Encanto de Gelo",
+            descricao = "Congela: o inimigo atingido fica lento por um tempo",
             cor = new Color(0.55f, 0.8f, 1f),
             multiplicaDano = 0.9f,
             lentidao = 0.45f,
@@ -257,7 +257,7 @@ public static class CatalogoDeFlechas
         lista[TipoDeFlecha.Venenosa] = new DefinicaoDeFlecha
         {
             tipo = TipoDeFlecha.Venenosa,
-            nome = "Flecha Venenosa",
+            nome = "Encanto Venenoso",
             descricao = "Envenena: o inimigo continua perdendo vida por alguns segundos",
             cor = new Color(0.55f, 0.95f, 0.35f),
             multiplicaDano = 0.7f,
@@ -282,7 +282,7 @@ public static class CatalogoDeFlechas
         lista[TipoDeFlecha.Ricochete] = new DefinicaoDeFlecha
         {
             tipo = TipoDeFlecha.Ricochete,
-            nome = "Flecha Ricochete",
+            nome = "Encanto Ricochete",
             descricao = "Quica nas paredes ate 3 vezes antes de quebrar",
             cor = new Color(1f, 0.8f, 0.3f),
             ricochetes = 3,

@@ -192,7 +192,7 @@ public class AtiradorTopDown : MonoBehaviour
                 doMeio = lagrima;
         }
 
-        // Olho na Nuca: uma lagrima pra tras, do outro lado do corpo.
+        // Elmo de Duas Faces: um tiro pra tras, do outro lado do corpo.
         if (paraTras)
             Soltar((Vector2)transform.position - direcao * distanciaDoCorpo, -direcao * velocidade + heranca);
 

@@ -548,20 +548,20 @@ public static class ArteImportada
         // Os nomes ganharam acento ("Café"); os casos abaixo continuam sem.
         switch (FonteDoJogo.SemAcentos(nome))
         {
-            case "Cebola Triste": return IconeDoPacote(440);
-            case "Seringa Vermelha": return IconeDoPacote(266);
-            case "Tenis Velho": return IconeDoPacote(1943);
-            case "Olho Triplo": return IconeDoPacote(385);
-            case "Olho Gemeo": return IconeDoPacote(236);
-            case "Luneta": return IconeDoPacote(159);
-            case "Coracao Extra": return IconeDoPacote(659);
-            case "Lagrima de Chumbo": return IconeDoPacote(654);
-            case "Cafe": return IconeDoPacote(529);
+            case "Elixir da Pressa": return IconeDoPacote(266);
+            case "Pedra de Amolar": return IconeDoPacote(2129);
+            case "Ferradura Encantada": return IconeDoPacote(696);
+            case "Runa Triplice": return IconeDoPacote(385);
+            case "Runa Gemea": return IconeDoPacote(236);
+            case "Olho de Falcao": return IconeDoPacote(719);
+            case "Coracao de Leao": return IconeDoPacote(659);
+            case "Ponta de Chumbo": return IconeDoPacote(654);
+            case "Hidromel": return IconeDoPacote(529);
             case "Saco de Moedas": return IconeDoPacote(158);
-            case "Lagrima Fantasma": return IconeDoPacote(653);
+            case "Essencia Fantasma": return IconeDoPacote(653);
             case "Bussola Maldita": return IconeDoPacote(2184);
-            case "Olho na Nuca": return IconeDoPacote(720);
-            case "Pimenta": return IconeDoPacote(438);
+            case "Elmo de Duas Faces": return IconeDoPacote(691);
+            case "Oleo Ardente": return IconeDoPacote(438);
             case "Pena da Fenix": return IconeDoPacote(7);
             case "Escudo Sagrado": return IconeDoPacote(665);
             case "Sangue de Vampiro": return IconeDoPacote(742);

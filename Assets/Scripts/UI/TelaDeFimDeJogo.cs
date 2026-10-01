@@ -421,7 +421,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
         for (int i = primeiro; i < estatisticas.Itens.Count; i++)
         {
             ItemPassivo item = estatisticas.Itens[i];
-            // Espaco que nao quebra dentro do nome: "Lágrima de Chumbo" nunca fica partido entre linhas.
+            // Espaco que nao quebra dentro do nome: "Elmo de Duas Faces" nunca fica partido entre linhas.
             string nome = item.nome.Replace(' ', '\u00A0');
             nomes.Add($"<color=#{ColorUtility.ToHtmlStringRGB(item.cor)}>{nome}</color>");
         }

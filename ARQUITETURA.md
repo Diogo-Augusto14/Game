@@ -117,6 +117,12 @@ de inimigos comuns com peso. O `Andar` escolhe o tema antes de montar as salas e
 Chefes, salas especiais e desbloqueios não mudam com o tema. A sala de desafio usa a
 lista do tema nas ondas.
 
+Cada sala comum tem um **bando** de um tipo só (`Andar.MontarBando`): o orçamento da sala
+(`inimigosPorSala`, mais os extras da fase) é dividido pelo custo do bicho (`CustoNoBando`), então
+bichos fracos vêm em grupo grande (até 8 morceguinhos ou geleias) e pesados em poucos (1 ou 2
+ursos). Metade das vezes um bicho de outro tipo vem junto (`chanceDeConvidadoNoBando`). Barril,
+goblin da dinamite, necromante e sentinela têm teto por sala (`MaximoNaSala`).
+
 ---
 
 ### Mundos, fases e dificuldade

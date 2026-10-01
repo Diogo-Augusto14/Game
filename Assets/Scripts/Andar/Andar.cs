@@ -37,7 +37,7 @@ public class Andar : MonoBehaviour
     [SerializeField] private Vector2Int enfeitesPorSala = new Vector2Int(2, 5);
 
     [Header("Inimigos")]
-    [Tooltip("Inimigos numa sala comum: sorteado entre o minimo e o maximo")]
+    [Tooltip("Orcamento de inimigos de uma sala comum (sorteado entre o minimo e o maximo): vira um bando de um tipo, maior se o bicho for fraco (ver MontarBando)")]
     [SerializeField] private Vector2Int inimigosPorSala = new Vector2Int(2, 4);
 
     [Tooltip("Inimigo nao nasce mais perto que isto de uma porta")]
@@ -45,6 +45,12 @@ public class Andar : MonoBehaviour
 
     [Tooltip("Sentinelas no maximo por sala: sao paradas, em excesso a sala vira tiroteio")]
     [SerializeField, Min(0)] private int maximoDeSentinelas = 2;
+
+    [Tooltip("Chance de um bicho de outro tipo vir junto com o bando da sala")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeConvidadoNoBando = 0.5f;
+
+    /// <summary>Maior bando numa sala so (cabe no chao 13x7 sem virar enxame impossivel).</summary>
+    private const int MaximoNoBando = 8;
 
     [Header("Variedade das salas")]
     [Tooltip("Chance de uma sala comum nao ter pedra nem espinho na primeira fase (cai 2% por fase; nunca duas vizinhas vazias)")]
@@ -699,15 +705,8 @@ public class Andar : MonoBehaviour
                 return; // inicio e item: sala tranquila, como no Isaac
         }
 
-        int sentinelas = 0;
-
-        for (int i = 0; i < quantos; i++)
+        foreach (TipoDeInimigo tipo in MontarBando(quantos))
         {
-            TipoDeInimigo tipo = SortearInimigo();
-
-            if (tipo == TipoDeInimigo.Sentinela && ++sentinelas > maximoDeSentinelas)
-                tipo = TipoDeInimigo.Perseguidor;
-
             InimigoDeSala inimigo = sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
 
             if (inimigo is InimigoSentinela sentinela)
@@ -717,6 +716,91 @@ public class Andar : MonoBehaviour
                 sangue.Endurecer();
 
             Fortalecer(inimigo, sala);
+        }
+    }
+
+    /// <summary>
+    /// Quem mora na sala. Em vez de 2 a 4 bichos sorteados um a um (uma mistura sem cara), a
+    /// sala tem um BANDO de um tipo so, e o tamanho dele sai do peso do bicho: o
+    /// <paramref name="orcamento"/> (os 2 a 4 de antes) dividido pelo custo. Morceguinho e
+    /// geleia vem em 7 ou 8, goblin e esqueleto em 3 ou 4, urso e cavaleiro do escudo em 1 ou 2.
+    /// Metade das vezes um bicho de outro tipo vem junto, gastando parte do orcamento, pra
+    /// sala nao ficar sempre igual.
+    /// </summary>
+    private List<TipoDeInimigo> MontarBando(int orcamento)
+    {
+        List<TipoDeInimigo> bando = new List<TipoDeInimigo>();
+        float sobra = Mathf.Max(1, orcamento);
+
+        if (UnityEngine.Random.value < chanceDeConvidadoNoBando && orcamento >= 3)
+        {
+            TipoDeInimigo convidado = SortearInimigo();
+            bando.Add(convidado);
+            sobra -= Mathf.Min(CustoNoBando(convidado), sobra * 0.4f);
+        }
+
+        TipoDeInimigo principal = SortearInimigo();
+
+        // Sorteio diferente do convidado quando der: o convidado e o tempero, nao mais do mesmo.
+        for (int tentativa = 0; tentativa < 3 && bando.Count > 0 && principal == bando[0]; tentativa++)
+            principal = SortearInimigo();
+
+        int quantos = Mathf.Clamp(Mathf.RoundToInt(sobra / CustoNoBando(principal)), 1, Mathf.Min(MaximoNoBando, MaximoNaSala(principal)));
+
+        for (int i = 0; i < quantos; i++)
+            bando.Add(principal);
+
+        return bando;
+    }
+
+    /// <summary>Quanto do orcamento da sala cada bicho gasta: os fracos e pequenos valem meio, os pesados dois.</summary>
+    private static float CustoNoBando(TipoDeInimigo tipo)
+    {
+        switch (tipo)
+        {
+            case TipoDeInimigo.Morceguinho:
+            case TipoDeInimigo.Geleia:
+                return 0.5f;
+
+            case TipoDeInimigo.Morcego:
+            case TipoDeInimigo.Saltador:
+            case TipoDeInimigo.GoblinTocha:
+            case TipoDeInimigo.EsqueletoGuerreiro:
+            case TipoDeInimigo.Esqueleto:
+            case TipoDeInimigo.Perseguidor:
+                return 0.75f;
+
+            case TipoDeInimigo.Divisor:
+            case TipoDeInimigo.OrcBlindado:
+            case TipoDeInimigo.EsqueletoBlindado:
+            case TipoDeInimigo.Investidor:
+            case TipoDeInimigo.OrcMontado:
+            case TipoDeInimigo.Lobisomem:
+            case TipoDeInimigo.OrcElite:
+                return 1.5f;
+
+            case TipoDeInimigo.Urso:
+            case TipoDeInimigo.CavaleiroEscudo:
+            case TipoDeInimigo.MonstroDeSangue:
+            case TipoDeInimigo.Necromante:
+            case TipoDeInimigo.Sentinela:
+                return 2f;
+
+            default:
+                return 1f;
+        }
+    }
+
+    /// <summary>Teto por sala dos bichos que, em grupo, viram injustos (tudo explodindo, tudo atirando em 8 direcoes).</summary>
+    private int MaximoNaSala(TipoDeInimigo tipo)
+    {
+        switch (tipo)
+        {
+            case TipoDeInimigo.Sentinela: return Mathf.Max(1, maximoDeSentinelas);
+            case TipoDeInimigo.Barril: return 3;
+            case TipoDeInimigo.Necromante: return 2;
+            case TipoDeInimigo.GoblinDinamite: return 3;
+            default: return MaximoNoBando;
         }
     }
 
