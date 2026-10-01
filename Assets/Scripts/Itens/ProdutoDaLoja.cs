@@ -70,11 +70,11 @@ public class ProdutoDaLoja : MonoBehaviour
         obj.transform.position = posicao;
 
         // Tapete escuro embaixo, pra ficar claro que e vitrine e nao coisa caida.
-        // Com o pacote, a mesinha de madeira da masmorra faz de vitrine.
-        Sprite mesa = ArteImportada.Objeto(1, 2);
+        // Com o pacote, a mesa de madeira do Old Prison faz de vitrine.
+        Sprite mesa = ArteImportada.PecaDaPrisao("Mesa", 72f, false);
 
         if (mesa != null)
-            FormasDaSala.Desenho(obj.transform, "Mesa", mesa, Color.white, new Vector2(0f, -0.1f), Vector2.one * 1.1f, -8);
+            FormasDaSala.Desenho(obj.transform, "Mesa", mesa, Color.white, new Vector2(0f, -0.1f), Vector2.one, -8);
         else
             FormasDaSala.Desenho(obj.transform, "Tapete", FormasDaSala.Quadrado(), new Color(0.12f, 0.1f, 0.1f), Vector2.zero, new Vector2(1f, 0.9f), -8);
 

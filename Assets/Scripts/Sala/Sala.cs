@@ -583,7 +583,7 @@ public class Sala : MonoBehaviour
         }
 
         // Candelabro: meia chance, num canto que nao tenha pedra nem espinho.
-        Sprite[] candelabro = ArteImportada.CandelabroDaPrisao() ?? ArteImportada.Candelabro(16f);
+        Sprite[] candelabro = ArteImportada.CandelabroDaPrisao();
 
         if (candelabro != null && Random.value < (tema != null ? tema.ChanceDeCandelabro : 0.5f))
         {

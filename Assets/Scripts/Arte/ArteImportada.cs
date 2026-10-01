@@ -154,23 +154,6 @@ public static class ArteImportada
     // retangulos abaixo (recorte e centro do corpo) estao em coordenadas de UMA celula,
     // y pra baixo, do jeito que aparecem num editor de imagem.
 
-    /// <summary>A caveira que sobe quando um bicho sem animacao de morte morre (14 quadros).</summary>
-    public static Sprite[] Caveira(float pixelsPorUnidade)
-    {
-        RectInt recorte = new RectInt(24, 24, 80, 88);
-        Vector2 centro = new Vector2(64f, 72f);
-        Sprite[] subindo = Linha("TinySwords/Caveira", 128, 0, 7, recorte, centro, pixelsPorUnidade);
-        Sprite[] sumindo = Linha("TinySwords/Caveira", 128, 1, 7, recorte, centro, pixelsPorUnidade);
-
-        if (subindo == null || sumindo == null)
-            return null;
-
-        Sprite[] todos = new Sprite[subindo.Length + sumindo.Length];
-        subindo.CopyTo(todos, 0);
-        sumindo.CopyTo(todos, subindo.Length);
-        return todos;
-    }
-
     /// <summary>
     /// A explosao (9 quadros). A bola de fogo tem uns 105 px de largura: pra ela cobrir um
     /// circulo de raio r, use <c>ExplosaoPixelsPorUnidade(r)</c>.
@@ -180,12 +163,12 @@ public static class ArteImportada
 
     public static float ExplosaoPixelsPorUnidade(float raio) => 105f / Mathf.Max(0.1f, raio * 2f);
 
-    /// <summary>A flecha do arqueiro, apontando pra direita (48 px de comprimento).</summary>
+    /// <summary>
+    /// A flecha do Tiny RPG (a do Arqueiro), apontando pra direita. Quem chama pensa em 48 px de
+    /// comprimento (a flecha antiga do Tiny Swords): a conta abaixo mantem o mesmo tamanho na tela.
+    /// </summary>
     public static Sprite Flecha(float pixelsPorUnidade)
-    {
-        Sprite[] um = Linha("TinySwords/Flecha", 64, 0, 1, new RectInt(8, 24, 48, 16), new Vector2(32f, 32f), pixelsPorUnidade);
-        return um != null ? um[0] : null;
-    }
+        => FlechaDoHeroi("Flecha", pixelsPorUnidade * 22f / 48f);
 
     /// <summary>Os 25 ossos e caveiras do Old Prison (null antes do primeiro sorteio ou sem a arte).</summary>
     private static Sprite[] ossosDaPrisao;
@@ -304,10 +287,6 @@ public static class ArteImportada
     public static Sprite[] CandelabroDaPrisao()
         => Linha("Masmorra/Temas/PrisaoCandelabros", 32, 0, 2, new RectInt(0, 0, 32, 64), new Vector2(16f, 62f), PixelsDaPrisao, 64);
 
-    /// <summary>Candelabro de chao com a chama tremendo (4 quadros de 16x16), pivo no pe.</summary>
-    public static Sprite[] Candelabro(float pixelsPorUnidade)
-        => Linha("Masmorra/Candelabro", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 15f), pixelsPorUnidade);
-
     // ================================================================ cenario da masmorra
     // 2D Dungeon Asset Pack v5.2: ladrilhos de 16 px, 16 pixels por unidade (1 ladrilho = 1
     // unidade, o mesmo tamanho da arte gerada que eles substituem).
@@ -338,13 +317,6 @@ public static class ArteImportada
     /// <summary>EPIC RPG World Pack - Old Prison: ladrilhos de 32 px, 32 pixels por unidade (1 ladrilho = 1 unidade).</summary>
     private const float PixelsDaPrisao = 32f;
 
-    /// <summary>Portao de grade: quadro 0 fechado, 4 aberto (a parte de cima da folha, 16x16).</summary>
-    public static Sprite Portao(bool aberto)
-    {
-        Sprite[] quadros = QuadrosDoPortao;
-        return quadros != null ? quadros[aberto ? quadros.Length - 1 : 0] : null;
-    }
-
     /// <summary>Os 5 quadros do portao subindo, do fechado (0) ao aberto (4): a animacao da porta.</summary>
     public static Sprite[] QuadrosDoPortao
         => Linha("Masmorra/Portao", 16, 0, 5, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho, 32);
@@ -371,9 +343,12 @@ public static class ArteImportada
     public static Sprite[] ChaveDourada
         => Linha("Masmorra/ChaveDourada", 16, 0, 8, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
 
-    /// <summary>Espinhos saindo do chao (5 quadros de 16x16, o ultimo todo pra fora).</summary>
+    /// <summary>
+    /// Espinhos do Old Prison: o chao de sangue com lancas do tileset, um ladrilho (um quadro so,
+    /// todo pra fora; quem usa pega o ultimo).
+    /// </summary>
     public static Sprite[] EspinhosDoChao
-        => Linha("Masmorra/Espinhos", 16, 0, 5, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
+        => Linha("Masmorra/Prisao/Espinhos", 32, 0, 1, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
 
     /// <summary>Um ladrilho do tileset inteiro (coluna, linha), ex. o buraco do alcapao em (3, 9).</summary>
     public static Sprite Ladrilho(int coluna, int linha)
@@ -394,8 +369,8 @@ public static class ArteImportada
     /// <summary>Bau fechado grande da folha de objetos (o que fica na sala amaldicoada).</summary>
     public static Sprite Bau => Objeto(5, 4);
 
-    /// <summary>O idolo de olho vermelho da folha de objetos: enfeite e marca da sala amaldicoada.</summary>
-    public static Sprite IdoloMaldito => Objeto(2, 1);
+    /// <summary>A donzela de ferro do Old Prison (pivo no meio, ~0.6x1.3): enfeite e marca da sala amaldicoada.</summary>
+    public static Sprite IdoloMaldito => PecaDaPrisao("Donzela", 64f, false);
 
     /// <summary>
     /// O desenho de cada item passivo, pelo nome, com os icones do Raven Fantasy Icons.
@@ -466,27 +441,12 @@ public static class ArteImportada
     public static Sprite ObjetoV2(int coluna, int linha)
         => Celula("Masmorra/ObjetosV2", coluna, linha);
 
-    /// <summary>Saco de moedas do Raven Fantasy Icons, ~1 unidade.</summary>
-    public static Sprite SacoDeOuro
-        => IconeDoPacote(158);
-
-    /// <summary>Pedaco de carne do Tiny Swords (Resources), ~1 unidade.</summary>
-    public static Sprite CarneAssada
-        => Unico("TinySwords/Carne", 128, new RectInt(40, 57, 56, 45), new Vector2(68f, 79.5f), 52f);
-
     /// <summary>Um desenho da folha inteira do Pixel UI pack 3 (InterfacePixel/All), pra usar no mundo.</summary>
     public static Sprite IconeDaInterface(int x, int y, int largura, int altura, float pixelsPorUnidade)
         => Interface("All", x, y, largura, altura, Vector4.zero, pixelsPorUnidade);
 
     /// <summary>A gema azul do Pixel UI pack 3: o orbe que gira em volta do jogador.</summary>
     public static Sprite OrbeAzul => IconeDaInterface(182, 216, 36, 32, 38f);
-
-    /// <summary>
-    /// O comerciante da loja: o homem de chapeu de aba larga e casaco do 2D Pixel Dungeon
-    /// Asset Pack v2.0 (Dungeon_Character_2), 16x16, pivo no pe. Gente, nao monstro.
-    /// </summary>
-    public static Sprite Comerciante
-        => Unico("Masmorra/Moradores", 16, new RectInt(32, 0, 16, 16), new Vector2(40f, 16f), PixelsDoLadrilho);
 
     /// <summary>Uma das quatro pedras do Tiny Swords, sorteada; ~1 unidade de lado.</summary>
     public static Sprite PedraAleatoria()
@@ -517,6 +477,91 @@ public static class ArteImportada
     /// </summary>
     public static Sprite[] TrilhoDaPrisao
         => Linha("Masmorra/Prisao/Trilhos", 32, 0, 6, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
+
+    /// <summary>
+    /// Uma peca solta do atlas do Old Prison (Masmorra/Prisao/Pecas/<paramref name="nome"/>), ja
+    /// recortada, com o pivo no pe (ou no meio, com <paramref name="pivoNoPe"/> falso). A 32 px por
+    /// unidade fica do tamanho do ladrilho da sala.
+    /// </summary>
+    public static Sprite PecaDaPrisao(string nome, float pixelsPorUnidade = PixelsDaPrisao, bool pivoNoPe = true)
+    {
+        string caminho = "Masmorra/Prisao/Pecas/" + nome;
+        string chave = $"{caminho}@{pixelsPorUnidade}:{pivoNoPe}";
+
+        if (sprites.TryGetValue(chave, out Sprite guardado))
+            return guardado;
+
+        Texture2D textura = Textura(caminho);
+        Sprite sprite = null;
+
+        if (textura != null)
+        {
+            sprite = Sprite.Create(textura, new Rect(0, 0, textura.width, textura.height),
+                                   pivoNoPe ? new Vector2(0.5f, 0f) : new Vector2(0.5f, 0.5f), pixelsPorUnidade, 0, SpriteMeshType.FullRect);
+            sprite.name = caminho;
+        }
+
+        sprites[chave] = sprite;
+        return sprite;
+    }
+
+    /// <summary>Uma das <paramref name="quantas"/> variacoes numeradas de uma peca (Retrato1..12), sorteada.</summary>
+    public static Sprite PecaSorteada(string nome, int quantas, float pixelsPorUnidade = PixelsDaPrisao, bool pivoNoPe = true)
+        => PecaDaPrisao(nome + Random.Range(1, quantas + 1), pixelsPorUnidade, pivoNoPe);
+
+    /// <summary>
+    /// O vortice do portao do Old Prison (12 quadros girando): o buraco que leva ao proximo
+    /// andar. Uns 39 px de largura; a 30 px por unidade fica com ~1.3.
+    /// </summary>
+    public static Sprite[] Vortice(float pixelsPorUnidade)
+        => Linha("Masmorra/Prisao/Vortice", 96, 0, 12, new RectInt(24, 22, 48, 44), new Vector2(47.5f, 43.5f), pixelsPorUnidade);
+
+    /// <summary>
+    /// A grade da cela do Old Prison subindo (23 quadros). So a parte de baixo da grade fechada
+    /// (72x48, o vao inteiro de 1.5x1 a 48 px por unidade): abrindo, ela some pra cima do recorte.
+    /// </summary>
+    public static Sprite[] PortaoDaCela
+        => Linha("Masmorra/Prisao/PortaoDaCela", 128, 0, 23, new RectInt(29, 101, 72, 48), new Vector2(65f, 125f), 48f, 160);
+
+    /// <summary>
+    /// A mesa que vira de lado (quadros 0 a 6) e quebra (7 a 9), vista de cima, pivo no meio do
+    /// tampo em pe. A 48 px por unidade o tampo tem ~0.8x1.5.
+    /// </summary>
+    public static Sprite[] MesaQueVira
+        => Linha("Masmorra/Prisao/Mesa", 96, 0, 10, new RectInt(0, 16, 96, 96), new Vector2(30.5f, 72.5f), 48f, 128);
+
+    /// <summary>
+    /// O tronco com estacas rolando (11 quadros). Deitado (rola pra cima e pra baixo) ou em pe
+    /// (rola pros lados). Pivo no meio; a 40 px por unidade o deitado tem ~3.2 de comprimento.
+    /// </summary>
+    public static Sprite[] TroncoRolando(bool deitado, float pixelsPorUnidade)
+        => deitado
+            ? Linha("Masmorra/Prisao/Tronco", 192, 0, 11, new RectInt(24, 26, 144, 46), new Vector2(96f, 49f), pixelsPorUnidade, 96)
+            : Linha("Masmorra/Prisao/TroncoEmPe", 96, 0, 11, new RectInt(24, 8, 46, 132), new Vector2(47.5f, 74f), pixelsPorUnidade, 160);
+
+    /// <summary>A alavanca de engrenagem do Old Prison (12 quadros: a manivela vai e volta).</summary>
+    public static Sprite[] Alavanca
+        => Linha("Masmorra/Prisao/Alavanca", 64, 0, 12, new RectInt(4, 20, 56, 40), new Vector2(32f, 57f), PixelsDaPrisao);
+
+    /// <summary>A engrenagem inteira girando (4 quadros de 43x45).</summary>
+    public static Sprite[] Engrenagem
+        => Linha("Masmorra/Prisao/Engrenagem", 43, 0, 4, new RectInt(0, 0, 43, 45), new Vector2(21.5f, 22.5f), PixelsDaPrisao, 45);
+
+    /// <summary>Gota de sangue pingando da parede (9 quadros de 32x64), pivo no alto da queda.</summary>
+    public static Sprite[] GotaDeSangue
+        => Linha("Masmorra/Prisao/Sangue", 32, 0, 9, new RectInt(0, 0, 32, 64), new Vector2(16f, 0f), PixelsDaPrisao, 64);
+
+    /// <summary>A chama magica azul (8 quadros), pivo na base da chama.</summary>
+    public static Sprite[] ChamaMagica
+        => Linha("Masmorra/Prisao/ChamaMagica", 32, 0, 8, new RectInt(8, 28, 16, 22), new Vector2(16.5f, 47f), PixelsDaPrisao, 64);
+
+    /// <summary>Um bando de baratas andando (8 quadros de 67x60).</summary>
+    public static Sprite[] Baratas
+        => Linha("Masmorra/Prisao/Baratas", 67, 0, 8, new RectInt(10, 14, 46, 36), new Vector2(33f, 32f), PixelsDaPrisao, 60);
+
+    /// <summary>A poeira que sobe dos buracos (16 quadros de 160x64).</summary>
+    public static Sprite[] PoeiraDoFosso
+        => Linha("Masmorra/Prisao/PoeiraDoFosso", 160, 0, 16, new RectInt(16, 20, 144, 32), new Vector2(88f, 36f), PixelsDaPrisao, 64);
 
     /// <summary>Dinamite acesa do Tiny Swords (6 quadros): o desenho da bomba do jogador.</summary>
     public static Sprite[] Dinamite(float pixelsPorUnidade)

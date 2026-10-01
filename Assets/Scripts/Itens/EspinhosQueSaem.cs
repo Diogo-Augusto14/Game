@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// O efeito do Prego Enferrujado: oito espinhos (o prego da folha de objetos) saem do
+/// O efeito do Prego Enferrujado: oito espinhos (as lancas do Old Prison) saem do
 /// jogador em volta e somem. So o desenho; o dano e dado pelo <see cref="EfeitosDosItens"/>.
 /// </summary>
 public class EspinhosQueSaem : MonoBehaviour
@@ -16,7 +16,7 @@ public class EspinhosQueSaem : MonoBehaviour
 
     public static void Criar(Vector2 centro, float raio)
     {
-        Sprite prego = ArteImportada.Objeto(0, 3);
+        Sprite prego = ArteImportada.PecaDaPrisao("Lanca", 37f, false);
 
         if (prego == null)
             return;
@@ -36,8 +36,8 @@ public class EspinhosQueSaem : MonoBehaviour
             float angulo = i * 360f / Quantos;
             GameObject um = new GameObject("Espinho");
             um.transform.SetParent(obj.transform, false);
-            // O prego aponta pra baixo (-90 graus): gira pra apontar pra fora.
-            um.transform.localRotation = Quaternion.Euler(0f, 0f, angulo + 90f);
+            // A lanca do Old Prison aponta pra cima (90 graus): gira pra apontar pra fora.
+            um.transform.localRotation = Quaternion.Euler(0f, 0f, angulo - 90f);
             um.transform.localScale = Vector3.one * 0.8f;
 
             SpriteRenderer sr = um.AddComponent<SpriteRenderer>();

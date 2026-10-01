@@ -43,13 +43,13 @@ public class SalaDeDesafio : MonoBehaviour
         Pedestal pedestal = Pedestal.Criar(premio, centro, sala.transform);
         pedestal.AoPegar += _ => desafio.Comecar();
 
-        // Dois trofeus de escudo vermelho ao lado do pedestal: aqui tem briga.
-        Sprite trofeu = ArteImportada.Trofeu(true);
+        // Dois estandartes de guerra do Old Prison ao lado do pedestal: aqui tem briga.
+        Sprite estandarte = ArteImportada.PecaDaPrisao("Estandarte");
 
-        if (trofeu != null)
+        if (estandarte != null)
         {
             for (int lado = -1; lado <= 1; lado += 2)
-                FormasDaSala.Desenho(sala.transform, "Trofeu", trofeu, Color.white, new Vector2(lado * 1.6f, -0.5f), Vector2.one, 3);
+                FormasDaSala.Desenho(sala.transform, "Estandarte", estandarte, Color.white, new Vector2(lado * 1.6f, -0.9f), Vector2.one, 3);
         }
 
         return desafio;

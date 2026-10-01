@@ -2,14 +2,11 @@ using UnityEngine;
 
 /// <summary>
 /// Base dos inimigos com arte animada (Tiny RPG). Guarda a
-/// animacao, troca a morte encolhida pela animacao de morte (ou uma caveira), e tem a ajuda de
+/// animacao, troca a morte encolhida pela animacao de morte, e tem a ajuda de
 /// manter distancia que os de longe usam.
 /// </summary>
 public abstract class InimigoComArte : InimigoDeSala
 {
-    /// <summary>Pixels por unidade da arte do Tiny Swords nos inimigos (o corpo fica com ~0.9 unidade).</summary>
-    public const float PixelsDoTinySwords = 72f;
-
     protected AnimacaoDePersonagem animacao;
     protected ClipesDePersonagem clipes;
 
@@ -80,10 +77,9 @@ public abstract class InimigoComArte : InimigoDeSala
         if (!DeixaCaveira)
             return;
 
-        // A morte do proprio bicho (esqueleto, vampiro) ou a caveira do Tiny Swords toma o
-        // lugar dele, num objeto solto: o Vida apaga o inimigo antes de a animacao acabar.
-        // Sem arte nenhuma, fica o encolhido da base.
-        Sprite[] restos = clipes?.Morte ?? ArteImportada.Caveira(PixelsDoTinySwords);
+        // A morte do proprio bicho (a animacao do Tiny RPG) toma o lugar dele, num objeto solto:
+        // o Vida apaga o inimigo antes de a animacao acabar. Sem arte, fica o encolhido da base.
+        Sprite[] restos = clipes?.Morte;
 
         if (restos == null)
         {

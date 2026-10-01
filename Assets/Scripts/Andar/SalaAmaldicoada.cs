@@ -29,10 +29,10 @@ public static class SalaAmaldicoada
         Enfeitar(sala);
     }
 
-    /// <summary>Os idolos de olho vermelho nos cantos (tambem na sala do altar de sangue).</summary>
+    /// <summary>As donzelas de ferro nos cantos (tambem na sala do altar de sangue).</summary>
     public static void Enfeitar(Sala sala)
     {
-        // Idolos de olho vermelho nos quatro cantos.
+        // Donzelas de ferro do Old Prison nos quatro cantos.
         Sprite idolo = ArteImportada.IdoloMaldito;
 
         if (idolo == null)
@@ -64,7 +64,7 @@ public static class SalaAmaldicoada
                                      Vector2.one * 0.5f, 3);
         }
 
-        // E os idolos no lugar dos estandartes das outras salas especiais.
+        // E as donzelas no lugar dos estandartes das outras salas especiais.
         Sprite idolo = ArteImportada.IdoloMaldito;
 
         if (idolo == null)

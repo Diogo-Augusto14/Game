@@ -1422,10 +1422,14 @@ public class Andar : MonoBehaviour
             Pedestal.Criar(CatalogoDeItens.Sortear(itensQueJaSairam), centro, sala.transform);
         }
 
-        Sprite[] candelabro = ArteImportada.Candelabro(16f);
+        // Candelabros altos do Old Prison dos dois lados, com a luz das velas.
+        Sprite[] candelabro = ArteImportada.CandelabroDaPrisao();
 
         for (int lado = -1; lado <= 1 && candelabro != null; lado += 2)
-            EfeitoDeQuadros.Criar(candelabro, 6f, centro + new Vector2(lado * 3f, 0.4f), -8, sala.transform)?.EmLoop();
+        {
+            EfeitoDeQuadros.Criar(candelabro, 6f, centro + new Vector2(lado * 3f, -0.2f), -8, sala.transform)?.EmLoop();
+            HaloCintilante.Criar(sala.transform, new Vector2(lado * 3f, 1.2f), 2f, new Color(1f, 0.75f, 0.35f, 0.26f));
+        }
     }
 
     /// <summary>Um inimigo das ondas da sala de desafio, com a mesma tabela e os drops do andar.</summary>

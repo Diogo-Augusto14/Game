@@ -408,7 +408,7 @@ public class Minimapa : MonoBehaviour
             case TipoDeSala.Item: return ArteImportada.Objeto(10, 4);        // taca dourada
             case TipoDeSala.Loja: return ArteImportada.Objeto(3, 3);         // moeda
             case TipoDeSala.Desafio: return ArteImportada.Trofeu(true);      // trofeu da porta
-            case TipoDeSala.Amaldicoada: return ArteImportada.IdoloMaldito;  // idolo de olho vermelho
+            case TipoDeSala.Amaldicoada: return ArteImportada.Objeto(2, 1);  // idolo de olho vermelho
             case TipoDeSala.Secreta: return ArteImportada.Bau;               // bau
             default: return null;
         }

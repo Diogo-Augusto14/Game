@@ -9,7 +9,7 @@ using UnityEngine;
 /// E uma peca separada da <see cref="Porta"/> de proposito: a sala abre e fecha as portas
 /// sozinha (luta), e a tranca tem que continuar la mesmo com a sala limpa.
 ///
-/// Com chave: o cadeado estala e sobe, o portao dourado sobe quadro a quadro e so no fim a
+/// Com chave: o cadeado estala e sobe, a grade da cela (Old Prison) sobe quadro a quadro e so no fim a
 /// passagem libera. Sem chave: o cadeado treme e faz o som de negado.
 /// </summary>
 [DisallowMultipleComponent]
@@ -39,15 +39,16 @@ public class Tranca : MonoBehaviour
         BoxCollider2D solido = obj.AddComponent<BoxCollider2D>();
         solido.size = tamanho;
 
-        Sprite portao = ArteImportada.Portao(false);
+        Sprite[] cela = ArteImportada.PortaoDaCela;
         Sprite chave = ArteImportada.Objeto(9, 4);
         Tranca tranca = obj.AddComponent<Tranca>();
 
-        if (portao != null && chave != null)
+        if (cela != null && chave != null)
         {
-            // Portao de grade dourado com a chave na frente: ja diz o que abre.
-            tranca.grade = FormasDaSala.Desenho(obj.transform, "Grade", portao, new Color(1f, 0.85f, 0.45f), Vector2.zero,
-                new Vector2(Mathf.Max(tamanho.x, tamanho.y), Mathf.Min(tamanho.x, tamanho.y)), 3);
+            // A grade da cela do Old Prison, puxada pro dourado, com a chave na frente: ja diz o
+            // que abre. Desenhada de frente (1.5x1 sem esticar) e girada pro lado da porta.
+            tranca.grade = FormasDaSala.Desenho(obj.transform, "Grade", cela[0], new Color(1f, 0.85f, 0.45f), Vector2.zero,
+                Vector2.one, 3);
             tranca.grade.transform.localRotation = Quaternion.Euler(0f, 0f, porta.Lado == LadoDaPorta.Baixo ? 180f
                 : porta.Lado == LadoDaPorta.Esquerda ? 90f : porta.Lado == LadoDaPorta.Direita ? -90f : 0f);
             tranca.cadeado = FormasDaSala.Desenho(obj.transform, "Cadeado", chave, Color.white, Vector2.zero, Vector2.one * 0.7f, 4);
@@ -113,9 +114,9 @@ public class Tranca : MonoBehaviour
             cadeado.enabled = false;
         }
 
-        // O portao dourado sobe quadro a quadro, como as portas das salas.
+        // A grade da cela sobe quadro a quadro.
         Sons.Tocar(Som.PortaAbre);
-        Sprite[] quadros = ArteImportada.QuadrosDoPortao;
+        Sprite[] quadros = ArteImportada.PortaoDaCela;
 
         for (float t = 0f; t < 1f; t += Time.deltaTime / tempoDoPortao)
         {

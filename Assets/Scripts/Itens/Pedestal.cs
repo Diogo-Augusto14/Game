@@ -64,12 +64,12 @@ public class Pedestal : MonoBehaviour
         pedra.transform.localPosition = new Vector3(0f, -0.2f, 0f);
 
         SpriteRenderer srPedra = pedra.AddComponent<SpriteRenderer>();
-        Sprite altar = ArteImportada.Objeto(2, 2);
+        Sprite altar = ArteImportada.PecaDaPrisao("Altar", 56f, false);
         srPedra.sortingOrder = 4;
 
         if (altar != null)
         {
-            // Altar de pedra da masmorra, sem esticar; o colisor fica do tamanho da pedra antiga.
+            // O tumulo de pedra do Old Prison, sem esticar; o colisor fica do tamanho da pedra antiga.
             pedra.transform.localScale = Vector3.one;
             srPedra.sprite = altar;
             srPedra.color = Color.white;

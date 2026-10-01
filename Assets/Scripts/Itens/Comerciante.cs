@@ -27,11 +27,15 @@ public class Comerciante : MonoBehaviour
         "Bom proveito!",
     };
 
-    /// <summary>Quanto o pe do comerciante fica acima do pe do balcao (so as pernas ficam atras dele).</summary>
-    private const float AlturaDoCorpo = 0.3f;
+    /// <summary>Quanto o meio do corpo do comerciante fica acima do balcao (so as pernas ficam atras dele).</summary>
+    private const float AlturaDoCorpo = 0.75f;
+
+    /// <summary>Pixels por unidade do comerciante (o padre do Tiny RPG, um pouco maior que o heroi).</summary>
+    private const float PixelsDoComerciante = 15f;
 
     private Transform corpo;
     private SpriteRenderer desenho;
+    private Sprite[] respirando;
     private Transform jogador;
     private Transform sala;
     private TextMesh textoDoBalao;
@@ -59,12 +63,14 @@ public class Comerciante : MonoBehaviour
         corpo = new GameObject("Corpo").transform;
         corpo.SetParent(transform, false);
 
-        Sprite pessoa = ArteImportada.Comerciante;
+        // O padre do Tiny RPG, parado e respirando (a animacao dele), atras do balcao.
+        respirando = ArteImportada.Personagem("Herois/Padre", PixelsDoComerciante)?.Parado;
+        Sprite pessoa = respirando != null && respirando.Length > 0 ? respirando[0] : null;
 
         if (pessoa != null)
         {
             // Grande e acima do balcao: o balcao so cobre as pernas, o corpo todo aparece.
-            desenho = FormasDaSala.Desenho(corpo, "Desenho", pessoa, Color.white, new Vector2(0f, AlturaDoCorpo), Vector2.one * 1.5f, 8);
+            desenho = FormasDaSala.Desenho(corpo, "Desenho", pessoa, Color.white, new Vector2(0f, AlturaDoCorpo), Vector2.one, 8);
         }
         else
         {
@@ -74,21 +80,26 @@ public class Comerciante : MonoBehaviour
             FormasDaSala.Desenho(corpo, "Chapeu", FormasDaSala.Quadrado(), new Color(0.35f, 0.22f, 0.12f), new Vector2(0f, 1f), new Vector2(0.7f, 0.12f), 10);
         }
 
-        // Balcao na frente dele (esconde as pernas), com o saco de ouro em cima.
-        Sprite balcao = ArteImportada.Objeto(0, 2);
+        // Balcao do Old Prison na frente dele (esconde as pernas), com ouro, prata e uma caneca em cima.
+        Sprite balcao = ArteImportada.PecaDaPrisao("Balcao", 56f, false);
 
         if (balcao != null)
-            FormasDaSala.Desenho(transform, "Balcao", balcao, Color.white, new Vector2(0f, -0.15f), Vector2.one * 1.2f, 9);
+            FormasDaSala.Desenho(transform, "Balcao", balcao, Color.white, new Vector2(0f, -0.15f), Vector2.one, 9);
 
-        Sprite ouro = ArteImportada.SacoDeOuro;
+        Sprite ouro = ArteImportada.PecaDaPrisao("Ouro1", 96f, false);
 
         if (ouro != null)
-            FormasDaSala.Desenho(transform, "Saco de ouro", ouro, Color.white, new Vector2(0.5f, 0.3f), Vector2.one * 0.5f, 10);
+            FormasDaSala.Desenho(transform, "Ouro", ouro, Color.white, new Vector2(0.35f, 0.05f), Vector2.one, 10);
 
-        Sprite moeda = ArteImportada.IconeDoPacote(131);
+        Sprite prata = ArteImportada.PecaDaPrisao("Prata2", 110f, false);
 
-        if (moeda != null)
-            FormasDaSala.Desenho(transform, "Moedas", moeda, Color.white, new Vector2(-0.45f, 0.2f), Vector2.one * 0.55f, 10);
+        if (prata != null)
+            FormasDaSala.Desenho(transform, "Prata", prata, Color.white, new Vector2(-0.4f, -0.05f), Vector2.one, 10);
+
+        Sprite caneca = ArteImportada.PecaSorteada("Caneca", 4);
+
+        if (caneca != null)
+            FormasDaSala.Desenho(transform, "Caneca", caneca, Color.white, new Vector2(-0.05f, 0.05f), Vector2.one, 10);
 
         // Enfeites de mercador dos lados.
         // Barril e caixote do Old Prison, no tamanho do ladrilho da sala.
@@ -207,6 +218,9 @@ public class Comerciante : MonoBehaviour
             GameObject achado = GameObject.FindWithTag("Player");
             jogador = achado != null ? achado.transform : null;
         }
+
+        if (respirando != null && desenho != null)
+            desenho.sprite = respirando[Mathf.FloorToInt(Time.time * 6f) % respirando.Length];
 
         // Respira: estica e encolhe de leve. Pulinho de vez em quando (ou depois de vender).
         float respiro = Mathf.Sin(Time.time * 2.4f) * 0.04f;

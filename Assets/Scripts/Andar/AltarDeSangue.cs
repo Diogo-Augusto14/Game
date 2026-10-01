@@ -26,10 +26,10 @@ public class AltarDeSangue : MonoBehaviour
         obj.transform.SetParent(sala.transform, false);
         obj.transform.position = centro;
 
-        Sprite altar = ArteImportada.Objeto(2, 2);
+        Sprite altar = ArteImportada.PecaDaPrisao("Altar", 44f, false);
         FormasDaSala.Desenho(obj.transform, "Altar", altar != null ? altar : Fosso.Pixel(),
                              altar != null ? new Color(1f, 0.6f, 0.6f) : new Color(0.45f, 0.1f, 0.12f), Vector2.zero,
-                             altar != null ? Vector2.one * 1.4f : new Vector2(1f, 0.6f), 4);
+                             altar != null ? Vector2.one : new Vector2(1f, 0.6f), 4);
 
         AltarDeSangue a = obj.AddComponent<AltarDeSangue>();
         a.sala = sala;
