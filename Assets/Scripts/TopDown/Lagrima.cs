@@ -129,6 +129,10 @@ public class Lagrima : MonoBehaviour
         if (outro.GetComponentInParent<Lagrima>() != null)
             return;
 
+        // Buraco no chao: a lagrima voa por cima.
+        if (Fosso.EhBuraco(outro))
+            return;
+
         // Parede e pedra primeiro: a pedra tem Vida (pra bomba quebrar), mas lagrima nao
         // pode quebrar pedra.
         if (!outro.isTrigger && (Camadas.MascaraDeParede & (1 << outro.gameObject.layer)) != 0)

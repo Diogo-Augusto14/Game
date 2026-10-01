@@ -61,10 +61,20 @@ public static class FabricaDeInimigos
         InimigoDeSala inimigo = MontarPorTipo(tipo, posicao, pai);
 
         if (inimigo != null)
+        {
             inimigo.SomDeMorte = SomDeMorte(tipo);
+
+            // Quem voa passa por cima dos buracos do chao, como os tiros.
+            if (Voa(tipo))
+                Fosso.Sobrevoar(inimigo.GetComponent<Collider2D>());
+        }
 
         return inimigo;
     }
+
+    /// <summary>Bicho que voa (morcegos e fogo-fatuo): os buracos do chao nao seguram.</summary>
+    public static bool Voa(TipoDeInimigo tipo)
+        => tipo == TipoDeInimigo.Morcego || tipo == TipoDeInimigo.Morceguinho || tipo == TipoDeInimigo.FogoFatuo;
 
     /// <summary>Como o bicho morre no ouvido: ossos caindo, gosma, grito de demonio, fera, chefe...</summary>
     public static Som SomDeMorte(TipoDeInimigo tipo)

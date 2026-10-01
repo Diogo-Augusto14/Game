@@ -10,6 +10,30 @@ public class Fosso : MonoBehaviour
 {
     private static Sprite pixel;
 
+    // Colisores de todos os buracos e de quem voa por cima deles: cada par se ignora.
+    private static readonly System.Collections.Generic.List<Collider2D> buracos = new System.Collections.Generic.List<Collider2D>();
+    private static readonly System.Collections.Generic.List<Collider2D> voadores = new System.Collections.Generic.List<Collider2D>();
+
+    /// <summary>
+    /// O colisor passa a ignorar todo buraco que existe e os que forem criados depois (morcego,
+    /// fogo-fatuo). Quem anda continua barrado.
+    /// </summary>
+    public static void Sobrevoar(Collider2D voador)
+    {
+        if (voador == null)
+            return;
+
+        buracos.RemoveAll(b => b == null);
+        voadores.RemoveAll(v => v == null);
+        voadores.Add(voador);
+
+        foreach (Collider2D buraco in buracos)
+            Physics2D.IgnoreCollision(voador, buraco, true);
+    }
+
+    /// <summary>Lagrima, flecha e qualquer tiro voam por cima: um buraco nao estoura nada.</summary>
+    public static bool EhBuraco(Collider2D colisor) => colisor != null && colisor.GetComponent<Fosso>() != null;
+
     /// <summary>Um pixel branco de 1x1 unidade, sem borda (o Quadrado do jogo tem borda por ladrilho).</summary>
     public static Sprite Pixel()
     {
@@ -32,6 +56,13 @@ public class Fosso : MonoBehaviour
         // Colisao fora da camada de parede: o tiro voa por cima.
         BoxCollider2D caixa = sr.gameObject.AddComponent<BoxCollider2D>();
         caixa.size = Vector2.one / 1.02f * 0.96f;
+
+        voadores.RemoveAll(v => v == null);
+        buracos.RemoveAll(b => b == null);
+        buracos.Add(caixa);
+
+        foreach (Collider2D voador in voadores)
+            Physics2D.IgnoreCollision(voador, caixa, true);
 
         return sr.gameObject.AddComponent<Fosso>();
     }

@@ -377,7 +377,9 @@ public class Porta : MonoBehaviour
         if (luzDoVao != null)
             luzDoVao.SetActive(vao.enabled);
 
-        Sprite[] grade = parede ? null : ArteImportada.GradeDaPrisao(lado);
+        // A grade de frente da porta de cima em todas as portas: as grades de baixo e dos lados
+        // do pack eram umas hastes finas que nem pareciam fechar a passagem. Nos lados ela gira.
+        Sprite[] grade = parede ? null : ArteImportada.GradeDaPrisao(LadoDaPorta.Cima);
         desenho.enabled = grade != null;
 
         if (grade == null)
@@ -385,12 +387,18 @@ public class Porta : MonoBehaviour
 
         bool andando = progresso > 0f && progresso < 1f;
         Vector2 eixo = lado.Horizontal() ? Vector2.right : Vector2.up;
-        desenho.transform.localPosition = andando ? eixo * (Mathf.Sin(Time.time * 70f) * 0.02f) : Vector3.zero;
-        desenho.transform.localRotation = Quaternion.identity;
+        Vector3 tremor = andando ? (Vector3)(eixo * (Mathf.Sin(Time.time * 70f) * 0.02f)) : Vector3.zero;
+        Quaternion giro = Quaternion.Euler(0f, 0f, lado == LadoDaPorta.Esquerda ? -90f : lado == LadoDaPorta.Direita ? 90f : 0f);
+
+        // Na porta de cima a grade fica onde o pack desenhou; nas outras, centrada no vao (o
+        // desenho da grade fica 0,3 abaixo do pivo dele).
+        Vector3 centro = lado == LadoDaPorta.Cima ? Vector3.zero : -(giro * new Vector3(0f, -0.3f, 0f));
+        desenho.transform.localPosition = centro + tremor;
+        desenho.transform.localRotation = giro;
         desenho.transform.localScale = Vector3.one;
         desenho.drawMode = SpriteDrawMode.Simple;
         desenho.sprite = grade[Mathf.RoundToInt(progresso * (grade.Length - 1))];
-        desenho.flipX = direita;
+        desenho.flipX = false;
         desenho.color = Color.white;
         desenho.sortingOrder = 3;   // por cima da luz do vao
     }
@@ -398,9 +406,8 @@ public class Porta : MonoBehaviour
     private GameObject luzDoVao;
 
     /// <summary>
-    /// Porta do lado: o vao do pack e quase preto e a saida sumia na parede. Entra um pouco de
-    /// luz da sala vizinha, um fio claro marca cada batente e um brilho fraco cai no chao na
-    /// frente. Porta secreta nao ganha nada disso enquanto estiver escondida.
+    /// Porta do lado: o vao do pack e quase preto e a saida sumia na parede. Um fio claro marca
+    /// cada batente e um brilho fraco cai no chao na frente. Porta secreta nao ganha nada disso enquanto estiver escondida.
     /// </summary>
     private void MontarLuzDoVao()
     {
@@ -411,9 +418,6 @@ public class Porta : MonoBehaviour
         // Pixels do desenho do vao (32 por unidade): a passagem tem 34 px de altura, entre as
         // fileiras de tijolo de cima e de baixo.
         const float pixel = 1f / 32f;
-
-        FormasDaSala.Desenho(pai, "Claridade", Fosso.Pixel(), new Color(0.6f, 0.65f, 0.8f, 0.16f),
-                             Vector2.zero, new Vector2(1f, 34f * pixel), 2);
 
         for (int s = -1; s <= 1; s += 2)
             FormasDaSala.Desenho(pai, "Batente claro", Fosso.Pixel(), new Color(0.5f, 0.5f, 0.58f),
