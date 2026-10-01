@@ -128,6 +128,10 @@ public class TiroDaSala : MonoBehaviour
         // Parede (ou porta fechada): some.
         if ((Camadas.MascaraDeParede & (1 << outro.gameObject.layer)) != 0)
         {
+            // Bicho tambem gasta a mesa que o heroi usa de barricada.
+            if (outro.TryGetComponent(out Mesa mesa))
+                mesa.Acertar(rb.position);
+
             Gastar();
             return;
         }

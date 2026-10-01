@@ -143,6 +143,10 @@ public class Lagrima : MonoBehaviour
         // pode quebrar pedra.
         if (!outro.isTrigger && (Camadas.MascaraDeParede & (1 << outro.gameObject.layer)) != 0)
         {
+            // Mesa do Old Prison: o tiro tomba e racha ela.
+            if (outro.TryGetComponent(out Mesa mesa))
+                mesa.Acertar(rb.position);
+
             // Flecha ricochete: quica em vez de quebrar.
             if (efeito != null && efeito.Ricochetear(outro))
                 return;

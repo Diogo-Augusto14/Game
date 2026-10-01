@@ -103,6 +103,9 @@ public class Sala : MonoBehaviour
 
     // Ladrilhos que ninguem atravessa andando (pedra, bloco de parede, buraco). Pedra quebrada por
     // bomba vira null e o ladrilho libera sozinho.
+    /// <summary>Chance de cada pedra das disposicoes virar uma mesa do Old Prison (que tomba e quebra).</summary>
+    private const float ChanceDeMesa = 0.12f;
+
     private readonly Dictionary<Vector2Int, Object> bloqueios = new Dictionary<Vector2Int, Object>();
 
     private Transform cenario;
@@ -484,6 +487,18 @@ public class Sala : MonoBehaviour
         switch (tipo)
         {
             case TipoDeObstaculo.Pedra:
+                // As vezes, no lugar da pedra, a mesa do Old Prison: tomba com o primeiro tiro e quebra.
+                if (Random.value < ChanceDeMesa)
+                {
+                    Mesa mesa = Mesa.Criar(cenario, posicao);
+
+                    if (mesa != null)
+                    {
+                        bloqueios[celula] = mesa;
+                        break;
+                    }
+                }
+
                 bloqueios[celula] = Pedra.Criar(cenario, posicao, TemaDoAndar.Atual != null ? TemaDoAndar.Atual.CorDaPedra : Color.white);
                 break;
             case TipoDeObstaculo.Muro:
@@ -510,6 +525,21 @@ public class Sala : MonoBehaviour
             Vector2Int c = par.Key;
             Fosso.DesenharBorda(par.Value, !fossos.ContainsKey(c + Vector2Int.up), !fossos.ContainsKey(c + Vector2Int.down),
                                 !fossos.ContainsKey(c + Vector2Int.left), !fossos.ContainsKey(c + Vector2Int.right), borda);
+        }
+
+        // Poeira subindo de um dos buracos (Old Prison), so pra dizer que e fundo.
+        Sprite[] poeira = ArteImportada.PoeiraDoFosso;
+
+        if (poeira != null && fossos.Count > 0)
+        {
+            Transform buraco = new List<Transform>(fossos.Values)[Random.Range(0, fossos.Count)];
+            EfeitoDeQuadros efeito = EfeitoDeQuadros.Criar(poeira, 10f, buraco.position, -9, cenario)?.EmLoop();
+
+            if (efeito != null)
+            {
+                efeito.transform.localScale = Vector3.one * 0.35f;
+                efeito.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 0.7f);
+            }
         }
     }
 
@@ -594,6 +624,99 @@ public class Sala : MonoBehaviour
             {
                 EfeitoDeQuadros.Criar(candelabro, 6f, (Vector2)transform.position + local + Vector2.down * 0.45f, -8, cenario)?.EmLoop();
                 HaloCintilante.Criar(cenario, local + new Vector2(-canto.x * 0.35f, 0.9f), 2f, new Color(1f, 0.75f, 0.35f, 0.26f));
+            }
+        }
+
+        EnfeitarComOldPrison(quantos > 0);
+    }
+
+    /// <summary>
+    /// Pecas do Old Prison que a sala pronta nao traz (so desenho, nada bloqueia):
+    ///   - uma peca grande da mistura do mundo: a gaiola pendurada na parede de cima, ou de pe na
+    ///     parede de baixo a donzela de ferro, a guilhotina, o pelourinho, caveiras ou bolas de espinhos;
+    ///   - uma miudeza no pe da parede de baixo (balde, saco, papel, caveiras);
+    ///   - sangue pingando da parede de cima, baratas andando no pe de uma parede e, na Cripta e
+    ///     no Abismo, velas com a chama magica azul.
+    /// <paramref name="comPecas"/> falso (loja, chefe) deixa so o que mexe e nao ocupa chao.
+    /// </summary>
+    private void EnfeitarComOldPrison(bool comPecas)
+    {
+        string mundo = TemaDoAndar.Atual?.Sala ?? "Porao";
+        Vector2 meio = tamanhoInterno * 0.5f;
+
+        if (comPecas && Random.value < 0.7f)
+        {
+            string[] grandes = mundo == "Porao" ? new[] { "BolaDeEspinhos", "Pelourinho", "Gaiola" }
+                : mundo == "Catacumbas" ? new[] { "Gaiola", "Pelourinho", "Donzela" }
+                : mundo == "Cripta" ? new[] { "Caveiras", "Donzela", "Gaiola" }
+                : new[] { "Guilhotina", "Caveiras", "Donzela" };
+            string nome = grandes[Random.Range(0, grandes.Length)];
+            Sprite peca = nome == "Caveiras" ? ArteImportada.PecaSorteada("Caveiras", 9, 44f)
+                : nome == "BolaDeEspinhos" ? ArteImportada.PecaSorteada("BolaDeEspinhos", 5)
+                : ArteImportada.PecaDaPrisao(nome, 48f);
+            float lado = Random.value < 0.5f ? -1f : 1f;
+            float x = lado * Random.Range(1.8f, Mathf.Max(1.8f, meio.x - 2.6f));
+
+            // A gaiola pende da parede de cima (a corrente some no alto da parede); o resto fica
+            // de pe no pe da parede de baixo. Longe dos cantos (HUD e candelabro) e do vao das portas.
+            Vector2 pe = nome == "Gaiola" ? new Vector2(x, meio.y - 2.1f) : new Vector2(x, -meio.y + 0.05f);
+
+            if (peca != null && Livre(pe + Vector2.up * 0.6f, 0.3f))
+            {
+                SpriteRenderer sr = FormasDaSala.Desenho(cenario, nome, peca, new Color(0.85f, 0.85f, 0.9f), pe, Vector2.one, -7);
+                sr.flipX = lado > 0f;
+            }
+        }
+
+        if (comPecas && Random.value < 0.6f)
+        {
+            int qual = Random.Range(0, 3);
+            Sprite miudeza = qual == 0 ? ArteImportada.PecaSorteada("Balde", 6)
+                : qual == 1 ? ArteImportada.PecaSorteada("Suprimento", 12)
+                : ArteImportada.PecaSorteada("Caveiras", 9, 64f);
+            Vector2 pe = new Vector2(Random.Range(1.6f, meio.x - 1.4f) * (Random.value < 0.5f ? -1f : 1f), -meio.y + 0.1f);
+
+            if (miudeza != null && Livre(pe + Vector2.up * 0.4f, 0.2f))
+                FormasDaSala.Desenho(cenario, "Miudeza", miudeza, Color.white, pe, Vector2.one, -8);
+        }
+
+        // Sangue pingando da parede de cima, fora do vao da porta.
+        Sprite[] gota = ArteImportada.GotaDeSangue;
+
+        if (gota != null && Random.value < 0.55f)
+        {
+            float x = Random.Range(1.4f, meio.x - 1f) * (Random.value < 0.5f ? -1f : 1f);
+            EfeitoDeQuadros.Criar(gota, 7f, (Vector2)transform.position + new Vector2(x, meio.y + 0.45f), -6, cenario)?.EmLoop();
+        }
+
+        // Baratas indo e vindo no pe de uma parede.
+        if (Random.value < 0.4f)
+        {
+            bool embaixo = Random.value < 0.5f;
+            float y = embaixo ? -meio.y + 0.35f : meio.y - 0.35f;
+            float x = Random.Range(1.5f, meio.x - 1.5f) * (Random.value < 0.5f ? -1f : 1f);
+            Baratas.Criar(cenario, new Vector2(x - 1.2f, y), new Vector2(x + 1.2f, y));
+        }
+
+        // Cripta e Abismo: duas velas no pe da parede de baixo com a chama magica azul.
+        Sprite[] chama = ArteImportada.ChamaMagica;
+
+        if (chama != null && (mundo == "Cripta" || mundo == "Abismo") && Random.value < 0.6f)
+        {
+            for (int lado = -1; lado <= 1; lado += 2)
+            {
+                Vector2 pe = new Vector2(lado * (meio.x - 2.2f), -meio.y + 0.2f);
+
+                if (!Livre(pe + Vector2.up * 0.3f, 0.1f))
+                    continue;
+
+                Sprite vela = ArteImportada.PecaSorteada("Vela", 4);
+
+                if (vela != null)
+                    FormasDaSala.Desenho(cenario, "Vela", vela, Color.white, pe, Vector2.one, -8);
+
+                EfeitoDeQuadros.Criar(chama, 9f, (Vector2)transform.position + pe + Vector2.up * 0.35f, -7, cenario)?.EmLoop();
+                HaloCintilante.Criar(cenario, pe + Vector2.up * 0.5f, 1.8f, new Color(0.4f, 0.6f, 1f, 0.28f));
             }
         }
     }

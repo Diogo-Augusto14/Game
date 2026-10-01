@@ -46,6 +46,9 @@ public class Andar : MonoBehaviour
     [Tooltip("Chance de uma sala comum ganhar serras andando em trilhos (a partir da fase 2)")]
     [SerializeField, Range(0f, 1f)] private float chanceDeLaminas = 0.15f;
 
+    [Tooltip("Chance de uma sala comum sem serras ganhar o tronco com estacas rolando (a partir da fase 2)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeTronco = 0.12f;
+
     [Tooltip("Chance da sala amaldicoada ser a do sacrificio (altar de sangue) em vez de premio")]
     [SerializeField, Range(0f, 1f)] private float chanceDeAltar = 0.4f;
 
@@ -876,6 +879,8 @@ public class Andar : MonoBehaviour
 
             if (numeroDoAndar >= 2 && UnityEngine.Random.value < chanceDeLaminas)
                 PorLaminas(sala);
+            else if (numeroDoAndar >= 2 && UnityEngine.Random.value < chanceDeTronco)
+                PorTronco(sala);
         }
 
         // Sala grande: o mesmo bicho em todas as casas (um bando so, espalhado), e um pouco menos
@@ -948,6 +953,22 @@ public class Andar : MonoBehaviour
             float x = (UnityEngine.Random.value < 0.5f ? 1f : -1f) * Mathf.Min(3.5f, meio.x);
             LaminaGiratoria.Criar(sala, new Vector2(x, -meio.y), new Vector2(x, meio.y), UnityEngine.Random.value);
         }
+    }
+
+    /// <summary>
+    /// O tronco com estacas do Old Prison: deitado, numa faixa de um dos lados (longe das portas
+    /// de cima e de baixo), rolando de cima a baixo; ou em pe, acima ou abaixo da linha das portas
+    /// dos lados, rolando de um lado ao outro.
+    /// </summary>
+    private void PorTronco(Sala sala)
+    {
+        Vector2 meio = sala.TamanhoInterno * 0.5f;
+        float lado = UnityEngine.Random.value < 0.5f ? 1f : -1f;
+
+        if (UnityEngine.Random.value < 0.6f)
+            TroncoRolante.Criar(sala, true, lado * UnityEngine.Random.Range(2.2f, Mathf.Max(2.2f, meio.x - 2f)));
+        else
+            TroncoRolante.Criar(sala, false, lado * Mathf.Min(1.8f, meio.y - 1f));
     }
 
     /// <summary>
@@ -1429,6 +1450,15 @@ public class Andar : MonoBehaviour
         {
             EfeitoDeQuadros.Criar(candelabro, 6f, centro + new Vector2(lado * 3f, -0.2f), -8, sala.transform)?.EmLoop();
             HaloCintilante.Criar(sala.transform, new Vector2(lado * 3f, 1.2f), 2f, new Color(1f, 0.75f, 0.35f, 0.26f));
+        }
+
+        // Montes de ouro e prata do Old Prison no chao, atras do premio.
+        for (int lado = -1; lado <= 1; lado += 2)
+        {
+            Sprite monte = ArteImportada.PecaSorteada(lado < 0 ? "Ouro" : "Prata", 2, 40f, false);
+
+            if (monte != null)
+                FormasDaSala.Desenho(sala.transform, "Tesouro", monte, Color.white, new Vector2(lado * 1.9f, 1.6f), Vector2.one, -8);
         }
     }
 
