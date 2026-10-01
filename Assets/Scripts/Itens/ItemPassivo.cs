@@ -90,6 +90,19 @@ public class ItemPassivo
     [Tooltip("Vida recuperada ao limpar uma sala (20 = um coracao)")]
     public float curaAoLimparSala;
 
+    [Header("So das sinergias (Sinergias)")]
+    [Tooltip("Raio da explosaozinha de cada tiro que acerta (0 = nao explode)")]
+    public float explodeAoAcertar;
+
+    [Tooltip("Todo tiro conta como golpe forte (empurra e atordoa mais)")]
+    public bool golpePesado;
+
+    [Tooltip("Ao renascer (Pena da Fenix), solta um anel de fogo")]
+    public bool fogoAoRenascer;
+
+    [Tooltip("O escudo do item solta espinhos quando bloqueia")]
+    public bool espinhosNoEscudo;
+
     [Header("Item ativo (ItemAtivoDoJogador)")]
     [Tooltip("Item de usar com Espaco/RT. Nenhum = passivo. O jogador carrega um so; pegar outro troca")]
     public TipoDeAtivo ativo;
@@ -113,7 +126,15 @@ public class ItemPassivo
     public bool EAtivo => ativo != TipoDeAtivo.Nenhum;
 
     /// <summary>O efeito completo; item sem <see cref="Descricao"/> usa a frase curta.</summary>
-    public string Efeito => string.IsNullOrEmpty(Descricao) ? descricao : Descricao;
+    public string Efeito
+    {
+        get
+        {
+            string efeito = string.IsNullOrEmpty(Descricao) ? descricao : Descricao;
+            string parceiros = Sinergias.Parceiros(nome);
+            return parceiros.Length == 0 ? efeito : efeito + "\n" + parceiros;
+        }
+    }
 }
 
 /// <summary>

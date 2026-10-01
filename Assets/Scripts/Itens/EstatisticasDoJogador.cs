@@ -32,6 +32,14 @@ public class EstatisticasDoJogador : MonoBehaviour
 
     public IReadOnlyList<ItemPassivo> Itens => itens;
 
+    /// <summary>Os bonus das duplas de itens completas (<see cref="Sinergias"/>).</summary>
+    public IReadOnlyList<ItemPassivo> SinergiasAtivas => sinergias;
+
+    private List<ItemPassivo> sinergias = new List<ItemPassivo>();
+
+    /// <summary>Formou uma sinergia nova (a HUD anuncia).</summary>
+    public event System.Action<ItemPassivo> AoFormarSinergia;
+
     /// <summary>Pegou um item. O HUD escuta pra mostrar o nome na tela.</summary>
     public event System.Action<ItemPassivo> AoPegarItem;
 
@@ -96,9 +104,39 @@ public class EstatisticasDoJogador : MonoBehaviour
 
         GuardarBase();
         itens.Add(item);
-        Recalcular();
 
-        // Vida maxima e brindes nao sao "de base": aplicam uma vez, na hora de pegar.
+        List<ItemPassivo> novas = Sinergias.Ativas(itens);
+        List<ItemPassivo> formadas = novas.FindAll(s => !sinergias.Contains(s));
+        sinergias = novas;
+        Recalcular();
+        AplicarUmaVez(item);
+
+        // Flecha nova vai pra aljava e ja entra em uso.
+        if (item.flecha != TipoDeFlecha.Normal)
+            TrocaDeFlecha.Em(gameObject).Ganhar(item.flecha);
+
+        Sons.Tocar(Som.Item);
+        Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
+        AoPegarItem?.Invoke(item);
+
+        foreach (ItemPassivo sinergia in formadas)
+        {
+            AplicarUmaVez(sinergia);
+            Sons.Tocar(Som.Feitico, 0.8f);
+            Impacto.Tremer(0.1f, 0.25f);
+            TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.2f, "Sinergia!", new Color(1f, 0.85f, 0.4f));
+            AoFormarSinergia?.Invoke(sinergia);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Vida maxima e brindes nao sao "de base": aplicam uma vez, na hora de pegar (ou de
+    /// formar a sinergia).
+    /// </summary>
+    private void AplicarUmaVez(ItemPassivo item)
+    {
         // Item que tira vida maxima (Pacto de Sangue) nunca deixa menos de um coracao.
         if (vida != null && !Mathf.Approximately(item.somaVidaMaxima, 0f))
         {
@@ -119,15 +157,6 @@ public class EstatisticasDoJogador : MonoBehaviour
             inventario.Adicionar(TipoDeColetavel.Chave, item.chaves);
             inventario.Adicionar(TipoDeColetavel.Bomba, item.bombas);
         }
-
-        // Flecha nova vai pra aljava e ja entra em uso.
-        if (item.flecha != TipoDeFlecha.Normal)
-            TrocaDeFlecha.Em(gameObject).Ganhar(item.flecha);
-
-        Sons.Tocar(Som.Item);
-        Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
-        AoPegarItem?.Invoke(item);
-        return null;
     }
 
     /// <summary>Refaz as contas sem item novo (a furia liga e desliga conforme a vida).</summary>
@@ -144,9 +173,17 @@ public class EstatisticasDoJogador : MonoBehaviour
         int extras = 0;
         bool atravessa = false, teleguiada = false, paraTras = false;
         Color? corDaLagrima = null;
+        bool pesado = false;
+        float explosao = 0f;
 
-        foreach (ItemPassivo i in itens)
+        List<ItemPassivo> todos = new List<ItemPassivo>(itens);
+        todos.AddRange(sinergias);
+
+        foreach (ItemPassivo i in todos)
         {
+            pesado |= i.golpePesado;
+            explosao = Mathf.Max(explosao, i.explodeAoAcertar);
+
             somaDano += i.somaDano;
             multDano *= i.multiplicaDano;
             somaCadencia += i.somaCadencia;
@@ -167,7 +204,7 @@ public class EstatisticasDoJogador : MonoBehaviour
 
         if (efeitos != null)
         {
-            efeitos.Aplicar(itens);
+            efeitos.Aplicar(todos);
             multDano *= efeitos.MultiplicadorDeDano;
         }
 
@@ -184,6 +221,7 @@ public class EstatisticasDoJogador : MonoBehaviour
                 Mathf.Min(lagrimasMaximas, lagrimasBase + extras));
 
             atirador.DefinirEfeitos(atravessa, teleguiada, paraTras, corDaLagrima);
+            atirador.DefinirSinergias(pesado, explosao);
         }
 
         if (movimento != null)

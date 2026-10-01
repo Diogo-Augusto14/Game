@@ -39,6 +39,12 @@ public class Lagrima : MonoBehaviour
 
     public GameObject Dono => dono;
 
+    /// <summary>Sinergia Golpe de Bigorna: o acerto conta como golpe forte.</summary>
+    public bool Pesada { get; set; }
+
+    /// <summary>Sinergia Polvora em Chamas: raio da explosaozinha ao acertar (0 = nao explode).</summary>
+    public float RaioDaExplosao { get; set; }
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -154,7 +160,11 @@ public class Lagrima : MonoBehaviour
                 return;
 
             Vector2 direcao = rb.linearVelocity.sqrMagnitude > 0.0001f ? rb.linearVelocity : Vector2.right;
-            alvo.TomarDano(new DanoInfo(dano, direcao, forcaEmpurrao, transform.position, dono));
+            alvo.TomarDano(new DanoInfo(dano, direcao, Pesada ? forcaEmpurrao * 1.6f : forcaEmpurrao, transform.position, dono,
+                                        Pesada ? PesoDoGolpe.Forte : PesoDoGolpe.Leve));
+
+            if (RaioDaExplosao > 0f)
+                Estilhacar(alvo);
 
             if (efeito != null)
                 efeito.AoAcertar(alvo);
@@ -168,6 +178,30 @@ public class Lagrima : MonoBehaviour
         // Trigger de cenario (zona, porta) nao para a lagrima; so coisa solida.
         if (!outro.isTrigger)
             Estourar();
+    }
+
+    /// <summary>
+    /// Polvora em Chamas: fogo em volta do acerto, metade do dano em quem estiver perto (menos
+    /// no que ja levou o tiro). Sem o som da bomba: com tiro rapido virava barulheira.
+    /// </summary>
+    private void Estilhacar(IDanificavel atingido)
+    {
+        Vector2 centro = transform.position;
+        EfeitosDeImpacto.Mostrar(EfeitoDeImpacto.Fogo, centro, new Color(1f, 0.6f, 0.2f), RaioDaExplosao * 1.4f);
+
+        foreach (Collider2D c in Physics2D.OverlapCircleAll(centro, RaioDaExplosao))
+        {
+            InimigoDeSala inimigo = c.GetComponentInParent<InimigoDeSala>();
+
+            if (inimigo == null || inimigo.EstaMorto || !inimigo.TryGetComponent(out Vida v) || (IDanificavel)v == atingido)
+                continue;
+
+            if (!acertados.Add(v))
+                continue;
+
+            Vector2 lado = (Vector2)inimigo.transform.position - centro;
+            v.TomarDano(new DanoInfo(dano * 0.5f, lado, 2f, centro, dono));
+        }
     }
 
     /// <summary>Vira a velocidade aos poucos na direcao do inimigo acordado mais perto.</summary>

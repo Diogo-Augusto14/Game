@@ -112,7 +112,10 @@ public class HudDoInventario : MonoBehaviour
             inventario.AoMudar += AtualizarContadores;
 
         if (estatisticas != null)
+        {
             estatisticas.AoPegarItem += Avisar;
+            estatisticas.AoFormarSinergia += AvisarSinergia;
+        }
 
         AtualizarContadores();
     }
@@ -123,7 +126,10 @@ public class HudDoInventario : MonoBehaviour
             inventario.AoMudar -= AtualizarContadores;
 
         if (estatisticas != null)
+        {
             estatisticas.AoPegarItem -= Avisar;
+            estatisticas.AoFormarSinergia -= AvisarSinergia;
+        }
 
         if (ativo != null)
             ativo.AoMudar -= AtualizarAtivo;
@@ -260,6 +266,20 @@ public class HudDoInventario : MonoBehaviour
 
         ultimos[indice] = valor;
         texto.text = valor.ToString("00");
+    }
+
+    /// <summary>Sinergia nova: o mesmo aviso do item, em dourado e um pouco mais demorado.</summary>
+    private void AvisarSinergia(ItemPassivo sinergia)
+    {
+        if (aviso == null)
+            return;
+
+        aviso.text = $"<color=#FFD966>Sinergia: {sinergia.nome}!</color>\n<size={tamanhoDaFonte}>{sinergia.descricao}</size>";
+        avisoAtivo = true;
+        aviso.enabled = true;
+        iconeDoAviso.enabled = false;
+        iconeDoAviso.sprite = null;
+        fimDoAviso = Time.time + tempoDoAviso + 1f;
     }
 
     private void Avisar(ItemPassivo item)

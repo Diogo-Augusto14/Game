@@ -199,9 +199,21 @@ public class AtiradorTopDown : MonoBehaviour
         return doMeio;
     }
 
+    /// <summary>Efeitos que so as sinergias dao: golpe pesado e explosaozinha ao acertar.</summary>
+    public void DefinirSinergias(bool pesado, float raioDaExplosao)
+    {
+        golpePesado = pesado;
+        explosaoAoAcertar = raioDaExplosao;
+    }
+
+    private bool golpePesado;
+    private float explosaoAoAcertar;
+
     private Lagrima Soltar(Vector2 origem, Vector2 velocidade)
     {
         Lagrima lagrima = CriarLagrima(origem);
+        lagrima.Pesada = golpePesado;
+        lagrima.RaioDaExplosao = explosaoAoAcertar;
 
         if (flecha == null || !flecha.Especial)
         {

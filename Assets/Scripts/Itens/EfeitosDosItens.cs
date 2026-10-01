@@ -37,6 +37,8 @@ public class EfeitosDosItens : MonoBehaviour
     private float somaInvencibilidade;
     private float invencibilidadeBase = -1f;
     private float curaAoLimparSala;
+    private bool fogoAoRenascer;
+    private bool espinhosNoEscudo;
 
     // Estado da partida.
     private bool renasceuJa;
@@ -123,6 +125,8 @@ public class EfeitosDosItens : MonoBehaviour
         furia = 0f;
         somaInvencibilidade = 0f;
         curaAoLimparSala = 0f;
+        fogoAoRenascer = false;
+        espinhosNoEscudo = false;
         float sorte = 1f, desconto = 0f, bomba = 1f;
         int quantosOrbes = 0;
 
@@ -142,6 +146,8 @@ public class EfeitosDosItens : MonoBehaviour
             furia += i.furia;
             somaInvencibilidade += i.somaInvencibilidade;
             curaAoLimparSala += i.curaAoLimparSala;
+            fogoAoRenascer |= i.fogoAoRenascer;
+            espinhosNoEscudo |= i.espinhosNoEscudo;
             sorte *= i.multiplicaSorte <= 0f ? 1f : i.multiplicaSorte;
             desconto = 1f - (1f - desconto) * (1f - Mathf.Clamp01(i.descontoNaLoja));
             bomba *= i.multiplicaBomba <= 0f ? 1f : i.multiplicaBomba;
@@ -199,6 +205,11 @@ public class EfeitosDosItens : MonoBehaviour
         MostrarEscudo();
         Sons.Tocar(Som.Pancada);
         TextoFlutuante.Mostrar(transform.position + Vector3.up * 0.9f, "Bloqueou!", new Color(1f, 0.85f, 0.35f));
+
+        // Bastiao de Espinhos: o bloqueio revida.
+        if (espinhosNoEscudo && danoDeEspinhos > 0f)
+            SoltarEspinhos();
+
         return true;
     }
 
@@ -235,6 +246,21 @@ public class EfeitosDosItens : MonoBehaviour
         Sons.Tocar(Som.Item);
         Explosao.Efeito(transform.position, 1.2f);
         TextoFlutuante.Mostrar(transform.position + Vector3.up * 1f, "Renasceu!", new Color(1f, 0.55f, 0.3f));
+
+        // Renascer em Chamas: anel de fogo e explosao que nao fere o jogador.
+        if (fogoAoRenascer)
+        {
+            Explosao.Estourar(transform.position, 2.5f, 40f, 0f, 8f, gameObject);
+
+            for (int i = 0; i < 16; i++)
+            {
+                float a = i * 22.5f * Mathf.Deg2Rad;
+                Vector2 rumo = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                TiroDaSala.Disparar((Vector2)transform.position + rumo * 0.5f, rumo * 6.5f, 25f, gameObject, false,
+                                    new Color(1f, 0.5f, 0.15f), 0.4f);
+            }
+        }
+
         return true;
     }
 
@@ -268,6 +294,11 @@ public class EfeitosDosItens : MonoBehaviour
         if (danoDeEspinhos <= 0f)
             return;
 
+        SoltarEspinhos();
+    }
+
+    private void SoltarEspinhos()
+    {
         Vector2 centro = transform.position;
 
         foreach (InimigoDeSala inimigo in InimigoDeSala.Ativos.ToArray())
