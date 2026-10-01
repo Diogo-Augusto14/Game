@@ -539,6 +539,22 @@ public static class ArteImportada
             ? Linha("Masmorra/Prisao/Tronco", 192, 0, 11, new RectInt(24, 26, 144, 46), new Vector2(96f, 49f), pixelsPorUnidade, 96)
             : Linha("Masmorra/Prisao/TroncoEmPe", 96, 0, 11, new RectInt(24, 8, 46, 132), new Vector2(47.5f, 74f), pixelsPorUnidade, 160);
 
+    /// <summary>
+    /// O portao de caveira do Old Prison com o pedaco de parede em volta (18 quadros: as duas
+    /// folhas abrem pra sala). Pivo no meio da parede de cima, como o vao e a grade da porta; a
+    /// 48 px por unidade fica com 2 de largura, o pe na linha do chao e o alto cortado rente a
+    /// parede (o arco passava pra fora da sala).
+    /// </summary>
+    public static Sprite[] PortaoDeCaveira
+        => Linha("Masmorra/Prisao/PortaoDeCaveira", 96, 0, 18, new RectInt(0, 27, 96, 91), new Vector2(48f, 51f), 48f, 118);
+
+    /// <summary>
+    /// Porta de madeira do Old Prison abrindo (9 quadros: fechada ate de lado), modelo 1 ou 2.
+    /// Pivo no meio da parede de cima; a 51 px por unidade cabe no vao (1.1 x 1.5).
+    /// </summary>
+    public static Sprite[] PortaDeMadeira(int modelo)
+        => Linha("Masmorra/Prisao/PortaDeMadeira" + (modelo == 2 ? 2 : 1), 96, 0, 9, new RectInt(14, 32, 68, 80), new Vector2(47f, 59f), 51f, 128);
+
     /// <summary>A alavanca de engrenagem do Old Prison (12 quadros: a manivela vai e volta).</summary>
     public static Sprite[] Alavanca
         => Linha("Masmorra/Prisao/Alavanca", 64, 0, 12, new RectInt(4, 20, 56, 40), new Vector2(32f, 57f), PixelsDaPrisao);

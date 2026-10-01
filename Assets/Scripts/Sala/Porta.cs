@@ -359,6 +359,24 @@ public class Porta : MonoBehaviour
     /// nada; com porta mostra o vao (passagem escura em cima, chao saindo nos outros lados) e a
     /// grade de ferro, que sobe quadro a quadro ao abrir.
     /// </summary>
+    /// <summary>Quadros do portao especial desta porta (caveira, madeira), do fechado ao aberto; null = a grade.</summary>
+    private Sprite[] portaoEspecial;
+
+    /// <summary>
+    /// Porta de cima de sala pronta que leva a uma sala especial: no lugar da grade, outro portao
+    /// do Old Prison (o de caveira do chefe, as portas de madeira da loja e do item), com os
+    /// quadros do fechado (0) ao aberto. Devolve false (e nao muda nada) se nao couber.
+    /// </summary>
+    public bool UsarPortaoEspecial(Sprite[] quadros)
+    {
+        if (quadros == null || quadros.Length == 0 || lado != LadoDaPorta.Cima || Sala == null || !Sala.ComFundo)
+            return false;
+
+        portaoEspecial = quadros;
+        AplicarEstado();
+        return true;
+    }
+
     private void AplicarEstadoDaPrisao(bool parede)
     {
         bool direita = lado == LadoDaPorta.Direita;
@@ -379,7 +397,7 @@ public class Porta : MonoBehaviour
 
         // A grade de frente da porta de cima em todas as portas: as grades de baixo e dos lados
         // do pack eram umas hastes finas que nem pareciam fechar a passagem. Nos lados ela gira.
-        Sprite[] grade = parede ? null : ArteImportada.GradeDaPrisao(LadoDaPorta.Cima);
+        Sprite[] grade = parede ? null : portaoEspecial ?? ArteImportada.GradeDaPrisao(LadoDaPorta.Cima);
         desenho.enabled = grade != null;
 
         if (grade == null)

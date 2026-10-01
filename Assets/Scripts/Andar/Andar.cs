@@ -1575,6 +1575,16 @@ public class Andar : MonoBehaviour
         else
             return;
 
+        // Porta de cima pro chefe: o portao de caveira do Old Prison ja diz tudo (sem bandeiras).
+        // Pra loja e pro item, as portas de madeira, com as bandeiras do lado.
+        if (cor == corDoBatenteDoChefe && porta.UsarPortaoEspecial(ArteImportada.PortaoDeCaveira))
+            return;
+
+        if (cor == corDoBatenteDaLoja)
+            porta.UsarPortaoEspecial(ArteImportada.PortaDeMadeira(1));
+        else if (cor == corDoBatenteDoItem)
+            porta.UsarPortaoEspecial(ArteImportada.PortaDeMadeira(2));
+
         Vector2 eixo = porta.Lado.Horizontal() ? Vector2.right : Vector2.up;
         const float MEIA_PORTA = 0.75f;
         const float LADO = 0.4f;
