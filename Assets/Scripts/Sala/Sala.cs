@@ -260,8 +260,20 @@ public class Sala : MonoBehaviour
             EfeitoDeQuadros.Criar(tocha, 8f, (Vector2)transform.position + local, 1, cenario)?.EmLoop();
         }
 
+        // Bandeiras do Old Prison penduradas na parede de cima, perto dos cantos.
+        for (int lado = -1; lado <= 1; lado += 2)
+        {
+            Sprite bandeira = ArteImportada.BandeiraDaPrisao(Random.Range(0, 7));
+
+            if (bandeira == null)
+                break;
+
+            Vector2 local = new Vector2(lado * meio.x * 0.78f, meio.y + espessuraDaParede * 0.35f);
+            FormasDaSala.Desenho(cenario, "Bandeira", bandeira, Color.white, local, Vector2.one, 1);
+        }
+
         // Candelabro: meia chance, num canto que nao tenha pedra nem espinho.
-        Sprite[] candelabro = ArteImportada.Candelabro(16f);
+        Sprite[] candelabro = ArteImportada.CandelabroDaPrisao() ?? ArteImportada.Candelabro(16f);
 
         if (candelabro != null && Random.value < (tema != null ? tema.ChanceDeCandelabro : 0.5f))
         {

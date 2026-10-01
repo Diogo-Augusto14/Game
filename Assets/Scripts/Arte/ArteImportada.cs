@@ -307,6 +307,15 @@ public static class ArteImportada
     /// </summary>
     public static Sprite EnfeiteAleatorio(float chanceDeOsso)
     {
+        // Old Prison: ossos, caveiras (25 primeiras celulas) e pedras quebradas (10 ultimas).
+        Sprite[] prisao = Linha("Masmorra/Temas/PrisaoEnfeites", 32, 0, 35, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
+
+        if (prisao != null && prisao.Length >= 35)
+        {
+            bool osso = Random.value < Mathf.Max(chanceDeOsso, 0.45f);
+            return osso ? prisao[Random.Range(0, 25)] : prisao[Random.Range(25, 35)];
+        }
+
         if (Random.value < chanceDeOsso)
         {
             // Objetos.png: caveira na coluna 2 da linha 3, ossos na coluna 2 da linha 4.
@@ -346,6 +355,17 @@ public static class ArteImportada
     public static Sprite[] TochaDeParede(float pixelsPorUnidade)
         => Linha("Masmorra/Tocha", 16, 0, 6, new RectInt(0, 0, 16, 28), new Vector2(8f, 20f), pixelsPorUnidade, 28);
 
+    /// <summary>Bandeira de parede do Old Prison (7 modelos), ou null sem a arte.</summary>
+    public static Sprite BandeiraDaPrisao(int modelo)
+    {
+        Sprite[] todas = Linha("Masmorra/Temas/PrisaoBandeiras", 32, 0, 7, new RectInt(0, 0, 32, 40), new Vector2(16f, 20f), PixelsDaPrisao, 40);
+        return todas != null && todas.Length > 0 ? todas[Mathf.Abs(modelo) % todas.Length] : null;
+    }
+
+    /// <summary>Candelabro alto do Old Prison com as velas acesas (2 quadros), pivo no pe.</summary>
+    public static Sprite[] CandelabroDaPrisao()
+        => Linha("Masmorra/Temas/PrisaoCandelabros", 32, 0, 2, new RectInt(0, 0, 32, 64), new Vector2(16f, 62f), PixelsDaPrisao, 64);
+
     /// <summary>Candelabro de chao com a chama tremendo (4 quadros de 16x16), pivo no pe.</summary>
     public static Sprite[] Candelabro(float pixelsPorUnidade)
         => Linha("Masmorra/Candelabro", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 15f), pixelsPorUnidade);
@@ -375,7 +395,10 @@ public static class ArteImportada
     public static Sprite Runa => Inteira("Masmorra/Temas/Runa", PixelsDoLadrilho);
 
     private static Sprite DoTema(string nome)
-        => string.IsNullOrEmpty(nome) ? null : Inteira("Masmorra/Temas/" + nome, PixelsDoLadrilho);
+        => string.IsNullOrEmpty(nome) ? null : Inteira("Masmorra/Temas/" + nome, nome.StartsWith("Prisao") ? PixelsDaPrisao : PixelsDoLadrilho);
+
+    /// <summary>EPIC RPG World Pack - Old Prison: ladrilhos de 32 px, 32 pixels por unidade (1 ladrilho = 1 unidade).</summary>
+    private const float PixelsDaPrisao = 32f;
 
     /// <summary>Portao de grade: quadro 0 fechado, 4 aberto (a parte de cima da folha, 16x16).</summary>
     public static Sprite Portao(bool aberto)
