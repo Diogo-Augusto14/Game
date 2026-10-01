@@ -258,6 +258,21 @@ public class Sala : MonoBehaviour
         {
             Vector2 local = new Vector2(lado * meio.x * 0.5f, meio.y + espessuraDaParede * 0.1f);
             EfeitoDeQuadros.Criar(tocha, 8f, (Vector2)transform.position + local, 1, cenario)?.EmLoop();
+            HaloCintilante.Criar(cenario, local + Vector2.down * 0.2f, 3.4f, new Color(1f, 0.7f, 0.3f, 0.3f));
+        }
+
+        // Tapete roxo na frente de cada porta que existe, como nas salas do pack Crypt.
+        foreach (var par in portas)
+        {
+            if (par.Value == null || !par.Value.Existe)
+                continue;
+
+            bool vertical = par.Key == LadoDaPorta.Cima || par.Key == LadoDaPorta.Baixo;
+            Vector2 direcao = par.Key == LadoDaPorta.Cima ? Vector2.up : par.Key == LadoDaPorta.Baixo ? Vector2.down
+                : par.Key == LadoDaPorta.Esquerda ? Vector2.left : Vector2.right;
+            Vector2 centroDoTapete = Vector2.Scale(meio, direcao) - direcao * 0.9f;
+            FormasDaSala.Desenho(cenario, "Tapete", FormasDaSala.Quadrado(), new Color(0.42f, 0.18f, 0.48f, 0.6f),
+                                 centroDoTapete, vertical ? new Vector2(1.5f, 2f) : new Vector2(2f, 1.5f), -9);
         }
 
         // Bandeiras do Old Prison penduradas na parede de cima, perto dos cantos.
@@ -281,7 +296,10 @@ public class Sala : MonoBehaviour
             Vector2 local = new Vector2(canto.x * (meio.x - 0.6f), canto.y * (meio.y - 0.6f));
 
             if (Livre(local, 0.2f))
+            {
                 EfeitoDeQuadros.Criar(candelabro, 6f, (Vector2)transform.position + local + Vector2.down * 0.45f, -8, cenario)?.EmLoop();
+                HaloCintilante.Criar(cenario, local + Vector2.up * 0.9f, 2.6f, new Color(1f, 0.75f, 0.35f, 0.26f));
+            }
         }
     }
 
