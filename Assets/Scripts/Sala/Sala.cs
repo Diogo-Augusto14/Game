@@ -263,7 +263,7 @@ public class Sala : MonoBehaviour
         if (ComFundo)
         {
             for (int lado = -1; lado <= 1; lado += 2)
-                HaloCintilante.Criar(cenario, new Vector2(lado * 3.25f, meio.y + 0.15f), 3.2f, new Color(1f, 0.72f, 0.35f, 0.32f));
+                HaloCintilante.Criar(cenario, new Vector2(lado * 3.25f, meio.y + 0.15f), 2f, new Color(1f, 0.72f, 0.35f, 0.16f));
         }
 
         Sprite[] tocha = ComFundo ? null : ArteImportada.TochaDeParede(32f);
