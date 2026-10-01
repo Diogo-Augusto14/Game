@@ -3,7 +3,11 @@ using UnityEngine;
 public enum TipoDeObstaculo
 {
     Pedra,
-    Espinhos
+    Espinhos,
+    /// <summary>Bloco de parede que da forma a sala (nao quebra).</summary>
+    Muro,
+    /// <summary>Buraco no chao: bloqueia andar, nao bloqueia tiro.</summary>
+    Fosso
 }
 
 /// <summary>

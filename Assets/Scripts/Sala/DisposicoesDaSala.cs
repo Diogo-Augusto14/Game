@@ -8,7 +8,7 @@ using UnityEngine;
 /// Dois jeitos de escrever um desenho:
 ///   - QUARTO: so um quarto da sala (x de 1 a 6, y de 1 a 3, em ladrilhos a partir do
 ///     centro), espelhado pros outros tres. Como x e y nunca sao 0, a cruz do meio fica livre.
-///   - SALA INTEIRA: 7 linhas de 13 letras, a de cima primeiro ('P' pedra, 'E' espinhos,
+///   - SALA INTEIRA: 7 linhas de 13 letras, a de cima primeiro ('P' pedra, 'E' espinhos, 'M' bloco de parede que nao quebra (da forma a sala), 'F' buraco no chao,
 ///     '.' livre). Da pra fazer desenho torto; o gerador ainda espelha na horizontal e na
 ///     vertical, entao cada um vira ate quatro.
 ///
@@ -36,10 +36,15 @@ public static class DisposicoesDaSala
         public string Nome;
         public readonly List<Peca> Pecas = new List<Peca>();
         public bool TemEspinho;
+
+        /// <summary>Tem bloco de parede ou buraco: muda o formato da sala, nao so enfeita.</summary>
+        public bool DaForma;
     }
 
     private const TipoDeObstaculo P = TipoDeObstaculo.Pedra;
     private const TipoDeObstaculo E = TipoDeObstaculo.Espinhos;
+    private const TipoDeObstaculo M = TipoDeObstaculo.Muro;
+    private const TipoDeObstaculo F = TipoDeObstaculo.Fosso;
 
     /// <summary>Metade da sala em ladrilhos (sala 13x7: x de -6 a 6, y de -3 a 3).</summary>
     private const int MEIA_LARGURA = 6;
@@ -59,6 +64,116 @@ public static class DisposicoesDaSala
 
     private static readonly (string nome, string[] linhas)[] Inteiras =
     {
+        ("Sala em L", new[]
+        {
+            ".......MMMMMM",
+            ".......MMMMMM",
+            ".......MMMMMM",
+            ".............",
+            ".............",
+            ".............",
+            ".............",
+        }),
+        ("Corredor", new[]
+        {
+            "MMMMM...MMMMM",
+            "MMMMM...MMMMM",
+            ".............",
+            ".............",
+            ".............",
+            "MMMMM...MMMMM",
+            "MMMMM...MMMMM",
+        }),
+        ("Cruz", new[]
+        {
+            "MMM.......MMM",
+            "MMM.......MMM",
+            ".............",
+            ".............",
+            ".............",
+            "MMM.......MMM",
+            "MMM.......MMM",
+        }),
+        ("Cruzeiro", new[]
+        {
+            "MMMM.....MMMM",
+            "MMMM.....MMMM",
+            "MMMM.....MMMM",
+            ".............",
+            "MMMM.....MMMM",
+            "MMMM.....MMMM",
+            "MMMM.....MMMM",
+        }),
+        ("Tres naves", new[]
+        {
+            "....M...M....",
+            "....M...M....",
+            ".............",
+            ".............",
+            ".............",
+            "....M...M....",
+            "....M...M....",
+        }),
+        ("Diagonal", new[]
+        {
+            "MMMM.........",
+            "MMM..........",
+            "MM...........",
+            ".............",
+            "...........MM",
+            "..........MMM",
+            ".........MMMM",
+        }),
+        ("Fossos laterais", new[]
+        {
+            ".............",
+            ".............",
+            "..FFF...FFF..",
+            "..FFF...FFF..",
+            "..FFF...FFF..",
+            ".............",
+            ".............",
+        }),
+        ("Fendas", new[]
+        {
+            "....F...F....",
+            "....F...F....",
+            ".............",
+            ".............",
+            ".............",
+            "....F...F....",
+            "....F...F....",
+        }),
+        ("Lagoa", new[]
+        {
+            ".FFF.........",
+            ".FFFF........",
+            "..FFF........",
+            ".............",
+            "........FFF..",
+            "........FFFF.",
+            ".........FF..",
+        }),
+        ("Ilhas de fosso", new[]
+        {
+            ".............",
+            ".FFF.....FFF.",
+            ".F.........F.",
+            ".............",
+            ".F.........F.",
+            ".FFF.....FFF.",
+            ".............",
+        }),
+        ("Muros e fosso", new[]
+        {
+            "MM.........MM",
+            "M..FFF.FFF..M",
+            ".............",
+            ".............",
+            ".............",
+            "M..FFF.FFF..M",
+            "MM.........MM",
+        }),
         ("Xis", new[]
         {
             ".............",
@@ -256,8 +371,17 @@ public static class DisposicoesDaSala
         List<int> lista = new List<int>();
 
         for (int i = 0; i < Plantas.Count; i++)
-            if (comEspinhos || !Plantas[i].TemEspinho)
+        {
+            if (!comEspinhos && Plantas[i].TemEspinho)
+                continue;
+
+            lista.Add(i);
+
+            // Os desenhos que mudam o formato da sala entram em dobro: sao o que mais tira
+            // a cara de "mesmo quadrado de sempre".
+            if (Plantas[i].DaForma)
                 lista.Add(i);
+        }
 
         return lista;
     }
@@ -293,6 +417,8 @@ public static class DisposicoesDaSala
             Vector2Int c = peca.Celula;
             sala.PorObstaculo(peca.Tipo, new Vector2Int(espelharX ? -c.x : c.x, espelharY ? -c.y : c.y));
         }
+
+        sala.AcabarObstaculos();
     }
 
     // ---------------- montagem e conferencia ----------------
@@ -332,7 +458,7 @@ public static class DisposicoesDaSala
                     if (letra == '.')
                         continue;
 
-                    TipoDeObstaculo tipo = letra == 'E' ? E : P;
+                    TipoDeObstaculo tipo = letra == 'E' ? E : letra == 'M' ? M : letra == 'F' ? F : P;
                     planta.Pecas.Add(new Peca(tipo, coluna - MEIA_LARGURA, MEIA_ALTURA - linha));
                 }
             }
@@ -350,8 +476,13 @@ public static class DisposicoesDaSala
     private static void Guardar(Planta planta)
     {
         foreach (Peca peca in planta.Pecas)
+        {
             if (peca.Tipo == E)
                 planta.TemEspinho = true;
+
+            if (peca.Tipo == M || peca.Tipo == F)
+                planta.DaForma = true;
+        }
 
         if (Jogavel(planta))
             plantas.Add(planta);
