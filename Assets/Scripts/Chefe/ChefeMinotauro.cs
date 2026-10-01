@@ -45,7 +45,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
 
     [SerializeField, Min(0.1f)] private float velocidadeDoTiro = 3.8f;
 
-    [SerializeField, Min(0.05f)] private float diametroDoTiro = 0.34f;
+    [SerializeField, Min(0.05f)] private float diametroDoTiro = 0.5f;   // a lasca de pedra: desenho e colisor crescem juntos
 
     [SerializeField] private Color corDoTiro = new Color(0.85f, 0.6f, 0.35f);
 
