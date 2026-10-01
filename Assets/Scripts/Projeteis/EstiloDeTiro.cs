@@ -257,14 +257,17 @@ public static class EstilosDeTiro
                     tamanhoDoImpacto = 0.9f,
                 };
 
-            // Minotauro: onda de choque (o risco de luz) atravessada no rumo, cortando o ar.
+            // Minotauro: lasca de pedra que ele arranca do chao, girando. O risco de luz comprido de
+            // antes era tres vezes maior que o colisor e, com o giro soltando dezenas deles, a sala
+            // virava uma parede laranja sem saida aparente. Agora o desenho e do tamanho do que
+            // acerta, e o rastro curto e fraco so mostra o rumo.
             case EstiloDeTiro.OndaDeChoque:
-                return new AparenciaDoProjetil(ArteImportada.Corte(Pixels), new Color(1f, 0.7f, 0.35f), 2.6f)
+                return new AparenciaDoProjetil(ArteImportada.Pedra(1, Pixels), new Color(1f, 0.78f, 0.55f), 1.6f)
                 {
-                    pulso = 0.1f,
-                    ritmoDoPulso = 8f,
-                    intervaloDoRastro = 0.04f,
-                    corDoRastro = new Color(1f, 0.55f, 0.2f, 0.4f),
+                    apontar = false,
+                    giro = 360f,
+                    intervaloDoRastro = 0.08f,
+                    corDoRastro = new Color(1f, 0.6f, 0.3f, 0.2f),
                     impacto = EfeitoDeImpacto.Poeira,
                     corDoImpacto = new Color(1f, 0.8f, 0.6f),
                     tamanhoDoImpacto = 0.6f,

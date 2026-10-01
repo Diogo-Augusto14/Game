@@ -11,8 +11,9 @@ using UnityEngine;
 ///               rapidinho), soltando pedras a cada batida
 ///   Pisao    -> ergue o machado e bate no chao: ondas de tiros saem dele, uma atras da
 ///               outra, com um buraco que muda de lugar a cada onda
-///   Giro     -> gira o machado andando atras do jogador, soltando tiros em quatro
-///               direcoes que vao girando. Encostar nele doi mais
+///   Giro     -> gira o machado andando devagar atras do jogador, soltando lascas de pedra
+///               em quatro direcoes que vao girando aos poucos (corredores largos entre
+///               elas). Encostar nele doi mais
 ///   Invocar  -> (so na segunda fase) chama dois orcs
 ///
 /// Com metade da vida entra na SEGUNDA FASE: ricocheteia mais vezes, o pisao solta uma
@@ -75,16 +76,16 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
     [SerializeField, Min(4)] private int tirosPorOnda = 20;
 
     [Tooltip("Quantos tiros faltam no buraco de cada onda")]
-    [SerializeField, Min(1)] private int tamanhoDoBuraco = 3;
+    [SerializeField, Min(1)] private int tamanhoDoBuraco = 4;
 
     [Header("Giro")]
     [SerializeField, Min(0f)] private float avisoDoGiro = 0.6f;
 
-    [SerializeField, Min(0.1f)] private float duracaoDoGiro = 2.4f;
+    [SerializeField, Min(0.1f)] private float duracaoDoGiro = 2f;
 
-    [SerializeField, Min(0.03f)] private float intervaloDoGiro = 0.16f;
+    [SerializeField, Min(0.03f)] private float intervaloDoGiro = 0.3f;
 
-    [SerializeField, Min(0f)] private float velocidadeNoGiro = 2.2f;
+    [SerializeField, Min(0f)] private float velocidadeNoGiro = 1.6f;
 
     [SerializeField, Min(0f)] private float danoNoGiro = 20f;
 
@@ -419,10 +420,12 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
 
         if (!proximoDisparo.Ativo)
         {
+            // Mais devagar que os outros tiros e virando pouco por rajada: as quatro linhas formam
+            // corredores largos, e da pra andar entre elas acompanhando o giro.
             for (int i = 0; i < 4; i++)
-                Atirar(Rumo(anguloDoGiro + i * 90f), 1f);
+                Atirar(Rumo(anguloDoGiro + i * 90f), 0.8f);
 
-            anguloDoGiro += segundaFase ? 17f : 12f;
+            anguloDoGiro += segundaFase ? 14f : 10f;
             proximoDisparo.Forcar(intervaloDoGiro);
 
             // A animacao do giro recomeca enquanto durar.
