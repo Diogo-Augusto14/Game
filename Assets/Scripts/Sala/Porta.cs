@@ -202,6 +202,16 @@ public class Porta : MonoBehaviour
         progresso = 0f;
         AplicarEstado();
 
+        // Sala pronta do Old Prison: a dica e a propria parede rachada, na cor do tema.
+        Sprite rachada = Sala != null && Sala.ComFundo ? ArteImportada.RachaduraDaPrisao(lado) : null;
+
+        if (rachada != null)
+        {
+            SpriteRenderer sr = FormasDaSala.Desenho(transform, "Rachadura", rachada, Color.white, Vector2.zero, Vector2.one, 1);
+            sr.flipX = lado == LadoDaPorta.Direita;
+            return;
+        }
+
         // A dica do Isaac: uma rachadura na parede, pra quem prestar atencao.
         Vector2 eixo = lado.Horizontal() ? Vector2.right : Vector2.up;
         Vector2 cruzado = lado.Horizontal() ? Vector2.up : Vector2.right;

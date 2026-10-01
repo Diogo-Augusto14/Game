@@ -379,6 +379,28 @@ public static class ArteImportada
         }
     }
 
+    /// <summary>
+    /// Parede rachada do Old Prison, na cor do tema, desenhada sobre o vao da porta secreta: tijolos
+    /// faltando e uma rachadura descendo pelas juntas. Mesmo pivo do vao; null sem a arte.
+    /// </summary>
+    public static Sprite RachaduraDaPrisao(LadoDaPorta lado)
+    {
+        string tema = TemaDoAndar.Atual?.Sala;
+
+        if (string.IsNullOrEmpty(tema))
+            return null;
+
+        switch (lado)
+        {
+            case LadoDaPorta.Cima:
+                return Unico("Masmorra/Temas/PrisaoRachaduraCima" + tema, 48, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
+            case LadoDaPorta.Baixo:
+                return Unico("Masmorra/Temas/PrisaoRachaduraBaixo" + tema, 48, new RectInt(0, 0, 48, 32), new Vector2(24f, 16f), PixelsDaPrisao, 32);
+            default:
+                return Unico("Masmorra/Temas/PrisaoRachaduraLado" + tema, 32, new RectInt(0, 0, 32, 48), new Vector2(16f, 24f), PixelsDaPrisao, 48);
+        }
+    }
+
     /// <summary>A grade de ferro da porta (5 quadros: 0 fechada, 4 aberta), mesmo pivo do vao.</summary>
     public static Sprite[] GradeDaPrisao(LadoDaPorta lado)
     {
