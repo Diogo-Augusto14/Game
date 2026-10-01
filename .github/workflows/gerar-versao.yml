@@ -1,0 +1,184 @@
+# Gera o jogo para Windows na nuvem, sem depender do PC: build no Unity, zip com o lançador
+# (o mesmo Lancador\gerar-versao.ps1 usado no PC) e, se pedido, publicação no ThePrettie-Releases.
+# Só roda quando alguém aperta "Run workflow" na aba Actions. Segredos e passo a passo: Lancador/LEIAME.md
+name: Gerar versão do jogo
+run-name: "Versão ${{ inputs.versao }}${{ inputs.publicar && ' (publicar)' || ' (só o zip)' }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: "Número da versão, no formato 1.2.3 (sem o v)"
+        required: true
+        type: string
+      publicar:
+        description: "Publicar no ThePrettie-Releases (o lançador de todo mundo baixa sozinho)"
+        required: false
+        type: boolean
+        default: false
+      notas:
+        description: "Novidades da versão (opcional; se existir Lancador/notas/<versão>.md, ele é usado)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gerar-versao
+  cancel-in-progress: false
+
+env:
+  VERSAO: ${{ inputs.versao }}
+  REPO_RELEASES: Diogo-Augusto14/ThePrettie-Releases
+
+jobs:
+  build:
+    name: Build do Windows no Unity
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Conferir versão e segredos
+        env:
+          PUBLICAR: ${{ inputs.publicar }}
+          TEM_LICENCA: ${{ secrets.UNITY_LICENSE != '' }}
+          TEM_EMAIL: ${{ secrets.UNITY_EMAIL != '' }}
+          TEM_SENHA: ${{ secrets.UNITY_PASSWORD != '' }}
+          TEM_TOKEN: ${{ secrets.TOKEN_RELEASES != '' }}
+          GH_TOKEN: ${{ secrets.TOKEN_RELEASES }}
+        run: |
+          erro=0
+          if ! [[ "$VERSAO" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Versão \"$VERSAO\" inválida. Use o formato 1.2.3, sem o v na frente."
+            erro=1
+          fi
+          [ "$TEM_LICENCA" = true ] || { echo "::error::Falta o segredo UNITY_LICENSE (o texto do arquivo Unity_lic.ulf)."; erro=1; }
+          [ "$TEM_EMAIL" = true ] || { echo "::error::Falta o segredo UNITY_EMAIL."; erro=1; }
+          [ "$TEM_SENHA" = true ] || { echo "::error::Falta o segredo UNITY_PASSWORD."; erro=1; }
+          if [ "$PUBLICAR" = true ] && [ "$erro" = 0 ]; then
+            if [ "$TEM_TOKEN" != true ]; then
+              echo "::error::Para publicar falta o segredo TOKEN_RELEASES."
+              erro=1
+            elif saida=$(gh release view "v$VERSAO" --repo "$REPO_RELEASES" --json tagName 2>&1); then
+              echo "::error::A versão v$VERSAO já está publicada no $REPO_RELEASES. Use outro número."
+              erro=1
+            elif ! grep -qi "not found" <<< "$saida"; then
+              echo "::error::Não consegui consultar o $REPO_RELEASES com o TOKEN_RELEASES: $saida"
+              erro=1
+            fi
+          fi
+          exit "$erro"
+
+      # A imagem do Unity para Windows tem uns 6 GB; sem isso o disco da máquina da nuvem enche.
+      - name: Liberar espaço em disco
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: false
+
+      - name: Baixar o código
+        uses: actions/checkout@v7
+
+      # A pasta Library guarda a importação dos assets; reaproveitar deixa os próximos builds mais rápidos.
+      - name: Recuperar a pasta Library do build anterior
+        id: library
+        uses: actions/cache/restore@v6
+        with:
+          path: Library
+          key: Library-Windows-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-Windows-
+
+      - name: Fazer o build no Unity
+        uses: game-ci/unity-builder@v5
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: StandaloneWindows64
+          buildName: ThePrettie
+          buildsPath: build
+          versioning: Custom
+          version: ${{ inputs.versao }}
+
+      - name: Guardar a pasta Library para o próximo build
+        if: steps.library.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        timeout-minutes: 10
+        continue-on-error: true
+        with:
+          path: Library
+          key: ${{ steps.library.outputs.cache-primary-key }}
+
+      - name: Passar o build para a montagem do zip
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-windows
+          path: |
+            build/StandaloneWindows64
+            !build/StandaloneWindows64/*DoNotShip*/**
+          if-no-files-found: error
+          retention-days: 1
+
+  zip:
+    name: Zip com o lançador${{ inputs.publicar && ' e publicação' || '' }}
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v7
+
+      - name: Trazer o build do Unity
+        uses: actions/download-artifact@v8
+        with:
+          name: build-windows
+          path: Builds/Windows
+
+      # Mesmo script do PC: compila o lançador, grava versao.txt e monta Builds\ThePrettie-Windows-<versão>.zip.
+      - name: Montar o zip
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File Lancador\gerar-versao.ps1 -Versao $env:VERSAO
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Guardar o zip para download
+        uses: actions/upload-artifact@v7
+        with:
+          path: Builds/ThePrettie-Windows-${{ inputs.versao }}.zip
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publicar no ThePrettie-Releases
+        if: inputs.publicar
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN_RELEASES }}
+          NOTAS: ${{ inputs.notas }}
+        run: |
+          $notas = "Lancador/notas/$env:VERSAO.md"
+          if (-not (Test-Path $notas)) {
+            $notas = Join-Path $env:RUNNER_TEMP 'notas.md'
+            $texto = if ($env:NOTAS) { $env:NOTAS } else { "The Prettie $env:VERSAO para Windows." }
+            Set-Content -Path $notas -Value $texto -Encoding utf8NoBOM
+          }
+          gh release create "v$env:VERSAO" "Builds/ThePrettie-Windows-$env:VERSAO.zip" --repo $env:REPO_RELEASES --title "The Prettie $env:VERSAO" --notes-file $notas --latest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Resumo
+        shell: pwsh
+        env:
+          PUBLICAR: ${{ inputs.publicar }}
+        run: |
+          $linhas = @("### The Prettie $env:VERSAO", "", "O zip ThePrettie-Windows-$env:VERSAO.zip está em **Artifacts**, no fim desta página (fica guardado por 30 dias).")
+          if ($env:PUBLICAR -eq 'true') {
+            $linhas += @("", "Publicado: https://github.com/$env:REPO_RELEASES/releases/tag/v$env:VERSAO. O lançador baixa sozinho na próxima vez que alguém abrir o jogo.")
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $linhas -Encoding utf8
