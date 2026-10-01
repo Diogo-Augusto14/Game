@@ -176,7 +176,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
     {
         ChecarSegundaFase();
         recarga.Contar(dt);
-        Tingir(Color.white);
+        PintarCorpo(Color.white);
 
         // Vai pra cima do jogador, sem pressa.
         Vector2 alvo = ParaOJogador();
@@ -513,7 +513,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
     {
         Frear();
         recuperacao.Contar(dt);
-        Tingir(Color.Lerp(Color.white, Color.gray, 0.5f));
+        PintarCorpo(Color.Lerp(Color.white, Color.gray, 0.5f));
 
         if (recuperacao.Ativo)
             return;
@@ -530,7 +530,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
             case Ataque.Chifrada:
                 // Raspa o casco (treme, poeira) e mostra a linha de mira, que segue o jogador ate o fim.
                 // Avermelha so um pouco: quem avisa o perigo e a linha no chao.
-                Tingir(Color.Lerp(Color.white, new Color(1f, 0.72f, 0.65f), t));
+                PintarCorpo(Color.Lerp(Color.white, new Color(1f, 0.72f, 0.65f), t));
                 Rastro.Poeira(RumoParaOJogador());
                 Rastro.MostrarMira(RumoParaOJogador(), t);
                 if (animacao != null)
@@ -541,19 +541,19 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
 
             case Ataque.Pisao:
                 // Estica pra cima: vai bater no chao.
-                Tingir(Color.Lerp(Color.white, new Color(1f, 0.75f, 0.3f), t));
+                PintarCorpo(Color.Lerp(Color.white, new Color(1f, 0.75f, 0.3f), t));
                 if (corpo != null)
                     corpo.localScale = new Vector3(escalaDoCorpo.x * (1f - 0.12f * t), escalaDoCorpo.y * (1f + 0.18f * t), 1f);
                 break;
 
             case Ataque.Giro:
-                Tingir(Color.Lerp(Color.white, new Color(0.4f, 0.9f, 1f), t));
+                PintarCorpo(Color.Lerp(Color.white, new Color(0.4f, 0.9f, 1f), t));
                 if (corpo != null)
                     corpo.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(t * Mathf.PI * 6f) * 10f * t);
                 break;
 
             case Ataque.Invocar:
-                Tingir(Color.Lerp(Color.white, new Color(0.5f, 0.8f, 0.3f), t));
+                PintarCorpo(Color.Lerp(Color.white, new Color(0.5f, 0.8f, 0.3f), t));
                 if (corpo != null)
                     corpo.localScale = escalaDoCorpo * (1f + 0.08f * Mathf.Sin(t * Mathf.PI * 4f));
                 break;
@@ -571,7 +571,9 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
         Rastro.EsconderMira();
     }
 
-    private void Tingir(Color cor)
+    // Cor de cada momento (aviso de ataque, cansado), com o tom da segunda fase por cima.
+    // Nao e o Tingir do InimigoDeSala: aquele troca a cor fixa do bicho (campeao).
+    private void PintarCorpo(Color cor)
     {
         if (segundaFase)
             cor = Color.Lerp(cor, Color.red, 0.3f);

@@ -186,7 +186,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
     {
         ChecarSegundaFase();
         recarga.Contar(dt);
-        Tingir(Color.white);
+        PintarCorpo(Color.white);
 
         // Mantem distancia: perto demais recua, longe demais chega perto.
         Vector2 alvo = ParaOJogador();
@@ -629,7 +629,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
         AtualizarOssos();
         Frear();
         recuperacao.Contar(dt);
-        Tingir(Color.Lerp(Color.white, Color.gray, 0.5f));
+        PintarCorpo(Color.Lerp(Color.white, Color.gray, 0.5f));
 
         if (recuperacao.Ativo)
             return;
@@ -657,17 +657,17 @@ public class ChefeNecromante : InimigoDeSala, IChefe
         {
             case Ataque.Sumico:
                 // Encolhe e fica roxo.
-                Tingir(Color.Lerp(Color.white, new Color(0.6f, 0.3f, 1f), t));
+                PintarCorpo(Color.Lerp(Color.white, new Color(0.6f, 0.3f, 1f), t));
                 if (corpo != null)
                     corpo.localScale = escalaDoCorpo * (1f - 0.4f * t);
                 break;
 
             case Ataque.Ossos:
-                Tingir(Color.Lerp(Color.white, new Color(1f, 0.35f, 0.3f), t));
+                PintarCorpo(Color.Lerp(Color.white, new Color(1f, 0.35f, 0.3f), t));
                 break;
 
             case Ataque.Muralha:
-                Tingir(Color.Lerp(Color.white, new Color(0.3f, 1f, 0.5f), t));
+                PintarCorpo(Color.Lerp(Color.white, new Color(0.3f, 1f, 0.5f), t));
 
                 // O buraco da muralha pisca: e ali que tem de ficar.
                 foreach (SpriteRenderer faixa in buracos)
@@ -683,7 +683,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
                 break;
 
             case Ataque.Invocar:
-                Tingir(Color.Lerp(Color.white, new Color(0.5f, 0.5f, 0.6f), t));
+                PintarCorpo(Color.Lerp(Color.white, new Color(0.5f, 0.5f, 0.6f), t));
                 if (corpo != null)
                     corpo.localScale = escalaDoCorpo * (1f + 0.08f * Mathf.Sin(t * Mathf.PI * 4f));
                 break;
@@ -696,7 +696,9 @@ public class ChefeNecromante : InimigoDeSala, IChefe
             corpo.localScale = escalaDoCorpo;
     }
 
-    private void Tingir(Color cor)
+    // Cor de cada momento (aviso de ataque, cansado), com o tom da segunda fase por cima.
+    // Nao e o Tingir do InimigoDeSala: aquele troca a cor fixa do bicho (campeao).
+    private void PintarCorpo(Color cor)
     {
         if (segundaFase)
             cor = Color.Lerp(cor, new Color(0.8f, 0.4f, 1f), 0.35f);

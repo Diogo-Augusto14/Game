@@ -345,7 +345,7 @@ public class EfeitosDosItens : MonoBehaviour
             proximaBuscaDoIma = Time.time + 0.25f;
             coletaveisPerto.Clear();
 
-            foreach (Coletavel c in FindObjectsByType<Coletavel>(FindObjectsSortMode.None))
+            foreach (Coletavel c in FindObjectsByType<Coletavel>())
                 if (((Vector2)(c.transform.position - transform.position)).sqrMagnitude <= raioDoIma * raioDoIma && Serve(c))
                     coletaveisPerto.Add(c);
         }
