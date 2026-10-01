@@ -6,8 +6,9 @@ using UnityEngine;
 /// RPG bem maior. Briga no corpo a corpo e alterna entre quatro ataques, cada um com o
 /// seu aviso:
 ///
-///   Chifrada -> raspa o casco, mostra uma linha de mira e dispara reto. Bate na parede e
-///               RICOCHETEIA (a mira nova aparece rapidinho), soltando pedras a cada batida
+///   Chifrada -> raspa o casco (poeira), mostra uma sombra curta no rumo e dispara reto,
+///               deixando um rastro. Bate na parede e RICOCHETEIA (a sombra nova aparece
+///               rapidinho), soltando pedras a cada batida
 ///   Pisao    -> ergue o machado e bate no chao: ondas de tiros saem dele, uma atras da
 ///               outra, com um buraco que muda de lugar a cada onda
 ///   Giro     -> gira o machado andando atras do jogador, soltando tiros em quatro
@@ -120,29 +121,26 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
 
     private Transform corpo;
     private Vector3 escalaDoCorpo;
-    private SpriteRenderer mira;
+    private RastroDoChefe rastro;
     private AnimacaoDePersonagem animacao;
     private ClipesDePersonagem clipes;
 
     public string Nome => nomeDoChefe;
+
+    private RastroDoChefe Rastro => rastro != null ? rastro : (rastro = RastroDoChefe.Em(this, desenho, Raio));
 
     public bool NaSegundaFase => segundaFase;
 
     protected override bool Imparavel => true;
 
     // ---------------- montagem ----------------
-    /// <summary>Sombra e a linha de mira da chifrada. A fabrica chama.</summary>
+    /// <summary>Sombra no chao. A fabrica chama.</summary>
     public void Enfeitar(ClipesDePersonagem arte)
     {
         clipes = arte;
 
         FormasDaSala.Desenho(transform, "Sombra", FormasDaSala.Circulo(), new Color(0f, 0f, 0f, 0.35f),
             new Vector2(0f, -Raio * 0.55f), new Vector2(Raio * 2.1f, Raio * 0.7f), 9);
-
-        // Quadrado em modo Tiled: comprimento e espessura mudam a cada quadro.
-        mira = FormasDaSala.Desenho(transform, "Mira da chifrada", FormasDaSala.Quadrado(),
-            new Color(1f, 0.2f, 0.15f, 0.35f), Vector2.zero, new Vector2(1f, 0.15f), 5);
-        mira.enabled = false;
     }
 
     protected override void Awake()
@@ -324,6 +322,8 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
         rumoDaChifrada = rumo;
         correndo = true;
         danoDeContato = danoDaChifrada;
+        Rastro.Poeira(rumo, true);
+        Rastro.Ligado = true;
         Tocar(clipes?.Ataque, 12f);
 
         if (animacao != null)
@@ -338,7 +338,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
             Frear();
             float total = miraDoRicochete / Pressa;
             float t = total <= 0f ? 1f : Mathf.Clamp01(1f - execucao.Restante / total);
-            MostrarMira(rumoDaChifrada, 0.5f + 0.5f * t);
+            Rastro.MostrarSombra(rumoDaChifrada, 0.5f + 0.5f * t);
 
             if (execucao.Ativo)
                 return;
@@ -361,6 +361,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
         // Bateu: pedras voando pra longe da parede.
         rb.linearVelocity = Vector2.zero;
         correndo = false;
+        Rastro.Ligado = false;
         Sons.Tocar(Som.Pancada);
 
         Vector2 normal = parede.normal;
@@ -501,6 +502,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
     {
         executando = false;
         correndo = false;
+        Rastro.Ligado = false;
         danoDeContato = danoDeContatoNormal;
         LimparAviso();
         recuperacao.Forcar(tempo / Pressa);
@@ -526,9 +528,10 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
         switch (ataqueAtual)
         {
             case Ataque.Chifrada:
-                // Raspa o casco (treme) e mostra a mira, que segue o jogador ate o fim.
+                // Raspa o casco (treme, poeira) e mostra a sombra curta, que segue o jogador ate o fim.
                 Tingir(Color.Lerp(Color.white, Color.red, t));
-                MostrarMira(RumoParaOJogador(), t);
+                Rastro.Poeira(RumoParaOJogador());
+                Rastro.MostrarSombra(RumoParaOJogador(), t);
                 if (animacao != null)
                     animacao.OlharPara(ParaOJogador());
                 if (corpo != null)
@@ -564,24 +567,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
             corpo.localRotation = Quaternion.identity;
         }
 
-        if (mira != null)
-            mira.enabled = false;
-    }
-
-    private void MostrarMira(Vector2 rumo, float t)
-    {
-        if (mira == null)
-            return;
-
-        const float comprimento = 12f;
-        mira.enabled = true;
-        mira.size = new Vector2(comprimento, Mathf.Lerp(0.05f, Raio * 1.6f, t));
-        mira.transform.localPosition = rumo * (comprimento * 0.5f);
-        mira.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg);
-
-        Color cor = mira.color;
-        cor.a = Mathf.Lerp(0.15f, 0.45f, t);
-        mira.color = cor;
+        Rastro.EsconderSombra();
     }
 
     private void Tingir(Color cor)
