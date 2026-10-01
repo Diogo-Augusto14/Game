@@ -398,7 +398,26 @@ public class Andar : MonoBehaviour
         numeroDoAndar++;
         semente = 0;
         Gerar();
+
+        // O comeco de cada fase e o ponto salvo: sair e voltar recomeca daqui.
+        Salvamento.SalvarComecoDaFase(this);
     }
+
+    /// <summary>
+    /// Refaz uma fase salva: a mesma fase, a mesma semente e os mesmos itens ja sorteados antes
+    /// dela, pra sair igual (ver <see cref="Salvamento"/>).
+    /// </summary>
+    public void Continuar(int andar, int sementeDaFase, IEnumerable<ItemPassivo> jaSairam)
+    {
+        numeroDoAndar = Mathf.Clamp(andar, 1, AndarFinal);
+        semente = sementeDaFase;
+        itensQueJaSairam.Clear();
+        itensQueJaSairam.UnionWith(jaSairam);
+        Gerar();
+    }
+
+    /// <summary>Os itens que ja tinham saido quando esta fase comecou (o salvamento guarda estes).</summary>
+    public List<ItemPassivo> SairamAntesDaFase { get; private set; } = new List<ItemPassivo>();
 
     /// <summary>A sala montada no mundo que corresponde a esta casa do mapa.</summary>
     public Sala NoMundo(SalaDoAndar sala) => sala != null ? noMundo[sala.X, sala.Y] : null;
@@ -406,6 +425,8 @@ public class Andar : MonoBehaviour
     /// <summary>Sorteia e monta o andar do zero, apagando o anterior.</summary>
     public void Gerar()
     {
+        SairamAntesDaFase = new List<ItemPassivo>(itensQueJaSairam);
+
         if (raizDasSalas != null)
         {
             // Destroy so apaga no fim do quadro: desliga ja, pra as salas velhas (portas,
@@ -715,6 +736,7 @@ public class Andar : MonoBehaviour
         Musica.Tocar(TemaMusical.FimDeJogo);
 
         Registro.Morreu(vidaDoJogador != null ? vidaDoJogador.UltimoGolpe.Atacante : null);
+        Salvamento.Apagar();
         AoMorrerJogador?.Invoke();
         TelaDeFimDeJogo.Mostrar(this);
     }
@@ -1173,6 +1195,7 @@ public class Andar : MonoBehaviour
                     {
                         Musica.Tocar(TemaMusical.Vitoria);
                         Registro.Venceu();
+                        Salvamento.Apagar();
                         TelaDeFimDeJogo.MostrarVitoria(this, Progresso.Zerou(Herois.Atual));
                     });
                     break;

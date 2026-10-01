@@ -48,6 +48,8 @@ public class TelaDeInicio : MonoBehaviour
     private Image retratoDoHeroi;
     private ClipesDePersonagem clipesDoRetrato;
     private float abriu;
+    private Salvamento.Dados salva;
+    private bool continuando;
     private float saindoDesde = -1f;
 
     /// <summary>O menu ja passou nesta sessao: recomecar nao mostra de novo.</summary>
@@ -134,11 +136,25 @@ public class TelaDeInicio : MonoBehaviour
         painelDoHeroi = TelaSimples.Camada(transform, "Heroi");
         MontarEscolhaDoHeroi(painelDoHeroi.transform, 105f);
 
-        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, 66f), 34) { AtrasoDaEntrada = 0.3f, IntervaloDaEntrada = 0.06f };
-        botaoJogar = menu.Adicionar("Jogar", -118f, Jogar, "[Enter] || [Pad A]");
-        menu.Adicionar("Progresso", -192f, AbrirProgresso, "[P] || [Pad Y]");
-        menu.Adicionar("Configurações", -266f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
-        botaoSair = menu.Adicionar("Sair do jogo", -340f, SairDoJogo, "[Esc] || [Pad Select]", IconeDoBotao.Sair, perigo: true);
+        // Com partida salva, "Continuar" vem primeiro e os botoes ficam um pouco mais juntos.
+        salva = Salvamento.Ler();
+        bool comSalva = salva != null;
+        float y = comSalva ? -80f : -118f;
+        float passo = comSalva ? 64f : 74f;
+        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, comSalva ? 58f : 66f), comSalva ? 32 : 34)
+            { AtrasoDaEntrada = 0.3f, IntervaloDaEntrada = 0.06f };
+
+        if (comSalva)
+        {
+            string onde = Salvamento.Onde(salva, andar != null ? andar.FasesPorMundo : 3);
+            menu.Adicionar($"Continuar ({onde})", y, ContinuarPartida, "[C] || [Pad Start]");
+            y -= passo;
+        }
+
+        botaoJogar = menu.Adicionar(comSalva ? "Nova partida" : "Jogar", y, Jogar, "[Enter] || [Pad A]");
+        menu.Adicionar("Progresso", y - passo, AbrirProgresso, "[P] || [Pad Y]");
+        menu.Adicionar("Configurações", y - passo * 2f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
+        botaoSair = menu.Adicionar("Sair do jogo", y - passo * 3f, SairDoJogo, "[Esc] || [Pad Select]", IconeDoBotao.Sair, perigo: true);
 
         MontarRodape();
         MostrarHeroi();
@@ -236,9 +252,13 @@ public class TelaDeInicio : MonoBehaviour
         {
             AbrirProgresso();
         }
-        else if (Controle.Apertou(BotaoDoControle.Start))
+        else if (Controle.Apertou(BotaoDoControle.Start) || (salva != null && Input.GetKeyDown(KeyCode.C)))
         {
-            menu.Apertar(botaoJogar);
+            // Com partida salva, Start (e C) continua; sem, joga.
+            if (salva != null)
+                ContinuarPartida();
+            else
+                menu.Apertar(botaoJogar);
         }
         else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A) || Controle.Apertou(BotaoDoControle.CruzEsquerda)
                  || Clicou(setaEsquerda))
@@ -271,6 +291,26 @@ public class TelaDeInicio : MonoBehaviour
         saindoDesde = Time.unscaledTime;
     }
 
+    private void ContinuarPartida()
+    {
+        if (saindoDesde >= 0f || salva == null)
+            return;
+
+        if (!Salvamento.EscolherHeroi(salva))
+        {
+            // O heroi salvo nao existe mais (versao nova): a partida salva nao serve.
+            Salvamento.Apagar();
+            salva = null;
+            Sons.Tocar(Som.MenuNegado, 0.8f, 0f);
+            return;
+        }
+
+        continuando = true;
+        Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
+        menu.Ligado = false;
+        saindoDesde = Time.unscaledTime;
+    }
+
     private static void AbrirOpcoes() => TelaDeOpcoes.Abrir();
 
     private static void AbrirProgresso() => TelaDeProgresso.Abrir();
@@ -290,12 +330,18 @@ public class TelaDeInicio : MonoBehaviour
     private void Comecar()
     {
         JaPassou = true;
-        Registro.ComecouPartida();
         Time.timeScale = 1f;
+
+        if (!continuando)
+            Registro.ComecouPartida();
 
         // O jogador ja esta na sala desde antes do menu: veste o heroi escolhido agora.
         if (jogador != null)
             Herois.Aplicar(jogador.gameObject, Herois.Atual);
+
+        // Partida salva: refaz a fase e devolve itens, vida e moedas (depois do heroi vestido).
+        if (continuando)
+            Salvamento.Restaurar(salva, andar);
 
         TelaSimples.TravarJogador(jogador, false);
 

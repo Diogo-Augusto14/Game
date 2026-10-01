@@ -94,6 +94,7 @@ public class PainelDeItens : MonoBehaviour
                 Acrescentar(item, false);
 
             estatisticas.AoPegarItem += AoPegar;
+            estatisticas.AoRestaurar += Refazer;
         }
 
         Arrumar();
@@ -103,7 +104,25 @@ public class PainelDeItens : MonoBehaviour
     private void OnDestroy()
     {
         if (estatisticas != null)
+        {
             estatisticas.AoPegarItem -= AoPegar;
+            estatisticas.AoRestaurar -= Refazer;
+        }
+    }
+
+    /// <summary>Partida salva voltou: refaz as casas com os itens dela.</summary>
+    private void Refazer()
+    {
+        foreach (Casa casa in casas)
+            if (casa.rt != null)
+                Destroy(casa.rt.gameObject);
+
+        casas.Clear();
+
+        foreach (ItemPassivo item in estatisticas.Itens)
+            Acrescentar(item, false);
+
+        Arrumar();
     }
 
     private void AoPegar(ItemPassivo item)

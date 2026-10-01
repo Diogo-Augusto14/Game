@@ -235,6 +235,14 @@ public class Vida : MonoBehaviour, IDanificavel
         AoMudarVida?.Invoke();
     }
 
+    /// <summary>Volta a vida de uma partida salva: maxima e atual de uma vez.</summary>
+    public void Restaurar(float atual, float maxima)
+    {
+        vidaMaxima = Mathf.Max(1f, maxima);
+        VidaAtual = Mathf.Clamp(atual, 1f, vidaMaxima);
+        AoMudarVida?.Invoke();
+    }
+
     /// <summary>Mata na hora, sem empurrao (buraco, lava, roteiro).</summary>
     public void MatarAgora()
     {

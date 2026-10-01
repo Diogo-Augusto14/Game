@@ -109,6 +109,8 @@ public static class Registro
     // ---------------- avisos ----------------
     public static void ComecouPartida()
     {
+        // Partida nova: a salva (se tinha) deixa de valer.
+        Salvamento.Apagar();
         Somar("partidas");
         Salvar();
     }

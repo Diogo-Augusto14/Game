@@ -37,6 +37,28 @@ public class EstatisticasDoJogador : MonoBehaviour
 
     private List<ItemPassivo> sinergias = new List<ItemPassivo>();
 
+    /// <summary>Os itens voltaram de uma partida salva (o painel lateral refaz os icones).</summary>
+    public event System.Action AoRestaurar;
+
+    /// <summary>
+    /// Devolve os itens de uma partida salva, sem os efeitos de uma vez so (vida maxima e
+    /// brindes ja estao no que foi salvo) e sem avisos na tela.
+    /// </summary>
+    public void Restaurar(List<ItemPassivo> salvos)
+    {
+        GuardarBase();
+        itens.Clear();
+        itens.AddRange(salvos);
+        sinergias = Sinergias.Ativas(itens);
+        Recalcular();
+
+        foreach (ItemPassivo item in itens)
+            if (item.flecha != TipoDeFlecha.Normal)
+                TrocaDeFlecha.Em(gameObject).Ganhar(item.flecha);
+
+        AoRestaurar?.Invoke();
+    }
+
     /// <summary>Formou uma sinergia nova (a HUD anuncia).</summary>
     public event System.Action<ItemPassivo> AoFormarSinergia;
 

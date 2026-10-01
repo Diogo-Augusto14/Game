@@ -3,17 +3,18 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Esc pausa o jogo: congela tudo e abre o menu de pausa com o andar, os itens pegos e os
-/// botoes Continuar, Reiniciar partida, Configuracoes, Menu principal e Sair do jogo.
+/// botoes Continuar, Reiniciar partida, Configuracoes, Salvar e sair e Sair do jogo.
 ///
 ///   W/S ou Cima/Baixo  escolhe        Enter  aperta        mouse  escolhe e clica
-///   atalhos: Esc continuar   R reiniciar   O configuracoes   Q menu
+///   atalhos: Esc continuar   R reiniciar   O configuracoes   Q salvar e sair
 ///            M musica        N efeitos
 ///
 /// No controle: cruz escolhe, A aperta; Start (ou B) continua, Select reinicia, X
 /// configuracoes, Y menu, LB e RB o som.
 ///
 /// Reiniciar comeca uma partida nova do andar 1 com o mesmo heroi (a partida e a fase do
-/// roguelike: morrer ou reiniciar volta pro comeco).
+/// roguelike: morrer ou reiniciar volta pro comeco). Salvar e sair volta pro menu com a partida
+/// salva no comeco da fase atual (<see cref="Salvamento"/>): o menu ganha "Continuar".
 ///
 /// Fica no mesmo objeto do <see cref="Andar"/> (ele poe sozinho). Nao abre por cima do
 /// menu inicial nem da tela de fim de jogo. M e N tambem funcionam jogando, sem pausar.
@@ -127,7 +128,7 @@ public class TelaDePausa : MonoBehaviour
         menu.Adicionar("Continuar", 140f, Continuar, "[Esc] || [Pad Start]");
         menu.Adicionar("Reiniciar partida", 52f, Reiniciar, "[R] || [Pad Select]");
         menu.Adicionar("Configurações", -36f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
-        menu.Adicionar("Menu principal", -124f, IrAoMenu, "[Q] || [Pad Y]");
+        menu.Adicionar("Salvar e sair", -124f, IrAoMenu, "[Q] || [Pad Y]");
         menu.Adicionar("Sair do jogo", -212f, TelaDeInicio.SairDoJogo, null, IconeDoBotao.Sair, perigo: true);
 
         opcoes = TelaSimples.LinhaDeTeclas(pai, "Som", -300f, "", 26, new Color(1f, 0.85f, 0.4f));
@@ -168,8 +169,13 @@ public class TelaDePausa : MonoBehaviour
 
     private void AbrirOpcoes() => TelaDeOpcoes.Abrir(Atualizar);
 
+    /// <summary>
+    /// Volta pro menu com a partida salva (o comeco desta fase; na primeira fase, o comeco do
+    /// jogo): o menu mostra "Continuar".
+    /// </summary>
     private static void IrAoMenu()
     {
+        Salvamento.SalvarComecoDoJogo(Andar.Atual);
         Sons.Tocar(Som.MenuFechar, 1f, 0f);
         TelaDeInicio.VoltarAoMenu();
     }

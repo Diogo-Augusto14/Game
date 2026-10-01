@@ -267,6 +267,9 @@ public class EfeitosDosItens : MonoBehaviour
     /// <summary>A Pena da Fenix ja foi gasta nesta partida?</summary>
     public bool RenasceuJa => renasceuJa;
 
+    /// <summary>Partida salva em que a Pena da Fenix ja foi gasta.</summary>
+    public void MarcarRenascido() => renasceuJa = true;
+
     // ================================================================ curar ao matar
     private void AoMorrerInimigo(InimigoDeSala inimigo)
     {
