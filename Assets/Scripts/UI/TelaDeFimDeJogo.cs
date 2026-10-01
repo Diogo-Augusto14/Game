@@ -121,6 +121,10 @@ public class TelaDeFimDeJogo : MonoBehaviour
 
     private void Update()
     {
+        // A tela pode ficar sem o menu se a cena for recarregada com ela aberta: so espera sumir.
+        if (menu == null)
+            return;
+
         float t = Time.unscaledTime - desde;
 
         Golpe(t);
