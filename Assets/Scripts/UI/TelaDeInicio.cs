@@ -176,6 +176,15 @@ public class TelaDeInicio : MonoBehaviour
         TelaSimples.Texto(pai, "Creditos", 16, new Color(0.5f, 0.47f, 0.5f), -514f,
             "Sons de interface: Nathan Gibson (CC BY 4.0)    Efeitos: Freedoom (BSD)    Interface: Tiny RPG Dragon Regalia GUI    " +
             "Teclas: Vryell    Fontes: Jersey 15 e Jacquard 12 (OFL)");
+
+        // A versao instalada, no cantinho de baixo a direita: da pra ver se o lancador atualizou.
+        Text versao = TelaSimples.Texto(pai, "Versao", 20, new Color(0.6f, 0.57f, 0.62f), 0f, VersaoDoJogo.Texto);
+        RectTransform rt = versao.rectTransform;
+        rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
+        rt.pivot = new Vector2(1f, 0f);
+        rt.sizeDelta = new Vector2(300f, 30f);
+        rt.anchoredPosition = new Vector2(-16f, 10f);
+        versao.alignment = TextAnchor.LowerRight;
     }
 
     private void Update()
