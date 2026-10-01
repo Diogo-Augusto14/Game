@@ -17,6 +17,8 @@ public static class Opcoes
     private const string ChaveDaTelaCheia = "tela-cheia";
     private const string ChaveDaLargura = "resolucao-largura";
     private const string ChaveDaAltura = "resolucao-altura";
+    private const string ChaveDoTremor = "tremor-da-tela";
+    private const string ChaveDosNumeros = "numeros-de-dano";
 
     /// <summary>Quanto cada passo da barra de volume muda.</summary>
     public const float PassoDoVolume = 0.1f;
@@ -100,6 +102,25 @@ public static class Opcoes
         float degraus = atual / PassoDoVolume;
         degraus = passo < 0 ? Mathf.Ceil(degraus - 0.01f) + passo : Mathf.Floor(degraus + 0.01f) + passo;
         return Mathf.Clamp01(Mathf.Round(degraus) * PassoDoVolume);
+    }
+
+    // ---------------- combate ----------------
+    /// <summary>A tela treme nos golpes e explosoes (ver <see cref="Impacto"/>). Ligado de fabrica.</summary>
+    public static bool TremorLigado => PlayerPrefs.GetInt(ChaveDoTremor, 1) == 1;
+
+    /// <summary>Numero do dano pulando do inimigo a cada acerto. Ligado de fabrica.</summary>
+    public static bool NumerosDeDano => PlayerPrefs.GetInt(ChaveDosNumeros, 1) == 1;
+
+    public static void AlternarTremor()
+    {
+        PlayerPrefs.SetInt(ChaveDoTremor, TremorLigado ? 0 : 1);
+        PlayerPrefs.Save();
+    }
+
+    public static void AlternarNumeros()
+    {
+        PlayerPrefs.SetInt(ChaveDosNumeros, NumerosDeDano ? 0 : 1);
+        PlayerPrefs.Save();
     }
 
     // ---------------- tela ----------------

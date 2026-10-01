@@ -355,7 +355,14 @@ public class Andar : MonoBehaviour
         }
     }
 
-    private void DoeuNoJogador(DanoInfo _) => Sons.Tocar(Som.DanoJogador);
+    private void DoeuNoJogador(DanoInfo _)
+    {
+        Sons.Tocar(Som.DanoJogador);
+
+        // Apanhar tem que ser sentido: o jogo para um instante e a tela sacode.
+        Impacto.Congelar(0.08f);
+        Impacto.Tremer(0.22f, 0.3f);
+    }
 
     // ---------------- api ----------------
     /// <summary>

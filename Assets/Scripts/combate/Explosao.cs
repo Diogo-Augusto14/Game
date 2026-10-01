@@ -15,6 +15,7 @@ public static class Explosao
                                 GameObject dono)
     {
         Sons.Tocar(Som.Explosao);
+        Impacto.Tremer(Mathf.Clamp(raio * 0.12f, 0.15f, 0.4f), 0.35f);
 
         // Cada Vida uma vez so, mesmo que tenha varios colisores.
         HashSet<Vida> atingidos = new HashSet<Vida>();

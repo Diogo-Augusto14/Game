@@ -469,6 +469,15 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
         Sons.Tocar(Som.Acerto, 0.7f);
 
+        bool forte = info.Peso == PesoDoGolpe.Forte;
+        Impacto.Numero(rb.position + Vector2.up * Raio, info.Quantidade, forte);
+
+        if (forte)
+        {
+            Impacto.Congelar(0.03f);
+            Impacto.Tremer(0.05f, 0.1f);
+        }
+
         // Levar tiro dormindo acorda (nao tem graca matar inimigo parado de longe).
         if (EstadoAtual == Estado.Dormindo)
             AoAcordar?.Invoke();
@@ -502,6 +511,11 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     {
         EstadoAtual = Estado.Morto;
         Sons.Tocar(SomDeMorte, SomDeMorte == Som.MorteChefe ? 1f : 0.8f);
+
+        // A morte "pesa": um congelamento curtinho e a tela treme (muito mais no chefe).
+        bool chefe = SomDeMorte == Som.MorteChefe;
+        Impacto.Congelar(chefe ? 0.12f : 0.045f);
+        Impacto.Tremer(chefe ? 0.4f : 0.08f, chefe ? 0.7f : 0.15f);
 
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Kinematic;

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// A tela de opcoes, aberta com O (X no controle) pelo menu inicial e pela pausa: volume da musica e dos
-/// efeitos, tela cheia e resolucao. Tudo fica salvo entre partidas (ver <see cref="Opcoes"/>).
+/// efeitos, tela cheia, resolucao, tremor da tela e numeros de dano. Tudo fica salvo entre partidas (ver <see cref="Opcoes"/>).
 ///
 ///   W/S ou Cima/Baixo  escolhe a linha      A/D ou Esquerda/Direita  muda o valor
 ///   Enter              alterna / volta      Esc ou O                 volta
@@ -17,10 +17,10 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class TelaDeOpcoes : MonoBehaviour
 {
-    private enum Linha { Musica, Efeitos, TelaCheia, Resolucao, Voltar }
+    private enum Linha { Musica, Efeitos, TelaCheia, Resolucao, Tremor, Numeros, Voltar }
 
-    private static readonly string[] Nomes = { "Música", "Efeitos", "Tela cheia", "Resolução", "Voltar" };
-    private static readonly float[] Alturas = { 150f, 60f, -30f, -120f, -225f };
+    private static readonly string[] Nomes = { "Música", "Efeitos", "Tela cheia", "Resolução", "Tremor da tela", "Números de dano", "Voltar" };
+    private static readonly float[] Alturas = { 185f, 120f, 55f, -10f, -75f, -140f, -232f };
 
     private const float XDoNome = -330f;
     private const float XDoValor = 190f;
@@ -115,7 +115,7 @@ public class TelaDeOpcoes : MonoBehaviour
         // Moldura, botao de voltar e faixa do Dragon Regalia atras dos textos.
         botaoDeVoltar = TelaSimples.Painel(transform, "Botao de voltar", ArteDaInterface.Botao(0),
                                            Alturas[(int)Linha.Voltar], new Vector2(340f, 95f));
-        TelaSimples.Painel(transform, "Painel", ArteDaInterface.MolduraGrande, -20f, new Vector2(1250f, 520f));
+        TelaSimples.Painel(transform, "Painel", ArteDaInterface.MolduraGrande, -20f, new Vector2(1250f, 580f));
         TelaSimples.Faixa(transform, "Faixa", ArteDaInterface.FaixaRosa, 330f, 820f);
 
         Atualizar();
@@ -173,6 +173,8 @@ public class TelaDeOpcoes : MonoBehaviour
             case Linha.Efeitos: Opcoes.MudarEfeitos(passo); break;
             case Linha.TelaCheia: Opcoes.AlternarTelaCheia(); break;
             case Linha.Resolucao: Opcoes.MudarResolucao(passo); break;
+            case Linha.Tremor: Opcoes.AlternarTremor(); break;
+            case Linha.Numeros: Opcoes.AlternarNumeros(); break;
             default: return;
         }
 
@@ -192,6 +194,8 @@ public class TelaDeOpcoes : MonoBehaviour
                 Fechar();
                 break;
             case Linha.TelaCheia:
+            case Linha.Tremor:
+            case Linha.Numeros:
                 Mudar(1);
                 break;
             default:
@@ -223,6 +227,8 @@ public class TelaDeOpcoes : MonoBehaviour
         valores[(int)Linha.Musica].text = Porcento(Musica.Volume);
         valores[(int)Linha.Efeitos].text = Porcento(Sons.Volume);
         valores[(int)Linha.TelaCheia].text = Opcoes.TelaCheia ? "Ligada" : "Desligada";
+        valores[(int)Linha.Tremor].text = Opcoes.TremorLigado ? "Ligado" : "Desligado";
+        valores[(int)Linha.Numeros].text = Opcoes.NumerosDeDano ? "Ligados" : "Desligados";
 
         Vector2Int resolucao = Opcoes.Resolucao;
         valores[(int)Linha.Resolucao].text = $"{resolucao.x} x {resolucao.y}";
