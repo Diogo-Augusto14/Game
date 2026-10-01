@@ -529,7 +529,8 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
         {
             case Ataque.Chifrada:
                 // Raspa o casco (treme, poeira) e mostra a linha de mira, que segue o jogador ate o fim.
-                Tingir(Color.Lerp(Color.white, Color.red, t));
+                // Avermelha so um pouco: quem avisa o perigo e a linha no chao.
+                Tingir(Color.Lerp(Color.white, new Color(1f, 0.72f, 0.65f), t));
                 Rastro.Poeira(RumoParaOJogador());
                 Rastro.MostrarMira(RumoParaOJogador(), t);
                 if (animacao != null)

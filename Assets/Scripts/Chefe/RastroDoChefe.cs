@@ -40,6 +40,7 @@ public class RastroDoChefe : MonoBehaviour
     [SerializeField] private Color corDoPerigo = new Color(1f, 0.15f, 0.1f);
 
     private static Sprite spriteDaMira;
+    private static readonly RaycastHit2D[] acertos = new RaycastHit2D[8];
 
     private SpriteRenderer corpo;
     private SpriteRenderer mira;
@@ -98,9 +99,7 @@ public class RastroDoChefe : MonoBehaviour
         rumo.Normalize();
         t = Mathf.Clamp01(t);
 
-        // Para na parede, em vez de atravessar a sala e as portas.
-        RaycastHit2D parede = Physics2D.Raycast(transform.position, rumo, alcanceDaMira, Camadas.MascaraDeParede);
-        float comprimento = parede.collider != null ? parede.distance : alcanceDaMira;
+        float comprimento = AteAParede(rumo);
         float largura = Mathf.Lerp(0.12f, raio * 1.4f, t * t);
 
         mira.enabled = true;
@@ -119,6 +118,32 @@ public class RastroDoChefe : MonoBehaviour
         float pisca = t > 0.75f ? 0.85f + 0.15f * Mathf.Sin(Time.time * 40f) : 1f;
         cor.a = Mathf.Lerp(0.3f, 0.6f, t) * pisca;
         mira.color = cor;
+    }
+
+    /// <summary>
+    /// Distancia ate a parede de verdade nesse rumo. Ignora gatilhos (zonas invisiveis na camada de
+    /// parede) e o que estiver colado no proprio chefe, que cortavam a linha em uns 3 m.
+    /// </summary>
+    private float AteAParede(Vector2 rumo)
+    {
+        ContactFilter2D filtro = new ContactFilter2D();
+        filtro.SetLayerMask(Camadas.MascaraDeParede);
+        filtro.useTriggers = false;
+
+        int quantos = Physics2D.Raycast(transform.position, rumo, filtro, acertos, alcanceDaMira);
+        float maisPerto = alcanceDaMira;
+
+        for (int i = 0; i < quantos; i++)
+        {
+            RaycastHit2D acerto = acertos[i];
+
+            if (acerto.collider == null || acerto.collider.transform.IsChildOf(transform) || acerto.distance <= raio * 0.5f)
+                continue;
+
+            maisPerto = Mathf.Min(maisPerto, acerto.distance);
+        }
+
+        return maisPerto;
     }
 
     public void EsconderMira()
