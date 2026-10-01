@@ -214,7 +214,7 @@ public class Porta : MonoBehaviour
                 return;
             }
 
-            float dentro = lado == LadoDaPorta.Baixo ? 1f : 1.25f;
+            float dentro = lado == LadoDaPorta.Baixo ? 1f : 1.5f;
             SpriteRenderer sr = FormasDaSala.Desenho(transform, "Rachadura", rachada, Color.white,
                                                      -lado.Direcao() * dentro, Vector2.one, -9);
             sr.flipX = lado == LadoDaPorta.Direita;

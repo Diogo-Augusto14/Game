@@ -394,7 +394,7 @@ public static class ArteImportada
         if (lado == LadoDaPorta.Cima)
             return Unico("Masmorra/Temas/PrisaoRachaduraCima" + tema, 48, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
 
-        return Unico("Masmorra/Temas/PrisaoPedrinhas" + tema, 48, new RectInt(0, 0, 48, 24), new Vector2(24f, 12f), PixelsDaPrisao, 24);
+        return Unico("Masmorra/Temas/PrisaoPedrinhas" + tema, 64, new RectInt(0, 0, 64, 32), new Vector2(32f, 16f), PixelsDaPrisao, 32);
     }
 
     /// <summary>A grade de ferro da porta (5 quadros: 0 fechada, 4 aberta), mesmo pivo do vao.</summary>
