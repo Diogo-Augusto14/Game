@@ -143,10 +143,10 @@ public static class FabricaDeInimigos
             case TipoDeInimigo.ChefeSaltador:
             {
                 ClipesDePersonagem clipes = Tiny("DemonioMartelo", 13f);
-                ChefeSaltador sapao = Montar<ChefeSaltador>("Chefe Saltador", posicao, pai, 0.8f,
+                ChefeSaltador demonio = Montar<ChefeSaltador>("Chefe Saltador", posicao, pai, 0.8f,
                     (ArteGerada.Bola(), new Color(0.25f, 0.5f, 0.22f)), 150f, clipes, clipes?.AtaqueForte);
-                sapao.Enfeitar(clipes != null);
-                return sapao;
+                demonio.Enfeitar(clipes != null);
+                return demonio;
             }
 
             case TipoDeInimigo.ChefeNecromante:

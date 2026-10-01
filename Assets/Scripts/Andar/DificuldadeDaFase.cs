@@ -44,7 +44,7 @@ public sealed class DificuldadeDaFase
     public float VidaDoChefe => (1f + 0.06f * Nivel) * (FaseFinalDoMundo ? 1.15f : 1f);
 
     /// <summary>
-    /// O Olho do Porao ja e o chefe mais longo do jogo: ganha no maximo 50% a mais de vida,
+    /// O Olho do Abismo ja e o chefe mais longo do jogo: ganha no maximo 50% a mais de vida,
     /// pra luta final ser dificil sem virar uma espera cansativa.
     /// </summary>
     public float VidaDoChefeFinal => Mathf.Min(1.5f, VidaDoChefe);

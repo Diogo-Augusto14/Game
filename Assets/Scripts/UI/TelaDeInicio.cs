@@ -129,7 +129,7 @@ public class TelaDeInicio : MonoBehaviour
         TelaSimples.Faixa(topo.transform, "Faixa do titulo", ArteDaInterface.FaixaRosa, YDoTitulo, 1150f);
         textoDoTitulo = TelaSimples.Titulo(topo.transform, "Titulo", 150, new Color(1f, 0.93f, 0.8f), YDoTitulo, titulo);
         TelaSimples.Texto(topo.transform, "Subtitulo", 30, new Color(0.8f, 0.7f, 0.7f), 282f,
-            $"Atravesse {(andar != null ? andar.QuantidadeDeMundos : 4)} mundos de {(andar != null ? andar.FasesPorMundo : 3)} fases e derrote o Olho do Porão");
+            $"Atravesse {(andar != null ? andar.QuantidadeDeMundos : 4)} mundos de {(andar != null ? andar.FasesPorMundo : 3)} fases e derrote o Olho do Abismo");
 
         painelDoHeroi = TelaSimples.Camada(transform, "Heroi");
         MontarEscolhaDoHeroi(painelDoHeroi.transform, 105f);

@@ -273,7 +273,7 @@ public static class EstilosDeTiro
                     tamanhoDoImpacto = 0.6f,
                 };
 
-            // Olho do Porao: estrela vermelha girando.
+            // Olho do Abismo: estrela vermelha girando.
             case EstiloDeTiro.EstrelaDoOlho:
                 return new AparenciaDoProjetil(ArteImportada.Estrela(Pixels), new Color(1f, 0.35f, 0.55f), 2.2f)
                 {

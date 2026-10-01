@@ -745,10 +745,10 @@ public class Andar : MonoBehaviour
     /// Os chefes de cada mundo. Nas fases do comeco sai um da lista de "comuns" (a fase 2
     /// nunca repete o da fase 1); na ultima fase vem o chefe do mundo, o mais forte, com
     /// 15% a mais de vida (DificuldadeDaFase.VidaDoChefe):
-    ///   Mundo 1 Porao      -> Monstrao ou Minotauro Furioso; fecha com o Sapao
-    ///   Mundo 2 Catacumbas -> Monstrao ou Sapao; fecha com o Minotauro Furioso (chama orcs)
-    ///   Mundo 3 Cripta     -> Sapao ou Minotauro Furioso; fecha com o Rei Necromante (chama esqueletos)
-    ///   Mundo 4 Abismo     -> Minotauro Furioso ou Rei Necromante; fecha com o Olho do Porao (chefe final)
+    ///   Mundo 1 Porao      -> Golem de Magma ou Minotauro Furioso; fecha com o Demonio do Martelo
+    ///   Mundo 2 Catacumbas -> Golem de Magma ou Demonio do Martelo; fecha com o Minotauro Furioso (chama orcs)
+    ///   Mundo 3 Cripta     -> Demonio do Martelo ou Minotauro Furioso; fecha com o Rei Necromante (chama esqueletos)
+    ///   Mundo 4 Abismo     -> Minotauro Furioso ou Rei Necromante; fecha com o Olho do Abismo (chefe final)
     /// Com mais de 4 mundos, os do meio repetem a lista.
     /// </summary>
     private static readonly (TipoDeInimigo[] comuns, TipoDeInimigo final)[] ChefesPorMundo =

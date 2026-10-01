@@ -125,14 +125,14 @@ O jogo tem 4 mundos com 3 fases cada (`Andar.quantidadeDeMundos` e `Andar.fasesP
 Cada mundo usa um tema da tabela acima: Mundo 1 Porão, 2 Catacumbas, 3 Cripta e 4 Abismo.
 `Andar.NumeroDoAndar` conta todas as fases (1 a 12); `Andar.Mundo`, `Andar.Fase` e
 `Andar.NomeDaFase` ("Mundo 2 - Fase 3") saem dele. Toda fase termina num chefe e no
-alçapão; a última fase do último mundo tem o Olho do Porão e termina a partida.
+alçapão; a última fase do último mundo tem o Olho do Abismo e termina a partida.
 
 | Mundo | Chefes das fases 1 e 2 (a 2 nunca repete a 1) | Chefe da fase 3 (o mais forte) |
 |---|---|---|
-| 1 Porão | Monstrão ou Minotauro Furioso | Sapão |
-| 2 Catacumbas | Monstrão ou Sapão | Minotauro Furioso |
-| 3 Cripta | Sapão ou Minotauro Furioso | Rei Necromante |
-| 4 Abismo | Minotauro Furioso ou Rei Necromante | Olho do Porão (final) |
+| 1 Porão | Golem de Magma ou Minotauro Furioso | Demônio do Martelo |
+| 2 Catacumbas | Golem de Magma ou Demônio do Martelo | Minotauro Furioso |
+| 3 Cripta | Demônio do Martelo ou Minotauro Furioso | Rei Necromante |
+| 4 Abismo | Minotauro Furioso ou Rei Necromante | Olho do Abismo (final) |
 
 `Andar/DificuldadeDaFase.cs` guarda todos os números que sobem aos poucos, a cada fase:
 
@@ -145,7 +145,7 @@ alçapão; a última fase do último mundo tem o Olho do Porão e termina a part
   coisas; sempre solta prêmio;
 - comportamentos novos: sentinela atira em 8 direções na fase 3 de cada mundo e do mundo 2
   em diante; o monstro de sangue solta mais gotas do mundo 2 em diante;
-- chefes: vida +6% por fase, e o da fase 3 mais 15%; o Olho do Porão ganha no máximo 50%;
+- chefes: vida +6% por fase, e o da fase 3 mais 15%; o Olho do Abismo ganha no máximo 50%;
 - dano no jogador (`Vida.MultiplicadorDeDanoRecebido`): normal nos mundos 1 e 2, 1,5x no
   mundo 3, coração inteiro (2x) no mundo 4. Vale pra tiro, encostada e espinho;
 - armadilhas e salas: menos salas vazias (-2% por fase), espinhos da fase 2 em diante,
@@ -247,7 +247,7 @@ acelera. Fogo fátuo: chama azul em zigue-zague. Necromante: raio verde que pers
 pouco (o do chefe não persegue). Cavaleiro do canhão: bala girando. Monstro de sangue:
 gota que freia. Arqueiros: cada um com a própria flecha. Chefes: pedra (golem), brasa e
 bolha (demônio do martelo), raio verde (Rei Necromante), onda de choque (Minotauro),
-estrela vermelha (Olho do Porão). Inimigo sem estilo continua com a gema. Pra dar estilo a
+estrela vermelha (Olho do Abismo). Inimigo sem estilo continua com a gema. Pra dar estilo a
 um inimigo novo: `EstiloDoAtirador.Marcar(obj, EstiloDeTiro.X)` ou uma linha em
 `EstilosDeTiro.porNome`.
 

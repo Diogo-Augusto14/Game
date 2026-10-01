@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Chefe do andar 1 (sorteado com o Monstrao): o Minotauro Furioso, o Minotauro do Tiny
+/// Chefe do andar 1 (sorteado com o Golem de Magma): o Minotauro Furioso, o Minotauro do Tiny
 /// RPG bem maior. Briga no corpo a corpo e alterna entre quatro ataques, cada um com o
 /// seu aviso:
 ///

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// O chefe final, o Olho do Porao: um olho enorme preso no meio da sala do ultimo andar.
+/// O chefe final, o Olho do Abismo: um olho enorme preso no meio da sala do ultimo andar.
 /// Nao anda nem e empurrado; a luta e desviar de tiro. A pupila segue o jogador, e a iris
 /// muda de cor conforme o ataque que vem:
 ///
@@ -28,7 +28,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
     }
 
     [Header("Chefe")]
-    [SerializeField] private string nomeDoChefe = "Olho do Porão";
+    [SerializeField] private string nomeDoChefe = "Olho do Abismo";
 
     [SerializeField, Min(0.1f)] private float intervaloEntreAtaques = 1f;
 
