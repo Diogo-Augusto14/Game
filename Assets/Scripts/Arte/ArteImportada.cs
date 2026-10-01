@@ -380,8 +380,9 @@ public static class ArteImportada
     }
 
     /// <summary>
-    /// Parede rachada do Old Prison, na cor do tema, desenhada sobre o vao da porta secreta: tijolos
-    /// faltando e uma rachadura descendo pelas juntas. Mesmo pivo do vao; null sem a arte.
+    /// Dica da porta secreta do Old Prison. Em cima e a parede rachada (mesmo pivo do vao). Embaixo e
+    /// dos lados a parede fica igual as outras e a dica sao pedrinhas do pack caidas no chao, na cor
+    /// dos tijolos do tema (pivo no meio). Null sem a arte.
     /// </summary>
     public static Sprite RachaduraDaPrisao(LadoDaPorta lado)
     {
@@ -390,15 +391,10 @@ public static class ArteImportada
         if (string.IsNullOrEmpty(tema))
             return null;
 
-        switch (lado)
-        {
-            case LadoDaPorta.Cima:
-                return Unico("Masmorra/Temas/PrisaoRachaduraCima" + tema, 48, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
-            case LadoDaPorta.Baixo:
-                return Unico("Masmorra/Temas/PrisaoRachaduraBaixo" + tema, 48, new RectInt(0, 0, 48, 32), new Vector2(24f, 16f), PixelsDaPrisao, 32);
-            default:
-                return Unico("Masmorra/Temas/PrisaoRachaduraLado" + tema, 32, new RectInt(0, 0, 32, 48), new Vector2(16f, 24f), PixelsDaPrisao, 48);
-        }
+        if (lado == LadoDaPorta.Cima)
+            return Unico("Masmorra/Temas/PrisaoRachaduraCima" + tema, 48, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
+
+        return Unico("Masmorra/Temas/PrisaoPedrinhas" + tema, 48, new RectInt(0, 0, 48, 24), new Vector2(24f, 12f), PixelsDaPrisao, 24);
     }
 
     /// <summary>A grade de ferro da porta (5 quadros: 0 fechada, 4 aberta), mesmo pivo do vao.</summary>
