@@ -174,8 +174,8 @@ public class TelaDeInicio : MonoBehaviour
             "[Pad LB] música | [Pad RB] efeitos | Bomba abre parede rachada. Moeda compra na loja.", 22, new Color(0.8f, 0.85f, 0.95f));
 
         TelaSimples.Texto(pai, "Creditos", 16, new Color(0.5f, 0.47f, 0.5f), -514f,
-            "Sons de interface: Nathan Gibson (CC BY 4.0)    Interface: Tiny RPG Dragon Regalia GUI    Teclas: Vryell    " +
-            "Fontes: Jersey 15 e Jacquard 12 (OFL)");
+            "Sons de interface: Nathan Gibson (CC BY 4.0)    Efeitos: Freedoom (BSD)    Interface: Tiny RPG Dragon Regalia GUI    " +
+            "Teclas: Vryell    Fontes: Jersey 15 e Jacquard 12 (OFL)");
     }
 
     private void Update()
@@ -283,7 +283,7 @@ public class TelaDeInicio : MonoBehaviour
         TelaSimples.TravarJogador(jogador, false);
 
         if (andar != null)
-            Musica.Tocar(Musica.DoAndar(andar.Mundo));
+            Musica.Tocar(andar.MusicaDoAndar);
 
         Destroy(gameObject);
     }

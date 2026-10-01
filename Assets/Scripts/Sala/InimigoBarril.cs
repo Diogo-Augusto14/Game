@@ -111,7 +111,7 @@ public class InimigoBarril : InimigoComArte
         fase = Fase.Pavio;
         relogio.Forcar(tempoDePavio);
         Frear();
-        Sons.Tocar(Som.Negado, 0.5f);
+        Sons.Tocar(Som.BombaAcesa, 0.7f);
 
         // O pavio queimando fica em loop ate explodir.
         if (clipes != null && clipes.Ataque != null)

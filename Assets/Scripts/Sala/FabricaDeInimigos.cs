@@ -58,6 +58,66 @@ public static class FabricaDeInimigos
 {
     public static InimigoDeSala Criar(TipoDeInimigo tipo, Vector2 posicao, Transform pai = null)
     {
+        InimigoDeSala inimigo = MontarPorTipo(tipo, posicao, pai);
+
+        if (inimigo != null)
+            inimigo.SomDeMorte = SomDeMorte(tipo);
+
+        return inimigo;
+    }
+
+    /// <summary>Como o bicho morre no ouvido: ossos caindo, gosma, grito de demonio, fera, chefe...</summary>
+    public static Som SomDeMorte(TipoDeInimigo tipo)
+    {
+        switch (tipo)
+        {
+            case TipoDeInimigo.Chefe:
+            case TipoDeInimigo.ChefeSaltador:
+            case TipoDeInimigo.ChefeFinal:
+            case TipoDeInimigo.ChefeNecromante:
+            case TipoDeInimigo.ChefeMinotauro:
+                return Som.MorteChefe;
+
+            case TipoDeInimigo.Esqueleto:
+            case TipoDeInimigo.EsqueletoFoice:
+            case TipoDeInimigo.EsqueletoGuerreiro:
+            case TipoDeInimigo.EsqueletoBlindado:
+            case TipoDeInimigo.EsqueletoEspadao:
+            case TipoDeInimigo.EsqueletoArqueiro:
+                return Som.MorteOssos;
+
+            case TipoDeInimigo.Saltador:
+            case TipoDeInimigo.Divisor:
+            case TipoDeInimigo.DivisorPequeno:
+            case TipoDeInimigo.Geleia:
+            case TipoDeInimigo.MonstroDeSangue:
+                return Som.MorteGosma;
+
+            case TipoDeInimigo.Demonio:
+            case TipoDeInimigo.DemonioTridente:
+            case TipoDeInimigo.DemonioLaminas:
+            case TipoDeInimigo.DemonioArqueiro:
+            case TipoDeInimigo.Demonia:
+            case TipoDeInimigo.DemoniaFoice:
+            case TipoDeInimigo.FogoFatuo:
+                return Som.MorteDemonio;
+
+            case TipoDeInimigo.Perseguidor:
+            case TipoDeInimigo.Investidor:
+            case TipoDeInimigo.Lobisomem:
+            case TipoDeInimigo.Urso:
+            case TipoDeInimigo.Morcego:
+            case TipoDeInimigo.Morceguinho:
+            case TipoDeInimigo.Vampiro:
+                return Som.MorteFera;
+
+            default:
+                return Som.MorteInimigo;
+        }
+    }
+
+    private static InimigoDeSala MontarPorTipo(TipoDeInimigo tipo, Vector2 posicao, Transform pai)
+    {
         switch (tipo)
         {
             // Chefes: bichos grandes do Tiny RPG. Sem a imagem, voltam a bola com olhos.

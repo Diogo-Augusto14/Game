@@ -23,6 +23,7 @@ public class EspinhosQueSaem : MonoBehaviour
 
         GameObject obj = new GameObject("Espinhos");
         obj.transform.position = centro;
+        Sons.Tocar(Som.Espinhos, 0.8f);
 
         EspinhosQueSaem e = obj.AddComponent<EspinhosQueSaem>();
         e.raio = raio;

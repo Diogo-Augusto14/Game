@@ -1,25 +1,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>As musicas do jogo: uma por tema de andar, a do chefe, a do final e a do menu.</summary>
+/// <summary>As musicas do jogo: uma por mundo, as dos chefes, a da loja, do menu, da vitoria e do fim de jogo.</summary>
 public enum TemaMusical
 {
     Porao,
-    Cavernas,
-    Esgoto,
+    Catacumbas,
+    Cripta,
     Chefe,
     ChefeFinal,
     Menu,
-    Vitoria
+    Vitoria,
+    Abismo,
+    Loja,
+    FimDeJogo
 }
 
 /// <summary>
 /// Toca musica em loop, com troca suave entre uma e outra: <c>Musica.Tocar(TemaMusical.Chefe)</c>.
 ///
-/// Cada musica e composta por codigo (<see cref="Compor"/>): uma sequencia de acordes,
-/// baixo em colcheias, arpejo por cima e bateria. Muda a escala, o andamento e a
-/// sequencia de tema pra tema; a "melodia" e sorteada com semente fixa, entao a musica e
-/// sempre a mesma. Gerada na primeira vez que toca e guardada.
+/// Cada musica e um arquivo em <c>Resources/Musica/&lt;tema&gt;</c> (Porao.ogg, Chefe.ogg...),
+/// composto pro jogo e gravado com instrumentos de orquestra (creditos em CREDITOS-AUDIO.txt).
+/// Trocar uma musica e so trocar o arquivo com o mesmo nome. Se o arquivo faltar, a musica
+/// e composta por codigo (<see cref="Compor"/>), no estilo chiptune, como antes.
 /// </summary>
 public class Musica : MonoBehaviour
 {
@@ -54,14 +57,18 @@ public class Musica : MonoBehaviour
 
     public static TemaMusical? Atual => instancia != null ? instancia.atual : null;
 
-    /// <summary>A musica de cada mundo (o Andar passa o numero do mundo): os temas se repetem de tres em tres.</summary>
-    public static TemaMusical DoAndar(int andar)
+    /// <summary>
+    /// A musica do mundo pelo numero, quando nao tem tema (sala de treino). No jogo quem manda e
+    /// o tema do mundo (<see cref="TemaDoAndar.Musica"/>, via <see cref="Andar.MusicaDoAndar"/>).
+    /// </summary>
+    public static TemaMusical DoAndar(int mundo)
     {
-        switch ((Mathf.Max(1, andar) - 1) % 3)
+        switch ((Mathf.Max(1, mundo) - 1) % 4)
         {
             case 0: return TemaMusical.Porao;
-            case 1: return TemaMusical.Cavernas;
-            default: return TemaMusical.Esgoto;
+            case 1: return TemaMusical.Catacumbas;
+            case 2: return TemaMusical.Cripta;
+            default: return TemaMusical.Abismo;
         }
     }
 
@@ -138,7 +145,11 @@ public class Musica : MonoBehaviour
     {
         if (!clips.TryGetValue(tema, out AudioClip clip) || clip == null)
         {
-            clip = Compor(tema);
+            clip = Resources.Load<AudioClip>("Musica/" + tema);
+
+            if (clip == null)
+                clip = Compor(tema);
+
             clips[tema] = clip;
         }
 
@@ -168,15 +179,18 @@ public class Musica : MonoBehaviour
     {
         switch (tema)
         {
-            case TemaMusical.Cavernas:
+            case TemaMusical.Catacumbas:
+            case TemaMusical.Loja:
                 return new Receita { Tonica = 62, Escala = Dorica, Acordes = new[] { 0, 0, 3, 3, 6, 6, 4, 4 }, Andamento = 92, Bateria = 1, Semente = 7, Brilho = 0.5f };
-            case TemaMusical.Esgoto:
+            case TemaMusical.Cripta:
+            case TemaMusical.Abismo:
                 return new Receita { Tonica = 64, Escala = Frigia, Acordes = new[] { 0, 1, 0, 1, 5, 4, 1, 0 }, Andamento = 112, Bateria = 2, Semente = 13, Brilho = 0.25f };
             case TemaMusical.Chefe:
                 return new Receita { Tonica = 60, Escala = MenorHarmonica, Acordes = new[] { 0, 0, 5, 5, 3, 3, 4, 4 }, Andamento = 144, Bateria = 2, Semente = 21, Brilho = 0.25f, ArpejoRapido = true };
             case TemaMusical.ChefeFinal:
                 return new Receita { Tonica = 57, Escala = MenorHarmonica, Acordes = new[] { 0, 5, 3, 4, 0, 5, 1, 4 }, Andamento = 156, Bateria = 2, Semente = 34, Brilho = 0.125f, ArpejoRapido = true };
             case TemaMusical.Menu:
+            case TemaMusical.FimDeJogo:
                 return new Receita { Tonica = 57, Escala = Menor, Acordes = new[] { 0, 0, 5, 5, 3, 3, 4, 4 }, Andamento = 76, Bateria = 0, Semente = 3, Brilho = 0.5f };
             case TemaMusical.Vitoria:
                 return new Receita { Tonica = 60, Escala = Maior, Acordes = new[] { 0, 3, 4, 0, 5, 3, 4, 0 }, Andamento = 120, Bateria = 1, Semente = 55, Brilho = 0.25f };

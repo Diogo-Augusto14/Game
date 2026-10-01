@@ -241,6 +241,9 @@ public static class Herois
             if (desenhoDoTiro != null)
                 atirador.DefinirVisual(desenhoDoTiro, apontar, heroi.CorDoTiro);
 
+            if (heroi.TipoDoTiro == Tiro.BolaDeFogo || heroi.TipoDoTiro == Tiro.Estrela)
+                atirador.DefinirSomDoTiro(Som.Magia);
+
             // Espada e machado: a onda de corte do pacote, animada e apontada pro rumo.
             Sprite[] onda = heroi.OndaDeCorte >= 0 ? ArteImportada.OndaDeCorte(heroi.OndaDeCorte, PixelsDaOnda) : null;
 

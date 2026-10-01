@@ -48,6 +48,9 @@ public sealed class TemaDoAndar
     /// <summary>Chance de um enfeite ser uma runa vermelha no chao (so no Abismo).</summary>
     public float ChanceDeRuna { get; private set; }
 
+    /// <summary>A musica que toca no mundo (<see cref="global::Musica"/>), fora da sala do chefe e da loja.</summary>
+    public TemaMusical Musica { get; private set; } = TemaMusical.Porao;
+
     /// <summary>Chance da sala ganhar candelabro num canto.</summary>
     public float ChanceDeCandelabro { get; private set; } = 0.5f;
 
@@ -115,6 +118,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Porao = new TemaDoAndar
     {
         Nome = "Porão",
+        Musica = TemaMusical.Porao,
         Sala = "Porao",
         CorDaPedra = new Color(0.85f, 0.65f, 0.5f),
         Chao = "PrisaoChaoPorao",
@@ -138,6 +142,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Catacumbas = new TemaDoAndar
     {
         Nome = "Catacumbas",
+        Musica = TemaMusical.Catacumbas,
         Sala = "Catacumbas",
         CorDaPedra = new Color(0.8f, 0.88f, 1f),
         Chao = "PrisaoChaoCatacumbas",
@@ -162,6 +167,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Cripta = new TemaDoAndar
     {
         Nome = "Cripta",
+        Musica = TemaMusical.Cripta,
         Sala = "Cripta",
         CorDaPedra = new Color(0.75f, 0.95f, 0.9f),
         Chao = "PrisaoChaoCripta",
@@ -187,6 +193,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Abismo = new TemaDoAndar
     {
         Nome = "Abismo",
+        Musica = TemaMusical.Abismo,
         Sala = "Abismo",
         CorDaPedra = new Color(0.85f, 0.9f, 1f),
         CorDosEspinhos = new Color(1f, 1f, 1f),

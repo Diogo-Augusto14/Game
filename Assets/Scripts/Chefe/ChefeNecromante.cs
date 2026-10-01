@@ -341,7 +341,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
             marcaDoSumico.transform.position = destinoDoSumico;
         }
 
-        Sons.Tocar(Som.Segredo, 0.7f);
+        Sons.Tocar(Som.Feitico, 0.8f);
         execucao.Forcar(tempoSumido / Pressa);
     }
 

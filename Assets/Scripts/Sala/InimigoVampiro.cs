@@ -77,7 +77,7 @@ public class InimigoVampiro : InimigoComArte
         if (preparo.Ativo)
             return;
 
-        Sons.Tocar(Som.Pulo, 0.5f);
+        Sons.Tocar(Som.Arremesso, 0.6f);
         acertou = false;
         bote.Forcar(duracaoDoBote);
         recuperacao.Forcar(duracaoDoBote + tempoDeRecuperacao);
@@ -122,7 +122,7 @@ public class InimigoVampiro : InimigoComArte
 
             acertou = true;
             vida.Curar(vidaSugada);
-            Sons.Tocar(Som.Coracao, 0.4f);
+            Sons.Tocar(Som.Mordida, 0.7f);
             break;
         }
     }

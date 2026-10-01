@@ -166,7 +166,8 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | `InterfaceDragao` | Tiny RPG Dragon Regalia GUI (CC0) | Molduras douradas do menu/pausa/fim de jogo, faixas de título e do aviso de andar, botões dos menus, ícones redondos de configurações e de sair, setas e ponteiro, moldura da barra do chefe, cursor do mouse (`ArteDaInterface.cs`) |
 | `Fontes` | Jersey 15 e Jacquard 12 (Google Fonts, licença OFL: `LICENCA-*.txt` do lado) | Jersey 15 em todo texto do jogo (números bem legíveis; o arquivo tem o unitsPerEm diminuído pra ficar do tamanho da fonte antiga); Jacquard 12 (gótica pixelada) nos títulos grandes: nome do jogo, Pausado, Você morreu, Configurações (`UI/FonteDoJogo.cs`) |
 | `Teclas` | Controllers and Keyboard (Vryell) | Desenho das teclas nas dicas de controle do menu, da pausa, do fim de jogo e da HUD (`TelaSimples.LinhaDeTeclas`, `IconeDeTecla`) |
-| `Sons` | Universal UI Soundpack (Nathan Gibson, CC BY 4.0: crédito no menu) | Sons de menu: navegar, confirmar, abrir/fechar pausa, herói bloqueado, herói liberado. `Sons.Tocar` usa `Resources/Sons/<Som>` quando existe |
+| `Sons` (os `.wav`) | Universal UI Soundpack (Nathan Gibson, CC BY 4.0: crédito no menu) | Sons de menu: navegar, confirmar, abrir/fechar pausa, herói bloqueado, herói liberado, aviso de fase |
+| `Sons` (os `.ogg`) e `Musica` | Feitos pro jogo; vozes e monstros do Freedoom (BSD); músicas gravadas no soundfont MuseScore General (MIT) | Os efeitos de jogo e as 10 músicas (seção 10). Créditos e licenças em `Assets/StreamingAssets/CREDITOS-AUDIO.txt`, que vai junto no build |
 | `Masmorra/Esqueleto`, `EsqueletoFoice`, `Vampiro` | Enemy Animations Set (tiras de 32×32) | Inimigos `Esqueleto`, `EsqueletoFoice` e `Vampiro`, com a própria animação de morte |
 | `Masmorra/Tocha`, `Candelabro`, `Objetos` | 2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon Asset Pack v2.0 | Tochas acesas na parede de cima de toda sala, candelabro num canto, caveira e ossos entre os enfeites de chão |
 | `Masmorra/Chao`, `Parede`, `Portao`, `Espinhos`, `Ladrilhos` | 2D Dungeon Asset Pack v5.2 | Chão e tijolos das salas (a cor do andar só tinge de leve), portão de grade nas portas e na tranca, espinhos, buraco do alçapão. Da folha `Objetos`: frasco (coração), moeda, chave, altar do pedestal, mesas da loja, estandartes das portas especiais, gema do tiro dos inimigos e o ícone de cada item passivo |
@@ -244,3 +245,43 @@ estrela vermelha (Olho do Porão). Inimigo sem estilo continua com a gema. Pra d
 um inimigo novo: `EstiloDoAtirador.Marcar(obj, EstiloDeTiro.X)` ou uma linha em
 `EstilosDeTiro.porNome`.
 
+---
+
+## 10. Música e efeitos sonoros
+
+Pasta `Assets/Scripts/Audio/`. Os volumes de música e de efeitos (`Musica.Volume`,
+`Sons.Volume`) são os do menu de opções e do M/N.
+
+**Música** (`Musica.Tocar(TemaMusical.X)`): cada tema é o arquivo
+`Resources/Musica/<tema>.ogg`, em loop sem emenda e com troca suave entre uma e outra.
+Trocar uma música é só pôr outro arquivo com o mesmo nome. Sem o arquivo, a música é
+composta por código no estilo chiptune (como era antes).
+
+| Música | Quando toca |
+|---|---|
+| `Porao`, `Catacumbas`, `Cripta`, `Abismo` | No mundo de cada tema (`TemaDoAndar.Musica`, via `Andar.MusicaDoAndar`) |
+| `Chefe` / `ChefeFinal` | Na sala do chefe enquanto ele vive, e nas ondas da sala de desafio (`Chefe`) |
+| `Loja` | Dentro da loja |
+| `Menu` | Menu inicial |
+| `Vitoria` | Depois de vencer o chefe final |
+| `FimDeJogo` | Quando o herói morre |
+
+**Efeitos** (`Sons.Tocar(Som.X)`): cada `Som` é o arquivo `Resources/Sons/<Som>`;
+`<Som>_2`, `<Som>_3`... são variações sorteadas a cada toque (`Acerto`, `MorteInimigo`,
+`MorteDemonio`, `Rugido`). Sem o arquivo, o som é sintetizado (`Sintetizador.cs`).
+Vinhetas (`Item`, `Vitoria`, `Segredo`, `Coracao`, `Cura`, `BauAbre`) tocam sempre no tom
+certo; os outros variam um pouco o tom pra não cansar.
+
+- Cada inimigo morre com o som do seu tipo (`FabricaDeInimigos.SomDeMorte`): ossos pros
+  esqueletos, gosma pras gosmas, bolhas e monstro de sangue, grito pros demônios, urro pras
+  feras, o do chefe pros chefes e um gemido pros outros.
+- Cada estilo de tiro inimigo tem o seu disparo (`EstilosDeTiro.SomDoDisparo`): flecha,
+  fogo, canhão, gosma ou magia. O mago e o padre atiram com som de magia
+  (`AtiradorTopDown.DefinirSomDoTiro`).
+- Também têm som: o tiro do herói estourando, o pavio da bomba e do barril, o goblin
+  jogando a dinamite, a mordida do vampiro, o feitiço do necromante, o alçapão abrindo, o
+  Prego Enferrujado, as curas e a morte do herói.
+
+Os arquivos de som e música foram gerados pelos scripts de `Ferramentas/Audio` (síntese,
+trechos do Freedoom e notas tocadas no soundfont; o `LEIAME.md` de lá explica como gerar
+de novo). Os créditos estão no `CREDITOS-AUDIO.txt`.

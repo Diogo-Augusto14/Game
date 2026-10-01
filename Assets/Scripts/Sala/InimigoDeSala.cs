@@ -103,6 +103,9 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     /// <summary>Velocidade maxima andando agora (a dificuldade da fase multiplica em cima dela).</summary>
     public float Velocidade => velocidade;
 
+    /// <summary>O som da morte: a <see cref="FabricaDeInimigos"/> escolhe pelo tipo do bicho (ossos, gosma, demonio...).</summary>
+    public Som SomDeMorte { get; set; } = Som.MorteInimigo;
+
     /// <summary>
     /// Troca a cor base do desenho (inimigo campeao). O flash de dano, a sala acordando e o
     /// <see cref="Vida"/> voltam pra esta cor, nao pra original.
@@ -396,7 +399,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     protected virtual void Morrer()
     {
         EstadoAtual = Estado.Morto;
-        Sons.Tocar(Som.MorteInimigo, 0.8f);
+        Sons.Tocar(SomDeMorte, SomDeMorte == Som.MorteChefe ? 1f : 0.8f);
 
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Kinematic;

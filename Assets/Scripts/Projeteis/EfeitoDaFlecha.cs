@@ -71,7 +71,7 @@ public class EfeitoDaFlecha : MonoBehaviour
 
         EfeitosDeImpacto.Mostrar(EfeitoDeImpacto.Poeira, transform.position, definicao.aparencia != null
             ? definicao.aparencia.corDoImpacto : Color.white, 0.35f);
-        Sons.Tocar(Som.Pancada, 0.25f, 0.15f);
+        Sons.Tocar(Som.Respingo, 0.6f, 0.15f);
         return true;
     }
 

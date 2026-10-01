@@ -44,6 +44,6 @@ public class CuraDoHeroi : MonoBehaviour
 
         relogio = 0f;
         vida.Curar(quanto);
-        Sons.Tocar(Som.Item, 0.5f);
+        Sons.Tocar(Som.Cura, 0.7f);
     }
 }
