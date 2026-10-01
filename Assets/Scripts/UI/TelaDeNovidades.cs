@@ -54,23 +54,25 @@ public class TelaDeNovidades : MonoBehaviour
         atual = this;
         quadroQueAbriu = Time.frameCount;
 
-        TelaSimples.Montar(gameObject, 130, new Color(0.03f, 0.02f, 0.03f, 0.97f));
+        // Fundo opaco: com a cor em espaco linear, 3% de transparencia ja deixava o menu aparecendo.
+        TelaSimples.Montar(gameObject, 130, new Color(0.03f, 0.02f, 0.03f, 1f));
         TelaSimples.Titulo(transform, "Titulo", 90, new Color(1f, 0.95f, 0.85f), 400f, "Novidades");
         TelaSimples.Faixa(transform, "Faixa", ArteDaInterface.FaixaRosa, 400f, 760f);
         TelaSimples.Texto(transform, "Versao", 30, new Color(0.8f, 0.7f, 0.75f), 315f, "Versão " + versao.TrimStart('v'));
 
-        UnityEngine.UI.Text texto = TelaSimples.Texto(transform, "Corpo", 28, new Color(1f, 0.97f, 0.92f), -20f, corpo);
+        // Area do texto bem dentro da moldura (a borda dela tem uns 50 px): sem encostar nem vazar.
+        UnityEngine.UI.Text texto = TelaSimples.Texto(transform, "Corpo", 28, new Color(1f, 0.97f, 0.92f), -22f, corpo);
         RectTransform rt = texto.rectTransform;
-        rt.sizeDelta = new Vector2(1320f, 560f);
+        rt.sizeDelta = new Vector2(1280f, 450f);
         texto.alignment = TextAnchor.UpperLeft;
         texto.verticalOverflow = VerticalWrapMode.Truncate;
         texto.resizeTextForBestFit = true;
-        texto.resizeTextMinSize = 16;
+        texto.resizeTextMinSize = 14;
         texto.resizeTextMaxSize = 28;
         texto.lineSpacing = 1.1f;
 
         TelaSimples.Painel(transform, "Painel", ArteDaInterface.MolduraGrande, -20f, new Vector2(1440f, 620f));
-        TelaSimples.LinhaDeTeclas(transform, "Teclas", -390f, "[Enter] continuar || [Pad A] continuar", 28, new Color(0.92f, 0.92f, 0.95f));
+        TelaSimples.LinhaDeTeclas(transform, "Teclas", -375f, "[Enter] continuar || [Pad A] continuar", 28, new Color(0.92f, 0.92f, 0.95f));
         Sons.Tocar(Som.MenuAbrir, 1f, 0f);
     }
 

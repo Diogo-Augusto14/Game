@@ -136,23 +136,23 @@ public static class DisposicoesDaSala
         }),
         ("Fendas", new[]
         {
-            "....F...F....",
-            "....F...F....",
-            ".............",
-            ".............",
             ".............",
             "....F...F....",
             "....F...F....",
+            ".............",
+            "....F...F....",
+            "....F...F....",
+            ".............",
         }),
         ("Lagoa", new[]
         {
-            ".FFF.........",
+            ".............",
             ".FFFF........",
             "..FFF........",
             ".............",
             "........FFF..",
             "........FFFF.",
-            ".........FF..",
+            ".............",
         }),
         ("Ilhas de fosso", new[]
         {
@@ -482,6 +482,17 @@ public static class DisposicoesDaSala
 
             if (peca.Tipo == M || peca.Tipo == F)
                 planta.DaForma = true;
+        }
+
+        // Buraco na fileira colada na parede entra no desenho da parede e corta os enfeites que a
+        // sala pronta ja traz encostados nela (barril, balde, tronco): fica pelo menos um ladrilho longe.
+        foreach (Peca peca in planta.Pecas)
+        {
+            if (peca.Tipo == F && (Mathf.Abs(peca.Celula.x) >= MEIA_LARGURA || Mathf.Abs(peca.Celula.y) >= MEIA_ALTURA))
+            {
+                Debug.LogWarning($"[DisposicoesDaSala] desenho '{planta.Nome}' tem buraco encostado na parede. Ficou de fora.");
+                return;
+            }
         }
 
         if (Jogavel(planta))
