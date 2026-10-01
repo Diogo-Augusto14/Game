@@ -22,7 +22,9 @@ public static class ChaveDoChefe
 
         // Os quadros girando num filho; o desenho parado do coletavel se esconde. O filho
         // desfaz a escala do coletavel pra chave ficar do tamanho certo.
-        EfeitoDeQuadros giro = EfeitoDeQuadros.Criar(quadros, 10f, posicao, 6, chave.transform);
+        // Filho do desenho que flutua: gira e sobe e desce junto.
+        Transform flutuante = chave.Desenho != null ? chave.Desenho.transform : chave.transform;
+        EfeitoDeQuadros giro = EfeitoDeQuadros.Criar(quadros, 10f, posicao, 6, flutuante);
 
         if (giro == null)
             return chave;
@@ -31,8 +33,8 @@ public static class ChaveDoChefe
         giro.name = "Giro";
         giro.transform.localScale = Vector3.one * (Tamanho / Mathf.Max(0.01f, chave.transform.localScale.x));
 
-        if (chave.TryGetComponent(out SpriteRenderer parada))
-            parada.enabled = false;
+        if (chave.Desenho != null)
+            chave.Desenho.enabled = false;
 
         return chave;
     }
