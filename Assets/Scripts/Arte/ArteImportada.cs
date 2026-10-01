@@ -453,17 +453,17 @@ public static class ArteImportada
         {
             case "Cebola Triste": return IconeDoPacote(440);
             case "Seringa Vermelha": return IconeDoPacote(266);
-            case "Tenis Velho": return IconeDoPacote(1938);
-            case "Olho Triplo": return IconeDoPacote(719);
-            case "Olho Gemeo": return IconeDoPacote(691);
+            case "Tenis Velho": return IconeDoPacote(1943);
+            case "Olho Triplo": return IconeDoPacote(385);
+            case "Olho Gemeo": return IconeDoPacote(236);
             case "Luneta": return IconeDoPacote(159);
             case "Coracao Extra": return IconeDoPacote(659);
             case "Lagrima de Chumbo": return IconeDoPacote(654);
             case "Cafe": return IconeDoPacote(529);
-            case "Saco de Moedas": return IconeDoPacote(160);
+            case "Saco de Moedas": return IconeDoPacote(158);
             case "Lagrima Fantasma": return IconeDoPacote(653);
             case "Bussola Maldita": return IconeDoPacote(2184);
-            case "Olho na Nuca": return IconeDoPacote(696);
+            case "Olho na Nuca": return IconeDoPacote(720);
             case "Pimenta": return IconeDoPacote(438);
             case "Pena da Fenix": return IconeDoPacote(7);
             case "Escudo Sagrado": return IconeDoPacote(665);
@@ -471,7 +471,7 @@ public static class ArteImportada
             case "Prego Enferrujado": return IconeDoPacote(1444);
             case "Pedra-Ima": return IconeDoPacote(117);
             case "Amuleto da Sorte": return IconeDoPacote(668);
-            case "Bolsa do Mercador": return IconeDoPacote(158);
+            case "Bolsa do Mercador": return IconeDoPacote(160);
             case "Brasa da Furia": return IconeDoPacote(993);
             case "Elixir de Nevoa": return IconeDoPacote(123);
             case "Orbe Guardiao": return IconeDoPacote(335);
@@ -500,9 +500,9 @@ public static class ArteImportada
     public static Sprite ObjetoV2(int coluna, int linha)
         => Celula("Masmorra/ObjetosV2", coluna, linha);
 
-    /// <summary>Saco de ouro do Tiny Swords (Resources), ~1 unidade.</summary>
+    /// <summary>Saco de moedas do Raven Fantasy Icons, ~1 unidade.</summary>
     public static Sprite SacoDeOuro
-        => Unico("TinySwords/Ouro", 128, new RectInt(46, 50, 48, 50), new Vector2(70f, 75f), 48f);
+        => IconeDoPacote(158);
 
     /// <summary>Pedaco de carne do Tiny Swords (Resources), ~1 unidade.</summary>
     public static Sprite CarneAssada
