@@ -27,6 +27,9 @@ public sealed class TemaDoAndar
     public Color CorDoChao { get; private set; }
     public Color CorDaParede { get; private set; }
 
+    /// <summary>Tom das pedras de obstaculo (a pedra cinza do Tiny Swords tingida pro tema).</summary>
+    public Color CorDaPedra { get; private set; } = Color.white;
+
     /// <summary>Quanto o tom pesa sobre a arte do pacote (0 = arte pura, 1 = so a cor).</summary>
     public float ForcaDaCor { get; private set; } = 0.4f;
 
@@ -103,6 +106,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Porao = new TemaDoAndar
     {
         Nome = "Porão",
+        CorDaPedra = new Color(0.85f, 0.65f, 0.5f),
         Chao = "PrisaoChaoPorao",
         Parede = "PrisaoParedePorao",
         CorDoChao = Color.white,
@@ -124,6 +128,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Catacumbas = new TemaDoAndar
     {
         Nome = "Catacumbas",
+        CorDaPedra = new Color(0.8f, 0.88f, 1f),
         Chao = "PrisaoChaoCatacumbas",
         Parede = "PrisaoParedeCatacumbas",
         CorDoChao = Color.white,
@@ -146,6 +151,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Cripta = new TemaDoAndar
     {
         Nome = "Cripta",
+        CorDaPedra = new Color(0.75f, 0.95f, 0.9f),
         Chao = "PrisaoChaoCripta",
         Parede = "PrisaoParedeCripta",
         CorDoChao = Color.white,
@@ -169,6 +175,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Abismo = new TemaDoAndar
     {
         Nome = "Abismo",
+        CorDaPedra = new Color(1f, 0.55f, 0.5f),
         Chao = "PrisaoChaoAbismo",
         Parede = "PrisaoParedeAbismo",
         CorDoChao = Color.white,

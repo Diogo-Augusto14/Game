@@ -211,7 +211,7 @@ public class Sala : MonoBehaviour
         Vector2 posicao = celula;
 
         if (tipo == TipoDeObstaculo.Pedra)
-            Pedra.Criar(cenario, posicao, Color.Lerp(corDaParede, new Color(0.55f, 0.55f, 0.55f), 0.35f));
+            Pedra.Criar(cenario, posicao, TemaDoAndar.Atual != null ? TemaDoAndar.Atual.CorDaPedra : Color.white);
         else
             Espinhos.Criar(cenario, posicao);
     }
@@ -243,7 +243,7 @@ public class Sala : MonoBehaviour
 
             // Longe das paredes, pra nao tampar porta.
             Vector2 ponto = PontoLivreAleatorio(1.2f);
-            SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, new Color(0.85f, 0.85f, 0.85f),
+            SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, Color.white,
                                                      ponto, Vector2.one, -9);
             sr.flipX = Random.value < 0.5f;
         }
@@ -268,7 +268,7 @@ public class Sala : MonoBehaviour
             if (bandeira == null)
                 break;
 
-            Vector2 local = new Vector2(lado * meio.x * 0.78f, meio.y + espessuraDaParede * 0.35f);
+            Vector2 local = new Vector2(lado * meio.x * 0.3f, meio.y + espessuraDaParede * 0.35f);
             FormasDaSala.Desenho(cenario, "Bandeira", bandeira, Color.white, local, Vector2.one, 1);
         }
 
@@ -277,7 +277,7 @@ public class Sala : MonoBehaviour
 
         if (candelabro != null && Random.value < (tema != null ? tema.ChanceDeCandelabro : 0.5f))
         {
-            Vector2Int canto = new Vector2Int(Random.value < 0.5f ? -1 : 1, Random.value < 0.5f ? -1 : 1);
+            Vector2Int canto = new Vector2Int(Random.value < 0.5f ? -1 : 1, -1);   // so nos cantos de baixo: os de cima ficam sob a HUD
             Vector2 local = new Vector2(canto.x * (meio.x - 0.6f), canto.y * (meio.y - 0.6f));
 
             if (Livre(local, 0.2f))

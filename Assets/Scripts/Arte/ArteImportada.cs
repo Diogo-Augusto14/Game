@@ -307,14 +307,11 @@ public static class ArteImportada
     /// </summary>
     public static Sprite EnfeiteAleatorio(float chanceDeOsso)
     {
-        // Old Prison: ossos, caveiras (25 primeiras celulas) e pedras quebradas (10 ultimas).
-        Sprite[] prisao = Linha("Masmorra/Temas/PrisaoEnfeites", 32, 0, 35, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
+        // Old Prison: ossos e caveiras clareados pra aparecer no chao escuro.
+        Sprite[] prisao = Linha("Masmorra/Temas/PrisaoEnfeites", 32, 0, 25, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
 
-        if (prisao != null && prisao.Length >= 35)
-        {
-            bool osso = Random.value < Mathf.Max(chanceDeOsso, 0.45f);
-            return osso ? prisao[Random.Range(0, 25)] : prisao[Random.Range(25, 35)];
-        }
+        if (prisao != null && prisao.Length >= 25 && Random.value < Mathf.Max(chanceDeOsso, 0.5f))
+            return prisao[Random.Range(0, 25)];
 
         if (Random.value < chanceDeOsso)
         {

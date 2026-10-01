@@ -1121,6 +1121,12 @@ public class Andar : MonoBehaviour
             : cor == corDoBatenteDoDesafio ? ArteImportada.Trofeu(true)
             : ArteImportada.Objeto(1, 4);
 
+        // Old Prison: bandeira de cada tipo (chefe vermelha escura, item azul, loja dourada, desafio laranja).
+        Sprite bandeira = ArteImportada.BandeiraDaPrisao(cor == corDoBatenteDoChefe ? 0 : cor == corDoBatenteDaLoja ? 3 : cor == corDoBatenteDoDesafio ? 4 : 2);
+
+        if (bandeira != null)
+            estandarte = bandeira;
+
         for (int s = -1; s <= 1; s += 2)
         {
             if (estandarte != null)
