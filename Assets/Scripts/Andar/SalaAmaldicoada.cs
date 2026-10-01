@@ -26,6 +26,12 @@ public static class SalaAmaldicoada
             Bau.Criar(centro, sala.transform, TipoDeColetavel.Moeda, TipoDeColetavel.Moeda, TipoDeColetavel.Moeda,
                       TipoDeColetavel.Bomba, TipoDeColetavel.Chave, TipoDeColetavel.Coracao);
 
+        Enfeitar(sala);
+    }
+
+    /// <summary>Os idolos de olho vermelho nos cantos (tambem na sala do altar de sangue).</summary>
+    public static void Enfeitar(Sala sala)
+    {
         // Idolos de olho vermelho nos quatro cantos.
         Sprite idolo = ArteImportada.IdoloMaldito;
 

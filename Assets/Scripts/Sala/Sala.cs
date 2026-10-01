@@ -687,6 +687,15 @@ public class Sala : MonoBehaviour
 
         if (VivosNoGrupo == 0)
         {
+            // Emboscada: vazia, mas segurando as portas. Fecha e avisa que esta vazia, pra
+            // quem segura (SalaDeEmboscada) mandar a primeira onda.
+            if (SegurarPortas)
+            {
+                Fechar();
+                AoEsvaziar?.Invoke();
+                return;
+            }
+
             Limpar();
             return;
         }

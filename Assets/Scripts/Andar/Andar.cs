@@ -36,6 +36,19 @@ public class Andar : MonoBehaviour
     [Tooltip("Enfeites de chao (cogumelo, pedrinha, osso) por sala: sorteado entre o minimo e o maximo")]
     [SerializeField] private Vector2Int enfeitesPorSala = new Vector2Int(2, 5);
 
+    [Header("Salas diferentes")]
+    [Tooltip("Chance de uma sala comum (longe da inicial) ser emboscada: vazia ate entrar, depois ondas")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeEmboscada = 0.1f;
+
+    [Tooltip("Chance de uma sala comum (longe da inicial) ser escura: so se ve em volta do heroi")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeSalaEscura = 0.1f;
+
+    [Tooltip("Chance de uma sala comum ganhar serras andando em trilhos (a partir da fase 2)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeLaminas = 0.15f;
+
+    [Tooltip("Chance da sala amaldicoada ser a do sacrificio (altar de sangue) em vez de premio")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeAltar = 0.4f;
+
     [Header("Inimigos")]
     [Tooltip("Orcamento de inimigos de uma sala comum (sorteado entre o minimo e o maximo): vira um bando de um tipo, maior se o bicho for fraco (ver MontarBando)")]
     [SerializeField] private Vector2Int inimigosPorSala = new Vector2Int(2, 4);
@@ -822,6 +835,24 @@ public class Andar : MonoBehaviour
                 return; // inicio e item: sala tranquila, como no Isaac
         }
 
+        // Salas diferentes (so as de uma casa, longe da inicial): emboscada ou escura; e serras.
+        if (casa.Forma == null && casa.Distancia >= 2)
+        {
+            float sorteio = UnityEngine.Random.value;
+
+            if (sorteio < chanceDeEmboscada)
+            {
+                MontarEmboscada(sala, quantos);
+                return;
+            }
+
+            if (sorteio < chanceDeEmboscada + chanceDeSalaEscura)
+                SalaEscura.Montar(sala);
+
+            if (numeroDoAndar >= 2 && UnityEngine.Random.value < chanceDeLaminas)
+                PorLaminas(sala);
+        }
+
         // Sala grande: o mesmo bicho em todas as casas (um bando so, espalhado), e um pouco menos
         // por casa, senao uma 2x2 virava quatro salas de briga de uma vez.
         TipoDeInimigo? doBando = null;
@@ -855,6 +886,42 @@ public class Andar : MonoBehaviour
                 sangue.Endurecer();
 
             Fortalecer(inimigo, sala);
+        }
+    }
+
+    /// <summary>
+    /// Emboscada: a sala fica vazia e o orcamento (com um pouco a mais, ja que vem em partes)
+    /// vira duas ou tres ondas de bando, que nascem quando o jogador entra.
+    /// </summary>
+    private void MontarEmboscada(Sala sala, int quantos)
+    {
+        int total = quantos + 2;
+        int numeroDeOndas = total >= 6 ? 3 : 2;
+        List<List<TipoDeInimigo>> ondas = new List<List<TipoDeInimigo>>();
+
+        for (int i = 0; i < numeroDeOndas; i++)
+        {
+            int nesta = Mathf.Max(1, Mathf.RoundToInt(total / (float)numeroDeOndas));
+            ondas.Add(MontarBando(nesta));
+        }
+
+        SalaDeEmboscada.Montar(sala, ondas, inimigo => Fortalecer(inimigo, sala));
+    }
+
+    /// <summary>
+    /// Uma ou duas serras em trilhos: uma faixa deitada um pouco acima ou abaixo do meio (fora
+    /// da linha das portas dos lados) e, as vezes, uma em pe ao lado do meio.
+    /// </summary>
+    private void PorLaminas(Sala sala)
+    {
+        Vector2 meio = sala.TamanhoInterno * 0.5f - Vector2.one * 0.9f;
+        float y = (UnityEngine.Random.value < 0.5f ? 1f : -1f) * Mathf.Min(1.6f, meio.y);
+        LaminaGiratoria.Criar(sala, new Vector2(-meio.x, y), new Vector2(meio.x, y), UnityEngine.Random.value);
+
+        if (UnityEngine.Random.value < 0.4f)
+        {
+            float x = (UnityEngine.Random.value < 0.5f ? 1f : -1f) * Mathf.Min(3.5f, meio.x);
+            LaminaGiratoria.Criar(sala, new Vector2(x, -meio.y), new Vector2(x, meio.y), UnityEngine.Random.value);
         }
     }
 
@@ -1082,6 +1149,14 @@ public class Andar : MonoBehaviour
                 break;
 
             case TipoDeSala.Amaldicoada:
+                // As vezes, no lugar do premio, o altar do sacrificio (coracao por tesouro).
+                if (UnityEngine.Random.value < chanceDeAltar)
+                {
+                    SalaAmaldicoada.Enfeitar(sala);
+                    AltarDeSangue.Montar(sala);
+                    break;
+                }
+
                 SalaAmaldicoada.Montar(sala, CatalogoDeItens.Sortear(itensQueJaSairam));
                 break;
 
