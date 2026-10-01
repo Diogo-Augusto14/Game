@@ -271,8 +271,9 @@ public class Sala : MonoBehaviour
             Vector2 direcao = par.Key == LadoDaPorta.Cima ? Vector2.up : par.Key == LadoDaPorta.Baixo ? Vector2.down
                 : par.Key == LadoDaPorta.Esquerda ? Vector2.left : Vector2.right;
             Vector2 centroDoTapete = Vector2.Scale(meio, direcao) - direcao * 0.9f;
-            FormasDaSala.Desenho(cenario, "Tapete", FormasDaSala.Quadrado(), new Color(0.42f, 0.18f, 0.48f, 0.6f),
-                                 centroDoTapete, vertical ? new Vector2(1.5f, 2f) : new Vector2(2f, 1.5f), -9);
+            Vector2 medida = vertical ? new Vector2(1.5f, 2f) : new Vector2(2f, 1.5f);
+            FormasDaSala.Desenho(cenario, "Tapete", FormasDaSala.Quadrado(), new Color(0.2f, 0.09f, 0.14f, 0.7f), centroDoTapete, medida, -9);
+            FormasDaSala.Desenho(cenario, "TapeteMiolo", FormasDaSala.Quadrado(), new Color(0.36f, 0.16f, 0.24f, 0.65f), centroDoTapete, medida - Vector2.one * 0.2f, -8);
         }
 
         // Bandeiras do Old Prison penduradas na parede de cima, perto dos cantos.
@@ -298,7 +299,7 @@ public class Sala : MonoBehaviour
             if (Livre(local, 0.2f))
             {
                 EfeitoDeQuadros.Criar(candelabro, 6f, (Vector2)transform.position + local + Vector2.down * 0.45f, -8, cenario)?.EmLoop();
-                HaloCintilante.Criar(cenario, local + Vector2.up * 0.9f, 2.6f, new Color(1f, 0.75f, 0.35f, 0.26f));
+                HaloCintilante.Criar(cenario, local + new Vector2(-canto.x * 0.35f, 0.9f), 2f, new Color(1f, 0.75f, 0.35f, 0.26f));
             }
         }
     }
