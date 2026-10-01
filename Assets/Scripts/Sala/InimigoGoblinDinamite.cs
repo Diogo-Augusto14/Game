@@ -100,7 +100,7 @@ public class InimigoGoblinDinamite : InimigoComArte
         // Mira onde o jogador esta agora; longe demais, cai no meio do caminho.
         Vector2 alvo = Vector2.ClampMagnitude(ParaOJogador(), alcanceMaximo);
 
-        Sons.Tocar(Som.Pulo, 0.4f);
+        Sons.Tocar(Som.Arremesso, 0.6f);
         DinamiteLancada.Lancar(rb.position + Vector2.up * 0.2f, rb.position + alvo, tempoDeVoo, raioDaExplosao,
                                danoNoJogador, danoNosOutros, gameObject);
     }

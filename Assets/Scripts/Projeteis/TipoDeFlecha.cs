@@ -115,11 +115,11 @@ public static class CatalogoDeFlechas
         {
             case TipoDeFlecha.Normal: icone = ArteImportada.Flecha(48f); break;
             case TipoDeFlecha.Rapida: icone = ArteImportada.FlechaDoHeroi("FlechaDoArqueiro", 22f); break;
-            case TipoDeFlecha.Pesada: icone = ArteImportada.FlechaDoHeroi("FlechaDoSoldado", 22f); break;
-            case TipoDeFlecha.Explosiva: icone = ArteImportada.FlechaDoHeroi("Flecha", 22f); break;
-            case TipoDeFlecha.Perfurante: icone = ArteImportada.FlechaDoHeroi("Dardo", 22f); break;
+            case TipoDeFlecha.Pesada: icone = ArteImportada.IconeDoPacote(2155); break;
+            case TipoDeFlecha.Explosiva: icone = ArteImportada.IconeDoPacote(1002); break;
+            case TipoDeFlecha.Perfurante: icone = ArteImportada.IconeDoPacote(2154); break;
             case TipoDeFlecha.Gelo: icone = Primeiro(ArteImportada.CristalGirando(40f)); break;
-            case TipoDeFlecha.Venenosa: icone = Primeiro(ArteImportada.MagiaVerde(30f)); break;
+            case TipoDeFlecha.Venenosa: icone = ArteImportada.IconeDoPacote(778); break;
             case TipoDeFlecha.Ricochete: icone = ArteImportada.Flecha(48f); break;
         }
 

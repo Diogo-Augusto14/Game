@@ -551,7 +551,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
         lacaios.Clear();
 
         // Some com os tiros que ainda voam: a vitoria nao pode matar ninguem.
-        foreach (TiroDaSala tiro in FindObjectsByType<TiroDaSala>(FindObjectsSortMode.None))
+        foreach (TiroDaSala tiro in FindObjectsByType<TiroDaSala>())
             Destroy(tiro.gameObject);
 
         base.Morrer();

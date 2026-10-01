@@ -202,6 +202,25 @@ public class Porta : MonoBehaviour
         progresso = 0f;
         AplicarEstado();
 
+        // Sala pronta do Old Prison: em cima a parede rachada; embaixo e dos lados a parede fica
+        // igual e a dica sao pedrinhas no chao, logo na frente dela (como no Isaac).
+        Sprite rachada = Sala != null && Sala.ComFundo ? ArteImportada.RachaduraDaPrisao(lado) : null;
+
+        if (rachada != null)
+        {
+            if (lado == LadoDaPorta.Cima)
+            {
+                FormasDaSala.Desenho(transform, "Rachadura", rachada, Color.white, Vector2.zero, Vector2.one, 1);
+                return;
+            }
+
+            float dentro = lado == LadoDaPorta.Baixo ? 1f : 1.5f;
+            SpriteRenderer sr = FormasDaSala.Desenho(transform, "Rachadura", rachada, Color.white,
+                                                     -lado.Direcao() * dentro, Vector2.one, -9);
+            sr.flipX = lado == LadoDaPorta.Direita;
+            return;
+        }
+
         // A dica do Isaac: uma rachadura na parede, pra quem prestar atencao.
         Vector2 eixo = lado.Horizontal() ? Vector2.right : Vector2.up;
         Vector2 cruzado = lado.Horizontal() ? Vector2.up : Vector2.right;
@@ -286,6 +305,12 @@ public class Porta : MonoBehaviour
 
         // Sem porta (ou porta secreta), o vao vira tijolo igual ao resto da parede.
         bool parede = !existe || Escondida;
+
+        if (Sala != null && Sala.ComFundo)
+        {
+            AplicarEstadoDaPrisao(parede);
+            return;
+        }
         Sprite[] quadros = parede ? null : ArteImportada.QuadrosDoPortao;
         Sprite portao = quadros != null ? quadros[Mathf.RoundToInt(progresso * (quadros.Length - 1))] : null;
 
@@ -325,6 +350,43 @@ public class Porta : MonoBehaviour
         desenho.sprite = parede ? ArteGerada.Tijolo() : FormasDaSala.Quadrado();
         desenho.size = tamanhoDoVao;
         desenho.color = parede ? corDeParede : Color.Lerp(corFechada, corAberta, progresso);
+    }
+
+    private SpriteRenderer vao;
+
+    /// <summary>
+    /// Sala pronta do Old Prison: a parede ja esta na imagem da sala. Sem porta nao desenha
+    /// nada; com porta mostra o vao (passagem escura em cima, chao saindo nos outros lados) e a
+    /// grade de ferro, que sobe quadro a quadro ao abrir.
+    /// </summary>
+    private void AplicarEstadoDaPrisao(bool parede)
+    {
+        bool direita = lado == LadoDaPorta.Direita;
+
+        if (vao == null)
+        {
+            vao = FormasDaSala.Desenho(transform, "Vao", ArteImportada.VaoDaPrisao(lado), Color.white, Vector2.zero, Vector2.one, 1);
+            vao.flipX = direita;
+        }
+
+        vao.enabled = !parede && vao.sprite != null;
+
+        Sprite[] grade = parede ? null : ArteImportada.GradeDaPrisao(lado);
+        desenho.enabled = grade != null;
+
+        if (grade == null)
+            return;
+
+        bool andando = progresso > 0f && progresso < 1f;
+        Vector2 eixo = lado.Horizontal() ? Vector2.right : Vector2.up;
+        desenho.transform.localPosition = andando ? eixo * (Mathf.Sin(Time.time * 70f) * 0.02f) : Vector3.zero;
+        desenho.transform.localRotation = Quaternion.identity;
+        desenho.transform.localScale = Vector3.one;
+        desenho.drawMode = SpriteDrawMode.Simple;
+        desenho.sprite = grade[Mathf.RoundToInt(progresso * (grade.Length - 1))];
+        desenho.flipX = direita;
+        desenho.color = Color.white;
+        desenho.sortingOrder = 2;
     }
 
     /// <summary>O portao e desenhado na parede de cima; nas outras gira pra a frente dar pra sala.</summary>

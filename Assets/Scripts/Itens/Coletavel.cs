@@ -44,9 +44,9 @@ public class Coletavel : MonoBehaviour
     }
 
     /// <summary>Tamanho do desenho no mundo, em unidades.</summary>
-    /// <remarks>Os objetos do pacote tem borda vazia no ladrilho: saem um pouco maiores pra ficar do mesmo tamanho.</remarks>
+    /// <remarks>Os icones do Raven Fantasy enchem o quadro de 32px: saem menores que os antigos do ladrilho.</remarks>
     public static float TamanhoDe(TipoDeColetavel tipo)
-        => (tipo == TipoDeColetavel.Moeda ? 0.42f : 0.55f) * (ArteGerada.CenarioDoPacote ? 1.3f : 1f);
+        => tipo == TipoDeColetavel.Moeda ? 0.4f : 0.45f;
 
     /// <summary>Poe um coletavel no mundo, na posicao dada. <paramref name="pai"/> costuma ser a sala.</summary>
     public static Coletavel Criar(TipoDeColetavel tipo, Vector2 posicao, Transform pai = null)

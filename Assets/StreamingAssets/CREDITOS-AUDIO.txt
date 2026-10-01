@@ -1,0 +1,73 @@
+THE PRETTIE - CREDITOS DO AUDIO
+===============================
+
+MUSICAS
+-------
+Todas as musicas (Porao, Catacumbas, Cripta, Abismo, Chefe, Chefe Final, Loja, Menu,
+Vitoria e Fim de Jogo) foram compostas para o The Prettie e gravadas com o soundfont
+MuseScore General (licenca MIT), baseado no Fluid (R3) GM SoundFont.
+
+  MuseScore_General SoundFont (MIT, partes em dominio publico ou CC0)
+  Adaptacao para o MuseScore_General: Copyright (c) 2018-2021 S. Christian Collins
+  Fluid (R3) Mono GM soundfont: Copyright (c) 2014-2017 Michael Cowgill
+  Fluid (R3) GM SoundFont: Copyright (c) 2000-2002, 2008 Frank Wen
+  MuseScore Drumline: S. Christian Collins e Amir Oosman (CC0)
+  Splendid Grand Piano (AKAI S5000, dominio publico)
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this
+  software and associated documentation files (the "Software"), to deal in the Software
+  without restriction, including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
+  to whom the Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all copies or
+  substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+  PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+  FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+EFEITOS SONOROS
+---------------
+A maior parte dos efeitos (flecha, corte, magia, moedas, chaves, portoes, ossos, pavio,
+pancadas, vinhetas de item e de segredo) foi feita para o The Prettie, por sintese
+ou com o mesmo soundfont das musicas.
+
+Os sons de dor e morte do heroi, morte de inimigos (gente, demonio, fera, gosma), mordida,
+bola de fogo, explosao, rugidos e morte de chefe vem do Freedoom (sons DSPLPAIN, DSPLDETH,
+DSPODTH1-3, DSBGDTH1-2, DSSGTDTH, DSSLOP, DSSGTATK, DSFIRSHT, DSBAREXP, DSBRSSIT, DSSGTSIT,
+DSKNTSIT e DSBRSDTH), alguns cortados ou misturados com outros sons.
+
+  Freedoom - https://freedoom.github.io
+  Copyright (c) 2001-2024 Contributors to the Freedoom project
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without modification, are
+  permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice, this list of
+      conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list
+      of conditions and the following disclaimer in the documentation and/or other
+      materials provided with the distribution.
+    * Neither the name of the Freedoom project nor the names of its contributors may be
+      used to endorse or promote products derived from this software without specific
+      prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+  THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+  THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+SONS DE INTERFACE
+-----------------
+Navegar, confirmar, abrir e fechar menus, aviso de fase: Universal UI Soundpack,
+Nathan Gibson (CC BY 4.0) - https://nathangibson.myportfolio.com

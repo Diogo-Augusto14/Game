@@ -7,7 +7,7 @@ using UnityEngine;
 ///
 ///   Anel      -> incha e solta tiros em volta, em todas as direcoes
 ///   Rajada    -> treme e solta tres leques de tiros mirados no jogador
-///   Investida -> mostra uma linha de mira e dispara reto; se bater na parede fica tonto
+///   Investida -> raspa poeira, mostra a linha de mira (amarela ficando vermelha) e dispara reto, deixando um rastro; se bater na parede fica tonto
 ///   Invocar   -> (so na segunda fase) chama dois perseguidores
 ///
 /// Com metade da vida entra na SEGUNDA FASE: avisos mais curtos, tiros mais rapidos,
@@ -116,9 +116,11 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
     private Transform corpo;
     private Vector3 posicaoDoCorpo;
     private readonly List<SpriteRenderer> olhos = new List<SpriteRenderer>();
-    private SpriteRenderer mira;
+    private RastroDoChefe rastro;
 
     public string Nome => nomeDoChefe;
+
+    private RastroDoChefe Rastro => rastro != null ? rastro : (rastro = RastroDoChefe.Em(this, desenho, raio));
 
     public bool NaSegundaFase => segundaFase;
 
@@ -126,7 +128,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
 
     // ---------------- montagem ----------------
     /// <summary>
-    /// Poe olhos e a linha de mira. A <see cref="FabricaDeInimigos"/> chama logo depois de
+    /// Poe os olhos. A <see cref="FabricaDeInimigos"/> chama logo depois de
     /// montar o corpo; o raio e o do colisor. Com arte importada o bicho ja tem cara: sem
     /// olhos desenhados, e o aviso de ataque tinge o corpo inteiro.
     /// </summary>
@@ -143,11 +145,6 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
             FormasDaSala.Desenho(olho.transform, "Pupila", FormasDaSala.Circulo(), Color.black,
                 Vector2.zero, Vector2.one * 0.45f, 12);
         }
-
-        // Quadrado em modo Tiled: o tamanho (comprimento, espessura) e ajustado a cada quadro.
-        mira = FormasDaSala.Desenho(transform, "Mira da investida", FormasDaSala.Quadrado(),
-            new Color(1f, 0.2f, 0.15f, 0.35f), Vector2.zero, new Vector2(1f, 0.15f), 5);
-        mira.enabled = false;
     }
 
     protected override void Awake()
@@ -287,6 +284,8 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
                 rumoDaInvestida = RumoParaOJogador();
                 danoDeContato = danoDaInvestida;
                 execucao.Forcar(duracaoMaximaDaInvestida);
+                Rastro.Poeira(rumoDaInvestida, true);
+                Rastro.Ligado = true;
                 break;
 
             case Ataque.Invocar:
@@ -358,6 +357,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
 
     private void Recuperar(float tempo)
     {
+        Rastro.Ligado = false;
         executando = false;
         recuperacao.Forcar(tempo / Pressa);
         EstadoAtual = Estado.Recuperando;
@@ -395,9 +395,10 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
                 break;
 
             case Ataque.Investida:
-                // Linha de mira que segue o jogador ate o ultimo instante.
+                // Raspa o chao (poeira nos pes) e a linha de mira segue o jogador ate o ultimo instante.
                 PintarOlhos(Color.Lerp(Color.white, Color.red, t));
-                MostrarMira(RumoParaOJogador(), t);
+                Rastro.Poeira(RumoParaOJogador());
+                Rastro.MostrarMira(RumoParaOJogador(), t);
                 break;
 
             case Ataque.Invocar:
@@ -414,24 +415,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
         if (corpo != null)
             corpo.localPosition = posicaoDoCorpo;
 
-        if (mira != null)
-            mira.enabled = false;
-    }
-
-    private void MostrarMira(Vector2 rumo, float t)
-    {
-        if (mira == null)
-            return;
-
-        const float comprimento = 12f;
-        mira.enabled = true;
-        mira.size = new Vector2(comprimento, Mathf.Lerp(0.05f, raio * 1.6f, t));
-        mira.transform.localPosition = rumo * (comprimento * 0.5f);
-        mira.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg);
-
-        Color cor = mira.color;
-        cor.a = Mathf.Lerp(0.15f, 0.45f, t);
-        mira.color = cor;
+        Rastro.EsconderMira();
     }
 
     private void PintarOlhos(Color cor)

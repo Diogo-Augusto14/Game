@@ -33,14 +33,36 @@ public enum Som
     Dash,
     Corte,
     Destranca,
-    BauAbre
+    BauAbre,
+
+    // Sons novos (o valor dos antigos nao muda): mortes por tipo de bicho, tiros por estilo e o que era mudo.
+    MorteJogador,
+    MorteChefe,
+    MorteOssos,
+    MorteGosma,
+    MorteDemonio,
+    MorteFera,
+    Respingo,
+    BombaAcesa,
+    FlechaInimigo,
+    TiroDeFogo,
+    Canhao,
+    Gosma,
+    Magia,
+    Mordida,
+    Feitico,
+    Espinhos,
+    Alcapao,
+    Cura,
+    Arremesso
 }
 
 /// <summary>
-/// Toca efeito sonoro de qualquer lugar: <c>Sons.Tocar(Som.Moeda)</c>. Os sons sao
-/// sintetizados na primeira vez (<see cref="Sintetizador"/>) e guardados. Se existir
-/// <c>Resources/Sons/&lt;nome do Som&gt;</c>, toca o arquivo no lugar: os sons de menu vem do
-/// Universal UI Soundpack (Nathan Gibson, CC BY 4.0).
+/// Toca efeito sonoro de qualquer lugar: <c>Sons.Tocar(Som.Moeda)</c>. Cada som e o arquivo
+/// <c>Resources/Sons/&lt;nome do Som&gt;</c>; variacoes com <c>_2</c>, <c>_3</c>... no nome
+/// (Acerto_2) sao sorteadas a cada toque. Os de menu vem do Universal UI Soundpack (Nathan
+/// Gibson, CC BY 4.0); os outros foram feitos pro jogo, alguns a partir do Freedoom (creditos
+/// em CREDITOS-AUDIO.txt). Sem o arquivo, o som e sintetizado (<see cref="Sintetizador"/>).
 ///
 /// Um objeto "Sons" com algumas AudioSources e criado sozinho e sobrevive a troca de cena.
 /// O mesmo som tocado varias vezes no mesmo instante (dez lagrimas batendo juntas) toca
@@ -52,7 +74,9 @@ public static class Sons
     private const float IntervaloMinimo = 0.035f;
     private const string ChaveDoVolume = "volume-dos-efeitos";
 
-    private static readonly Dictionary<Som, AudioClip> clips = new Dictionary<Som, AudioClip>();
+    private const int MaximoDeVariacoes = 4;
+
+    private static readonly Dictionary<Som, AudioClip[]> clips = new Dictionary<Som, AudioClip[]>();
     private static readonly Dictionary<Som, float> ultimoToque = new Dictionary<Som, float>();
     private static AudioSource[] fontes;
     private static int proxima;
@@ -93,23 +117,62 @@ public static class Sons
         AudioSource fonte = fontes[proxima];
         proxima = (proxima + 1) % fontes.Length;
 
+        // Vinheta (melodia) desafinada soa errada: essas tocam sempre no tom certo.
+        if (Musical(som))
+            variacaoDeTom = 0f;
+
         fonte.pitch = 1f + Random.Range(-variacaoDeTom, variacaoDeTom);
         fonte.PlayOneShot(Clip(som), Volume * volumeRelativo);
     }
 
+    /// <summary>O som (uma das variacoes, sorteada, quando tem mais de uma).</summary>
     public static AudioClip Clip(Som som)
     {
-        if (!clips.TryGetValue(som, out AudioClip clip) || clip == null)
+        if (!clips.TryGetValue(som, out AudioClip[] variacoes) || variacoes[0] == null)
         {
-            clip = Resources.Load<AudioClip>("Sons/" + som);
+            List<AudioClip> achados = new List<AudioClip>();
+            AudioClip arquivo = Resources.Load<AudioClip>("Sons/" + som);
 
-            if (clip == null)
-                clip = Gerar(som);
+            if (arquivo != null)
+            {
+                achados.Add(arquivo);
 
-            clips[som] = clip;
+                for (int i = 2; i <= MaximoDeVariacoes; i++)
+                {
+                    AudioClip outro = Resources.Load<AudioClip>("Sons/" + som + "_" + i);
+
+                    if (outro == null)
+                        break;
+
+                    achados.Add(outro);
+                }
+            }
+            else
+            {
+                achados.Add(Gerar(som));
+            }
+
+            variacoes = achados.ToArray();
+            clips[som] = variacoes;
         }
 
-        return clip;
+        return variacoes.Length == 1 ? variacoes[0] : variacoes[Random.Range(0, variacoes.Length)];
+    }
+
+    private static bool Musical(Som som)
+    {
+        switch (som)
+        {
+            case Som.Item:
+            case Som.Vitoria:
+            case Som.Segredo:
+            case Som.Coracao:
+            case Som.Cura:
+            case Som.BauAbre:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private static void GarantirFontes()

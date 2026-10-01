@@ -52,6 +52,7 @@ public class Alcapao : MonoBehaviour
         Alcapao alcapao = obj.AddComponent<Alcapao>();
         alcapao.buraco = buraco.transform;
         alcapao.buraco.localScale = Vector3.zero;
+        Sons.Tocar(Som.Alcapao, 0.8f);
         return alcapao;
     }
 

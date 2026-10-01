@@ -307,6 +307,12 @@ public static class ArteImportada
     /// </summary>
     public static Sprite EnfeiteAleatorio(float chanceDeOsso)
     {
+        // Old Prison: ossos e caveiras clareados pra aparecer no chao escuro.
+        Sprite[] prisao = Linha("Masmorra/Temas/PrisaoEnfeites", 32, 0, 25, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
+
+        if (prisao != null && prisao.Length >= 25 && Random.value < Mathf.Max(chanceDeOsso, 0.5f))
+            return prisao[Random.Range(0, 25)];
+
         if (Random.value < chanceDeOsso)
         {
             // Objetos.png: caveira na coluna 2 da linha 3, ossos na coluna 2 da linha 4.
@@ -346,6 +352,76 @@ public static class ArteImportada
     public static Sprite[] TochaDeParede(float pixelsPorUnidade)
         => Linha("Masmorra/Tocha", 16, 0, 6, new RectInt(0, 0, 16, 28), new Vector2(8f, 20f), pixelsPorUnidade, 28);
 
+    /// <summary>
+    /// A sala inteira do Old Prison para o tema atual (15x9 unidades: chao, paredes, sombra e
+    /// enfeites), uma das 4 versoes sorteada; null sem tema com sala pronta ou sem a arte.
+    /// </summary>
+    public static Sprite SalaDaPrisao()
+    {
+        string nome = TemaDoAndar.Atual?.Sala;
+        return string.IsNullOrEmpty(nome) ? null : Inteira($"Masmorra/Temas/PrisaoSala{nome}{Random.Range(0, 4)}", PixelsDaPrisao);
+    }
+
+    /// <summary>
+    /// O vao da porta desenhado por cima da sala pronta: passagem escura com batentes na parede de
+    /// cima, chao saindo da sala nas outras. O pivo fica no meio da faixa da parede.
+    /// </summary>
+    public static Sprite VaoDaPrisao(LadoDaPorta lado)
+    {
+        switch (lado)
+        {
+            case LadoDaPorta.Cima:
+                return Unico("Masmorra/Temas/PrisaoVaoCima", 48, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
+            case LadoDaPorta.Baixo:
+                return Unico("Masmorra/Temas/PrisaoVaoBaixo", 48, new RectInt(0, 0, 48, 32), new Vector2(24f, 16f), PixelsDaPrisao, 32);
+            default:
+                return Unico("Masmorra/Temas/PrisaoVaoLado", 32, new RectInt(0, 0, 32, 48), new Vector2(16f, 24f), PixelsDaPrisao, 48);
+        }
+    }
+
+    /// <summary>
+    /// Dica da porta secreta do Old Prison. Em cima e a parede rachada (mesmo pivo do vao). Embaixo e
+    /// dos lados a parede fica igual as outras e a dica sao pedrinhas do pack caidas no chao, na cor
+    /// dos tijolos do tema (pivo no meio). Null sem a arte.
+    /// </summary>
+    public static Sprite RachaduraDaPrisao(LadoDaPorta lado)
+    {
+        string tema = TemaDoAndar.Atual?.Sala;
+
+        if (string.IsNullOrEmpty(tema))
+            return null;
+
+        if (lado == LadoDaPorta.Cima)
+            return Unico("Masmorra/Temas/PrisaoRachaduraCima" + tema, 48, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
+
+        return Unico("Masmorra/Temas/PrisaoPedrinhas" + tema, 64, new RectInt(0, 0, 64, 32), new Vector2(32f, 16f), PixelsDaPrisao, 32);
+    }
+
+    /// <summary>A grade de ferro da porta (5 quadros: 0 fechada, 4 aberta), mesmo pivo do vao.</summary>
+    public static Sprite[] GradeDaPrisao(LadoDaPorta lado)
+    {
+        switch (lado)
+        {
+            case LadoDaPorta.Cima:
+                return Linha("Masmorra/Temas/PrisaoGradeCima", 48, 0, 5, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
+            case LadoDaPorta.Baixo:
+                return Linha("Masmorra/Temas/PrisaoGradeBaixo", 48, 0, 5, new RectInt(0, 0, 48, 32), new Vector2(24f, 16f), PixelsDaPrisao, 32);
+            default:
+                return Linha("Masmorra/Temas/PrisaoGradeLado", 32, 0, 5, new RectInt(0, 0, 32, 48), new Vector2(16f, 24f), PixelsDaPrisao, 48);
+        }
+    }
+
+    /// <summary>Bandeira de parede do Old Prison (7 modelos), ou null sem a arte.</summary>
+    public static Sprite BandeiraDaPrisao(int modelo)
+    {
+        Sprite[] todas = Linha("Masmorra/Temas/PrisaoBandeiras", 32, 0, 7, new RectInt(0, 0, 32, 40), new Vector2(16f, 20f), PixelsDaPrisao, 40);
+        return todas != null && todas.Length > 0 ? todas[Mathf.Abs(modelo) % todas.Length] : null;
+    }
+
+    /// <summary>Candelabro alto do Old Prison com as velas acesas (2 quadros), pivo no pe.</summary>
+    public static Sprite[] CandelabroDaPrisao()
+        => Linha("Masmorra/Temas/PrisaoCandelabros", 32, 0, 2, new RectInt(0, 0, 32, 64), new Vector2(16f, 62f), PixelsDaPrisao, 64);
+
     /// <summary>Candelabro de chao com a chama tremendo (4 quadros de 16x16), pivo no pe.</summary>
     public static Sprite[] Candelabro(float pixelsPorUnidade)
         => Linha("Masmorra/Candelabro", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 15f), pixelsPorUnidade);
@@ -375,7 +451,10 @@ public static class ArteImportada
     public static Sprite Runa => Inteira("Masmorra/Temas/Runa", PixelsDoLadrilho);
 
     private static Sprite DoTema(string nome)
-        => string.IsNullOrEmpty(nome) ? null : Inteira("Masmorra/Temas/" + nome, PixelsDoLadrilho);
+        => string.IsNullOrEmpty(nome) ? null : Inteira("Masmorra/Temas/" + nome, nome.StartsWith("Prisao") ? PixelsDaPrisao : PixelsDoLadrilho);
+
+    /// <summary>EPIC RPG World Pack - Old Prison: ladrilhos de 32 px, 32 pixels por unidade (1 ladrilho = 1 unidade).</summary>
+    private const float PixelsDaPrisao = 32f;
 
     /// <summary>Portao de grade: quadro 0 fechado, 4 aberto (a parte de cima da folha, 16x16).</summary>
     public static Sprite Portao(bool aberto)
@@ -437,8 +516,8 @@ public static class ArteImportada
     public static Sprite IdoloMaldito => Objeto(2, 1);
 
     /// <summary>
-    /// O desenho de cada item passivo, pelo nome: frascos, gemas, livro, pergaminho, taca.
-    /// Nome desconhecido sorteia um fixo (o mesmo nome sempre da o mesmo desenho).
+    /// O desenho de cada item passivo, pelo nome, com os icones do Raven Fantasy Icons.
+    /// Nome desconhecido usa uma gema.
     /// </summary>
     public static Sprite IconeDoItem(string nome)
     {
@@ -451,44 +530,45 @@ public static class ArteImportada
         // Os nomes ganharam acento ("Café"); os casos abaixo continuam sem.
         switch (FonteDoJogo.SemAcentos(nome))
         {
-            case "Cebola Triste": return Objeto(9, 2);
-            case "Seringa Vermelha": return Objeto(9, 3);
-            case "Tenis Velho": return Objeto(6, 1);
-            case "Olho Triplo": return Objeto(5, 1);
-            case "Olho Gemeo": return Objeto(3, 1);
-            case "Luneta": return Objeto(11, 3);
-            case "Coracao Extra": return Objeto(10, 2);
-            case "Lagrima de Chumbo": return Objeto(4, 1);
-            case "Cafe": return Objeto(10, 4);
-            case "Saco de Moedas": return Objeto(4, 3);
-            case "Lagrima Fantasma": return Objeto(11, 4);
-            case "Bussola Maldita": return Objeto(11, 2);
-            case "Olho na Nuca": return Objeto(10, 3);
-            case "Pimenta": return Objeto(10, 1);
-            case "Pena da Fenix": return IconeDaInterface(80, 260, 80, 40, 64f);
-            case "Escudo Sagrado": return ObjetoV2(4, 0);
-            case "Sangue de Vampiro": return ObjetoV2(9, 1);
-            case "Prego Enferrujado": return Objeto(0, 3);
-            case "Pedra-Ima": return Objeto(8, 1);
-            case "Amuleto da Sorte": return IconeDaInterface(134, 216, 36, 32, 38f);
-            case "Bolsa do Mercador": return SacoDeOuro;
-            case "Brasa da Furia": return IconeDaInterface(86, 216, 36, 32, 38f);
-            case "Elixir de Nevoa": return ObjetoV2(7, 2);
-            case "Orbe Guardiao": return IconeDaInterface(182, 216, 36, 32, 38f);
-            case "Barril de Polvora": return Objeto(4, 4);
-            case "Carne Assada": return CarneAssada;
-            case "Pacto de Sangue": return ObjetoV2(7, 0);
+            case "Cebola Triste": return IconeDoPacote(440);
+            case "Seringa Vermelha": return IconeDoPacote(266);
+            case "Tenis Velho": return IconeDoPacote(1943);
+            case "Olho Triplo": return IconeDoPacote(385);
+            case "Olho Gemeo": return IconeDoPacote(236);
+            case "Luneta": return IconeDoPacote(159);
+            case "Coracao Extra": return IconeDoPacote(659);
+            case "Lagrima de Chumbo": return IconeDoPacote(654);
+            case "Cafe": return IconeDoPacote(529);
+            case "Saco de Moedas": return IconeDoPacote(158);
+            case "Lagrima Fantasma": return IconeDoPacote(653);
+            case "Bussola Maldita": return IconeDoPacote(2184);
+            case "Olho na Nuca": return IconeDoPacote(720);
+            case "Pimenta": return IconeDoPacote(438);
+            case "Pena da Fenix": return IconeDoPacote(7);
+            case "Escudo Sagrado": return IconeDoPacote(665);
+            case "Sangue de Vampiro": return IconeDoPacote(742);
+            case "Prego Enferrujado": return IconeDoPacote(1444);
+            case "Pedra-Ima": return IconeDoPacote(117);
+            case "Amuleto da Sorte": return IconeDoPacote(668);
+            case "Bolsa do Mercador": return IconeDoPacote(160);
+            case "Brasa da Furia": return IconeDoPacote(993);
+            case "Elixir de Nevoa": return IconeDoPacote(123);
+            case "Orbe Guardiao": return IconeDoPacote(335);
+            case "Barril de Polvora": return IconeDoPacote(340);
+            case "Carne Assada": return IconeDoPacote(486);
+            case "Pacto de Sangue": return IconeDoPacote(289);
         }
 
-        (int, int)[] reserva = { (7, 1), (8, 1), (8, 2), (1, 3), (1, 4) };
-        int h = 0;
-
-        foreach (char c in nome ?? "")
-            h = h * 31 + c;
-
-        (int coluna, int linha) = reserva[Mathf.Abs(h) % reserva.Length];
-        return Objeto(coluna, linha);
+        // Item sem desenho proprio: uma gema, sempre a mesma.
+        return IconeDoPacote(2129);
     }
+
+    /// <summary>
+    /// Um icone 32x32 do pack Raven Fantasy Icons (Resources/Icones/fbN, N = numero na folha
+    /// completa), ~1 unidade de lado.
+    /// </summary>
+    public static Sprite IconeDoPacote(int numero)
+        => Inteira($"Icones/fb{numero}", 32f);
 
     /// <summary>
     /// Uma celula de 16x16 da folha <c>Masmorra/ObjetosV2</c> (as tres ultimas linhas do
@@ -499,9 +579,9 @@ public static class ArteImportada
     public static Sprite ObjetoV2(int coluna, int linha)
         => Celula("Masmorra/ObjetosV2", coluna, linha);
 
-    /// <summary>Saco de ouro do Tiny Swords (Resources), ~1 unidade.</summary>
+    /// <summary>Saco de moedas do Raven Fantasy Icons, ~1 unidade.</summary>
     public static Sprite SacoDeOuro
-        => Unico("TinySwords/Ouro", 128, new RectInt(46, 50, 48, 50), new Vector2(70f, 75f), 48f);
+        => IconeDoPacote(158);
 
     /// <summary>Pedaco de carne do Tiny Swords (Resources), ~1 unidade.</summary>
     public static Sprite CarneAssada

@@ -44,6 +44,7 @@ public class Bomba : MonoBehaviour
             obj.transform.localScale *= Mathf.Sqrt(efeitos.PotenciaDaBomba);
         }
 
+        Sons.Tocar(Som.BombaAcesa, 0.8f);
         return bomba;
     }
 

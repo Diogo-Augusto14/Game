@@ -327,17 +327,17 @@ public static class ArteGerada
     public static Sprite Bola() => Guardado("bola", () => BolaComRosto(Color.white, null));
 
     /// <summary>
-    /// Coracao, moeda, chave e bomba. Com a arte dos pacotes: frasco vermelho, moeda e chave
-    /// dourada da masmorra, e a dinamite do Tiny Swords. Sem ela, o desenho daqui.
+    /// Coracao, moeda, chave e bomba. Com a arte dos pacotes: coracao, moeda, chave dourada e bomba
+    /// do Raven Fantasy Icons. Sem ela, o desenho daqui.
     /// </summary>
     public static Sprite Coletavel(TipoDeColetavel tipo)
     {
         switch (tipo)
         {
-            case TipoDeColetavel.Coracao: return ArteImportada.Objeto(8, 3) ?? Guardado("coracao", () => Texto(Coracao));
-            case TipoDeColetavel.Moeda: return ArteImportada.Objeto(3, 3) ?? Guardado("moeda", () => Texto(Moeda));
-            case TipoDeColetavel.Chave: return ArteImportada.Objeto(9, 4) ?? Guardado("chave", () => Texto(Chave));
-            default: return ArteImportada.BombaDeDinamite ?? Guardado("bomba", () => Texto(Bomba));
+            case TipoDeColetavel.Coracao: return ArteImportada.IconeDoPacote(659) ?? Guardado("coracao", () => Texto(Coracao));
+            case TipoDeColetavel.Moeda: return ArteImportada.IconeDoPacote(131) ?? Guardado("moeda", () => Texto(Moeda));
+            case TipoDeColetavel.Chave: return ArteImportada.IconeDoPacote(179) ?? Guardado("chave", () => Texto(Chave));
+            default: return ArteImportada.IconeDoPacote(764) ?? Guardado("bomba", () => Texto(Bomba));
         }
     }
 

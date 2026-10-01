@@ -2,10 +2,10 @@ using UnityEngine;
 
 /// <summary>
 /// A cara de cada mundo: nome, chao, paredes, enfeites e quem mora nele.
-///   Mundo 1 -> Porao      tijolos marrons do 2D Pixel Dungeon v2.0; goblins, orcs, gosmas e bichos
-///   Mundo 2 -> Catacumbas pedra cinza do 2D Dungeon v5.2; feras, orcs e cavaleiros, ossos no chao
-///   Mundo 3 -> Cripta     laje rachada e parede de friso azul (v5.2); mortos-vivos, velas acesas
-///   Mundo 4 (ultimo) -> Abismo chao de pedra tingido de vermelho, parede de friso vermelho e runas; demonios
+///   Mundo 1 -> Porao      pedra e tijolo em tom marrom (EPIC RPG World Pack - Old Prison); goblins, orcs, gosmas e bichos
+///   Mundo 2 -> Catacumbas pedra e tijolo azuis do Old Prison; feras, orcs e cavaleiros, ossos no chao
+///   Mundo 3 -> Cripta     pedra e tijolo frios, verde e roxo (Old Prison); mortos-vivos, velas acesas
+///   Mundo 4 (ultimo) -> Abismo chao vermelho do Old Prison, parede vermelha e runas; demonios
 /// Cada tema e um mundo inteiro, com 3 fases (<see cref="DoMundo"/>); a primeira fase do
 /// mundo so tem os inimigos do comeco da lista e as outras vao abrindo o resto.
 /// O <see cref="Andar"/> escolhe o tema antes de montar as salas (<see cref="Usar"/>);
@@ -23,9 +23,21 @@ public sealed class TemaDoAndar
     /// <summary>Imagem da parede em Resources/Masmorra/Temas, ou null pra parede padrao.</summary>
     public string Parede { get; private set; }
 
+    /// <summary>
+    /// Nome da sala pronta do Old Prison (Masmorra/Temas/PrisaoSala{Sala}{0-3}): chao, paredes em
+    /// perspectiva, sombra e enfeites ja montados numa imagem so. Null usa chao e parede ladrilhados.
+    /// </summary>
+    public string Sala { get; private set; }
+
     /// <summary>Tom do chao e da parede (com arte do pacote, so tinge; ver <see cref="Sala.Pintar"/>).</summary>
     public Color CorDoChao { get; private set; }
     public Color CorDaParede { get; private set; }
+
+    /// <summary>Tom das pedras de obstaculo (a pedra cinza do Tiny Swords tingida pro tema).</summary>
+    public Color CorDaPedra { get; private set; } = Color.white;
+
+    /// <summary>Tom dos espinhos do chao (avermelhados; claros no Abismo, que ja e vermelho).</summary>
+    public Color CorDosEspinhos { get; private set; } = new Color(1f, 0.6f, 0.55f);
 
     /// <summary>Quanto o tom pesa sobre a arte do pacote (0 = arte pura, 1 = so a cor).</summary>
     public float ForcaDaCor { get; private set; } = 0.4f;
@@ -35,6 +47,9 @@ public sealed class TemaDoAndar
 
     /// <summary>Chance de um enfeite ser uma runa vermelha no chao (so no Abismo).</summary>
     public float ChanceDeRuna { get; private set; }
+
+    /// <summary>A musica que toca no mundo (<see cref="global::Musica"/>), fora da sala do chefe e da loja.</summary>
+    public TemaMusical Musica { get; private set; } = TemaMusical.Porao;
 
     /// <summary>Chance da sala ganhar candelabro num canto.</summary>
     public float ChanceDeCandelabro { get; private set; } = 0.5f;
@@ -103,10 +118,14 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Porao = new TemaDoAndar
     {
         Nome = "Porão",
-        Chao = "ChaoPorao",
-        Parede = "ParedePorao",
-        CorDoChao = new Color(0.26f, 0.19f, 0.14f),
-        CorDaParede = new Color(0.36f, 0.28f, 0.22f),
+        Musica = TemaMusical.Porao,
+        Sala = "Porao",
+        CorDaPedra = new Color(0.85f, 0.65f, 0.5f),
+        Chao = "PrisaoChaoPorao",
+        Parede = "PrisaoParedePorao",
+        CorDoChao = Color.white,
+        CorDaParede = Color.white,
+        ForcaDaCor = 0f,
         ChanceDeOsso = 0.1f,
         ChanceDeCandelabro = 0.3f,
         inimigos = new[]
@@ -123,8 +142,14 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Catacumbas = new TemaDoAndar
     {
         Nome = "Catacumbas",
-        CorDoChao = new Color(0.14f, 0.17f, 0.22f),
-        CorDaParede = new Color(0.28f, 0.32f, 0.4f),
+        Musica = TemaMusical.Catacumbas,
+        Sala = "Catacumbas",
+        CorDaPedra = new Color(0.8f, 0.88f, 1f),
+        Chao = "PrisaoChaoCatacumbas",
+        Parede = "PrisaoParedeCatacumbas",
+        CorDoChao = Color.white,
+        CorDaParede = Color.white,
+        ForcaDaCor = 0f,
         ChanceDeOsso = 0.35f,
         inimigos = new[]
         {
@@ -142,10 +167,14 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Cripta = new TemaDoAndar
     {
         Nome = "Cripta",
-        Chao = "ChaoCripta",
-        Parede = "ParedeCripta",
-        CorDoChao = new Color(0.17f, 0.21f, 0.2f),
-        CorDaParede = new Color(0.3f, 0.36f, 0.36f),
+        Musica = TemaMusical.Cripta,
+        Sala = "Cripta",
+        CorDaPedra = new Color(0.75f, 0.95f, 0.9f),
+        Chao = "PrisaoChaoCripta",
+        Parede = "PrisaoParedeCripta",
+        CorDoChao = Color.white,
+        CorDaParede = Color.white,
+        ForcaDaCor = 0f,
         ChanceDeOsso = 0.5f,
         ChanceDeCandelabro = 1f,
         inimigos = new[]
@@ -164,11 +193,15 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Abismo = new TemaDoAndar
     {
         Nome = "Abismo",
-        Chao = "ChaoAbismo",
-        Parede = "ParedeAbismo",
-        CorDoChao = new Color(0.45f, 0.08f, 0.08f),
-        CorDaParede = new Color(0.4f, 0.14f, 0.14f),
-        ForcaDaCor = 0.55f,
+        Musica = TemaMusical.Abismo,
+        Sala = "Abismo",
+        CorDaPedra = new Color(0.85f, 0.9f, 1f),
+        CorDosEspinhos = new Color(1f, 1f, 1f),
+        Chao = "PrisaoChaoAbismo",
+        Parede = "PrisaoParedeAbismo",
+        CorDoChao = Color.white,
+        CorDaParede = Color.white,
+        ForcaDaCor = 0f,
         ChanceDeOsso = 0.3f,
         ChanceDeRuna = 0.35f,
         ChanceDeCandelabro = 0.5f,

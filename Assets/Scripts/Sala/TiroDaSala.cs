@@ -63,8 +63,9 @@ public class TiroDaSala : MonoBehaviour
 
         if (atingeJogador)
         {
-            EstilosDeTiro.Aplicar(p, EstilosDeTiro.DoAtirador(dono));
-            Sons.Tocar(Som.TiroInimigo, 0.4f);
+            EstiloDeTiro estilo = EstilosDeTiro.DoAtirador(dono);
+            EstilosDeTiro.Aplicar(p, estilo);
+            Sons.Tocar(EstilosDeTiro.SomDoDisparo(estilo), 0.45f);
         }
 
         return p;

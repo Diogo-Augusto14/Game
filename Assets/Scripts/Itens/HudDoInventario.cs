@@ -32,6 +32,7 @@ public class HudDoInventario : MonoBehaviour
     private Text aviso;
     private Image iconeDoAviso;
     private float fimDoAviso;
+    private bool avisoAtivo;
 
     // Lado do icone de cada contador e a distancia entre uma linha e a outra.
     private const float LadoDoIcone = 40f;
@@ -115,10 +116,16 @@ public class HudDoInventario : MonoBehaviour
 
     private void Update()
     {
-        if (aviso != null && aviso.enabled && Time.time >= fimDoAviso)
+        // Pausado, o aviso some (senao ficava por cima do titulo "Pausado"); volta ao despausar.
+        if (aviso != null)
         {
-            aviso.enabled = false;
-            iconeDoAviso.enabled = false;
+            bool parado = Time.timeScale <= 0f;
+
+            if (avisoAtivo && Time.time >= fimDoAviso)
+                avisoAtivo = false;
+
+            aviso.enabled = avisoAtivo && !parado;
+            iconeDoAviso.enabled = avisoAtivo && !parado && iconeDoAviso.sprite != null;
         }
 
         for (int i = 0; i < linhas.Length; i++)
@@ -157,6 +164,7 @@ public class HudDoInventario : MonoBehaviour
             return;
 
         aviso.text = $"{item.nome}\n<size={tamanhoDaFonte}>{item.descricao}</size>";
+        avisoAtivo = true;
         aviso.enabled = true;
 
         Sprite icone = ArteImportada.IconeDoItem(item.nome);

@@ -396,7 +396,9 @@ public class Andar : MonoBehaviour
                 chegada.Revelar();
         }
 
-        Musica.Tocar(sala.Tipo == TipoDeSala.Chefe && !destino.Limpa ? MusicaDoChefe : Musica.DoAndar(Mundo));
+        Musica.Tocar(sala.Tipo == TipoDeSala.Chefe && !destino.Limpa ? MusicaDoChefe
+                     : sala.Tipo == TipoDeSala.Loja ? TemaMusical.Loja
+                     : MusicaDoAndar);
 
         MoverCamera(destino.transform.position, saiuPor.HasValue ? tempoDaTransicao : 0f);
         AoEntrarNaSala?.Invoke(destino);
@@ -547,6 +549,9 @@ public class Andar : MonoBehaviour
             if (jogador.TryGetComponent(out MovimentoTopDown movimento))
                 movimento.Parar();
         }
+
+        Sons.Tocar(Som.MorteJogador, 1f, 0f);
+        Musica.Tocar(TemaMusical.FimDeJogo);
 
         AoMorrerJogador?.Invoke();
         TelaDeFimDeJogo.Mostrar(this);
@@ -813,7 +818,7 @@ public class Andar : MonoBehaviour
 
                     // A chave dourada fica entre a porta e o pedestal: no caminho de quem vem pegar o item.
                     ChaveDoChefe.Criar(centro - LongeDaPorta(sala, distanciaDoAlcapao), sala.transform);
-                    Musica.Tocar(Musica.DoAndar(mundo));
+                    Musica.Tocar(MusicaDoAndar);
 
                     List<Herois.Heroi> liberados = fechouOMundo ? Progresso.VenceuMundo(mundo) : new List<Herois.Heroi>();
 
@@ -957,6 +962,9 @@ public class Andar : MonoBehaviour
 
     private TemaMusical MusicaDoChefe => UltimoAndar ? TemaMusical.ChefeFinal : TemaMusical.Chefe;
 
+    /// <summary>A musica do mundo atual (cada tema tem a sua; ver <see cref="TemaDoAndar.Musica"/>).</summary>
+    public TemaMusical MusicaDoAndar => TemaDoAndar.Atual != null ? TemaDoAndar.Atual.Musica : Musica.DoAndar(Mundo);
+
     /// <summary>A ultima fase do ultimo mundo, a do chefe final: vencer ele termina a partida.</summary>
     public bool UltimoAndar => numeroDoAndar >= AndarFinal;
 
@@ -1084,7 +1092,13 @@ public class Andar : MonoBehaviour
         Transform chao = sala.transform.Find("Cenario/Chao");
 
         // Os ladrilhos do pacote ja tem cor: o tom da sala especial entra pela metade.
-        if (ArteGerada.CenarioDoPacote)
+        // Na sala pronta do Old Prison so o matiz entra, de leve, sem escurecer a sala.
+        if (sala.ComFundo)
+        {
+            float maior = Mathf.Max(cor.r, Mathf.Max(cor.g, cor.b), 0.01f);
+            cor = Color.Lerp(Color.white, new Color(cor.r / maior, cor.g / maior, cor.b / maior), 0.25f);
+        }
+        else if (ArteGerada.CenarioDoPacote)
             cor = Color.Lerp(Color.white, cor, 0.5f);
 
         if (chao != null && chao.TryGetComponent(out SpriteRenderer sr))
@@ -1120,6 +1134,12 @@ public class Andar : MonoBehaviour
             : cor == corDoBatenteDaLoja ? ArteImportada.Objeto(1, 3)
             : cor == corDoBatenteDoDesafio ? ArteImportada.Trofeu(true)
             : ArteImportada.Objeto(1, 4);
+
+        // Old Prison: bandeira de cada tipo (chefe vermelha escura, item azul, loja dourada, desafio laranja).
+        Sprite bandeira = ArteImportada.BandeiraDaPrisao(cor == corDoBatenteDoChefe ? 0 : cor == corDoBatenteDaLoja ? 3 : cor == corDoBatenteDoDesafio ? 5 : 2);
+
+        if (bandeira != null)
+            estandarte = bandeira;
 
         for (int s = -1; s <= 1; s += 2)
         {

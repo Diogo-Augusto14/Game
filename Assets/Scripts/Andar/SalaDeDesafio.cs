@@ -104,7 +104,7 @@ public class SalaDeDesafio : MonoBehaviour
         sala.Liberar();
 
         Andar andar = Andar.Atual;
-        Musica.Tocar(Musica.DoAndar(andar != null ? andar.Mundo : 1));
+        Musica.Tocar(andar != null ? andar.MusicaDoAndar : Musica.DoAndar(1));
         AvisoDoAndar.Mostrar("Desafio vencido!");
         Sons.Tocar(Som.Vitoria);
 

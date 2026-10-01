@@ -205,6 +205,7 @@ public class Lagrima : MonoBehaviour
         acabou = true;
         rb.linearVelocity = Vector2.zero;
         corpo.enabled = false;
+        Sons.Tocar(Som.Respingo, 0.35f, 0.15f);
 
         if (efeito != null)
             efeito.AoEstourar();

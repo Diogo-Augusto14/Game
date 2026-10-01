@@ -72,6 +72,35 @@ public static class EstilosDeTiro
         return porNome.TryGetValue(dono.name, out EstiloDeTiro estilo) ? estilo : EstiloDeTiro.Gema;
     }
 
+    /// <summary>O som do disparo: flecha, fogo, canhao, gosma ou magia.</summary>
+    public static Som SomDoDisparo(EstiloDeTiro estilo)
+    {
+        switch (estilo)
+        {
+            case EstiloDeTiro.FlechaGoblin:
+            case EstiloDeTiro.FlechaDemoniaca:
+            case EstiloDeTiro.FlechaDeOsso:
+                return Som.FlechaInimigo;
+
+            case EstiloDeTiro.BolaDeFogo:
+            case EstiloDeTiro.Brasa:
+            case EstiloDeTiro.ChamaFantasma:
+                return Som.TiroDeFogo;
+
+            case EstiloDeTiro.BalaDeCanhao:
+            case EstiloDeTiro.Pedra:
+            case EstiloDeTiro.OndaDeChoque:
+                return Som.Canhao;
+
+            case EstiloDeTiro.GotaDeSangue:
+            case EstiloDeTiro.Bolha:
+                return Som.Gosma;
+
+            default:
+                return Som.TiroInimigo;
+        }
+    }
+
     /// <summary>Muda o desenho e o movimento do tiro pro estilo dado.</summary>
     public static void Aplicar(TiroDaSala tiro, EstiloDeTiro estilo)
     {

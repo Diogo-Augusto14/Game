@@ -323,6 +323,9 @@ public class AtiradorTopDown : MonoBehaviour
         somDoTiro = Som.Corte;
     }
 
+    /// <summary>O som de cada tiro (flecha por padrao; magia pro mago e o padre). Chame depois do <see cref="DefinirVisual"/>.</summary>
+    public void DefinirSomDoTiro(Som som) => somDoTiro = som;
+
     /// <summary>Troca o tipo de flecha (Normal = o tiro do heroi). Quem chama e a <see cref="TrocaDeFlecha"/>.</summary>
     public void DefinirTipoDeFlecha(TipoDeFlecha tipo)
     {

@@ -85,7 +85,7 @@ public class Comerciante : MonoBehaviour
         if (ouro != null)
             FormasDaSala.Desenho(transform, "Saco de ouro", ouro, Color.white, new Vector2(0.5f, 0.3f), Vector2.one * 0.5f, 10);
 
-        Sprite moeda = ArteImportada.Objeto(3, 3);
+        Sprite moeda = ArteImportada.IconeDoPacote(131);
 
         if (moeda != null)
             FormasDaSala.Desenho(transform, "Moedas", moeda, Color.white, new Vector2(-0.45f, 0.2f), Vector2.one * 0.55f, 10);

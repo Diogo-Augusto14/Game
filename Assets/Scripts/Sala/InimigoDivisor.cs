@@ -16,7 +16,7 @@ public class InimigoDivisor : InimigoPerseguidor
     [SerializeField, Min(0)] private int pedacos = 2;
 
     private Vector3 escalaDoCorpo;
-    private float fase;
+    private float fasePulso;
 
     /// <summary>A fabrica chama nos pedacos: menores, mais rapidos e sem se dividir.</summary>
     public void VirarPedaco(float novaVelocidade)
@@ -28,7 +28,7 @@ public class InimigoDivisor : InimigoPerseguidor
     protected override void Awake()
     {
         base.Awake();
-        fase = Random.value * Mathf.PI * 2f;
+        fasePulso = Random.value * Mathf.PI * 2f;
 
         if (desenho != null)
             escalaDoCorpo = desenho.transform.localScale;
@@ -41,7 +41,7 @@ public class InimigoDivisor : InimigoPerseguidor
         // Respira: estica num eixo e encolhe no outro.
         if (desenho != null)
         {
-            float s = Mathf.Sin(Time.time * 5f + fase) * 0.08f;
+            float s = Mathf.Sin(Time.time * 5f + fasePulso) * 0.08f;
             desenho.transform.localScale = new Vector3(escalaDoCorpo.x * (1f + s), escalaDoCorpo.y * (1f - s), 1f);
         }
     }

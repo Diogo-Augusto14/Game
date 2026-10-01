@@ -258,7 +258,7 @@ public class EfeitosDosItens : MonoBehaviour
             return;
 
         vida.Curar(meioCoracao);
-        Sons.Tocar(Som.Coracao);
+        Sons.Tocar(Som.Cura);
         TextoFlutuante.Mostrar(transform.position + Vector3.up * 0.9f, "+ vida", new Color(1f, 0.35f, 0.4f));
     }
 
@@ -328,7 +328,7 @@ public class EfeitosDosItens : MonoBehaviour
                 return;
 
             vida.Curar(curaAoLimparSala);
-            Sons.Tocar(Som.Coracao);
+            Sons.Tocar(Som.Cura);
             TextoFlutuante.Mostrar(transform.position + Vector3.up * 0.9f, "+ vida", new Color(1f, 0.35f, 0.4f));
         });
     }
@@ -345,7 +345,7 @@ public class EfeitosDosItens : MonoBehaviour
             proximaBuscaDoIma = Time.time + 0.25f;
             coletaveisPerto.Clear();
 
-            foreach (Coletavel c in FindObjectsByType<Coletavel>(FindObjectsSortMode.None))
+            foreach (Coletavel c in FindObjectsByType<Coletavel>())
                 if (((Vector2)(c.transform.position - transform.position)).sqrMagnitude <= raioDoIma * raioDoIma && Serve(c))
                     coletaveisPerto.Add(c);
         }

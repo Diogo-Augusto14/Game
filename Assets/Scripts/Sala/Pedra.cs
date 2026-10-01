@@ -3,7 +3,11 @@ using UnityEngine;
 public enum TipoDeObstaculo
 {
     Pedra,
-    Espinhos
+    Espinhos,
+    /// <summary>Bloco de parede que da forma a sala (nao quebra).</summary>
+    Muro,
+    /// <summary>Buraco no chao: bloqueia andar, nao bloqueia tiro.</summary>
+    Fosso
 }
 
 /// <summary>
@@ -18,8 +22,8 @@ public class Pedra : MonoBehaviour
 {
     public static Pedra Criar(Transform pai, Vector2 posicaoLocal, Color cor)
     {
-        // O desenho ja e cinza sombreado; a cor so puxa um pouco pro tom do andar.
-        SpriteRenderer sr = FormasDaSala.Desenho(pai, "Pedra", ArteGerada.PedraSolta(), Color.Lerp(Color.white, cor, 0.35f),
+        // O desenho ja e cinza sombreado; a cor e o tom da pedra de cada tema.
+        SpriteRenderer sr = FormasDaSala.Desenho(pai, "Pedra", ArteGerada.PedraSolta(), cor,
             posicaoLocal, Vector2.one * 1.05f, -1);
         GameObject obj = sr.gameObject;
         obj.layer = Sala.CamadaDeParede;

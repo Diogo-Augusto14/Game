@@ -13,7 +13,25 @@ O jogo deve ser aberto sempre pelo lançador. O repositório de releases guarda 
 
 Criar o repositório público `ThePrettie-Releases` no GitHub (vazio, sem código do jogo). Quem cria e publica é o diogo, escrevendo "pode criar e publicar" no tópico "Testes no PC".
 
-## Gerar uma versão nova
+## Gerar uma versão nova pela nuvem (sem o PC)
+
+O workflow `.github/workflows/gerar-versao.yml` faz tudo no GitHub: build do Unity para Windows, o mesmo zip do `gerar-versao.ps1` (com o lançador e o `versao.txt`) e, se pedido, a publicação no `ThePrettie-Releases`. Cada execução gasta minutos do Actions; a conta grátis tem 2.000 minutos por mês em repositório privado, e a máquina Windows conta em dobro.
+
+1. No GitHub, abra a aba **Actions** do repositório `Game`, escolha **Gerar versão do jogo** e clique em **Run workflow**.
+2. Preencha a versão (`1.1.0`, sem o `v`). Marque **publicar** só se for para todo mundo receber; sem marcar, ele só gera o zip.
+3. As novidades da release vêm de `Lancador/notas/<versão>.md` (por exemplo `Lancador/notas/1.1.0.md`); se esse arquivo não existir, vale o texto do campo **notas**.
+4. No fim, o zip fica em **Artifacts**, no rodapé da página da execução, por 30 dias. Se a versão já existir no `ThePrettie-Releases`, ele para logo no começo, sem gastar o build.
+
+### Segredos (uma vez só)
+
+Em **Settings > Secrets and variables > Actions > New repository secret** do repositório `Game`:
+
+- `UNITY_EMAIL`: e-mail da conta Unity.
+- `UNITY_PASSWORD`: senha da conta Unity (quem entra pelo Google precisa criar uma senha na conta Unity).
+- `UNITY_LICENSE`: o texto inteiro do arquivo `C:\ProgramData\Unity\Unity_lic.ulf`. Se o arquivo não existir, no Unity Hub vá em **Preferences > Licenses > Add > Get a free personal license** e ele aparece. Serve o arquivo de qualquer computador logado na mesma conta.
+- `TOKEN_RELEASES` (só para publicar): token do GitHub que só enxerga o `ThePrettie-Releases`. Em **github.com > foto > Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**: em **Repository access** escolha **Only select repositories** e o `ThePrettie-Releases`; em **Permissions**, **Contents: Read and write**.
+
+## Gerar uma versão nova pelo PC
 
 1. No Unity, faça o build do Windows em `Builds\Windows`, com o nome `ThePrettie.exe` (sem espaço). Se a pasta já tiver um build com outro nome, apague a pasta antes.
 2. Rode, na raiz do projeto:

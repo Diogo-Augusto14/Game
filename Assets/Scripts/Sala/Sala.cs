@@ -67,6 +67,7 @@ public class Sala : MonoBehaviour
     private readonly Dictionary<LadoDaPorta, Porta> portas = new Dictionary<LadoDaPorta, Porta>();
     private readonly List<InimigoDeSala> inimigos = new List<InimigoDeSala>();
     private readonly HashSet<Vector2Int> celulasOcupadas = new HashSet<Vector2Int>();
+    private readonly Dictionary<Vector2Int, Transform> fossos = new Dictionary<Vector2Int, Transform>();
 
     private Transform cenario;
     private Transform pastaDeInimigos;
@@ -93,6 +94,9 @@ public class Sala : MonoBehaviour
     public IEnumerable<Porta> Portas => portas.Values;
 
     public IReadOnlyList<InimigoDeSala> Inimigos => inimigos;
+
+    /// <summary>A sala usa a imagem pronta do Old Prison (paredes e portas desenhadas por cima dela).</summary>
+    public bool ComFundo { get; private set; }
 
     /// <summary>Primeira camada que vale como parede no projeto (Parede, Wall...).</summary>
     public static int CamadaDeParede
@@ -210,10 +214,34 @@ public class Sala : MonoBehaviour
 
         Vector2 posicao = celula;
 
-        if (tipo == TipoDeObstaculo.Pedra)
-            Pedra.Criar(cenario, posicao, Color.Lerp(corDaParede, new Color(0.55f, 0.55f, 0.55f), 0.35f));
-        else
-            Espinhos.Criar(cenario, posicao);
+        switch (tipo)
+        {
+            case TipoDeObstaculo.Pedra:
+                Pedra.Criar(cenario, posicao, TemaDoAndar.Atual != null ? TemaDoAndar.Atual.CorDaPedra : Color.white);
+                break;
+            case TipoDeObstaculo.Muro:
+                Muro.Criar(cenario, posicao);
+                break;
+            case TipoDeObstaculo.Fosso:
+                fossos[celula] = Fosso.Criar(cenario, posicao).transform;
+                break;
+            default:
+                Espinhos.Criar(cenario, posicao);
+                break;
+        }
+    }
+
+    /// <summary>Chamar depois de por todos os obstaculos: desenha a borda dos buracos so onde dao pro chao.</summary>
+    public void AcabarObstaculos()
+    {
+        Color borda = new Color(0.16f, 0.12f, 0.14f);
+
+        foreach (KeyValuePair<Vector2Int, Transform> par in fossos)
+        {
+            Vector2Int c = par.Key;
+            Fosso.DesenharBorda(par.Value, !fossos.ContainsKey(c + Vector2Int.up), !fossos.ContainsKey(c + Vector2Int.down),
+                                !fossos.ContainsKey(c + Vector2Int.left), !fossos.ContainsKey(c + Vector2Int.right), borda);
+        }
     }
 
     /// <summary>
@@ -231,6 +259,10 @@ public class Sala : MonoBehaviour
         // O tema do andar decide quanto osso, runa e candelabro aparece.
         TemaDoAndar tema = TemaDoAndar.Atual;
 
+        // A sala pronta ja traz enfeites encostados nas paredes: no meio vai so metade.
+        if (ComFundo)
+            quantos /= 2;
+
         for (int i = 0; i < quantos; i++)
         {
             Sprite sprite = tema != null && Random.value < tema.ChanceDeRuna ? ArteImportada.Runa : null;
@@ -243,7 +275,7 @@ public class Sala : MonoBehaviour
 
             // Longe das paredes, pra nao tampar porta.
             Vector2 ponto = PontoLivreAleatorio(1.2f);
-            SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, new Color(0.85f, 0.85f, 0.85f),
+            SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, Color.white,
                                                      ponto, Vector2.one, -9);
             sr.flipX = Random.value < 0.5f;
         }
@@ -252,24 +284,47 @@ public class Sala : MonoBehaviour
 
         // Tochas na parte de baixo da parede de cima, a um quarto da largura de cada lado. A
         // camera corta o alto da parede (cabe a largura da sala): a chama tem de caber abaixo disso.
-        Sprite[] tocha = ArteImportada.TochaDeParede(32f);
+        // Sala pronta: as arandelas ja estao na parede de cima (x = +-3,25); aqui so acende a luz delas.
+        if (ComFundo)
+        {
+            for (int lado = -1; lado <= 1; lado += 2)
+                HaloCintilante.Criar(cenario, new Vector2(lado * 3.25f, meio.y + 0.15f), 2f, new Color(1f, 0.72f, 0.35f, 0.16f));
+        }
+
+        Sprite[] tocha = ComFundo ? null : ArteImportada.TochaDeParede(32f);
 
         for (int lado = -1; lado <= 1 && tocha != null; lado += 2)
         {
             Vector2 local = new Vector2(lado * meio.x * 0.5f, meio.y + espessuraDaParede * 0.1f);
             EfeitoDeQuadros.Criar(tocha, 8f, (Vector2)transform.position + local, 1, cenario)?.EmLoop();
+            HaloCintilante.Criar(cenario, local + Vector2.down * 0.2f, 3.4f, new Color(1f, 0.7f, 0.3f, 0.3f));
+        }
+
+        // Bandeiras do Old Prison penduradas na parede de cima, perto dos cantos.
+        for (int lado = -1; lado <= 1 && !ComFundo; lado += 2)
+        {
+            Sprite bandeira = ArteImportada.BandeiraDaPrisao(6);
+
+            if (bandeira == null)
+                break;
+
+            Vector2 local = new Vector2(lado * meio.x * 0.62f, meio.y + espessuraDaParede * 0.35f);
+            FormasDaSala.Desenho(cenario, "Bandeira", bandeira, Color.white, local, Vector2.one, 1);
         }
 
         // Candelabro: meia chance, num canto que nao tenha pedra nem espinho.
-        Sprite[] candelabro = ArteImportada.Candelabro(16f);
+        Sprite[] candelabro = ArteImportada.CandelabroDaPrisao() ?? ArteImportada.Candelabro(16f);
 
         if (candelabro != null && Random.value < (tema != null ? tema.ChanceDeCandelabro : 0.5f))
         {
-            Vector2Int canto = new Vector2Int(Random.value < 0.5f ? -1 : 1, Random.value < 0.5f ? -1 : 1);
+            Vector2Int canto = new Vector2Int(Random.value < 0.5f ? -1 : 1, -1);   // so nos cantos de baixo: os de cima ficam sob a HUD
             Vector2 local = new Vector2(canto.x * (meio.x - 0.6f), canto.y * (meio.y - 0.6f));
 
             if (Livre(local, 0.2f))
+            {
                 EfeitoDeQuadros.Criar(candelabro, 6f, (Vector2)transform.position + local + Vector2.down * 0.45f, -8, cenario)?.EmLoop();
+                HaloCintilante.Criar(cenario, local + new Vector2(-canto.x * 0.35f, 0.9f), 2f, new Color(1f, 0.75f, 0.35f, 0.26f));
+            }
         }
     }
 
@@ -443,7 +498,15 @@ public class Sala : MonoBehaviour
         cenario = new GameObject("Cenario").transform;
         cenario.SetParent(transform, false);
 
-        FormasDaSala.DesenhoLadrilhado(cenario, "Chao", ArteGerada.Chao(), corDoChao, Vector2.zero, tamanhoInterno, -10);
+        // Com tema do Old Prison a sala inteira (chao, paredes, sombra, enfeites) e uma imagem so;
+        // as paredes continuam la, so sem desenho, pra colisao ficar igual.
+        Sprite fundo = tamanhoInterno == TamanhoPadrao && espessuraDaParede == 1f ? ArteImportada.SalaDaPrisao() : null;
+        ComFundo = fundo != null;
+
+        if (ComFundo)
+            FormasDaSala.Desenho(cenario, "Chao", fundo, corDoChao, Vector2.zero, Vector2.one, -10);
+        else
+            FormasDaSala.DesenhoLadrilhado(cenario, "Chao", ArteGerada.Chao(), corDoChao, Vector2.zero, tamanhoInterno, -10);
 
         MontarLado(cenario, LadoDaPorta.Cima, portaCima);
         MontarLado(cenario, LadoDaPorta.Baixo, portaBaixo);
@@ -507,6 +570,7 @@ public class Sala : MonoBehaviour
     {
         SpriteRenderer sr = FormasDaSala.DesenhoLadrilhado(pai, nome, ArteGerada.Tijolo(), corDaParede, posicaoLocal, tamanho, 0);
         sr.gameObject.layer = CamadaDeParede;
+        sr.enabled = !ComFundo;
 
         BoxCollider2D caixa = sr.gameObject.AddComponent<BoxCollider2D>();
         caixa.size = tamanho;
