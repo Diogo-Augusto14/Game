@@ -8,22 +8,18 @@ using UnityEngine;
 ///   Agindo      -> parado, esperando o proximo pulo
 ///   Preparando  -> agacha (aviso) e depois voa ate o ponto escolhido
 ///
-/// Com <see cref="VirarGeleia"/> ele pula SEM RUMO pela sala, mais vezes e mais curto, e ao
-/// cair espirra quatro gotas em cruz (alternando + e x). Perigoso e o lugar onde ele cai.
+/// Com <see cref="VirarGeleia"/> ele pula SEM RUMO pela sala, mais vezes e mais curto: nao
+/// persegue, mas atravessa o caminho do jogador quando menos se espera.
 /// </summary>
 public class InimigoSaltador : InimigoDeSala
 {
     private bool geleia;
-    private bool cruzEmX;
-
-    [SerializeField, Min(0f)] private float danoDaGota = 8f;
 
     public void VirarGeleia()
     {
         geleia = true;
         esperaEntrePulos = new Vector2(0.25f, 0.6f);
         alcanceDoPulo = 2.2f;
-        cruzEmX = Random.value < 0.5f;
     }
 
     [Header("Pulo")]
@@ -127,20 +123,8 @@ public class InimigoSaltador : InimigoDeSala
         rb.linearVelocity = Vector2.zero;
         voando = false;
 
-        if (geleia)
-            Espirrar();
-
         espera.Forcar(Random.Range(esperaEntrePulos.x, esperaEntrePulos.y));
         EstadoAtual = Estado.Agindo;
-    }
-
-    private void Espirrar()
-    {
-        float inicio = cruzEmX ? 45f : 0f;
-        cruzEmX = !cruzEmX;
-
-        for (int i = 0; i < 4; i++)
-            Disparar(inicio + i * 90f, 4.5f, danoDaGota, new Color(0.45f, 0.9f, 0.45f), 0.22f);
     }
 
     private void Pousar()

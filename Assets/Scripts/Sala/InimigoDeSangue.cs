@@ -74,7 +74,11 @@ public class InimigoDeSangue : InimigoDeSala
         }
 
         Vector2 alvo = ParaOJogador();
-        Andar(PeloCaminho(alvo), alvo.sqrMagnitude > 0.25f ? velocidade : 0f);
+
+        if (alvo.sqrMagnitude > 0.25f)
+            Aproximar(alvo, velocidade, dt);
+        else
+            Frear();
     }
 
     protected override void AtualizarPreparando(float dt)

@@ -85,7 +85,7 @@ public class InimigoDeGolpe : InimigoComArte
     /// </summary>
     protected virtual void Mover(Vector2 alvo, float distancia, float dt)
     {
-        Andar(PeloCaminho(alvo / distancia), VeOJogador() ? velocidade : velocidade * 0.6f);
+        Aproximar(alvo, VeOJogador() ? velocidade : velocidade * 0.6f, dt);
     }
 
     /// <summary>Ergue a arma pra golpear na <paramref name="direcao"/> (o telegrafo; o golpe sai no fim).</summary>

@@ -43,7 +43,7 @@ public static class Bestiario
         new Ficha(TipoDeInimigo.Atirador, "Bruxo", "Aparece, atira três orbes e some."),
         new Ficha(TipoDeInimigo.Investidor, "Minotauro", "Entrou na linha dele, ele investe até bater."),
         new Ficha(TipoDeInimigo.Saltador, "Gosma", "Pula atrás de você."),
-        new Ficha(TipoDeInimigo.Geleia, "Geleia", "Pula sem rumo e espirra gotas ao cair."),
+        new Ficha(TipoDeInimigo.Geleia, "Geleia", "Pula sem rumo pela sala."),
         new Ficha(TipoDeInimigo.Sentinela, "Cavaleiro Canhão", "Parado, atira nas quatro direções."),
         new Ficha(TipoDeInimigo.Divisor, "Bolha", "Ao morrer, se divide em duas."),
         new Ficha(TipoDeInimigo.DivisorPequeno, "Bolhinha", "O que sobra da bolha."),

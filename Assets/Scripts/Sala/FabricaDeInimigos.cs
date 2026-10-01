@@ -207,7 +207,7 @@ public static class FabricaDeInimigos
                 return Antigo<InimigoInvestidor>("Investidor", tipo, posicao, pai, 0.33f, new Color(0.95f, 0.55f, 0.15f), 35f, "Minotauro", 28f);
 
             case TipoDeInimigo.Saltador:
-                return Antigo<InimigoSaltador>("Saltador", tipo, posicao, pai, 0.27f, new Color(0.6f, 0.85f, 0.25f), 20f, "Gosma", 28f);
+                return Antigo<InimigoSaltador>("Saltador", tipo, posicao, pai, 0.27f, new Color(0.6f, 0.85f, 0.25f), 20f, "Gosma", 28f, false);
 
             case TipoDeInimigo.Sentinela:
                 return Antigo<InimigoSentinela>("Sentinela", tipo, posicao, pai, 0.36f, new Color(0.45f, 0.55f, 0.72f), 40f, "CavaleiroCanhao", 34f);
@@ -227,6 +227,7 @@ public static class FabricaDeInimigos
                 InimigoDemonio demonio = Montar<InimigoDemonio>("Demonio", posicao, pai, 0.34f,
                     (null, new Color(0.6f, 0.1f, 0.1f)), 40f, clipes);
                 demonio.UsarArte(demonio.GetComponent<AnimacaoDePersonagem>(), clipes);
+                demonio.JeitoDeChegar = InimigoDeSala.Aproximacao.Flanco;
                 return demonio;
             }
 
@@ -236,13 +237,18 @@ public static class FabricaDeInimigos
                 InimigoDeSangue monstro = Montar<InimigoDeSangue>("Monstro de sangue", posicao, pai, 0.36f,
                     (null, new Color(0.55f, 0.08f, 0.2f)), 55f, clipes);
                 monstro.UsarArte(monstro.GetComponent<AnimacaoDePersonagem>(), clipes);
+                monstro.JeitoDeChegar = InimigoDeSala.Aproximacao.PassoPesado;
                 return monstro;
             }
 
             // Arte do Tiny Swords. Sem a imagem, cada um vira uma bola da sua cor.
             case TipoDeInimigo.GoblinTocha:
-                return ComArte<InimigoDeGolpe>("Goblin da tocha", posicao, pai, 0.3f, 35f,
+            {
+                InimigoDeGolpe goblin = ComArte<InimigoDeGolpe>("Goblin da tocha", posicao, pai, 0.3f, 35f,
                     ArteImportada.GoblinDaTocha(InimigoComArte.PixelsDoTinySwords), new Color(0.75f, 0.3f, 0.15f));
+                goblin.JeitoDeChegar = InimigoDeSala.Aproximacao.Ziguezague;
+                return goblin;
+            }
 
             case TipoDeInimigo.GoblinDinamite:
                 return ComArte<InimigoGoblinDinamite>("Goblin da dinamite", posicao, pai, 0.32f, 30f,
@@ -262,16 +268,25 @@ public static class FabricaDeInimigos
                 InimigoDeGolpe esqueleto = ComArte<InimigoDeGolpe>("Esqueleto", posicao, pai, 0.3f, 35f,
                     ArteImportada.Masmorra("Esqueleto", new Vector2(15f, 22f), PixelsDaMasmorra), new Color(0.85f, 0.82f, 0.7f));
                 esqueleto.Ajustar(1.7f, 6, 0.5f, 15f);
+                esqueleto.JeitoDeChegar = InimigoDeSala.Aproximacao.Cambaleante;
                 return esqueleto;
             }
 
             case TipoDeInimigo.EsqueletoFoice:
-                return ComArte<InimigoEsqueletoFoice>("Esqueleto da foice", posicao, pai, 0.32f, 45f,
+            {
+                InimigoEsqueletoFoice foice = ComArte<InimigoEsqueletoFoice>("Esqueleto da foice", posicao, pai, 0.32f, 45f,
                     ArteImportada.Masmorra("EsqueletoFoice", new Vector2(16f, 22f), PixelsDaMasmorra), new Color(0.75f, 0.72f, 0.65f));
+                foice.JeitoDeChegar = InimigoDeSala.Aproximacao.Cambaleante;
+                return foice;
+            }
 
             case TipoDeInimigo.Vampiro:
-                return ComArte<InimigoVampiro>("Vampiro", posicao, pai, 0.3f, 40f,
+            {
+                InimigoVampiro vampiro = ComArte<InimigoVampiro>("Vampiro", posicao, pai, 0.3f, 40f,
                     ArteImportada.Masmorra("Vampiro", new Vector2(13f, 21f), PixelsDaMasmorra), new Color(0.4f, 0.4f, 0.55f));
+                vampiro.JeitoDeChegar = InimigoDeSala.Aproximacao.Flanco;
+                return vampiro;
+            }
 
             // O resto do Tiny RPG: cada especie com o seu jeito de lutar.
             case TipoDeInimigo.Morcego:
@@ -320,12 +335,18 @@ public static class FabricaDeInimigos
                 if (clipes?.AtaqueEspecial != null)
                     clipes.Ataque = clipes.AtaqueEspecial;
 
-                return ComArte<InimigoEsqueletoFoice>("Demonia da foice", posicao, pai, 0.34f, 55f, clipes, new Color(0.5f, 0.1f, 0.3f));
+                InimigoEsqueletoFoice demonia = ComArte<InimigoEsqueletoFoice>("Demonia da foice", posicao, pai, 0.34f, 55f, clipes, new Color(0.5f, 0.1f, 0.3f));
+                demonia.JeitoDeChegar = InimigoDeSala.Aproximacao.Cerco;
+                return demonia;
             }
 
             // Tiny RPG Pack 01: orcs, esqueletos e feras, cada um com o seu jeito.
             case TipoDeInimigo.Orc:
-                return Golpe("Orc", posicao, pai, 0.3f, 35f, "Orc", 26f, 2f, 3, 0.4f, 15f);
+            {
+                InimigoDeGolpe orc = Golpe("Orc", posicao, pai, 0.3f, 35f, "Orc", 26f, 2f, 3, 0.4f, 15f);
+                orc.JeitoDeChegar = InimigoDeSala.Aproximacao.PassoPesado;
+                return orc;
+            }
 
             case TipoDeInimigo.OrcBlindado:
                 return Golpe<InimigoBlindado>("Orc blindado", posicao, pai, 0.32f, 70f, "OrcBlindado", 26f, 1.4f, 4, 0.5f, 18f);
@@ -338,7 +359,11 @@ public static class FabricaDeInimigos
                     new Color(0.5f, 0.6f, 0.3f), 45f, "OrcMontado", 28f);
 
             case TipoDeInimigo.EsqueletoGuerreiro:
-                return Golpe("Esqueleto guerreiro", posicao, pai, 0.3f, 30f, "EsqueletoGuerreiro", 26f, 1.9f, 3, 0.4f, 12f);
+            {
+                InimigoDeGolpe guerreiro = Golpe("Esqueleto guerreiro", posicao, pai, 0.3f, 30f, "EsqueletoGuerreiro", 26f, 1.9f, 3, 0.4f, 12f);
+                guerreiro.JeitoDeChegar = InimigoDeSala.Aproximacao.Cerco;
+                return guerreiro;
+            }
 
             case TipoDeInimigo.EsqueletoBlindado:
                 return Golpe<InimigoBlindado>("Esqueleto blindado", posicao, pai, 0.3f, 60f, "EsqueletoBlindado", 26f, 1.4f, 4, 0.5f, 15f);
@@ -357,7 +382,7 @@ public static class FabricaDeInimigos
             case TipoDeInimigo.Geleia:
             {
                 InimigoSaltador geleia = Antigo<InimigoSaltador>("Geleia", TipoDeInimigo.Saltador, posicao, pai, 0.27f,
-                    new Color(0.4f, 0.8f, 0.4f), 20f, "Geleia", 28f);
+                    new Color(0.4f, 0.8f, 0.4f), 20f, "Geleia", 28f, false);
                 geleia.VirarGeleia();
                 return geleia;
             }
@@ -395,12 +420,16 @@ public static class FabricaDeInimigos
     /// Inimigo antigo com um bicho do Tiny RPG no lugar da pixel art gerada. O ataque toca
     /// sozinho quando ele entra no telegrafo. Sem a imagem, volta pro rosto gerado.
     /// </summary>
+    /// <param name="comAtaque">
+    /// Falso pra quem nao ataca com o corpo (gosma e geleia so pulam): sem isso a animacao de
+    /// ataque tocava no meio do pulo.
+    /// </param>
     private static T Antigo<T>(string nome, TipoDeInimigo tipo, Vector2 posicao, Transform pai, float raio, Color cor,
-                               float vidaMaxima, string pasta, float pixelsPorUnidade)
+                               float vidaMaxima, string pasta, float pixelsPorUnidade, bool comAtaque = true)
         where T : InimigoDeSala
     {
         ClipesDePersonagem clipes = Tiny(pasta, pixelsPorUnidade);
-        return Montar<T>(nome, posicao, pai, raio, Rosto(tipo, cor), vidaMaxima, clipes, clipes?.Ataque);
+        return Montar<T>(nome, posicao, pai, raio, Rosto(tipo, cor), vidaMaxima, clipes, comAtaque ? clipes?.Ataque : null);
     }
 
     private static InimigoDeGolpe Golpe(string nome, Vector2 posicao, Transform pai, float raio, float vidaMaxima,

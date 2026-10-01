@@ -77,7 +77,7 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 |---|---|
 | `Sala.cs` | Chão, 4 paredes, portas; fecha ao entrar, abre quando morre o último inimigo. Na sala pronta do Old Prison um véu (`VeuDoChao`, `ContrasteTiradoDoPiso`) puxa o piso pra cor média do tema e baixa o contraste das manchas de terra; ossos de enfeite ficam apagados e o esqueleto inteiro mais ainda, pra não parecer inimigo |
 | `Porta.cs` | Aberta / fechada / não existe (vira parede); avisa `AoAtravessar`. Abrir e fechar são animados (o portão sobe e desce quadro a quadro, com tremor e um pulinho no fim); fechando bloqueia na hora, abrindo só deixa passar quando o portão chegou em cima (`Passavel`). `AbrirNaHora` é a montagem sem animação. Na sala do Old Prison as portas dos lados ganham um pouco de luz no vão, um fio claro em cada batente e um brilho fraco no chão (`MontarLuzDoVao`), senão a saída sumia na parede |
-| `InimigoDeSala.cs` | Base: dormir, acordar, dano por encostar, empurrão na direção do golpe |
+| `InimigoDeSala.cs` | Base: dormir, acordar, dano por encostar, empurrão na direção do golpe. `JeitoDeChegar` (`Aproximar`): reto, zigue-zague (goblin), passo pesado (orc, blindados, monstro de sangue), flanco (demônio, vampiro, orc de elite), cerco (esqueleto guerreiro, demônia da foice) ou cambaleante (esqueletos) |
 | `ContornoClaro.cs` | Borda clara de 1 pixel em volta de todo inimigo (`FabricaDeInimigos` põe), pra bicho escuro não sumir no chão. Sem shader: 4 `SpriteMask` com o quadro do desenho, deslocadas 1 pixel, recortam um retângulo claro logo atrás dele. Some na morte e enquanto o barril está disfarçado (`InimigoDeSala.Disfarcado`) |
 | `InimigoPerseguidor.cs` | Vai atrás do jogador em zigue-zague |
 | `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira (base antiga; as espécies usam as classes abaixo) |
@@ -92,7 +92,7 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `InimigoBarril.cs` | Barril de TNT: parece um barril parado; o goblin sai, corre até o jogador, acende o pavio e explode. Morto a tiro, explode na hora |
 | `InimigoArqueiro.cs` | Arqueiro sombrio: mantém distância, puxa o arco e solta uma flecha reta. `UsarMira`: esqueleto arqueiro (`Alinhada`) corre pra mesma linha/coluna do jogador e só atira dali, reto pelo corredor; demônio arqueiro (`Leque`) solta três flechas abertas |
 
-| `InimigoSaltador.cs` | Gosma: pula atrás do jogador. `VirarGeleia`: pula sem rumo, mais vezes, e ao cair espirra 4 gotas em cruz (alternando + e ×) |
+| `InimigoSaltador.cs` | Gosma: pula atrás do jogador. `VirarGeleia`: pula sem rumo, mais vezes e mais curto. Os dois sem animação de ataque (só pulam) |
 | `InimigoBruxo.cs` | Bruxo: aparece, solta um leque de 3 orbes, some (intangível) e reaparece noutro ponto perto do jogador |
 | `InimigoNecromante.cs` | Necromante: foge do jogador e levanta esqueletos guerreiros (até 2 por vez); com a sala cheia, joga maldição lenta |
 | `InimigoFogoFatuo.cs` | Fogo-fátuo: orbita o jogador num raio que respira, apaga (intangível) e reacende soltando 4 chamas em cruz |

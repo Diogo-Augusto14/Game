@@ -109,6 +109,26 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     /// <summary>Fracao da velocidade ao andar: 1 = normal, menos = gelado (flecha de gelo).</summary>
     public float MultiplicadorDeVelocidade { get; set; } = 1f;
 
+    /// <summary>
+    /// Como o bicho chega perto do jogador quando so anda atras dele. Cada especie de
+    /// corpo a corpo usa um, pra sala nao virar uma fila de bichos vindo reto:
+    ///   Direta      -> reto, contornando obstaculo
+    ///   Ziguezague  -> vai e volta de lado enquanto avanca, rapido (goblin)
+    ///   PassoPesado -> anda aos trancos: passada forte, para, passada (orc)
+    ///   Flanco      -> faz uma curva e chega pelo lado do jogador (demonio, vampiro)
+    ///   Cerco       -> cada um mira um ponto diferente em volta do jogador: o bando cerca
+    ///   Cambaleante -> lento e torto, acelerando e quase parando (esqueleto)
+    /// </summary>
+    public enum Aproximacao { Direta, Ziguezague, PassoPesado, Flanco, Cerco, Cambaleante }
+
+    public Aproximacao JeitoDeChegar { get; set; } = Aproximacao.Direta;
+
+    private float faseDaAproximacao = -1f;
+    private float tempoDoPasso;
+    private bool passoParado;
+    private float ladoDoFlanco;
+    private float anguloDoCerco;
+
     /// <summary>A especie (a fabrica preenche). O bestiario e as conquistas contam por aqui.</summary>
     public TipoDeInimigo Tipo { get; set; }
 
@@ -313,6 +333,116 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
         Vector2? passo = sala.ProximoPasso(rb.position, destino);
         return passo.HasValue ? passo.Value * desejada.magnitude : desejada;
+    }
+
+    /// <summary>
+    /// Anda atras do jogador no jeito da especie (<see cref="JeitoDeChegar"/>), contornando
+    /// obstaculo. <paramref name="alvo"/> e o vetor ate o jogador.
+    /// </summary>
+    protected void Aproximar(Vector2 alvo, float velocidadeBase, float dt)
+    {
+        float distancia = alvo.magnitude;
+
+        if (distancia < 0.0001f || jogador == null)
+        {
+            Frear();
+            return;
+        }
+
+        Vector2 frente = alvo / distancia;
+        Vector2 lado = new Vector2(-frente.y, frente.x);
+
+        // Sorteios por bicho, uma vez: fase, lado do flanco e lugar no cerco.
+        if (faseDaAproximacao < 0f)
+        {
+            faseDaAproximacao = Random.value * 10f;
+            ladoDoFlanco = Random.value < 0.5f ? -1f : 1f;
+            anguloDoCerco = Random.value * 360f;
+        }
+
+        faseDaAproximacao += dt;
+
+        switch (JeitoDeChegar)
+        {
+            case Aproximacao.Ziguezague:
+            {
+                // Perto demais pra zigue-zague: vai reto.
+                Vector2 rumo = distancia > 1.4f ? frente + lado * Mathf.Sin(faseDaAproximacao * 6f) * 1.1f : frente;
+                Andar(LivreOuCaminho(rumo, frente), velocidadeBase * 1.15f);
+                return;
+            }
+
+            case Aproximacao.PassoPesado:
+            {
+                tempoDoPasso -= dt;
+
+                if (tempoDoPasso <= 0f)
+                {
+                    passoParado = !passoParado;
+                    tempoDoPasso = passoParado ? Random.Range(0.35f, 0.55f) : Random.Range(0.6f, 0.85f);
+                }
+
+                if (passoParado)
+                    Frear();
+                else
+                    Andar(PeloCaminho(frente), velocidadeBase * 1.45f);
+
+                return;
+            }
+
+            case Aproximacao.Flanco:
+            {
+                // Mira um ponto ao lado do jogador e vai fechando a curva; perto, vai reto.
+                if (distancia > 1.8f)
+                {
+                    Vector2 doLado = Quaternion.Euler(0f, 0f, 75f * ladoDoFlanco) * -frente;
+                    Vector2 ponto = (Vector2)jogador.position + doLado * Mathf.Min(1.8f, distancia * 0.6f);
+                    Andar(PeloCaminhoAte(ponto, ponto - rb.position), velocidadeBase * 1.05f);
+                }
+                else
+                {
+                    Andar(PeloCaminho(frente), velocidadeBase);
+                }
+
+                return;
+            }
+
+            case Aproximacao.Cerco:
+            {
+                // Cada um vai pro seu lugar em volta do jogador; chegando, fecha o cerco.
+                if (distancia > 2.2f)
+                {
+                    float a = anguloDoCerco * Mathf.Deg2Rad;
+                    Vector2 ponto = (Vector2)jogador.position + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 1.6f;
+                    Andar(PeloCaminhoAte(ponto, ponto - rb.position), velocidadeBase);
+                }
+                else
+                {
+                    Andar(PeloCaminho(frente), velocidadeBase * 0.9f);
+                }
+
+                return;
+            }
+
+            case Aproximacao.Cambaleante:
+            {
+                float passo = 0.35f + 0.65f * Mathf.Abs(Mathf.Sin(faseDaAproximacao * 2.3f));
+                Vector2 rumo = frente + lado * Mathf.Sin(faseDaAproximacao * 1.3f) * 0.45f;
+                Andar(LivreOuCaminho(rumo, frente), velocidadeBase * passo);
+                return;
+            }
+
+            default:
+                Andar(PeloCaminho(frente), velocidadeBase);
+                return;
+        }
+    }
+
+    /// <summary>O rumo torto se o caminho ate o jogador esta livre; senao, o caminho pela sala.</summary>
+    private Vector2 LivreOuCaminho(Vector2 rumo, Vector2 frente)
+    {
+        Vector2 pelaSala = PeloCaminho(frente);
+        return pelaSala == frente ? rumo : pelaSala;
     }
 
     /// <summary>

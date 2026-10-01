@@ -13,6 +13,12 @@ public class InimigoFurioso : InimigoDeGolpe
 
     private bool furioso;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        JeitoDeChegar = Aproximacao.Flanco;   // o elite nao vem de frente
+    }
+
     protected override void Mover(Vector2 alvo, float distancia, float dt)
     {
         if (!furioso && vida != null && vida.VidaAtual <= vida.VidaMaxima * vidaParaAFuria)
