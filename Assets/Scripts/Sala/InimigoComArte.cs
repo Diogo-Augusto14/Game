@@ -55,12 +55,14 @@ public abstract class InimigoComArte : InimigoDeSala
         Vector2 frente = alvo / distancia;
         Vector2 lado = new Vector2(-frente.y, frente.x) * ladoDoPasso;
 
+        // Perto demais, recua; longe demais, chega perto contornando obstaculo; no meio-termo
+        // passeia pela sala (vai pra la e pra ca entre um tiro e outro, nao fica plantado).
         if (distancia < minima)
             Andar(-frente + lado * 0.3f, velocidade);
         else if (distancia > maxima)
-            Andar(frente, velocidade);
+            Andar(PeloCaminho(frente), velocidade);
         else
-            Andar(lado, velocidade * 0.5f);
+            Passear(velocidade * 0.6f);
     }
 
     /// <summary>Troca o lado do passo lateral (chame depois de cada ataque).</summary>

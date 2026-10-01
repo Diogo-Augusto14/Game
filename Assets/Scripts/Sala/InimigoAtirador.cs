@@ -4,7 +4,7 @@ using UnityEngine;
 /// Mantem distancia e atira no jogador. O ciclo:
 ///
 ///   Agindo      -> se afasta se o jogador chegou perto, se aproxima se esta longe,
-///                  e anda de lado no meio-termo (fica dificil de acertar)
+///                  e no meio-termo passeia pela sala (InimigoDeSala.Passear), atirando
 ///   Preparando  -> para e incha um pouco: o telegrafo do tiro
 ///   Recuperando -> atirou; fica parado um instante antes de voltar a andar
 ///
@@ -17,7 +17,7 @@ public class InimigoAtirador : InimigoDeSala
     [SerializeField, Min(0f)] private float distanciaMinima = 2.5f;
 
     [Tooltip("Mais longe que isto, ele chega perto")]
-    [SerializeField, Min(0f)] private float distanciaMaxima = 5f;
+    [SerializeField, Min(0f)] private float distanciaMaxima = 8f;
 
     [Header("Tiro")]
     [Tooltip("Segundos entre um tiro e outro (contando do fim do anterior)")]
@@ -80,12 +80,14 @@ public class InimigoAtirador : InimigoDeSala
             return;
         }
 
+        // Perto demais, recua; longe demais, chega perto contornando obstaculo; no meio-termo
+        // passeia pela sala soltando tiro, em vez de ficar de lado no mesmo lugar.
         if (distancia < distanciaMinima)
             Andar(-frente + lado * 0.3f, velocidade);
         else if (distancia > distanciaMaxima)
-            Andar(frente, velocidade);
+            Andar(PeloCaminho(frente), velocidade);
         else
-            Andar(lado, velocidade * 0.6f);
+            Passear(velocidade * 0.7f);
     }
 
     protected override void AtualizarPreparando(float dt)

@@ -46,8 +46,8 @@ public class Andar : MonoBehaviour
     [Tooltip("Sentinelas no maximo por sala: sao paradas, em excesso a sala vira tiroteio")]
     [SerializeField, Min(0)] private int maximoDeSentinelas = 2;
 
-    [Tooltip("Chance de um bicho de outro tipo vir junto com o bando da sala")]
-    [SerializeField, Range(0f, 1f)] private float chanceDeConvidadoNoBando = 0.5f;
+    [Tooltip("Chance da sala misturar uma ou duas especies de apoio com a dominante (senao e so a dominante)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeConvidadoNoBando = 0.8f;
 
     /// <summary>Maior bando numa sala so (cabe no chao 13x7 sem virar enxame impossivel).</summary>
     private const int MaximoNoBando = 8;
@@ -829,9 +829,14 @@ public class Andar : MonoBehaviour
             doBando = escolhido;
         }
 
+        // Cada um nasce num ponto seu, longe das portas e dos outros (nada de bolo no mesmo lugar).
+        List<Vector2> pontos = new List<Vector2>();
+
         foreach (TipoDeInimigo tipo in MontarBando(quantos, doBando))
         {
-            InimigoDeSala inimigo = sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
+            Vector2 ponto = PontoLongeDasPortas(sala, pontos);
+            pontos.Add(ponto);
+            InimigoDeSala inimigo = sala.CriarInimigo(tipo, ponto);
 
             if (inimigo is InimigoSentinela sentinela)
                 sentinela.UsarOitoDirecoes(Dificuldade.SentinelaEmOitoDirecoes);
@@ -844,35 +849,55 @@ public class Andar : MonoBehaviour
     }
 
     /// <summary>
-    /// Quem mora na sala. Em vez de 2 a 4 bichos sorteados um a um (uma mistura sem cara), a
-    /// sala tem um BANDO de um tipo so, e o tamanho dele sai do peso do bicho: o
-    /// <paramref name="orcamento"/> (os 2 a 4 de antes) dividido pelo custo. Morceguinho e
-    /// geleia vem em 7 ou 8, goblin e esqueleto em 3 ou 4, urso e cavaleiro do escudo em 1 ou 2.
-    /// Metade das vezes um bicho de outro tipo vem junto, gastando parte do orcamento, pra
-    /// sala nao ficar sempre igual.
+    /// Quem mora na sala. Em vez de bichos sorteados um a um (uma mistura sem cara), a sala tem
+    /// uma especie DOMINANTE que fica com a maior parte do <paramref name="orcamento"/> (os 2 a 4 de
+    /// antes) e, quase sempre, uma ou duas especies de apoio com o resto. O numero de cada uma sai
+    /// do custo do bicho (<see cref="CustoNoBando"/>): bicho fraco vem em mais, pesado em menos.
+    /// Nada de regra fixa: quanto fica pra dominante e quantas de apoio variam de sala pra sala.
     /// </summary>
     private List<TipoDeInimigo> MontarBando(int orcamento, TipoDeInimigo? principalFixo = null)
     {
         List<TipoDeInimigo> bando = new List<TipoDeInimigo>();
-        float sobra = Mathf.Max(1, orcamento);
-
-        if (UnityEngine.Random.value < chanceDeConvidadoNoBando && orcamento >= 3)
-        {
-            TipoDeInimigo convidado = SortearInimigo();
-            bando.Add(convidado);
-            sobra -= Mathf.Min(CustoNoBando(convidado), sobra * 0.4f);
-        }
-
+        float total = Mathf.Max(1, orcamento);
         TipoDeInimigo principal = principalFixo ?? SortearInimigo();
 
-        // Sorteio diferente do convidado quando der: o convidado e o tempero, nao mais do mesmo.
-        for (int tentativa = 0; tentativa < 3 && principalFixo == null && bando.Count > 0 && principal == bando[0]; tentativa++)
-            principal = SortearInimigo();
+        // Quanto do orcamento a dominante leva: as vezes a sala inteira, quase sempre 55% a 80%.
+        bool mistura = orcamento >= 2 && UnityEngine.Random.value < chanceDeConvidadoNoBando;
+        float parte = mistura ? UnityEngine.Random.Range(0.55f, 0.8f) : 1f;
+        float custo = CustoNoBando(principal);
+        int dominantes = Mathf.Clamp(Mathf.RoundToInt(total * parte / custo), 1, Mathf.Min(MaximoNoBando, MaximoNaSala(principal)));
 
-        int quantos = Mathf.Clamp(Mathf.RoundToInt(sobra / CustoNoBando(principal)), 1, Mathf.Min(MaximoNoBando, MaximoNaSala(principal)));
-
-        for (int i = 0; i < quantos; i++)
+        for (int i = 0; i < dominantes; i++)
             bando.Add(principal);
+
+        float sobra = total - dominantes * custo;
+
+        if (!mistura || sobra < 0.4f)
+            return bando;
+
+        // Uma especie de apoio, ou duas se sobrou bastante.
+        int especies = sobra >= 1.75f && UnityEngine.Random.value < 0.45f ? 2 : 1;
+        List<TipoDeInimigo> usadas = new List<TipoDeInimigo> { principal };
+
+        for (int e = 0; e < especies; e++)
+        {
+            TipoDeInimigo apoio = SortearInimigo();
+
+            for (int tentativa = 0; tentativa < 4 && usadas.Contains(apoio); tentativa++)
+                apoio = SortearInimigo();
+
+            usadas.Add(apoio);
+            float parteDoApoio = sobra / (especies - e);
+            int quantos = Mathf.Clamp(Mathf.RoundToInt(parteDoApoio / CustoNoBando(apoio)), 1, MaximoNaSala(apoio));
+
+            for (int i = 0; i < quantos; i++)
+                bando.Add(apoio);
+
+            sobra -= quantos * CustoNoBando(apoio);
+
+            if (sobra < 0.4f)
+                break;
+        }
 
         return bando;
     }
@@ -940,7 +965,8 @@ public class Andar : MonoBehaviour
         if (inimigo.Vida != null)
             inimigo.Vida.AumentarVidaMaxima(inimigo.Vida.VidaMaxima * (Dificuldade.VidaDosInimigos - 1f));
 
-        inimigo.DefinirVelocidade(inimigo.Velocidade * Dificuldade.VelocidadeDosInimigos);
+        // Cada um com um pouco mais ou menos de pressa: o bando nao anda em fila, todo igual.
+        inimigo.DefinirVelocidade(inimigo.Velocidade * Dificuldade.VelocidadeDosInimigos * UnityEngine.Random.Range(0.88f, 1.12f));
 
         bool campeao = UnityEngine.Random.value < Dificuldade.ChanceDeCampeao && Campeao.Aplicar(inimigo, Mundo) != null;
         float chance = campeao ? 1f : chanceDeDropDoInimigo + Dificuldade.BonusDeDrop;
@@ -1310,26 +1336,41 @@ public class Andar : MonoBehaviour
     }
 
     /// <summary>Ponto livre da sala longe de toda porta, pra ninguem nascer em cima de quem entra.</summary>
-    private Vector2 PontoLongeDasPortas(Sala sala)
+    private Vector2 PontoLongeDasPortas(Sala sala, List<Vector2> outros = null)
     {
         Vector2 centro = sala.transform.position;
-        Vector2 ponto = sala.PontoLivreAleatorio();
+        Vector2 melhor = sala.PontoLivreAleatorio();
+        float melhorFolga = float.MinValue;
 
-        for (int tentativa = 0; tentativa < 20; tentativa++)
+        // Tenta varios pontos e fica com o primeiro bom; sem nenhum bom, o mais afastado dos outros.
+        for (int tentativa = 0; tentativa < 30; tentativa++)
         {
+            Vector2 ponto = tentativa == 0 ? melhor : sala.PontoLivreAleatorio();
             bool longe = true;
 
             foreach (Porta porta in sala.Portas)
                 if (porta.Existe && Vector2.Distance(centro + ponto, porta.PontoDeChegada) < distanciaDasPortas)
                     longe = false;
 
-            if (longe)
-                break;
+            float folga = float.MaxValue;
 
-            ponto = sala.PontoLivreAleatorio();
+            if (outros != null)
+                foreach (Vector2 outro in outros)
+                    folga = Mathf.Min(folga, Vector2.Distance(ponto, outro));
+
+            if (longe && folga >= 1.4f)
+                return ponto;
+
+            float nota = (longe ? 10f : 0f) + Mathf.Min(folga, 5f);
+
+            if (nota > melhorFolga)
+            {
+                melhorFolga = nota;
+                melhor = ponto;
+            }
         }
 
-        return ponto;
+        return melhor;
     }
 
     private void PintarChao(Sala sala, TipoDeSala tipo)

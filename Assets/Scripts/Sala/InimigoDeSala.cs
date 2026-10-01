@@ -82,6 +82,12 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     private float raioDoCorpo;
     private float ladoDoDesvio = 1f;
 
+    // A sala onde nasceu (o mapa de caminho pelos ladrilhos dela) e o passeio dos andarilhos.
+    private Sala sala;
+    private Vector2 pontoDoPasseio;
+    private float trocarPasseioEm;
+    private float paradoAte;
+
     /// <summary>Algum inimigo (chefe incluido) acabou de morrer. Itens que curam ao matar escutam aqui.</summary>
     public static event System.Action<InimigoDeSala> AlgumMorreu;
 
@@ -139,6 +145,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     {
         rb = GetComponent<Rigidbody2D>();
         vida = GetComponent<Vida>();
+        sala = GetComponentInParent<Sala>();
         desenho = GetComponentInChildren<SpriteRenderer>();
 
         rb.gravityScale = 0f;
@@ -282,6 +289,61 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     }
 
     protected void Frear() => Andar(Vector2.zero, 0f);
+
+    /// <summary>
+    /// A direcao <paramref name="desejada"/> pro jogador, ou, se tem pedra, bloco ou buraco no
+    /// caminho reto, a direcao do caminho pelos ladrilhos da sala (mesmo tamanho). Quem persegue
+    /// usa isto pra contornar o obstaculo em vez de ficar empurrando ele.
+    /// </summary>
+    protected Vector2 PeloCaminho(Vector2 desejada)
+    {
+        return jogador == null ? desejada : PeloCaminhoAte(jogador.position, desejada);
+    }
+
+    /// <summary>Como <see cref="PeloCaminho"/>, ate um ponto qualquer do mundo.</summary>
+    protected Vector2 PeloCaminhoAte(Vector2 destino, Vector2 desejada)
+    {
+        if (sala == null || desejada.sqrMagnitude < 0.0001f || sala.LinhaLivre(rb.position, destino, Raio * 0.8f))
+            return desejada;
+
+        Vector2? passo = sala.ProximoPasso(rb.position, destino);
+        return passo.HasValue ? passo.Value * desejada.magnitude : desejada;
+    }
+
+    /// <summary>
+    /// Anda pela sala de um ponto livre a outro, contornando obstaculo, com umas paradinhas.
+    /// E o jeito dos que atiram: em vez de ficar plantado a uma distancia fixa do jogador, vai
+    /// pra la e pra ca soltando tiro. Sem sala, fica de lado pro jogador.
+    /// </summary>
+    protected void Passear(float velocidadeDoPasseio)
+    {
+        if (sala == null)
+        {
+            Frear();
+            return;
+        }
+
+        if (Time.time < paradoAte)
+        {
+            Frear();
+            return;
+        }
+
+        Vector2 falta = pontoDoPasseio - rb.position;
+
+        if (Time.time >= trocarPasseioEm || falta.sqrMagnitude < 0.3f)
+        {
+            // Chegou (ou demorou demais, preso): as vezes da uma paradinha, depois escolhe outro ponto.
+            if (falta.sqrMagnitude < 0.3f && Random.value < 0.4f)
+                paradoAte = Time.time + Random.Range(0.3f, 0.9f);
+
+            pontoDoPasseio = (Vector2)sala.transform.position + sala.PontoLivreAleatorio(1.3f);
+            trocarPasseioEm = Time.time + Random.Range(2f, 4f);
+            falta = pontoDoPasseio - rb.position;
+        }
+
+        Andar(PeloCaminhoAte(pontoDoPasseio, falta.normalized), velocidadeDoPasseio);
+    }
 
     /// <summary>
     /// Com parede ou pedra logo a frente, escorrega ao longo dela em vez de ficar

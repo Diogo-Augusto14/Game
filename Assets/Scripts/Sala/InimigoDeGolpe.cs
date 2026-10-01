@@ -79,7 +79,7 @@ public class InimigoDeGolpe : InimigoComArte
             return;
         }
 
-        Andar(alvo / distancia, VeOJogador() ? velocidade : velocidade * 0.6f);
+        Andar(PeloCaminho(alvo / distancia), VeOJogador() ? velocidade : velocidade * 0.6f);
     }
 
     /// <summary>Golpe pra cima ou pra baixo quando o jogador esta mais na vertical.</summary>

@@ -42,6 +42,9 @@ public class InimigoPerseguidor : InimigoDeSala
         float balanco = Mathf.Sin(Time.time * frequenciaDoZigueZague * Mathf.PI * 2f + fase) * zigueZague;
 
         float v = VeOJogador() ? velocidade : velocidade * velocidadeSemVer;
-        Andar(frente + lado * balanco, v);
+
+        // Obstaculo no caminho reto: segue o caminho pelos ladrilhos, sem zigue-zague.
+        Vector2 rumo = PeloCaminho(frente);
+        Andar(rumo == frente ? frente + lado * balanco : rumo, v);
     }
 }

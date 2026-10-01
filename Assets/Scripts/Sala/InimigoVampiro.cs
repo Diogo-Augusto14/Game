@@ -66,7 +66,7 @@ public class InimigoVampiro : InimigoComArte
             return;
         }
 
-        Andar(alvo, distancia > 0.5f ? velocidade : 0f);
+        Andar(PeloCaminho(alvo), distancia > 0.5f ? velocidade : 0f);
     }
 
     protected override void AtualizarPreparando(float dt)

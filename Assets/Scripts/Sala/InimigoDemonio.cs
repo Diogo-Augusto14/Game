@@ -84,7 +84,7 @@ public class InimigoDemonio : InimigoDeSala
             return;
         }
 
-        Andar(alvo / distancia, VeOJogador() ? velocidade : velocidade * 0.6f);
+        Andar(PeloCaminho(alvo / distancia), VeOJogador() ? velocidade : velocidade * 0.6f);
     }
 
     protected override void AtualizarPreparando(float dt)

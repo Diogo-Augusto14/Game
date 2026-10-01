@@ -126,11 +126,17 @@ mundo, com as portas dela pro lado de fora; entre as casas não tem parede nem p
 jogador dentro da sala grande sem sair dela (`Andar.AlvoDaCamera`), e cada casa tem uma cortina
 preta (`Sala.Coberta`) que esconde tudo o que não é a sala atual.
 
-Cada sala comum tem um **bando** de um tipo só (`Andar.MontarBando`): o orçamento da sala
-(`inimigosPorSala`, mais os extras da fase) é dividido pelo custo do bicho (`CustoNoBando`), então
-bichos fracos vêm em grupo grande (até 8 morceguinhos ou geleias) e pesados em poucos (1 ou 2
-ursos). Metade das vezes um bicho de outro tipo vem junto (`chanceDeConvidadoNoBando`). Barril,
-goblin da dinamite, necromante e sentinela têm teto por sala (`MaximoNaSala`).
+Cada sala comum tem uma **espécie dominante** e, quase sempre, uma ou duas de apoio
+(`Andar.MontarBando`): a dominante leva de 55% a 80% do orçamento da sala (`inimigosPorSala`, mais
+os extras da fase), as de apoio o resto, e o número de cada uma sai do custo do bicho
+(`CustoNoBando`): bicho fraco vem em mais, pesado em menos. Barril, goblin da dinamite, necromante e
+sentinela têm teto por sala (`MaximoNaSala`). Cada um nasce num ponto seu, longe das portas e dos
+outros, com um pouco mais ou menos de velocidade.
+
+Movimento: quem persegue contorna pedra, bloco e buraco por um mapa de distâncias nos ladrilhos da
+sala (`Sala.ProximoPasso`, via `InimigoDeSala.PeloCaminho`); quem atira (bruxo, arqueiros, goblin da
+dinamite...) passeia pela sala entre um tiro e outro (`InimigoDeSala.Passear`) e só recua quando o
+jogador chega perto demais.
 
 ---
 

@@ -12,7 +12,7 @@ public class InimigoArqueiro : InimigoComArte
 {
     [Header("Distancia")]
     [SerializeField, Min(0f)] private float distanciaMinima = 3f;
-    [SerializeField, Min(0f)] private float distanciaMaxima = 6f;
+    [SerializeField, Min(0f)] private float distanciaMaxima = 9f;
 
     [Header("Flecha")]
     [SerializeField, Min(0.1f)] private float intervaloEntreFlechas = 2.2f;

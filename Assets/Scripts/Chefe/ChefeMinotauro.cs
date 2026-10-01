@@ -415,7 +415,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
     // ---------------- giro ----------------
     private void Girar(float dt)
     {
-        Andar(ParaOJogador(), velocidadeNoGiro * (segundaFase ? 1.2f : 1f));
+        Andar(PeloCaminho(ParaOJogador()), velocidadeNoGiro * (segundaFase ? 1.2f : 1f));
         proximoDisparo.Contar(dt);
 
         if (!proximoDisparo.Ativo)

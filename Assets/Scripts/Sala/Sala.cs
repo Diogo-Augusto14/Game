@@ -101,6 +101,10 @@ public class Sala : MonoBehaviour
     private readonly HashSet<Vector2Int> celulasOcupadas = new HashSet<Vector2Int>();
     private readonly Dictionary<Vector2Int, Transform> fossos = new Dictionary<Vector2Int, Transform>();
 
+    // Ladrilhos que ninguem atravessa andando (pedra, bloco de parede, buraco). Pedra quebrada por
+    // bomba vira null e o ladrilho libera sozinho.
+    private readonly Dictionary<Vector2Int, Object> bloqueios = new Dictionary<Vector2Int, Object>();
+
     private Transform cenario;
     private Transform pastaDeInimigos;
     private bool montada;
@@ -318,6 +322,152 @@ public class Sala : MonoBehaviour
         return true;
     }
 
+    // ================================================================ caminho dos inimigos
+    private int[,] distancias;
+    private Vector2Int destinoDoMapa = new Vector2Int(int.MinValue, 0);
+    private float mapaFeitoEm = -10f;
+
+    private static readonly Vector2Int[] Vizinhos =
+    {
+        new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
+        new Vector2Int(1, 1), new Vector2Int(1, -1), new Vector2Int(-1, 1), new Vector2Int(-1, -1),
+    };
+
+    private int MeiaLargura => Mathf.FloorToInt(tamanhoInterno.x * 0.5f);
+    private int MeiaAltura => Mathf.FloorToInt(tamanhoInterno.y * 0.5f);
+
+    /// <summary>O ladrilho (do chao desta sala) em que um ponto do mundo cai.</summary>
+    public Vector2Int Ladrilho(Vector2 pontoNoMundo)
+    {
+        Vector2 local = pontoNoMundo - (Vector2)transform.position;
+        return new Vector2Int(Mathf.RoundToInt(local.x), Mathf.RoundToInt(local.y));
+    }
+
+    private bool DentroDoChao(Vector2Int c) => Mathf.Abs(c.x) <= MeiaLargura && Mathf.Abs(c.y) <= MeiaAltura;
+
+    /// <summary>Pedra, bloco de parede ou buraco nesse ladrilho (fora do chao tambem conta).</summary>
+    public bool Bloqueado(Vector2Int c) => !DentroDoChao(c) || (bloqueios.TryGetValue(c, out Object o) && o != null);
+
+    /// <summary>
+    /// Da pra ir em linha reta de um ponto ao outro sem passar por obstaculo (com a folga do
+    /// corpo). Confere so o chao desta sala.
+    /// </summary>
+    public bool LinhaLivre(Vector2 de, Vector2 para, float folga)
+    {
+        if (bloqueios.Count == 0)
+            return true;
+
+        float distancia = Vector2.Distance(de, para);
+        int passos = Mathf.CeilToInt(distancia / 0.25f);
+
+        for (int i = 1; i <= passos; i++)
+        {
+            Vector2 p = Vector2.Lerp(de, para, i / (float)passos);
+            Vector2 local = p - (Vector2)transform.position;
+
+            foreach (KeyValuePair<Vector2Int, Object> b in bloqueios)
+            {
+                if (b.Value == null)
+                    continue;
+
+                if (Mathf.Abs(local.x - b.Key.x) < 0.5f + folga && Mathf.Abs(local.y - b.Key.y) < 0.5f + folga)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Pra onde andar (direcao normalizada) pra chegar de <paramref name="de"/> ate
+    /// <paramref name="para"/> contornando pedra, bloco e buraco: um mapa de distancias pelos
+    /// ladrilhos do chao, refeito quando o destino muda de ladrilho (no maximo ~4 vezes por
+    /// segundo, e um so pra todos os inimigos da sala). Null se nao precisa (ou nao da pra
+    /// calcular): ai o inimigo segue reto.
+    /// </summary>
+    public Vector2? ProximoPasso(Vector2 de, Vector2 para)
+    {
+        if (bloqueios.Count == 0)
+            return null;
+
+        Vector2Int alvo = Ladrilho(para);
+        Vector2Int aqui = Ladrilho(de);
+
+        if (!DentroDoChao(alvo) || !DentroDoChao(aqui) || alvo == aqui)
+            return null;
+
+        if (alvo != destinoDoMapa || Time.time - mapaFeitoEm > 0.25f)
+            MontarMapa(alvo);
+
+        int Dist(Vector2Int c) => DentroDoChao(c) ? distancias[c.x + MeiaLargura, c.y + MeiaAltura] : int.MaxValue;
+
+        int melhor = Bloqueado(aqui) ? int.MaxValue : Dist(aqui);
+        Vector2Int escolhido = aqui;
+
+        foreach (Vector2Int v in Vizinhos)
+        {
+            Vector2Int c = aqui + v;
+
+            if (Bloqueado(c))
+                continue;
+
+            // Diagonal so com os dois lados livres: senao raspa a quina da pedra e fica preso.
+            if (v.x != 0 && v.y != 0 && (Bloqueado(aqui + new Vector2Int(v.x, 0)) || Bloqueado(aqui + new Vector2Int(0, v.y))))
+                continue;
+
+            int d = Dist(c);
+
+            if (d < melhor)
+            {
+                melhor = d;
+                escolhido = c;
+            }
+        }
+
+        if (escolhido == aqui || melhor == int.MaxValue)
+            return null;
+
+        Vector2 rumo = (Vector2)transform.position + (Vector2)escolhido - de;
+        return rumo.sqrMagnitude > 0.0001f ? rumo.normalized : (Vector2?)null;
+    }
+
+    private void MontarMapa(Vector2Int alvo)
+    {
+        int largura = MeiaLargura * 2 + 1;
+        int altura = MeiaAltura * 2 + 1;
+
+        if (distancias == null || distancias.GetLength(0) != largura || distancias.GetLength(1) != altura)
+            distancias = new int[largura, altura];
+
+        for (int x = 0; x < largura; x++)
+            for (int y = 0; y < altura; y++)
+                distancias[x, y] = int.MaxValue;
+
+        destinoDoMapa = alvo;
+        mapaFeitoEm = Time.time;
+
+        Queue<Vector2Int> fila = new Queue<Vector2Int>();
+        distancias[alvo.x + MeiaLargura, alvo.y + MeiaAltura] = 0;
+        fila.Enqueue(alvo);
+
+        while (fila.Count > 0)
+        {
+            Vector2Int atual = fila.Dequeue();
+            int d = distancias[atual.x + MeiaLargura, atual.y + MeiaAltura];
+
+            for (int i = 0; i < 4; i++)
+            {
+                Vector2Int c = atual + Vizinhos[i];
+
+                if (Bloqueado(c) || distancias[c.x + MeiaLargura, c.y + MeiaAltura] != int.MaxValue)
+                    continue;
+
+                distancias[c.x + MeiaLargura, c.y + MeiaAltura] = d + 1;
+                fila.Enqueue(c);
+            }
+        }
+    }
+
     /// <summary>
     /// Poe uma pedra ou espinhos no ladrilho dado (x e y inteiros a partir do centro; numa
     /// sala 13x7, x vai de -6 a 6 e y de -3 a 3). Ladrilho ja ocupado fica como esta.
@@ -334,13 +484,15 @@ public class Sala : MonoBehaviour
         switch (tipo)
         {
             case TipoDeObstaculo.Pedra:
-                Pedra.Criar(cenario, posicao, TemaDoAndar.Atual != null ? TemaDoAndar.Atual.CorDaPedra : Color.white);
+                bloqueios[celula] = Pedra.Criar(cenario, posicao, TemaDoAndar.Atual != null ? TemaDoAndar.Atual.CorDaPedra : Color.white);
                 break;
             case TipoDeObstaculo.Muro:
-                Muro.Criar(cenario, posicao);
+                bloqueios[celula] = Muro.Criar(cenario, posicao);
                 break;
             case TipoDeObstaculo.Fosso:
-                fossos[celula] = Fosso.Criar(cenario, posicao).transform;
+                Fosso fosso = Fosso.Criar(cenario, posicao);
+                fossos[celula] = fosso.transform;
+                bloqueios[celula] = fosso;
                 break;
             default:
                 Espinhos.Criar(cenario, posicao);
