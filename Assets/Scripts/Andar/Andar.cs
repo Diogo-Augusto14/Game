@@ -162,6 +162,9 @@ public class Andar : MonoBehaviour
     private Camera cam;
     private Coroutine transicao;
     private Vector2Int telaEnquadrada;
+
+    // Casas sem cortina agora: a sala atual e, durante a troca, a que o jogador acabou de deixar.
+    private readonly List<Sala> descobertas = new List<Sala>();
     private Vector2 gravidadeAnterior;
     private bool mexeuNaGravidade;
 
@@ -258,6 +261,80 @@ public class Andar : MonoBehaviour
         // ele ficava com o tamanho da janela do comeco e mostrava as salas vizinhas.
         if (cam != null && ajustarCamera && (Screen.width != telaEnquadrada.x || Screen.height != telaEnquadrada.y))
             EnquadrarCamera();
+
+        // Sala grande: a camera acompanha o jogador sem sair da sala. Parada durante a troca de sala.
+        if (cam != null && ajustarCamera && transicao == null && jogador != null && SalaAtual != null && SalaAtual.Forma != null)
+        {
+            Vector2 alvo = AlvoDaCamera(SalaAtual, jogador.position);
+            Vector3 agora = cam.transform.position;
+            Vector2 suave = Vector2.Lerp(agora, alvo, 1f - Mathf.Exp(-12f * Time.unscaledDeltaTime));
+            cam.transform.position = new Vector3(suave.x, suave.y, agora.z);
+        }
+    }
+
+    /// <summary>
+    /// Onde a camera fica pra mostrar <paramref name="ponto"/> dentro da sala: no centro, numa sala
+    /// de uma casa; numa sala grande, o mais perto do ponto sem mostrar nada fora da caixa dela.
+    /// </summary>
+    private Vector2 AlvoDaCamera(SalaDoAndar sala, Vector2 ponto)
+    {
+        if (sala.Forma == null || cam == null)
+            return NoMundo(sala).transform.position;
+
+        Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
+        Vector2 max = new Vector2(float.MinValue, float.MinValue);
+
+        foreach (SalaDoAndar casa in sala.Forma.Casas)
+        {
+            Vector2 c = NoMundo(casa).transform.position;
+            min = Vector2.Min(min, c - Passo * 0.5f);
+            max = Vector2.Max(max, c + Passo * 0.5f);
+        }
+
+        float meiaAltura = cam.orthographicSize;
+        float meiaLargura = meiaAltura * cam.aspect;
+        return new Vector2(Prender(ponto.x, min.x + meiaLargura, max.x - meiaLargura),
+                           Prender(ponto.y, min.y + meiaAltura, max.y - meiaAltura));
+    }
+
+    /// <summary>Clamp que, com a faixa invertida (sala menor que a tela), fica no meio dela.</summary>
+    private static float Prender(float valor, float menor, float maior)
+        => menor > maior ? (menor + maior) * 0.5f : Mathf.Clamp(valor, menor, maior);
+
+    /// <summary>
+    /// Tira a cortina das casas da sala nova. As da sala anterior continuam a mostra ate a camera
+    /// terminar de deslizar (senao a tela escurecia no meio da troca) e entao sao cobertas.
+    /// </summary>
+    private void Descobrir(SalaDoAndar sala)
+    {
+        List<Sala> novas = new List<Sala>();
+
+        foreach (SalaDoAndar casa in sala.CasasDaSala)
+            novas.Add(NoMundo(casa));
+
+        foreach (Sala casa in novas)
+            casa.Coberta = false;
+
+        foreach (Sala velha in descobertas)
+            if (velha != null && !novas.Contains(velha))
+                cobrirDepois.Add(velha);
+
+        descobertas.Clear();
+        descobertas.AddRange(novas);
+    }
+
+    private readonly List<Sala> cobrirDepois = new List<Sala>();
+
+    // O bicho do bando de cada sala grande (todas as casas dela usam o mesmo).
+    private readonly Dictionary<FormaDaSala, TipoDeInimigo> bandoDaForma = new Dictionary<FormaDaSala, TipoDeInimigo>();
+
+    private void CobrirAsDeixadas()
+    {
+        foreach (Sala velha in cobrirDepois)
+            if (velha != null && !descobertas.Contains(velha))
+                velha.Coberta = true;
+
+        cobrirDepois.Clear();
     }
 
     private void OnDestroy()
@@ -336,10 +413,31 @@ public class Andar : MonoBehaviour
         raizDasSalas.SetParent(transform, false);
         noMundo = new Sala[Mapa.Largura, Mapa.Altura];
         salaDoMapa.Clear();
+        bandoDaForma.Clear();
         SortearBausTrancados();
 
         foreach (SalaDoAndar sala in Mapa.Salas)
             noMundo[sala.X, sala.Y] = MontarSala(sala);
+
+        // Salas grandes: as casas fecham, acordam e abrem juntas. E tudo comeca coberto; so a
+        // sala onde o jogador esta aparece (Entrar descobre).
+        foreach (SalaDoAndar sala in Mapa.Salas)
+        {
+            if (sala.Forma != null && sala.Forma.Casas[0] == sala)
+            {
+                List<Sala> casas = new List<Sala>();
+
+                foreach (SalaDoAndar casa in sala.Forma.Casas)
+                    casas.Add(NoMundo(casa));
+
+                Sala.Agrupar(casas);
+            }
+
+            NoMundo(sala).Coberta = true;
+        }
+
+        descobertas.Clear();
+        cobrirDepois.Clear();
 
         Debug.Log($"[Andar] {NomeDaFase} ({Tema.Nome}), {Mapa.Salas.Count} salas, semente {SementeUsada}. {Dificuldade}");
 
@@ -366,7 +464,8 @@ public class Andar : MonoBehaviour
             return;
 
         // So vale a porta da sala onde o jogador esta (a vizinha tem uma porta colada nesta).
-        if (de != SalaAtual)
+        // Sala grande: qualquer casa dela conta.
+        if (SalaAtual == null || !de.MesmaSala(SalaAtual))
             return;
 
         Direcao direcao = ParaDirecao(porta.Lado);
@@ -415,7 +514,9 @@ public class Andar : MonoBehaviour
                      : sala.Tipo == TipoDeSala.Loja ? TemaMusical.Loja
                      : MusicaDoAndar);
 
-        MoverCamera(destino.transform.position, saiuPor.HasValue ? tempoDaTransicao : 0f);
+        Descobrir(sala);
+        Vector2 pontoDaCamera = AlvoDaCamera(sala, jogador != null ? (Vector2)jogador.position : (Vector2)destino.transform.position);
+        MoverCamera(pontoDaCamera, saiuPor.HasValue ? tempoDaTransicao : 0f);
         AoEntrarNaSala?.Invoke(destino);
     }
 
@@ -464,7 +565,13 @@ public class Andar : MonoBehaviour
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black;
         EnquadrarCamera();
-        MontarMoldura();
+
+        // A moldura antiga presa na camera (uma janela do tamanho de uma sala) cortaria as salas
+        // grandes: agora cada casa tem a sua cortina (Sala.Coberta).
+        Transform moldura = cam.transform.Find("Moldura");
+
+        if (moldura != null)
+            Destroy(moldura.gameObject);
     }
 
     /// <summary>
@@ -480,42 +587,13 @@ public class Andar : MonoBehaviour
         cam.orthographicSize = Mathf.Max(cabeLargura, chaoInteiro);
     }
 
-    /// <summary>
-    /// Faixas pretas presas na camera, em volta de uma janela do tamanho de uma sala. Numa tela
-    /// mais quadrada que 16:9 a camera mostra mais que a sala: sem isto aparecia a sala vizinha
-    /// (ate a secreta, entregando o segredo) e o vazio preto onde nao tem sala. Com a camera
-    /// parada na sala elas ficam exatamente na borda dela; na troca de sala andam junto.
-    /// </summary>
-    private void MontarMoldura()
-    {
-        if (cam.transform.Find("Moldura") != null)
-            return;
-
-        Transform moldura = new GameObject("Moldura").transform;
-        moldura.SetParent(cam.transform, false);
-        moldura.localPosition = new Vector3(0f, 0f, 1f);
-
-        const float longe = 200f;
-        Vector2 janela = Passo;
-        float meiaLarg = janela.x * 0.5f + longe * 0.5f;
-        float meiaAlt = janela.y * 0.5f + longe * 0.5f;
-
-        Faixa(moldura, new Vector2(0f, meiaAlt), new Vector2(janela.x + longe * 2f, longe));
-        Faixa(moldura, new Vector2(0f, -meiaAlt), new Vector2(janela.x + longe * 2f, longe));
-        Faixa(moldura, new Vector2(-meiaLarg, 0f), new Vector2(longe, janela.y));
-        Faixa(moldura, new Vector2(meiaLarg, 0f), new Vector2(longe, janela.y));
-    }
-
-    private static void Faixa(Transform moldura, Vector2 posicao, Vector2 tamanho)
-    {
-        // Por cima de tudo do mundo (a HUD e de outra camada e fica por cima dela).
-        FormasDaSala.Desenho(moldura, "Faixa", Fosso.Pixel(), Color.black, posicao, tamanho, 1000);
-    }
-
     private void MoverCamera(Vector2 alvo, float tempo)
     {
         if (cam == null || !ajustarCamera)
+        {
+            CobrirAsDeixadas();
             return;
+        }
 
         if (transicao != null)
             StopCoroutine(transicao);
@@ -523,6 +601,7 @@ public class Andar : MonoBehaviour
         if (tempo <= 0f)
         {
             cam.transform.position = new Vector3(alvo.x, alvo.y, cam.transform.position.z);
+            CobrirAsDeixadas();
             return;
         }
 
@@ -542,6 +621,7 @@ public class Andar : MonoBehaviour
 
         cam.transform.position = fim;
         transicao = null;
+        CobrirAsDeixadas();
     }
 
     // ---------------- jogador ----------------
@@ -623,8 +703,9 @@ public class Andar : MonoBehaviour
                 portas.Add(ParaLado(d));
 
         Vector2 centro = (Vector2)transform.position + new Vector2(casa.X * Passo.x, casa.Y * Passo.y);
-        string nome = casa.Tipo == TipoDeSala.Normal ? $"Sala {DisposicoesDaSala.Nome(casa.Desenho)}" : $"Sala {casa.Tipo}";
-        Sala sala = Sala.Criar($"{nome} ({casa.X},{casa.Y})", centro, portas, raizDasSalas);
+        string nome = casa.Forma != null ? casa.Forma.Nome
+                      : casa.Tipo == TipoDeSala.Normal ? $"Sala {DisposicoesDaSala.Nome(casa.Desenho)}" : $"Sala {casa.Tipo}";
+        Sala sala = Sala.Criar($"{nome} ({casa.X},{casa.Y})", centro, portas, JuncoesDe(casa), raizDasSalas);
         salaDoMapa[sala] = casa;
 
         sala.Pintar(Tema.CorDoChao, Tema.CorDaParede, Tema.ForcaDaCor);
@@ -672,6 +753,32 @@ public class Andar : MonoBehaviour
         return sala;
     }
 
+    /// <summary>Como a casa se emenda nas outras casas da mesma sala grande (tudo falso pra sala de uma casa).</summary>
+    private Juncoes JuncoesDe(SalaDoAndar casa)
+    {
+        bool Junta(int dx, int dy) => casa.Forma != null && casa.Forma.Contem(Mapa.Em(casa.X + dx, casa.Y + dy));
+
+        bool JuntaEm(int x, int y, Direcao d)
+        {
+            SalaDoAndar outra = Mapa.Em(x, y);
+            return outra != null && outra.Forma != null && Mapa.Juntas(outra, d);
+        }
+
+        return new Juncoes
+        {
+            Cima = Junta(0, 1),
+            Baixo = Junta(0, -1),
+            Esquerda = Junta(-1, 0),
+            Direita = Junta(1, 0),
+            DireitaAbreCima = Junta(1, 0) && JuntaEm(casa.X + 1, casa.Y, Direcao.Cima),
+            DireitaAbreBaixo = Junta(1, 0) && JuntaEm(casa.X + 1, casa.Y, Direcao.Baixo),
+            CantoSupDir = Junta(1, 0) && Junta(0, 1) && Junta(1, 1),
+            CantoSupEsq = Junta(-1, 0) && Junta(0, 1) && Junta(-1, 1),
+            CantoInfDir = Junta(1, 0) && Junta(0, -1) && Junta(1, -1),
+            CantoInfEsq = Junta(-1, 0) && Junta(0, -1) && Junta(-1, -1),
+        };
+    }
+
     private void Povoar(Sala sala, SalaDoAndar casa)
     {
         int quantos;
@@ -705,7 +812,24 @@ public class Andar : MonoBehaviour
                 return; // inicio e item: sala tranquila, como no Isaac
         }
 
-        foreach (TipoDeInimigo tipo in MontarBando(quantos))
+        // Sala grande: o mesmo bicho em todas as casas (um bando so, espalhado), e um pouco menos
+        // por casa, senao uma 2x2 virava quatro salas de briga de uma vez.
+        TipoDeInimigo? doBando = null;
+
+        if (casa.Forma != null)
+        {
+            quantos = Mathf.Max(1, Mathf.RoundToInt(quantos * 0.75f));
+
+            if (!bandoDaForma.TryGetValue(casa.Forma, out TipoDeInimigo escolhido))
+            {
+                escolhido = SortearInimigo();
+                bandoDaForma[casa.Forma] = escolhido;
+            }
+
+            doBando = escolhido;
+        }
+
+        foreach (TipoDeInimigo tipo in MontarBando(quantos, doBando))
         {
             InimigoDeSala inimigo = sala.CriarInimigo(tipo, PontoLongeDasPortas(sala));
 
@@ -727,7 +851,7 @@ public class Andar : MonoBehaviour
     /// Metade das vezes um bicho de outro tipo vem junto, gastando parte do orcamento, pra
     /// sala nao ficar sempre igual.
     /// </summary>
-    private List<TipoDeInimigo> MontarBando(int orcamento)
+    private List<TipoDeInimigo> MontarBando(int orcamento, TipoDeInimigo? principalFixo = null)
     {
         List<TipoDeInimigo> bando = new List<TipoDeInimigo>();
         float sobra = Mathf.Max(1, orcamento);
@@ -739,10 +863,10 @@ public class Andar : MonoBehaviour
             sobra -= Mathf.Min(CustoNoBando(convidado), sobra * 0.4f);
         }
 
-        TipoDeInimigo principal = SortearInimigo();
+        TipoDeInimigo principal = principalFixo ?? SortearInimigo();
 
         // Sorteio diferente do convidado quando der: o convidado e o tempero, nao mais do mesmo.
-        for (int tentativa = 0; tentativa < 3 && bando.Count > 0 && principal == bando[0]; tentativa++)
+        for (int tentativa = 0; tentativa < 3 && principalFixo == null && bando.Count > 0 && principal == bando[0]; tentativa++)
             principal = SortearInimigo();
 
         int quantos = Mathf.Clamp(Mathf.RoundToInt(sobra / CustoNoBando(principal)), 1, Mathf.Min(MaximoNoBando, MaximoNaSala(principal)));

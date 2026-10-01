@@ -45,6 +45,21 @@ public static class Direcoes
 
 
 /// <summary>
+/// Uma sala que ocupa mais de uma casa da grade, como as do Isaac: corredor comprido (2x1),
+/// sala alta (1x2), sala grande (2x2) ou em L (3 casas de um 2x2). Entre as casas dela nao tem
+/// parede nem porta; cada casa continua com as suas portas pro lado de fora.
+/// </summary>
+public class FormaDaSala
+{
+    public readonly List<SalaDoAndar> Casas = new List<SalaDoAndar>();
+
+    /// <summary>"Corredor", "Sala alta", "Sala grande" ou "Sala em L" (pro log e pro nome no mundo).</summary>
+    public string Nome;
+
+    public bool Contem(SalaDoAndar casa) => casa != null && casa.Forma == this;
+}
+
+/// <summary>
 /// Uma casa ocupada da grade. So dados: quem desenha a sala no mundo e o
 /// <see cref="Andar"/>, quem desenha no canto da tela e o <see cref="Minimapa"/>.
 /// </summary>
@@ -82,6 +97,28 @@ public class SalaDoAndar
     /// <summary>O desenho vem espelhado na horizontal / na vertical (a mesma planta fica diferente).</summary>
     public bool EspelharX;
     public bool EspelharY;
+
+    /// <summary>A sala grande de que esta casa faz parte, ou null (sala de uma casa so).</summary>
+    public FormaDaSala Forma;
+
+    /// <summary>Esta casa e a outra sao a mesma sala (a mesma casa conta).</summary>
+    public bool MesmaSala(SalaDoAndar outra) => outra == this || (Forma != null && Forma.Contem(outra));
+
+    /// <summary>As casas da sala inteira (so esta, se ela nao for grande).</summary>
+    public IEnumerable<SalaDoAndar> CasasDaSala
+    {
+        get
+        {
+            if (Forma == null)
+            {
+                yield return this;
+                yield break;
+            }
+
+            foreach (SalaDoAndar casa in Forma.Casas)
+                yield return casa;
+        }
+    }
 
     /// <summary>O jogador ja entrou aqui.</summary>
     public bool Visitada;
@@ -159,7 +196,14 @@ public class MapaDoAndar
     /// parede entre elas: so tem porta onde o gerador ligou (a sala que criou a outra, e os
     /// atalhos que fecham circuito). As portas da secreta existem, mas escondidas.
     /// </summary>
-    public bool TemPorta(SalaDoAndar sala, Direcao d) => sala.TemPortaPara(d) && Vizinha(sala, d) != null;
+    public bool TemPorta(SalaDoAndar sala, Direcao d) => sala.TemPortaPara(d) && Vizinha(sala, d) != null && !Juntas(sala, d);
+
+    /// <summary>A casa desse lado e da mesma sala grande: ali nao tem parede nem porta, so chao.</summary>
+    public bool Juntas(SalaDoAndar sala, Direcao d)
+    {
+        SalaDoAndar outra = Vizinha(sala, d);
+        return sala.Forma != null && outra != null && sala.Forma.Contem(outra);
+    }
 
     /// <summary>A sala do outro lado da porta desse lado, ou null se ali e parede.</summary>
     public SalaDoAndar PelaPorta(SalaDoAndar sala, Direcao d) => TemPorta(sala, d) ? Vizinha(sala, d) : null;
@@ -202,16 +246,23 @@ public class MapaDoAndar
     /// </summary>
     public void Visitar(SalaDoAndar sala)
     {
-        sala.Visitada = true;
-        sala.Descoberta = true;
-
-        // A secreta so aparece no mapa depois que alguem entra nela.
-        foreach (Direcao d in Direcoes.Todas)
+        // Sala grande: entrar numa casa e entrar na sala toda.
+        foreach (SalaDoAndar casa in sala.CasasDaSala)
         {
-            SalaDoAndar vizinha = PelaPorta(sala, d);
+            casa.Visitada = true;
+            casa.Descoberta = true;
 
-            if (vizinha != null && vizinha.Tipo != TipoDeSala.Secreta)
-                vizinha.Descoberta = true;
+            // A secreta so aparece no mapa depois que alguem entra nela.
+            foreach (Direcao d in Direcoes.Todas)
+            {
+                SalaDoAndar vizinha = PelaPorta(casa, d);
+
+                if (vizinha == null || vizinha.Tipo == TipoDeSala.Secreta)
+                    continue;
+
+                foreach (SalaDoAndar dela in vizinha.CasasDaSala)
+                    dela.Descoberta = true;
+            }
         }
     }
 
@@ -290,6 +341,12 @@ public class ParametrosDoAndar
 
     /// <summary>Chance de uma sala comum ficar sem obstaculo (nunca duas vizinhas vazias).</summary>
     public double ChanceDeSalaVazia = 0.15;
+
+    /// <summary>
+    /// Chance de cada sala comum tentar virar sala grande com as vizinhas (corredor, sala alta,
+    /// 2x2 ou L). So junta casas comuns ja ligadas por porta.
+    /// </summary>
+    public double ChanceDeSalaGrande = 0.45;
 
     /// <summary>
     /// Os numeros de sempre, pelo andar: 8 ou 9 salas no primeiro, cerca de 3 a mais por
@@ -728,6 +785,134 @@ public static class GeradorDeAndar
 
         if (p.ComSecreta)
             PorSecreta(mapa, sorteio);
+
+        Juntar(mapa, p, sorteio);
+    }
+
+    // As formas de sala grande, em casas a partir de um canto: corredor, sala alta, 2x2 e os quatro L.
+    private static readonly (string nome, int peso, (int x, int y)[] casas)[] Formas =
+    {
+        ("Corredor", 5, new[] { (0, 0), (1, 0) }),
+        ("Sala alta", 4, new[] { (0, 0), (0, 1) }),
+        ("Sala grande", 2, new[] { (0, 0), (1, 0), (0, 1), (1, 1) }),
+        ("Sala em L", 2, new[] { (0, 0), (1, 0), (0, 1) }),
+        ("Sala em L", 2, new[] { (0, 0), (1, 0), (1, 1) }),
+        ("Sala em L", 2, new[] { (0, 0), (0, 1), (1, 1) }),
+        ("Sala em L", 2, new[] { (1, 0), (0, 1), (1, 1) }),
+    };
+
+    /// <summary>
+    /// Junta casas comuns vizinhas em salas grandes, como as salas compridas, altas, 2x2 e em L
+    /// do Isaac. So casas comuns (nada de inicio, chefe, item, recompensa...), so formas cujas
+    /// casas ja estao todas ligadas por porta entre si (assim nao abre atalho novo no andar).
+    /// Casa juntada fica sem desenho de obstaculo: o formato ja e a variedade dela.
+    /// </summary>
+    private static void Juntar(MapaDoAndar mapa, ParametrosDoAndar p, Random sorteio)
+    {
+        if (p.ChanceDeSalaGrande <= 0)
+            return;
+
+        List<SalaDoAndar> ordem = new List<SalaDoAndar>(mapa.Salas);
+        Embaralhar(ordem, sorteio);
+        int pesoTotal = 0;
+
+        foreach (var f in Formas)
+            pesoTotal += f.peso;
+
+        foreach (SalaDoAndar semente in ordem)
+        {
+            if (!PodeJuntar(semente) || sorteio.NextDouble() >= p.ChanceDeSalaGrande)
+                continue;
+
+            // Sorteia a ordem das formas pelo peso e fica com a primeira que couber.
+            List<int> tentativas = new List<int>();
+
+            for (int i = 0; i < Formas.Length; i++)
+                for (int k = 0; k < Formas[i].peso; k++)
+                    tentativas.Add(i);
+
+            Embaralhar(tentativas, sorteio);
+            HashSet<int> vistas = new HashSet<int>();
+
+            foreach (int indice in tentativas)
+            {
+                if (!vistas.Add(indice))
+                    continue;
+
+                List<SalaDoAndar> casas = Encaixar(mapa, semente, Formas[indice].casas);
+
+                if (casas == null)
+                    continue;
+
+                FormaDaSala forma = new FormaDaSala { Nome = Formas[indice].nome };
+
+                foreach (SalaDoAndar casa in casas)
+                {
+                    casa.Forma = forma;
+                    casa.Desenho = -1;
+                    forma.Casas.Add(casa);
+                }
+
+                break;
+            }
+        }
+    }
+
+    private static bool PodeJuntar(SalaDoAndar casa) => casa != null && casa.Tipo == TipoDeSala.Normal && casa.Forma == null && !casa.Recompensa;
+
+    /// <summary>
+    /// Tenta por a forma com a <paramref name="semente"/> em cada uma das casas dela. Devolve as
+    /// casas se todas podem juntar e estao ligadas por porta entre si; senao null.
+    /// </summary>
+    private static List<SalaDoAndar> Encaixar(MapaDoAndar mapa, SalaDoAndar semente, (int x, int y)[] forma)
+    {
+        foreach (var ancora in forma)
+        {
+            int ox = semente.X - ancora.x;
+            int oy = semente.Y - ancora.y;
+            List<SalaDoAndar> casas = new List<SalaDoAndar>();
+            bool cabe = true;
+
+            foreach (var c in forma)
+            {
+                SalaDoAndar casa = mapa.Em(ox + c.x, oy + c.y);
+
+                if (!PodeJuntar(casa))
+                {
+                    cabe = false;
+                    break;
+                }
+
+                casas.Add(casa);
+            }
+
+            if (cabe && LigadasPorPorta(mapa, casas))
+                return casas;
+        }
+
+        return null;
+    }
+
+    /// <summary>Da pra ir de qualquer casa a qualquer outra so pelas portas entre elas.</summary>
+    private static bool LigadasPorPorta(MapaDoAndar mapa, List<SalaDoAndar> casas)
+    {
+        HashSet<SalaDoAndar> alcancadas = new HashSet<SalaDoAndar> { casas[0] };
+        Queue<SalaDoAndar> fila = new Queue<SalaDoAndar>(alcancadas);
+
+        while (fila.Count > 0)
+        {
+            SalaDoAndar atual = fila.Dequeue();
+
+            foreach (Direcao d in Direcoes.Todas)
+            {
+                SalaDoAndar outra = atual.TemPortaPara(d) ? mapa.Vizinha(atual, d) : null;
+
+                if (outra != null && casas.Contains(outra) && alcancadas.Add(outra))
+                    fila.Enqueue(outra);
+            }
+        }
+
+        return alcancadas.Count == casas.Count;
     }
 
     /// <summary>

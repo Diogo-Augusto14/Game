@@ -13,9 +13,9 @@ O jogo é um roguelike visto de cima, no estilo do Isaac. A cena do jogo é
 monta tudo por código (andar, salas, jogador, menu, HUD, música).
 
 A câmera (`Andar.EnquadrarCamera`) cabe a largura de uma sala e refaz o zoom sempre que a
-janela muda de tamanho. Presa nela vai uma moldura preta (`Andar.MontarMoldura`) do tamanho de
-uma sala: em tela mais quadrada que 16:9 ela esconde as salas vizinhas (inclusive a secreta) e o
-vazio em volta; os buracos do chão são da própria sala e continuam aparecendo.
+janela muda de tamanho. Cada casa tem uma cortina preta (`Sala.Coberta`) que só sai da sala onde
+o jogador está: em tela mais quadrada que 16:9 as salas vizinhas (inclusive a secreta) não
+aparecem; os buracos do chão são da própria sala e continuam aparecendo.
 
 O Play do editor **sempre começa por essa cena**, mesmo com outra aberta
 (`Editor/CenaDoAndar.cs`, menu `Tools ▸ Jogo ▸ Play sempre pela cena do jogo`, que dá pra
@@ -116,6 +116,15 @@ de inimigos comuns com peso. O `Andar` escolhe o tema antes de montar as salas e
 
 Chefes, salas especiais e desbloqueios não mudam com o tema. A sala de desafio usa a
 lista do tema nas ondas.
+
+**Salas grandes** (`GeradorDeAndar.Juntar`): depois de montar o andar, casas comuns vizinhas e já
+ligadas por porta viram uma sala só, como no Isaac: corredor (2x1), sala alta (1x2), 2x2 e em L
+(`FormaDaSala`, `ParametrosDoAndar.ChanceDeSalaGrande`). Cada casa continua sendo uma `Sala` no
+mundo, com as portas dela pro lado de fora; entre as casas não tem parede nem porta
+(`Juncoes`), e pedaços recortados da própria imagem da sala cobrem as paredes que sumiram
+(`Sala.Costurar`). As casas fecham, acordam e abrem juntas (`Sala.Agrupar`). A câmera acompanha o
+jogador dentro da sala grande sem sair dela (`Andar.AlvoDaCamera`), e cada casa tem uma cortina
+preta (`Sala.Coberta`) que esconde tudo o que não é a sala atual.
 
 Cada sala comum tem um **bando** de um tipo só (`Andar.MontarBando`): o orçamento da sala
 (`inimigosPorSala`, mais os extras da fase) é dividido pelo custo do bicho (`CustoNoBando`), então

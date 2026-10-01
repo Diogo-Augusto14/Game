@@ -3,6 +3,38 @@ using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
+/// Como uma casa de uma sala grande (corredor, 2x2, L) se emenda nas outras casas da mesma
+/// sala. Lado aberto = sem parede nem porta, so chao ate a casa vizinha. Quem preenche e o
+/// <see cref="Andar"/>; sala de uma casa so usa o padrao (tudo fechado).
+/// </summary>
+public struct Juncoes
+{
+    public bool Cima, Baixo, Esquerda, Direita;
+
+    /// <summary>A casa da direita (da mesma sala) tambem e aberta pra cima / pra baixo.</summary>
+    public bool DireitaAbreCima, DireitaAbreBaixo;
+
+    /// <summary>
+    /// As quatro casas em volta deste canto sao da mesma sala (o meio de um 2x2): ali e chao.
+    /// Nos outros cantos de um lado aberto fica um pilar de parede.
+    /// </summary>
+    public bool CantoSupDir, CantoSupEsq, CantoInfDir, CantoInfEsq;
+
+    public bool Aberto(LadoDaPorta lado)
+    {
+        switch (lado)
+        {
+            case LadoDaPorta.Cima: return Cima;
+            case LadoDaPorta.Baixo: return Baixo;
+            case LadoDaPorta.Esquerda: return Esquerda;
+            default: return Direita;
+        }
+    }
+
+    public bool Alguma => Cima || Baixo || Esquerda || Direita;
+}
+
+/// <summary>
 /// Uma sala estilo Isaac: chao, quatro paredes, uma porta no meio de cada parede (ou
 /// parede lisa, se nao tiver vizinho daquele lado) e os inimigos.
 ///
@@ -73,6 +105,9 @@ public class Sala : MonoBehaviour
     private Transform pastaDeInimigos;
     private bool montada;
     private int vivos;
+    private Juncoes juncoes;
+    private Sala[] grupo;
+    private SpriteRenderer cortina;
 
     public bool Ativa { get; private set; }
 
@@ -148,6 +183,79 @@ public class Sala : MonoBehaviour
 
         sala.Montar();
         return sala;
+    }
+
+    /// <summary>
+    /// Como <see cref="Criar(string, Vector2, ICollection{LadoDaPorta}, Transform)"/>, pra uma casa
+    /// de sala grande: os lados abertos de <paramref name="juncoes"/> ficam sem parede e sem porta.
+    /// </summary>
+    public static Sala Criar(string nome, Vector2 centro, ICollection<LadoDaPorta> portasExistentes, Juncoes juncoes,
+                             Transform pai = null)
+    {
+        GameObject obj = new GameObject(nome);
+        obj.transform.SetParent(pai, false);
+        obj.transform.position = centro;
+
+        Sala sala = obj.AddComponent<Sala>();
+        sala.juncoes = juncoes;
+        sala.portaCima = portasExistentes.Contains(LadoDaPorta.Cima);
+        sala.portaBaixo = portasExistentes.Contains(LadoDaPorta.Baixo);
+        sala.portaEsquerda = portasExistentes.Contains(LadoDaPorta.Esquerda);
+        sala.portaDireita = portasExistentes.Contains(LadoDaPorta.Direita);
+        sala.Montar();
+        return sala;
+    }
+
+    /// <summary>
+    /// Liga as casas de uma sala grande: entrar numa acorda todas, as portas de todas fecham
+    /// juntas e so abrem quando o ultimo inimigo da sala inteira morre.
+    /// </summary>
+    public static void Agrupar(IList<Sala> casas)
+    {
+        if (casas == null || casas.Count < 2)
+            return;
+
+        Sala[] todas = new Sala[casas.Count];
+        casas.CopyTo(todas, 0);
+
+        foreach (Sala casa in todas)
+            casa.grupo = todas;
+    }
+
+    /// <summary>As casas da mesma sala grande (so esta, se a sala for de uma casa).</summary>
+    public IEnumerable<Sala> Grupo => grupo ?? new[] { this };
+
+    /// <summary>Inimigos vivos na sala inteira (todas as casas, se for sala grande).</summary>
+    public int VivosNoGrupo
+    {
+        get
+        {
+            if (grupo == null)
+                return vivos;
+
+            int n = 0;
+
+            foreach (Sala casa in grupo)
+                n += casa.vivos;
+
+            return n;
+        }
+    }
+
+    /// <summary>
+    /// Tampa preta do tamanho da casa, por cima de tudo do mundo: a camera mostra so a sala onde
+    /// o jogador esta (as vizinhas, a secreta e o vazio em volta ficam pretos).
+    /// </summary>
+    public bool Coberta
+    {
+        get => cortina != null && cortina.enabled;
+        set
+        {
+            Montar();
+
+            if (cortina != null)
+                cortina.enabled = value;
+        }
     }
 
     /// <summary>Atalho sem nome (o objeto se chama "Sala"). Pensado pro gerador de andar.</summary>
@@ -294,7 +402,8 @@ public class Sala : MonoBehaviour
         // Tochas na parte de baixo da parede de cima, a um quarto da largura de cada lado. A
         // camera corta o alto da parede (cabe a largura da sala): a chama tem de caber abaixo disso.
         // Sala pronta: as arandelas ja estao na parede de cima (x = +-3,25); aqui so acende a luz delas.
-        if (ComFundo)
+        // Casa de sala grande aberta pra cima: a parede (e as arandelas) ali virou chao.
+        if (ComFundo && !juncoes.Cima)
         {
             for (int lado = -1; lado <= 1; lado += 2)
                 HaloCintilante.Criar(cenario, new Vector2(lado * 3.25f, meio.y + 0.15f), 2f, new Color(1f, 0.72f, 0.35f, 0.16f));
@@ -404,14 +513,34 @@ public class Sala : MonoBehaviour
         if (Ativa)
             return;
 
+        // Sala grande: as outras casas ligam junto (portas fecham e bichos acordam em todas).
+        if (grupo != null)
+        {
+            foreach (Sala casa in grupo)
+                casa.AtivarSo();
+
+            return;
+        }
+
+        AtivarSo();
+    }
+
+    private void AtivarSo()
+    {
+        if (Ativa)
+            return;
+
         Montar();
         Ativa = true;
 
-        if (vivos == 0)
+        if (VivosNoGrupo == 0)
         {
             Limpar();
             return;
         }
+
+        // Casa sem bicho de uma sala grande em luta: fecha junto e espera a sala toda.
+        Limpa = false;
 
         foreach (Porta porta in portas.Values)
             porta.Fechar();
@@ -477,9 +606,24 @@ public class Sala : MonoBehaviour
             return;
 
         if (SegurarPortas)
+        {
             AoEsvaziar?.Invoke();
-        else
+            return;
+        }
+
+        // Sala grande: so abre quando a sala inteira esvaziou, e entao abre todas as casas.
+        if (grupo == null)
+        {
             Limpar();
+            return;
+        }
+
+        if (VivosNoGrupo > 0)
+            return;
+
+        foreach (Sala casa in grupo)
+            if (casa.Ativa)
+                casa.Limpar();
     }
 
     private void Limpar()
@@ -526,7 +670,8 @@ public class Sala : MonoBehaviour
 
         if (ComFundo)
         {
-            FormasDaSala.Desenho(cenario, "Chao", fundo, corDoChao, Vector2.zero, Vector2.one, -11);
+            FormasDaSala.Desenho(cenario, "Chao", fundo, corDoChao, Vector2.zero, Vector2.one, -12);
+            Costurar(fundo);
 
             // Veu por cima so do piso (sem as paredes): puxa cada pixel pra cor media do chao e
             // baixa o contraste das manchas de terra e folhinhas. Assim pedra, item e inimigo, que
@@ -542,6 +687,10 @@ public class Sala : MonoBehaviour
         MontarLado(cenario, LadoDaPorta.Baixo, portaBaixo);
         MontarLado(cenario, LadoDaPorta.Esquerda, portaEsquerda);
         MontarLado(cenario, LadoDaPorta.Direita, portaDireita);
+        PorPilares();
+
+        cortina = FormasDaSala.Desenho(transform, "Cortina", Fosso.Pixel(), Color.black, Vector2.zero, TamanhoTotal, 1000);
+        cortina.enabled = false;
 
         // Sensor de entrada: o interior menos uma margem, pra a porta so fechar quando o
         // jogador ja esta inteiro dentro da sala (e nao em cima do batente).
@@ -564,6 +713,10 @@ public class Sala : MonoBehaviour
     /// </summary>
     private void MontarLado(Transform pai, LadoDaPorta lado, bool temPorta)
     {
+        // Lado que da pra outra casa da mesma sala grande: nem parede nem porta.
+        if (juncoes.Aberto(lado))
+            return;
+
         float meiaLarg = tamanhoInterno.x * 0.5f;
         float meiaAlt = tamanhoInterno.y * 0.5f;
         float e = espessuraDaParede;
@@ -594,6 +747,107 @@ public class Sala : MonoBehaviour
         Porta porta = objPorta.AddComponent<Porta>();
         porta.Configurar(this, lado, temPorta, larguraDaPorta, e);
         portas[lado] = porta;
+    }
+
+    /// <summary>
+    /// Sala grande: as paredes de cima e de baixo cobrem os cantos. Tirando uma delas (lado aberto),
+    /// o canto fica sem parede; ali vai um pilar invisivel, menos no meio de um 2x2, que e chao.
+    /// </summary>
+    private void PorPilares()
+    {
+        if (!juncoes.Alguma)
+            return;
+
+        float x = tamanhoInterno.x * 0.5f + espessuraDaParede * 0.5f;
+        float y = tamanhoInterno.y * 0.5f + espessuraDaParede * 0.5f;
+
+        if (juncoes.Cima && !juncoes.CantoSupDir) Pilar(new Vector2(x, y));
+        if (juncoes.Cima && !juncoes.CantoSupEsq) Pilar(new Vector2(-x, y));
+        if (juncoes.Baixo && !juncoes.CantoInfDir) Pilar(new Vector2(x, -y));
+        if (juncoes.Baixo && !juncoes.CantoInfEsq) Pilar(new Vector2(-x, -y));
+    }
+
+    private void Pilar(Vector2 posicaoLocal)
+    {
+        GameObject obj = new GameObject("Pilar");
+        obj.transform.SetParent(cenario, false);
+        obj.transform.localPosition = posicaoLocal;
+        obj.layer = CamadaDeParede;
+        obj.AddComponent<BoxCollider2D>().size = Vector2.one * espessuraDaParede;
+    }
+
+    // Recortes da imagem da sala pronta (480x288 px, 32 por unidade), em pixels a partir do canto
+    // de CIMA a esquerda: o meio do chao, das paredes de cima e de baixo e das paredes dos lados.
+    private static readonly RectInt ChaoDoMeio = new RectInt(192, 48, 96, 208);
+    private static readonly RectInt ChaoDoMeioBaixo = new RectInt(32, 88, 416, 112);
+    private static readonly RectInt ChaoQuadrado = new RectInt(192, 88, 96, 112);
+    private static readonly RectInt ParedeDeCima = new RectInt(192, 0, 96, 48);
+    private static readonly RectInt ParedeDeCimaEstreita = new RectInt(208, 0, 64, 48);
+    private static readonly RectInt ParedeDeBaixo = new RectInt(192, 256, 96, 32);
+    private static readonly RectInt ParedeDeBaixoEstreita = new RectInt(208, 256, 64, 32);
+    private static readonly RectInt ParedeEsquerda = new RectInt(0, 88, 32, 112);
+    private static readonly RectInt ParedeDireita = new RectInt(448, 88, 32, 112);
+
+    /// <summary>
+    /// Sala grande com a imagem pronta do Old Prison: cada casa e uma imagem com as quatro
+    /// paredes desenhadas. Nas emendas com a casa da direita e a de cima, pedacos recortados da
+    /// propria imagem (chao, parede de cima, de baixo e dos lados) cobrem as paredes que sumiram,
+    /// na mesma cor do tema. Cada emenda e desenhada uma vez so (pela casa da esquerda / de baixo).
+    /// </summary>
+    private void Costurar(Sprite fundo)
+    {
+        if (!juncoes.Alguma)
+            return;
+
+        if (juncoes.Direita)
+        {
+            Recorte(fundo, ChaoDoMeio, new Vector2(7.5f, -0.25f));
+
+            // Em cima: parede inteira se as duas casas fecham em cima; um pilar se so uma abre (L);
+            // nada se as duas abrem (o meio do 2x2 e chao, desenhado pela emenda de cima).
+            if (!juncoes.Cima && !juncoes.DireitaAbreCima)
+                Recorte(fundo, ParedeDeCima, new Vector2(7.5f, 3.75f));
+            else if (juncoes.Cima != juncoes.DireitaAbreCima)
+                Recorte(fundo, ParedeDeCimaEstreita, new Vector2(7.5f, 3.75f));
+
+            if (!juncoes.Baixo && !juncoes.DireitaAbreBaixo)
+                Recorte(fundo, ParedeDeBaixo, new Vector2(7.5f, -4f));
+            else if (juncoes.Baixo != juncoes.DireitaAbreBaixo)
+                Recorte(fundo, ParedeDeBaixoEstreita, new Vector2(7.5f, -4f));
+        }
+
+        if (juncoes.Cima)
+        {
+            Recorte(fundo, ChaoDoMeioBaixo, new Vector2(0f, 4f));
+
+            if (!juncoes.CantoSupEsq)
+                Recorte(fundo, ParedeEsquerda, new Vector2(-7f, 4f));
+
+            if (!juncoes.CantoSupDir)
+                Recorte(fundo, ParedeDireita, new Vector2(7f, 4f));
+            else if (juncoes.Direita)
+                Recorte(fundo, ChaoQuadrado, new Vector2(7.5f, 4f));
+        }
+    }
+
+    /// <summary>Um pedaco da imagem da sala (em pixels de cima pra baixo), posto no meio dado, com o veu do piso se for chao.</summary>
+    private void Recorte(Sprite fundo, RectInt pixels, Vector2 meio)
+    {
+        Texture2D textura = fundo.texture;
+        Rect r = new Rect(fundo.rect.x + pixels.x, fundo.rect.y + fundo.rect.height - pixels.y - pixels.height, pixels.width, pixels.height);
+        Sprite pedaco = Sprite.Create(textura, r, new Vector2(0.5f, 0.5f), fundo.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+        pedaco.name = "Emenda";
+        FormasDaSala.Desenho(cenario, "Emenda", pedaco, Color.white, meio, Vector2.one, -11);
+
+        // Chao da emenda ganha o mesmo veu do piso (as paredes nao).
+        bool chao = pixels.y >= 48 && pixels.y + pixels.height <= 256 && pixels.x >= 32 && pixels.x + pixels.width <= 448;
+
+        if (chao && TemaDoAndar.Atual != null)
+        {
+            Color veu = TemaDoAndar.Atual.CorMediaDoPiso * 0.9f;
+            veu.a = ContrasteTiradoDoPiso;
+            FormasDaSala.Desenho(cenario, "VeuDaEmenda", Fosso.Pixel(), veu, meio, new Vector2(pixels.width, pixels.height) / fundo.pixelsPerUnit, -10);
+        }
     }
 
     private void Parede(Transform pai, string nome, Vector2 posicaoLocal, Vector2 tamanho)

@@ -69,6 +69,9 @@ public class Minimapa : MonoBehaviour
     private Image marcaGrande;
     private bool abertoGrande;
 
+    // As outras casas da sala grande atual: piscam junto com a marca principal.
+    private readonly List<Image> marcasExtras = new List<Image>();
+
     private void Awake()
     {
         andar = GetComponent<Andar>();
@@ -115,6 +118,9 @@ public class Minimapa : MonoBehaviour
         float brilho = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 5f);
         Piscar(marcaPequena, brilho);
         Piscar(marcaGrande, brilho);
+
+        foreach (Image extra in marcasExtras)
+            Piscar(extra, brilho);
     }
 
     /// <summary>
@@ -143,6 +149,7 @@ public class Minimapa : MonoBehaviour
         if (mapa == null || tela == null)
             return;
 
+        marcasExtras.Clear();
         marcaPequena = Desenhar(pequeno, mapa, tamanhoDaSala, espaco, false);
         grande.gameObject.SetActive(abertoGrande);
 
@@ -222,6 +229,22 @@ public class Minimapa : MonoBehaviour
         }
 
         Image marca = null;
+        List<Image> outrasMarcas = new List<Image>();
+
+        // A moldura piscando vai em todas as casas da sala atual (sala grande pisca inteira).
+        foreach (SalaDoAndar sala in mapa.Salas)
+        {
+            if (!sala.Descoberta || andar.SalaAtual == null || !sala.MesmaSala(andar.SalaAtual))
+                continue;
+
+            float folga = Mathf.Max(2f, vao * 0.6f);
+            Image m = Quadrado(quadro, "Voce esta aqui", Canto(sala) - Vector2.one * folga, celula + Vector2.one * folga * 2f, corDaMarca);
+
+            if (marca == null)
+                marca = m;
+            else
+                outrasMarcas.Add(m);
+        }
 
         foreach (SalaDoAndar sala in mapa.Salas)
         {
@@ -229,18 +252,32 @@ public class Minimapa : MonoBehaviour
                 continue;
 
             Vector2 canto = Canto(sala);
-            bool aqui = sala == andar.SalaAtual;
-
-            if (aqui)
-            {
-                float folga = Mathf.Max(2f, vao * 0.6f);
-                marca = Quadrado(quadro, "Voce esta aqui", canto - Vector2.one * folga, celula + Vector2.one * folga * 2f, corDaMarca);
-            }
-
+            bool aqui = andar.SalaAtual != null && sala.MesmaSala(andar.SalaAtual);
             Color cor = aqui ? corAtual : sala.Visitada ? corVisitada : corDescoberta;
             Image quadrado = Quadrado(quadro, $"Sala ({sala.X},{sala.Y})", canto, celula, cor);
-            Icone(quadrado.rectTransform, sala.Tipo, celula);
+
+            // Sala grande: o vao entre as casas dela vira sala tambem (corredor, 2x2, L).
+            if (sala.Forma != null)
+            {
+                bool direita = mapa.Juntas(sala, Direcao.Direita);
+                bool cima = mapa.Juntas(sala, Direcao.Cima);
+
+                if (direita)
+                    Quadrado(quadro, "Emenda", canto + new Vector2(celula.x, 0f), new Vector2(vao, celula.y), cor);
+
+                if (cima)
+                    Quadrado(quadro, "Emenda", canto + new Vector2(0f, celula.y), new Vector2(celula.x, vao), cor);
+
+                if (direita && cima && sala.Forma.Contem(mapa.Em(sala.X + 1, sala.Y + 1)))
+                    Quadrado(quadro, "Emenda", canto + celula, Vector2.one * vao, cor);
+            }
+
+            // O icone da sala grande so na primeira casa.
+            if (sala.Forma == null || sala.Forma.Casas[0] == sala)
+                Icone(quadrado.rectTransform, sala.Tipo, celula);
         }
+
+        marcasExtras.AddRange(outrasMarcas);
 
         if (comLegenda)
             Legenda(quadro, mapa);
