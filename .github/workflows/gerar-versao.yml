@@ -48,22 +48,38 @@ jobs:
           GH_TOKEN: ${{ secrets.TOKEN_RELEASES }}
         run: |
           erro=0
-          if ! [[ "$VERSAO" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          versao_ok=false
+          if [[ "$VERSAO" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            versao_ok=true
+          else
             echo "::error::Versão \"$VERSAO\" inválida. Use o formato 1.2.3, sem o v na frente."
             erro=1
           fi
           [ "$TEM_LICENCA" = true ] || { echo "::error::Falta o segredo UNITY_LICENSE (o texto do arquivo Unity_lic.ulf)."; erro=1; }
           [ "$TEM_EMAIL" = true ] || { echo "::error::Falta o segredo UNITY_EMAIL."; erro=1; }
           [ "$TEM_SENHA" = true ] || { echo "::error::Falta o segredo UNITY_PASSWORD."; erro=1; }
-          if [ "$PUBLICAR" = true ] && [ "$erro" = 0 ]; then
-            if [ "$TEM_TOKEN" != true ]; then
-              echo "::error::Para publicar falta o segredo TOKEN_RELEASES."
-              erro=1
-            elif saida=$(gh release view "v$VERSAO" --repo "$REPO_RELEASES" --json tagName 2>&1); then
+
+          # Testa o token sem criar nada: um pedido de release sem tag_name volta 422 (dados inválidos)
+          # quando o token tem permissão de escrita, e 401/403 quando não tem.
+          token_ok=false
+          if [ "$TEM_TOKEN" = true ]; then
+            teste=$(gh api -X POST "repos/$REPO_RELEASES/releases" --input - <<< '{}' 2>&1 || true)
+            if grep -q "HTTP 422" <<< "$teste"; then
+              token_ok=true
+              echo "::notice::TOKEN_RELEASES ok: ele consegue publicar no $REPO_RELEASES."
+            else
+              nivel=warning
+              if [ "$PUBLICAR" = true ]; then nivel=error; erro=1; fi
+              echo "::$nivel::O TOKEN_RELEASES não consegue publicar no $REPO_RELEASES ($(grep -m 1 "HTTP" <<< "$teste" || head -n 1 <<< "$teste")). Confira se ele inclui o repositório ThePrettie-Releases com a permissão Contents: Read and write e se não expirou."
+            fi
+          elif [ "$PUBLICAR" = true ]; then
+            echo "::error::Para publicar falta o segredo TOKEN_RELEASES."
+            erro=1
+          fi
+
+          if [ "$PUBLICAR" = true ] && [ "$token_ok" = true ] && [ "$versao_ok" = true ]; then
+            if gh release view "v$VERSAO" --repo "$REPO_RELEASES" --json tagName > /dev/null 2>&1; then
               echo "::error::A versão v$VERSAO já está publicada no $REPO_RELEASES. Use outro número."
-              erro=1
-            elif ! grep -qi "not found" <<< "$saida"; then
-              echo "::error::Não consegui consultar o $REPO_RELEASES com o TOKEN_RELEASES: $saida"
               erro=1
             fi
           fi
