@@ -31,7 +31,9 @@ public class Hud : MonoBehaviour
     [Tooltip("Mostra a lista de teclas no canto. Desligue quando o jogo tiver menu")]
     [SerializeField] private bool mostrarControles = true;
 
-    [SerializeField, Min(8)] private int tamanhoDaFonte = 20;
+    // 30 e o tamanho dos numeros de moedas, chaves e bombas: a fonte e pixel e assim os
+    // pixels da legenda saem do mesmo tamanho dos deles (com 20 ficavam pequenos e lisos).
+    [SerializeField, Min(8)] private int tamanhoDaFonte = 30;
 
     [Header("Coracoes (top-down)")]
     [Tooltip("Vida em coracoes do Pixel UI pack, como no Isaac, em vez da barra")]
@@ -282,7 +284,12 @@ public class Hud : MonoBehaviour
 
         string[] linhasDoTeclado = teclado.Split('\n');
         string[] linhasDoControle = controle?.Split('\n');
-        float passo = Mathf.Round(tamanhoDaFonte * 1.6f) + 6f;
+
+        // A tecla desenhada ocupa uns 2/3 da caixa dela (o resto e margem transparente): as linhas
+        // podem ficar coladas, e a de baixo desce quase ate a borda, pra legenda maior nao subir
+        // pro chao da sala.
+        float passo = Mathf.Round(tamanhoDaFonte * 1.6f) - 2f;
+        Vector2 canto = new Vector2(margem.x, 6f);
 
         for (int i = 0; i < linhasDoTeclado.Length; i++)
         {
@@ -295,7 +302,7 @@ public class Hud : MonoBehaviour
                 tamanhoDaFonte, new Color(1f, 1f, 1f, 0.85f));
             linha.anchorMin = linha.anchorMax = Vector2.zero;
             linha.pivot = Vector2.zero;
-            linha.anchoredPosition = margem + new Vector2(0f, i * passo);
+            linha.anchoredPosition = canto + new Vector2(0f, i * passo);
         }
     }
 

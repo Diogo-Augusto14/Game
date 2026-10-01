@@ -292,6 +292,23 @@ public static class ArteImportada
         });
     }
 
+    /// <summary>Os 25 ossos e caveiras do Old Prison (null antes do primeiro sorteio ou sem a arte).</summary>
+    private static Sprite[] ossosDaPrisao;
+
+    /// <summary>
+    /// Na folha de ossos do Old Prison, os esqueletos inteiros (sentados e deitados de bracos
+    /// abertos): do tamanho de um bicho, de longe pareciam inimigo parado.
+    /// </summary>
+    private static readonly int[] EsqueletosInteiros = { 8, 17, 18, 19, 20, 21 };
+
+    /// <summary>O enfeite e um osso ou caveira do Old Prison.</summary>
+    public static bool OssoDaPrisao(Sprite enfeite)
+        => enfeite != null && ossosDaPrisao != null && System.Array.IndexOf(ossosDaPrisao, enfeite) >= 0;
+
+    /// <summary>O enfeite e um dos esqueletos inteiros do Old Prison.</summary>
+    public static bool EsqueletoInteiro(Sprite enfeite)
+        => OssoDaPrisao(enfeite) && System.Array.IndexOf(EsqueletosInteiros, System.Array.IndexOf(ossosDaPrisao, enfeite)) >= 0;
+
     /// <summary>Nomes dos enfeites de chao (cogumelos, pedrinhas, moitas, ossos).</summary>
     private static readonly string[] Enfeites = { "01", "02", "03", "04", "05", "06", "07", "10", "14", "15" };
 
@@ -309,6 +326,7 @@ public static class ArteImportada
     {
         // Old Prison: ossos e caveiras clareados pra aparecer no chao escuro.
         Sprite[] prisao = Linha("Masmorra/Temas/PrisaoEnfeites", 32, 0, 25, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
+        ossosDaPrisao = prisao;
 
         if (prisao != null && prisao.Length >= 25 && Random.value < Mathf.Max(chanceDeOsso, 0.5f))
             return prisao[Random.Range(0, 25)];

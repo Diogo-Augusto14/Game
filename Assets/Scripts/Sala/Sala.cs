@@ -95,6 +95,15 @@ public class Sala : MonoBehaviour
 
     public IReadOnlyList<InimigoDeSala> Inimigos => inimigos;
 
+    /// <summary>
+    /// Quanto do contraste do piso da sala pronta sai (0 = arte pura, 1 = chao liso). As manchas de
+    /// terra com folhinhas tinham o mesmo contraste das coisas do jogo e embolavam a leitura.
+    /// </summary>
+    private const float ContrasteTiradoDoPiso = 0.35f;
+
+    /// <summary>O piso da sala pronta, sem as paredes (a de cima, em perspectiva, desce meia unidade).</summary>
+    private static readonly Rect AreaDoPiso = new Rect(-6.5f, -3.5f, 13f, 6.5f);
+
     /// <summary>A sala usa a imagem pronta do Old Prison (paredes e portas desenhadas por cima dela).</summary>
     public bool ComFundo { get; private set; }
 
@@ -275,7 +284,7 @@ public class Sala : MonoBehaviour
 
             // Longe das paredes, pra nao tampar porta.
             Vector2 ponto = PontoLivreAleatorio(1.2f);
-            SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, Color.white,
+            SpriteRenderer sr = FormasDaSala.Desenho(cenario, "Enfeite", sprite, CorDoEnfeite(sprite),
                                                      ponto, Vector2.one, -9);
             sr.flipX = Random.value < 0.5f;
         }
@@ -326,6 +335,18 @@ public class Sala : MonoBehaviour
                 HaloCintilante.Criar(cenario, local + new Vector2(-canto.x * 0.35f, 0.9f), 2f, new Color(1f, 0.75f, 0.35f, 0.26f));
             }
         }
+    }
+
+    /// <summary>
+    /// Ossos sao so enfeite e nao podem disputar atencao com o que mexe: ficam um pouco apagados.
+    /// O esqueleto inteiro, do tamanho de um bicho, fica bem mais (de pe parecia inimigo parado).
+    /// </summary>
+    private static Color CorDoEnfeite(Sprite enfeite)
+    {
+        if (ArteImportada.EsqueletoInteiro(enfeite))
+            return new Color(0.5f, 0.48f, 0.5f);
+
+        return ArteImportada.OssoDaPrisao(enfeite) ? new Color(0.78f, 0.76f, 0.78f) : Color.white;
     }
 
     /// <summary>
@@ -504,7 +525,16 @@ public class Sala : MonoBehaviour
         ComFundo = fundo != null;
 
         if (ComFundo)
-            FormasDaSala.Desenho(cenario, "Chao", fundo, corDoChao, Vector2.zero, Vector2.one, -10);
+        {
+            FormasDaSala.Desenho(cenario, "Chao", fundo, corDoChao, Vector2.zero, Vector2.one, -11);
+
+            // Veu por cima so do piso (sem as paredes): puxa cada pixel pra cor media do chao e
+            // baixa o contraste das manchas de terra e folhinhas. Assim pedra, item e inimigo, que
+            // ficam por cima dele, saltam mais. Um pouco mais escuro que a media, pelo mesmo motivo.
+            Color veu = TemaDoAndar.Atual.CorMediaDoPiso * 0.9f;
+            veu.a = ContrasteTiradoDoPiso;
+            FormasDaSala.Desenho(cenario, "VeuDoChao", Fosso.Pixel(), veu, AreaDoPiso.center, AreaDoPiso.size, -10);
+        }
         else
             FormasDaSala.DesenhoLadrilhado(cenario, "Chao", ArteGerada.Chao(), corDoChao, Vector2.zero, tamanhoInterno, -10);
 

@@ -385,6 +385,9 @@ public static class FabricaDeInimigos
     /// <summary>Pixels da arte importada por unidade: o corpo (uns 20 px) fica com ~0.9 unidade.</summary>
     private const float PixelsDoPersonagem = 22f;
 
+    /// <summary>Cor do contorno de todo inimigo: clara e meio transparente, pra marcar sem brilhar.</summary>
+    private static readonly Color CorDoContorno = new Color(1f, 0.95f, 0.85f, 0.6f);
+
     /// <summary>A pixel art do bicho (ja colorida): o SpriteRenderer fica branco.</summary>
     private static (Sprite, Color) Rosto(TipoDeInimigo tipo, Color cor) => (ArteGerada.Inimigo(tipo, cor), Color.white);
 
@@ -417,9 +420,11 @@ public static class FabricaDeInimigos
 
         // O tamanho do desenho fica certo ANTES de ligar: quem agacha ou estica (saltador,
         // divisor, chefe) guarda a escala do desenho no Awake.
+        SpriteRenderer desenho;
+
         if (clipes != null)
         {
-            SpriteRenderer desenho = FormasDaSala.Desenho(obj.transform, "Desenho", clipes.Parado[0], Color.white, Vector2.zero, Vector2.one, 10);
+            desenho = FormasDaSala.Desenho(obj.transform, "Desenho", clipes.Parado[0], Color.white, Vector2.zero, Vector2.one, 10);
             AnimacaoDePersonagem animacao = obj.AddComponent<AnimacaoDePersonagem>();
             animacao.Configurar(clipes, desenho);
 
@@ -429,12 +434,15 @@ public static class FabricaDeInimigos
         else
         {
             Sprite forma = aparencia.arte != null ? aparencia.arte : ArteGerada.Bola();
-            FormasDaSala.Desenho(obj.transform, "Desenho", forma, aparencia.cor, Vector2.zero, Vector2.one * raio * 2f, 10);
+            desenho = FormasDaSala.Desenho(obj.transform, "Desenho", forma, aparencia.cor, Vector2.zero, Vector2.one * raio * 2f, 10);
         }
 
         T inimigo = obj.AddComponent<T>();
 
         obj.SetActive(true);
+
+        // Borda clara de 1 pixel: bicho escuro (morcego roxo, vampiro) nao some no chao.
+        ContornoClaro.Criar(desenho, CorDoContorno);
         return inimigo;
     }
 }

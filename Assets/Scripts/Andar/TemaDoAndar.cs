@@ -33,6 +33,12 @@ public sealed class TemaDoAndar
     public Color CorDoChao { get; private set; }
     public Color CorDaParede { get; private set; }
 
+    /// <summary>
+    /// Cor media do piso da sala pronta (as 4 versoes). O veu que baixa o contraste do chao
+    /// (<see cref="global::Sala"/>) puxa cada pixel pra ela, sem clarear nem escurecer a sala.
+    /// </summary>
+    public Color CorMediaDoPiso { get; private set; } = new Color(0.22f, 0.21f, 0.23f);
+
     /// <summary>Tom das pedras de obstaculo (a pedra cinza do Tiny Swords tingida pro tema).</summary>
     public Color CorDaPedra { get; private set; } = Color.white;
 
@@ -120,6 +126,7 @@ public sealed class TemaDoAndar
         Nome = "Porão",
         Musica = TemaMusical.Porao,
         Sala = "Porao",
+        CorMediaDoPiso = new Color(0.24f, 0.216f, 0.222f),
         CorDaPedra = new Color(0.85f, 0.65f, 0.5f),
         Chao = "PrisaoChaoPorao",
         Parede = "PrisaoParedePorao",
@@ -144,6 +151,7 @@ public sealed class TemaDoAndar
         Nome = "Catacumbas",
         Musica = TemaMusical.Catacumbas,
         Sala = "Catacumbas",
+        CorMediaDoPiso = new Color(0.194f, 0.222f, 0.282f),
         CorDaPedra = new Color(0.8f, 0.88f, 1f),
         Chao = "PrisaoChaoCatacumbas",
         Parede = "PrisaoParedeCatacumbas",
@@ -169,6 +177,7 @@ public sealed class TemaDoAndar
         Nome = "Cripta",
         Musica = TemaMusical.Cripta,
         Sala = "Cripta",
+        CorMediaDoPiso = new Color(0.186f, 0.239f, 0.255f),
         CorDaPedra = new Color(0.75f, 0.95f, 0.9f),
         Chao = "PrisaoChaoCripta",
         Parede = "PrisaoParedeCripta",
@@ -195,6 +204,7 @@ public sealed class TemaDoAndar
         Nome = "Abismo",
         Musica = TemaMusical.Abismo,
         Sala = "Abismo",
+        CorMediaDoPiso = new Color(0.262f, 0.182f, 0.206f),
         CorDaPedra = new Color(0.85f, 0.9f, 1f),
         CorDosEspinhos = new Color(1f, 1f, 1f),
         Chao = "PrisaoChaoAbismo",

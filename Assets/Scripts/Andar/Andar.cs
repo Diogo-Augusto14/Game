@@ -155,6 +155,7 @@ public class Andar : MonoBehaviour
     private Vida vidaDoJogador;
     private Camera cam;
     private Coroutine transicao;
+    private Vector2Int telaEnquadrada;
     private Vector2 gravidadeAnterior;
     private bool mexeuNaGravidade;
 
@@ -243,6 +244,14 @@ public class Andar : MonoBehaviour
 
         if (mostrarMenu)
             TelaDeInicio.Mostrar(this, nomeDoJogo);
+    }
+
+    private void LateUpdate()
+    {
+        // A janela mudou de tamanho (tela cheia, outra resolucao, maximizar): refaz o zoom. Antes
+        // ele ficava com o tamanho da janela do comeco e mostrava as salas vizinhas.
+        if (cam != null && ajustarCamera && (Screen.width != telaEnquadrada.x || Screen.height != telaEnquadrada.y))
+            EnquadrarCamera();
     }
 
     private void OnDestroy()
@@ -445,15 +454,56 @@ public class Andar : MonoBehaviour
         if (cam == null || !ajustarCamera)
             return;
 
-        // A sala (15x9 com as paredes) e mais estreita que a tela 16:9: cabendo a altura inteira,
-        // sobrava meia unidade preta de cada lado. Agora cabe a LARGURA inteira e a parede de
-        // cima e de baixo corta um pouco, como no Isaac. So nunca deixa de mostrar o chao todo.
         cam.orthographic = true;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = Color.black;
+        EnquadrarCamera();
+        MontarMoldura();
+    }
+
+    /// <summary>
+    /// A sala (15x9 com as paredes) e mais estreita que a tela 16:9: cabendo a altura inteira,
+    /// sobrava meia unidade preta de cada lado. Cabe a LARGURA inteira e a parede de cima e de
+    /// baixo corta um pouco, como no Isaac. So nunca deixa de mostrar o chao todo.
+    /// </summary>
+    private void EnquadrarCamera()
+    {
+        telaEnquadrada = new Vector2Int(Screen.width, Screen.height);
         float cabeLargura = Passo.x * 0.5f / Mathf.Max(cam.aspect, 0.1f);
         float chaoInteiro = Sala.TamanhoPadrao.y * 0.5f + 0.5f;
         cam.orthographicSize = Mathf.Max(cabeLargura, chaoInteiro);
-        cam.clearFlags = CameraClearFlags.SolidColor;
-        cam.backgroundColor = Color.black;
+    }
+
+    /// <summary>
+    /// Faixas pretas presas na camera, em volta de uma janela do tamanho de uma sala. Numa tela
+    /// mais quadrada que 16:9 a camera mostra mais que a sala: sem isto aparecia a sala vizinha
+    /// (ate a secreta, entregando o segredo) e o vazio preto onde nao tem sala. Com a camera
+    /// parada na sala elas ficam exatamente na borda dela; na troca de sala andam junto.
+    /// </summary>
+    private void MontarMoldura()
+    {
+        if (cam.transform.Find("Moldura") != null)
+            return;
+
+        Transform moldura = new GameObject("Moldura").transform;
+        moldura.SetParent(cam.transform, false);
+        moldura.localPosition = new Vector3(0f, 0f, 1f);
+
+        const float longe = 200f;
+        Vector2 janela = Passo;
+        float meiaLarg = janela.x * 0.5f + longe * 0.5f;
+        float meiaAlt = janela.y * 0.5f + longe * 0.5f;
+
+        Faixa(moldura, new Vector2(0f, meiaAlt), new Vector2(janela.x + longe * 2f, longe));
+        Faixa(moldura, new Vector2(0f, -meiaAlt), new Vector2(janela.x + longe * 2f, longe));
+        Faixa(moldura, new Vector2(-meiaLarg, 0f), new Vector2(longe, janela.y));
+        Faixa(moldura, new Vector2(meiaLarg, 0f), new Vector2(longe, janela.y));
+    }
+
+    private static void Faixa(Transform moldura, Vector2 posicao, Vector2 tamanho)
+    {
+        // Por cima de tudo do mundo (a HUD e de outra camada e fica por cima dela).
+        FormasDaSala.Desenho(moldura, "Faixa", Fosso.Pixel(), Color.black, posicao, tamanho, 1000);
     }
 
     private void MoverCamera(Vector2 alvo, float tempo)
@@ -1103,6 +1153,15 @@ public class Andar : MonoBehaviour
 
         if (chao != null && chao.TryGetComponent(out SpriteRenderer sr))
             sr.color = cor;
+
+        // O veu que baixa o contraste do piso leva o mesmo tom, senao apagava parte dele.
+        Transform veu = sala.transform.Find("Cenario/VeuDoChao");
+
+        if (veu != null && veu.TryGetComponent(out SpriteRenderer srVeu))
+        {
+            Color tom = srVeu.color;
+            srVeu.color = new Color(tom.r * cor.r, tom.g * cor.g, tom.b * cor.b, tom.a);
+        }
     }
 
     /// <summary>

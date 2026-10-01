@@ -12,6 +12,11 @@ O jogo é um roguelike visto de cima, no estilo do Isaac. A cena do jogo é
 `Assets/Scenes/Jogo.unity`: uma câmera, a luz 2D e um objeto com o componente `Andar`, que
 monta tudo por código (andar, salas, jogador, menu, HUD, música).
 
+A câmera (`Andar.EnquadrarCamera`) cabe a largura de uma sala e refaz o zoom sempre que a
+janela muda de tamanho. Presa nela vai uma moldura preta (`Andar.MontarMoldura`) do tamanho de
+uma sala: em tela mais quadrada que 16:9 ela esconde as salas vizinhas (inclusive a secreta) e o
+vazio em volta; os buracos do chão são da própria sala e continuam aparecendo.
+
 O Play do editor **sempre começa por essa cena**, mesmo com outra aberta
 (`Editor/CenaDoAndar.cs`, menu `Tools ▸ Jogo ▸ Play sempre pela cena do jogo`, que dá pra
 desmarcar). Na primeira vez, `Tools ▸ Jogo ▸ Preparar projeto` cria as camadas e tags que
@@ -61,9 +66,10 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 
 | Arquivo | Assunto |
 |---|---|
-| `Sala.cs` | Chão, 4 paredes, portas; fecha ao entrar, abre quando morre o último inimigo |
-| `Porta.cs` | Aberta / fechada / não existe (vira parede); avisa `AoAtravessar`. Abrir e fechar são animados (o portão sobe e desce quadro a quadro, com tremor e um pulinho no fim); fechando bloqueia na hora, abrindo só deixa passar quando o portão chegou em cima (`Passavel`). `AbrirNaHora` é a montagem sem animação |
+| `Sala.cs` | Chão, 4 paredes, portas; fecha ao entrar, abre quando morre o último inimigo. Na sala pronta do Old Prison um véu (`VeuDoChao`, `ContrasteTiradoDoPiso`) puxa o piso pra cor média do tema e baixa o contraste das manchas de terra; ossos de enfeite ficam apagados e o esqueleto inteiro mais ainda, pra não parecer inimigo |
+| `Porta.cs` | Aberta / fechada / não existe (vira parede); avisa `AoAtravessar`. Abrir e fechar são animados (o portão sobe e desce quadro a quadro, com tremor e um pulinho no fim); fechando bloqueia na hora, abrindo só deixa passar quando o portão chegou em cima (`Passavel`). `AbrirNaHora` é a montagem sem animação. Na sala do Old Prison as portas dos lados ganham um pouco de luz no vão, um fio claro em cada batente e um brilho fraco no chão (`MontarLuzDoVao`), senão a saída sumia na parede |
 | `InimigoDeSala.cs` | Base: dormir, acordar, dano por encostar, empurrão na direção do golpe |
+| `ContornoClaro.cs` | Borda clara de 1 pixel em volta de todo inimigo (`FabricaDeInimigos` põe), pra bicho escuro não sumir no chão. Sem shader: 4 `SpriteMask` com o quadro do desenho, deslocadas 1 pixel, recortam um retângulo claro logo atrás dele. Some na morte e enquanto o barril está disfarçado (`InimigoDeSala.Disfarcado`) |
 | `InimigoPerseguidor.cs` | Vai atrás do jogador em zigue-zague |
 | `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira |
 | `TiroDaSala.cs` | Projétil dos dois lados (inimigo acerta só o jogador e vice-versa) |

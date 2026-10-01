@@ -45,6 +45,8 @@ public class InimigoBarril : InimigoComArte
     private Cronometro relogio;
     private bool explodiu;
 
+    public override bool Disfarcado => fase == Fase.Escondido;
+
     protected override void Awake()
     {
         base.Awake();

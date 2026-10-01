@@ -367,9 +367,15 @@ public class Porta : MonoBehaviour
         {
             vao = FormasDaSala.Desenho(transform, "Vao", ArteImportada.VaoDaPrisao(lado), Color.white, Vector2.zero, Vector2.one, 1);
             vao.flipX = direita;
+
+            if (!lado.Horizontal() && vao.sprite != null)
+                MontarLuzDoVao();
         }
 
         vao.enabled = !parede && vao.sprite != null;
+
+        if (luzDoVao != null)
+            luzDoVao.SetActive(vao.enabled);
 
         Sprite[] grade = parede ? null : ArteImportada.GradeDaPrisao(lado);
         desenho.enabled = grade != null;
@@ -386,7 +392,35 @@ public class Porta : MonoBehaviour
         desenho.sprite = grade[Mathf.RoundToInt(progresso * (grade.Length - 1))];
         desenho.flipX = direita;
         desenho.color = Color.white;
-        desenho.sortingOrder = 2;
+        desenho.sortingOrder = 3;   // por cima da luz do vao
+    }
+
+    private GameObject luzDoVao;
+
+    /// <summary>
+    /// Porta do lado: o vao do pack e quase preto e a saida sumia na parede. Entra um pouco de
+    /// luz da sala vizinha, um fio claro marca cada batente e um brilho fraco cai no chao na
+    /// frente. Porta secreta nao ganha nada disso enquanto estiver escondida.
+    /// </summary>
+    private void MontarLuzDoVao()
+    {
+        luzDoVao = new GameObject("Luz do vao");
+        luzDoVao.transform.SetParent(transform, false);
+        Transform pai = luzDoVao.transform;
+
+        // Pixels do desenho do vao (32 por unidade): a passagem tem 34 px de altura, entre as
+        // fileiras de tijolo de cima e de baixo.
+        const float pixel = 1f / 32f;
+
+        FormasDaSala.Desenho(pai, "Claridade", Fosso.Pixel(), new Color(0.6f, 0.65f, 0.8f, 0.16f),
+                             Vector2.zero, new Vector2(1f, 34f * pixel), 2);
+
+        for (int s = -1; s <= 1; s += 2)
+            FormasDaSala.Desenho(pai, "Batente claro", Fosso.Pixel(), new Color(0.5f, 0.5f, 0.58f),
+                                 new Vector2(0f, s * 17.5f * pixel), new Vector2(1f, pixel), 2);
+
+        FormasDaSala.Desenho(pai, "Brilho no chao", HaloCintilante.Suave(), new Color(0.75f, 0.8f, 1f, 0.18f),
+                             -lado.Direcao() * 0.9f, new Vector2(1.6f, 2.2f), -7);
     }
 
     /// <summary>O portao e desenhado na parede de cima; nas outras gira pra a frente dar pra sala.</summary>
