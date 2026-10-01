@@ -172,6 +172,9 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         Animar(Time.unscaledTime);
+
+        // Versao nova instalada: as novidades por cima do menu, uma vez.
+        TelaDeNovidades.MostrarSeForNova();
     }
 
     private void MontarRodape()
@@ -183,8 +186,8 @@ public class TelaDeInicio : MonoBehaviour
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(pai, "Controles", -408f,
-            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash | [Esc] pausar || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad RB] dash | [Pad Start] pausar",
+            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash | [Espaco] item | [Esc] pausar || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad RB] dash | [Pad RT] item | [Pad Start] pausar",
             24, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
             "[M] música | [N] efeitos | Bomba abre parede rachada. Moeda compra na loja. || " +
@@ -223,7 +226,7 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         // Com as opcoes por cima, as teclas sao delas (o Esc de la nao pode sair do jogo).
-        menu.Ligado = !TelaDeOpcoes.Ocupada && !TelaDeProgresso.Ocupada && t - abriu >= 0.4f;
+        menu.Ligado = !TelaDeOpcoes.Ocupada && !TelaDeProgresso.Ocupada && !TelaDeNovidades.Ocupada && t - abriu >= 0.4f;
 
         if (menu.Ligado && !TransicaoDeTela.Ocupada)
             LerAtalhos();

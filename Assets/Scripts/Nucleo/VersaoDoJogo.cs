@@ -42,4 +42,25 @@ public static class VersaoDoJogo
             return lida;
         }
     }
+
+    /// <summary>
+    /// O texto das novidades desta versao (o <c>novidades.md</c> que o gerar-versao.ps1 poe ao
+    /// lado do exe), ou null se nao tiver.
+    /// </summary>
+    public static string Novidades
+    {
+        get
+        {
+            try
+            {
+                string pasta = Path.GetDirectoryName(Application.dataPath);
+                string arquivo = pasta != null ? Path.Combine(pasta, "novidades.md") : null;
+                return arquivo != null && File.Exists(arquivo) ? File.ReadAllText(arquivo) : null;
+            }
+            catch (System.Exception)
+            {
+                return null;
+            }
+        }
+    }
 }

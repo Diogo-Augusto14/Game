@@ -46,7 +46,7 @@ public class BootstrapTopDown : MonoBehaviour
 
     // Teclas entre colchetes aparecem desenhadas (TelaSimples.LinhaDeTeclas).
     private const string CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash | [Espaco] item";
 
     private Vector2 gravidadeAnterior;
     private bool mexeuNaGravidade;
