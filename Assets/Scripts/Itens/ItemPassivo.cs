@@ -90,6 +90,13 @@ public class ItemPassivo
     [Tooltip("Vida recuperada ao limpar uma sala (20 = um coracao)")]
     public float curaAoLimparSala;
 
+    [Header("Item ativo (ItemAtivoDoJogador)")]
+    [Tooltip("Item de usar com Espaco/RT. Nenhum = passivo. O jogador carrega um so; pegar outro troca")]
+    public TipoDeAtivo ativo;
+
+    [Tooltip("Salas limpas pra recarregar (o item vem carregado)")]
+    public int cargas = 1;
+
     [Header("Coletaveis de brinde")]
     public int moedas;
     public int chaves;
@@ -101,6 +108,9 @@ public class ItemPassivo
         this.descricao = descricao;
         this.cor = cor;
     }
+
+    /// <summary>Item de usar (fica no espaco do item ativo, nao na lista de passivos).</summary>
+    public bool EAtivo => ativo != TipoDeAtivo.Nenhum;
 
     /// <summary>O efeito completo; item sem <see cref="Descricao"/> usa a frase curta.</summary>
     public string Efeito => string.IsNullOrEmpty(Descricao) ? descricao : Descricao;
@@ -283,6 +293,9 @@ public static class CatalogoDeItens
                     multiplicaDano = 1.6f, somaVidaMaxima = -20f
                 },
         };
+
+        // ---------------- itens ativos (Espaco / RT) ----------------
+        lista.AddRange(CatalogoDeAtivos.Todos());
 
         // Um item pra cada flecha especial, com o nome e o efeito dela (ver CatalogoDeFlechas).
         foreach (DefinicaoDeFlecha f in CatalogoDeFlechas.Especiais())

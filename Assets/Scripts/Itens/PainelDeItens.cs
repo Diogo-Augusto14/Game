@@ -108,6 +108,10 @@ public class PainelDeItens : MonoBehaviour
 
     private void AoPegar(ItemPassivo item)
     {
+        // O ativo fica no espaco proprio da HUD, nao na lista dos passivos.
+        if (item.EAtivo)
+            return;
+
         Acrescentar(item, true);
         Arrumar();
     }

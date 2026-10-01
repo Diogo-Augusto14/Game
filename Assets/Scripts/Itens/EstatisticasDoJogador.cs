@@ -68,11 +68,31 @@ public class EstatisticasDoJogador : MonoBehaviour
             velocidadeBase = movimento.VelocidadeMaxima;
     }
 
-    /// <summary>Da o item ao jogador: numeros, vida maxima e os brindes de uma vez so.</summary>
-    public void Pegar(ItemPassivo item)
+    /// <summary>
+    /// Da o item ao jogador: numeros, vida maxima e os brindes de uma vez so. Item ativo vai
+    /// pro <see cref="ItemAtivoDoJogador"/>; se ja tinha um, o antigo e devolvido (e, com
+    /// <paramref name="largarNoChao"/>, fica num pedestal no chao).
+    /// </summary>
+    public ItemPassivo Pegar(ItemPassivo item, bool largarNoChao = true)
     {
         if (item == null)
-            return;
+            return null;
+
+        if (item.EAtivo)
+        {
+            ItemPassivo antigo = ItemAtivoDoJogador.Em(gameObject).Equipar(item);
+
+            if (antigo != null && largarNoChao)
+            {
+                Sala sala = Andar.Atual != null ? Andar.Atual.NoMundo(Andar.Atual.SalaAtual) : null;
+                Pedestal.Largar(antigo, (Vector2)transform.position + Vector2.down * 1.2f, sala != null ? sala.transform : null);
+                antigo = null;
+            }
+
+            Sons.Tocar(Som.Item);
+            AoPegarItem?.Invoke(item);
+            return antigo;
+        }
 
         GuardarBase();
         itens.Add(item);
@@ -107,6 +127,7 @@ public class EstatisticasDoJogador : MonoBehaviour
         Sons.Tocar(Som.Item);
         Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
         AoPegarItem?.Invoke(item);
+        return null;
     }
 
     /// <summary>Refaz as contas sem item novo (a furia liga e desliga conforme a vida).</summary>

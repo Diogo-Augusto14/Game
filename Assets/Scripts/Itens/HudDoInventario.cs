@@ -44,6 +44,16 @@ public class HudDoInventario : MonoBehaviour
     private readonly RectTransform[] linhas = new RectTransform[3];
     private const float DuracaoDoPulo = 0.25f;
 
+    // Espaco do item ativo, embaixo dos contadores: moldura, icone, barra de carga e a tecla.
+    private const float LadoDoAtivo = 72f;
+    private const float AlturaDaBarra = 72f;
+    private RectTransform espacoDoAtivo;
+    private Image iconeDoAtivo;
+    private Image fundoDaBarra;
+    private Image cargaDoAtivo;
+    private Text teclaDoAtivo;
+    private ItemAtivoDoJogador ativo;
+
     public static HudDoInventario Criar(GameObject jogador)
     {
         HudDoInventario hud = new GameObject("Hud do inventario").AddComponent<HudDoInventario>();
@@ -75,6 +85,8 @@ public class HudDoInventario : MonoBehaviour
         moedas = Contador(0, "Moedas", TipoDeColetavel.Moeda, fonte, new Vector2(x, y));
         chaves = Contador(1, "Chaves", TipoDeColetavel.Chave, fonte, new Vector2(x, y - PassoDaLinha));
         bombas = Contador(2, "Bombas", TipoDeColetavel.Bomba, fonte, new Vector2(x, y - PassoDaLinha * 2f));
+
+        MontarEspacoDoAtivo(fonte, new Vector2(x, y - PassoDaLinha * 3f - 10f));
 
         aviso = CriarTexto("Aviso do item", transform, fonte, tamanhoDaFonte + 14, TextAnchor.MiddleCenter,
             new Vector2(0.5f, 1f), new Vector2(-400f, -180f), new Vector2(800f, 100f));
@@ -112,10 +124,28 @@ public class HudDoInventario : MonoBehaviour
 
         if (estatisticas != null)
             estatisticas.AoPegarItem -= Avisar;
+
+        if (ativo != null)
+            ativo.AoMudar -= AtualizarAtivo;
     }
 
     private void Update()
     {
+        // O componente do ativo so aparece quando o jogador pega o primeiro.
+        if (ativo == null && estatisticas != null && estatisticas.TryGetComponent(out ItemAtivoDoJogador achado))
+        {
+            ativo = achado;
+            ativo.AoMudar += AtualizarAtivo;
+            AtualizarAtivo();
+        }
+
+        // Pronto pra usar: a barra pulsa.
+        if (cargaDoAtivo != null && ativo != null && ativo.Pronto)
+        {
+            float brilho = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 6f);
+            cargaDoAtivo.color = new Color(0.45f * brilho, 1f * brilho, 0.55f * brilho);
+        }
+
         // Pausado, o aviso some (senao ficava por cima do titulo "Pausado"); volta ao despausar.
         if (aviso != null)
         {
@@ -136,6 +166,80 @@ public class HudDoInventario : MonoBehaviour
             float falta = Mathf.Clamp01((fimDoPulo[i] - Time.unscaledTime) / DuracaoDoPulo);
             linhas[i].localScale = Vector3.one * (1f + 0.3f * Mathf.Sin(falta * Mathf.PI));
         }
+    }
+
+    private void MontarEspacoDoAtivo(Font fonte, Vector2 posicao)
+    {
+        GameObject obj = new GameObject("Item ativo", typeof(RectTransform));
+        obj.transform.SetParent(transform, false);
+        espacoDoAtivo = (RectTransform)obj.transform;
+        espacoDoAtivo.anchorMin = espacoDoAtivo.anchorMax = new Vector2(0f, 1f);
+        espacoDoAtivo.pivot = new Vector2(0f, 1f);
+        espacoDoAtivo.anchoredPosition = posicao;
+        espacoDoAtivo.sizeDelta = new Vector2(LadoDoAtivo + 30f, LadoDoAtivo + 30f);
+
+        Image moldura = Quadro("Moldura", espacoDoAtivo, Vector2.zero, new Vector2(LadoDoAtivo, LadoDoAtivo), new Color(0f, 0f, 0f, 0.55f));
+        Outline borda = moldura.gameObject.AddComponent<Outline>();
+        borda.effectColor = new Color(1f, 0.95f, 0.8f, 0.7f);
+        borda.effectDistance = new Vector2(3f, 3f);
+
+        iconeDoAtivo = Quadro("Icone", espacoDoAtivo, new Vector2(8f, -8f), new Vector2(LadoDoAtivo - 16f, LadoDoAtivo - 16f), Color.white);
+        iconeDoAtivo.preserveAspect = true;
+
+        fundoDaBarra = Quadro("Barra", espacoDoAtivo, new Vector2(LadoDoAtivo + 8f, 0f), new Vector2(12f, AlturaDaBarra), new Color(0f, 0f, 0f, 0.6f));
+        cargaDoAtivo = Quadro("Carga", fundoDaBarra.rectTransform, Vector2.zero, new Vector2(12f, 0f), new Color(0.45f, 1f, 0.55f));
+        RectTransform rtCarga = cargaDoAtivo.rectTransform;
+        rtCarga.anchorMin = rtCarga.anchorMax = new Vector2(0f, 0f);
+        rtCarga.pivot = new Vector2(0f, 0f);
+        rtCarga.anchoredPosition = Vector2.zero;
+
+        teclaDoAtivo = CriarTexto("Tecla", espacoDoAtivo, fonte, tamanhoDaFonte, TextAnchor.UpperLeft,
+            new Vector2(0f, 1f), new Vector2(0f, -LadoDoAtivo - 4f), new Vector2(200f, 30f));
+        teclaDoAtivo.text = Controle.EmUso ? "RT" : "Espaço";
+
+        espacoDoAtivo.gameObject.SetActive(false);
+    }
+
+    private static Image Quadro(string nome, RectTransform pai, Vector2 posicao, Vector2 tamanho, Color cor)
+    {
+        GameObject obj = new GameObject(nome, typeof(RectTransform));
+        obj.transform.SetParent(pai, false);
+        RectTransform rt = (RectTransform)obj.transform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot = new Vector2(0f, 1f);
+        rt.anchoredPosition = posicao;
+        rt.sizeDelta = tamanho;
+
+        Image imagem = obj.AddComponent<Image>();
+        imagem.color = cor;
+        imagem.raycastTarget = false;
+        return imagem;
+    }
+
+    private void AtualizarAtivo()
+    {
+        if (espacoDoAtivo == null || ativo == null)
+            return;
+
+        bool tem = ativo.Item != null;
+        espacoDoAtivo.gameObject.SetActive(tem);
+
+        if (!tem)
+            return;
+
+        Sprite icone = ArteImportada.IconeDoItem(ativo.Item.nome);
+        iconeDoAtivo.sprite = icone != null ? icone : ArteGerada.Bola();
+        iconeDoAtivo.color = icone != null ? Color.white : ativo.Item.cor;
+
+        // Descarregado o icone fica apagado; a barra enche uma fatia por sala limpa.
+        float fracao = ativo.CargasMaximas > 0 ? (float)ativo.Cargas / ativo.CargasMaximas : 0f;
+        cargaDoAtivo.rectTransform.sizeDelta = new Vector2(12f, AlturaDaBarra * fracao);
+        cargaDoAtivo.color = ativo.Pronto ? new Color(0.45f, 1f, 0.55f) : new Color(0.95f, 0.8f, 0.3f);
+
+        if (!ativo.Pronto)
+            iconeDoAtivo.color = new Color(iconeDoAtivo.color.r * 0.5f, iconeDoAtivo.color.g * 0.5f, iconeDoAtivo.color.b * 0.5f, 0.8f);
+
+        teclaDoAtivo.text = Controle.EmUso ? "RT" : "Espaço";
     }
 
     private void AtualizarContadores()

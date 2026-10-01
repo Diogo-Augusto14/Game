@@ -149,8 +149,8 @@ public class Andar : MonoBehaviour
     // Teclas entre colchetes aparecem desenhadas na HUD (TelaSimples.LinhaDeTeclas); depois
     // do "||" vem a mesma linha com os botoes do controle.
     private const string CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar\n[E] bomba | [Shift] dash | [Esc] pausa || " +
-        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar\n[Pad LB] bomba | [Pad RB] dash | [Pad Start] pausa";
+        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar\n[E] bomba | [Shift] dash | [Espaco] item | [Esc] pausa || " +
+        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar\n[Pad LB] bomba | [Pad RB] dash | [Pad RT] item | [Pad Start] pausa";
 
     // ---------------- estado ----------------
     private Sala[,] noMundo;
@@ -170,6 +170,9 @@ public class Andar : MonoBehaviour
 
     // Itens que ja apareceram nesta partida: o proximo pedestal sorteia outro.
     private readonly HashSet<ItemPassivo> itensQueJaSairam = new HashSet<ItemPassivo>();
+
+    /// <summary>Itens que ja sairam nesta partida (a Moeda do Destino sorteia outros com isto).</summary>
+    public HashSet<ItemPassivo> ItensQueJaSairam => itensQueJaSairam;
 
     // Salas comuns deste andar sorteadas pra ter bau de ferro trancado.
     private readonly HashSet<SalaDoAndar> comBauTrancado = new HashSet<SalaDoAndar>();

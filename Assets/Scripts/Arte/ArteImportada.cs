@@ -545,6 +545,11 @@ public static class ArteImportada
         if (flecha != null)
             return flecha;
 
+        Sprite ativo = CatalogoDeAtivos.Icone(nome);
+
+        if (ativo != null)
+            return ativo;
+
         // Os nomes ganharam acento ("Café"); os casos abaixo continuam sem.
         switch (FonteDoJogo.SemAcentos(nome))
         {

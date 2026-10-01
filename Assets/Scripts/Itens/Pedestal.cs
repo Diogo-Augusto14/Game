@@ -13,6 +13,7 @@ public class Pedestal : MonoBehaviour
     private ItemPassivo item;
     private Transform desenhoDoItem;
     private float fase;
+    private bool esperandoSair;
 
     public ItemPassivo Item => item;
 
@@ -87,11 +88,46 @@ public class Pedestal : MonoBehaviour
 
         Pedestal p = obj.AddComponent<Pedestal>();
         p.item = item;
+        p.Desenhar();
+        return p;
+    }
 
+    /// <summary>Poe <paramref name="novo"/> no lugar do item (Moeda do Destino, troca de ativo).</summary>
+    public void Trocar(ItemPassivo novo)
+    {
+        if (desenhoDoItem != null)
+            Destroy(desenhoDoItem.gameObject);
+
+        desenhoDoItem = null;
+        item = novo;
+        name = $"Pedestal ({item?.nome})";
+        Desenhar();
+    }
+
+    /// <summary>
+    /// Devolve um item pro pedestal (o ativo que o jogador largou ao pegar outro). So da pra
+    /// pegar de novo depois de sair de cima, senao os dois trocariam sem parar.
+    /// </summary>
+    public void Devolver(ItemPassivo antigo)
+    {
+        Trocar(antigo);
+        esperandoSair = true;
+    }
+
+    /// <summary>Larga um item num pedestal novo no chao (ativo trocado fora de um pedestal: loja, bau).</summary>
+    public static Pedestal Largar(ItemPassivo item, Vector2 posicao, Transform pai)
+    {
+        Pedestal p = Criar(null, posicao, pai);
+        p.Devolver(item);
+        return p;
+    }
+
+    private void Desenhar()
+    {
         if (item != null)
         {
             GameObject desenho = new GameObject("Item");
-            desenho.transform.SetParent(obj.transform, false);
+            desenho.transform.SetParent(transform, false);
             desenho.transform.localPosition = new Vector3(0f, 0.35f, 0f);
             Sprite icone = ArteImportada.IconeDoItem(item.nome);
             desenho.transform.localScale = Vector3.one * (icone != null ? 0.8f : 0.45f);
@@ -101,10 +137,8 @@ public class Pedestal : MonoBehaviour
             sr.color = icone != null ? Color.white : item.cor;
             sr.sortingOrder = 6;
 
-            p.desenhoDoItem = desenho.transform;
+            desenhoDoItem = desenho.transform;
         }
-
-        return p;
     }
 
     private void Update()
@@ -121,9 +155,17 @@ public class Pedestal : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D outro) => TentarDar(outro);
 
+    private void OnTriggerExit2D(Collider2D outro)
+    {
+        GameObject quem = outro.attachedRigidbody != null ? outro.attachedRigidbody.gameObject : outro.gameObject;
+
+        if (quem.CompareTag(tagDoJogador))
+            esperandoSair = false;
+    }
+
     private void TentarDar(Collider2D outro)
     {
-        if (item == null)
+        if (item == null || esperandoSair)
             return;
 
         GameObject quem = outro.attachedRigidbody != null ? outro.attachedRigidbody.gameObject : outro.gameObject;
@@ -142,7 +184,12 @@ public class Pedestal : MonoBehaviour
         if (desenhoDoItem != null)
             Destroy(desenhoDoItem.gameObject);
 
-        estatisticas.Pegar(dado);
+        // Trocou de item ativo: o antigo fica aqui no pedestal.
+        ItemPassivo largado = estatisticas.Pegar(dado, false);
+
+        if (largado != null)
+            Devolver(largado);
+
         AoPegar?.Invoke(this);
     }
 }
