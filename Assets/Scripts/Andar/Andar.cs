@@ -1084,7 +1084,13 @@ public class Andar : MonoBehaviour
         Transform chao = sala.transform.Find("Cenario/Chao");
 
         // Os ladrilhos do pacote ja tem cor: o tom da sala especial entra pela metade.
-        if (ArteGerada.CenarioDoPacote)
+        // Na sala pronta do Old Prison so o matiz entra, de leve, sem escurecer a sala.
+        if (sala.ComFundo)
+        {
+            float maior = Mathf.Max(cor.r, Mathf.Max(cor.g, cor.b), 0.01f);
+            cor = Color.Lerp(Color.white, new Color(cor.r / maior, cor.g / maior, cor.b / maior), 0.25f);
+        }
+        else if (ArteGerada.CenarioDoPacote)
             cor = Color.Lerp(Color.white, cor, 0.5f);
 
         if (chao != null && chao.TryGetComponent(out SpriteRenderer sr))

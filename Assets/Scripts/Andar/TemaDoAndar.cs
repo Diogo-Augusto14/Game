@@ -36,6 +36,9 @@ public sealed class TemaDoAndar
     /// <summary>Tom das pedras de obstaculo (a pedra cinza do Tiny Swords tingida pro tema).</summary>
     public Color CorDaPedra { get; private set; } = Color.white;
 
+    /// <summary>Tom dos espinhos do chao (avermelhados; claros no Abismo, que ja e vermelho).</summary>
+    public Color CorDosEspinhos { get; private set; } = new Color(1f, 0.6f, 0.55f);
+
     /// <summary>Quanto o tom pesa sobre a arte do pacote (0 = arte pura, 1 = so a cor).</summary>
     public float ForcaDaCor { get; private set; } = 0.4f;
 
@@ -185,7 +188,8 @@ public sealed class TemaDoAndar
     {
         Nome = "Abismo",
         Sala = "Abismo",
-        CorDaPedra = new Color(1f, 0.78f, 0.72f),
+        CorDaPedra = new Color(0.85f, 0.9f, 1f),
+        CorDosEspinhos = new Color(1f, 1f, 1f),
         Chao = "PrisaoChaoAbismo",
         Parede = "PrisaoParedeAbismo",
         CorDoChao = Color.white,
