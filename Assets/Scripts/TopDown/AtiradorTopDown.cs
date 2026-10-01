@@ -76,6 +76,12 @@ public class AtiradorTopDown : MonoBehaviour
     private bool sempreAtravessa;
     private Som somDoTiro = Som.Tiro;
 
+    // Heroi de espada, de magia ou de estrela: a flecha especial muda a cor e os efeitos do
+    // tiro dele, mas o desenho continua o dele (cavaleiro nao vira arqueiro).
+    private bool desenhoProprio;
+    private readonly System.Collections.Generic.Dictionary<TipoDeFlecha, AparenciaDoProjetil> rajadas =
+        new System.Collections.Generic.Dictionary<TipoDeFlecha, AparenciaDoProjetil>();
+
     // ---------------- estado ----------------
     private Entrada entrada;
     private MovimentoTopDown movimento;
@@ -211,7 +217,7 @@ public class AtiradorTopDown : MonoBehaviour
                          forcaEmpurrao * flecha.multiplicaEmpurrao);
         lagrima.DefinirEfeitos(atravessa || sempreAtravessa || flecha.atravessa, teleguiada);
 
-        VisualDoProjetil.Vestir(lagrima.gameObject, flecha.aparencia);
+        VisualDoProjetil.Vestir(lagrima.gameObject, desenhoProprio ? RajadaComEfeito(flecha) : flecha.aparencia);
         EfeitoDaFlecha efeito = lagrima.gameObject.AddComponent<EfeitoDaFlecha>();
         efeito.Configurar(flecha, danoDaFlecha, gameObject);
         lagrima.UsarEfeito(efeito);
@@ -234,6 +240,7 @@ public class AtiradorTopDown : MonoBehaviour
         teleguiada = lagrimaTeleguiada;
         paraTras = tambemPraTras;
         cor = novaCor ?? corOriginal;
+        rajadas.Clear();   // a cor da rajada especial parte da cor do tiro
     }
 
     private Lagrima CriarLagrima(Vector2 posicao)
@@ -252,7 +259,7 @@ public class AtiradorTopDown : MonoBehaviour
         // O circulo gerado tem 1 unidade de diametro: raio 0.5 bate com o desenho. A onda de
         // corte e maior que a escala do tiro, entao tem raio proprio (a flecha especial nao).
         CircleCollider2D colisor = obj.AddComponent<CircleCollider2D>();
-        colisor.radius = especial ? 0.5f : raioDoTiro;
+        colisor.radius = especial && !desenhoProprio ? 0.5f : raioDoTiro;
 
         obj.AddComponent<Rigidbody2D>();
 
@@ -267,6 +274,65 @@ public class AtiradorTopDown : MonoBehaviour
             obj.AddComponent<AnimacaoDoTiro>().Configurar(quadrosDoTiro, quadrosPorSegundoDoTiro);
 
         return lagrima;
+    }
+
+    /// <summary>
+    /// O tiro do proprio heroi vestido com a flecha especial: os quadros e o tamanho dele, a cor
+    /// puxada pra da flecha e o rastro, as faiscas, o pulso e o impacto dela.
+    /// </summary>
+    private AparenciaDoProjetil RajadaComEfeito(DefinicaoDeFlecha especial)
+    {
+        if (rajadas.TryGetValue(especial.tipo, out AparenciaDoProjetil pronta))
+            return pronta;
+
+        AparenciaDoProjetil base_ = especial.aparencia;
+        Sprite[] quadros = quadrosDoTiro != null && quadrosDoTiro.Length > 0 ? quadrosDoTiro : new[] { sprite };
+
+        // Mesmo tamanho na tela do tiro normal: o lado maior do sprite, em diametros (a escala da raiz).
+        Vector2 lados = quadros[0] != null ? (Vector2)quadros[0].bounds.size : Vector2.one;
+
+        AparenciaDoProjetil nova = new AparenciaDoProjetil(quadros, Color.Lerp(cor, especial.cor, 0.75f), Mathf.Max(lados.x, lados.y))
+        {
+            quadrosPorSegundo = quadrosPorSegundoDoTiro,
+            apontar = apontarLagrima,
+        };
+
+        if (base_ != null)
+        {
+            nova.pulso = base_.pulso;
+            nova.ritmoDoPulso = base_.ritmoDoPulso;
+            nova.corDoPisca = base_.corDoPisca;
+            nova.ritmoDoPisca = base_.ritmoDoPisca;
+            nova.intervaloDoRastro = base_.intervaloDoRastro > 0f ? base_.intervaloDoRastro : 0.05f;
+            nova.corDoRastro = base_.corDoRastro;
+            nova.duracaoDoRastro = base_.duracaoDoRastro;
+            nova.faiscas = base_.faiscas;
+            nova.intervaloDasFaiscas = base_.intervaloDasFaiscas;
+            nova.tamanhoDasFaiscas = base_.tamanhoDasFaiscas;
+            nova.corDasFaiscas = base_.corDasFaiscas;
+            nova.impacto = base_.impacto;
+            nova.corDoImpacto = base_.corDoImpacto;
+            nova.tamanhoDoImpacto = base_.tamanhoDoImpacto;
+        }
+
+        // Rastro sempre na cor da flecha: e o que mais mostra de longe que o tiro mudou.
+        Color rastro = especial.cor;
+        rastro.a = 0.45f;
+        nova.corDoRastro = rastro;
+
+        rajadas[especial.tipo] = nova;
+        return nova;
+    }
+
+    /// <summary>
+    /// Heroi que nao atira flecha (espada, machado, magia, estrela): as flechas especiais mudam a
+    /// cor e os efeitos do tiro dele em vez de trocar o desenho por uma flecha. Chame depois do
+    /// <see cref="DefinirVisual"/>.
+    /// </summary>
+    public void ManterDesenhoNasFlechasEspeciais(bool manter)
+    {
+        desenhoProprio = manter;
+        rajadas.Clear();
     }
 
     /// <summary>Troca os numeros da arma (itens, power-ups). Valores fora do limite sao ajustados.</summary>
@@ -304,6 +370,8 @@ public class AtiradorTopDown : MonoBehaviour
         raioDoTiro = 0.5f;
         sempreAtravessa = false;
         somDoTiro = Som.Tiro;
+        desenhoProprio = false;
+        rajadas.Clear();
     }
 
     /// <summary>
@@ -321,6 +389,7 @@ public class AtiradorTopDown : MonoBehaviour
         raioDoTiro = Mathf.Max(0.1f, raio);
         sempreAtravessa = true;
         somDoTiro = Som.Corte;
+        rajadas.Clear();
     }
 
     /// <summary>O som de cada tiro (flecha por padrao; magia pro mago e o padre). Chame depois do <see cref="DefinirVisual"/>.</summary>

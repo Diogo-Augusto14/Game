@@ -252,6 +252,12 @@ public static class Herois
                 atirador.DefinirVisual(onda[0], true, heroi.CorDoTiro);
                 atirador.DefinirOndaDeCorte(onda, 12f, RaioDaOnda);
             }
+
+            // Quem nao atira flecha continua com o proprio tiro quando pega uma flecha especial:
+            // muda so a cor e os efeitos.
+            bool atiraFlecha = onda == null && heroi.TipoDoTiro != Tiro.BolaDeFogo
+                               && heroi.TipoDoTiro != Tiro.Estrela && heroi.TipoDoTiro != Tiro.Corte;
+            atirador.ManterDesenhoNasFlechasEspeciais(!atiraFlecha);
         }
 
         GolpeDeEspada golpe = jogador.GetComponent<GolpeDeEspada>();
