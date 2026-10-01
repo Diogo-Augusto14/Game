@@ -23,6 +23,12 @@ public sealed class TemaDoAndar
     /// <summary>Imagem da parede em Resources/Masmorra/Temas, ou null pra parede padrao.</summary>
     public string Parede { get; private set; }
 
+    /// <summary>
+    /// Nome da sala pronta do Old Prison (Masmorra/Temas/PrisaoSala{Sala}{0-3}): chao, paredes em
+    /// perspectiva, sombra e enfeites ja montados numa imagem so. Null usa chao e parede ladrilhados.
+    /// </summary>
+    public string Sala { get; private set; }
+
     /// <summary>Tom do chao e da parede (com arte do pacote, so tinge; ver <see cref="Sala.Pintar"/>).</summary>
     public Color CorDoChao { get; private set; }
     public Color CorDaParede { get; private set; }
@@ -106,6 +112,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Porao = new TemaDoAndar
     {
         Nome = "Porão",
+        Sala = "Porao",
         CorDaPedra = new Color(0.85f, 0.65f, 0.5f),
         Chao = "PrisaoChaoPorao",
         Parede = "PrisaoParedePorao",
@@ -128,6 +135,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Catacumbas = new TemaDoAndar
     {
         Nome = "Catacumbas",
+        Sala = "Catacumbas",
         CorDaPedra = new Color(0.8f, 0.88f, 1f),
         Chao = "PrisaoChaoCatacumbas",
         Parede = "PrisaoParedeCatacumbas",
@@ -151,6 +159,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Cripta = new TemaDoAndar
     {
         Nome = "Cripta",
+        Sala = "Cripta",
         CorDaPedra = new Color(0.75f, 0.95f, 0.9f),
         Chao = "PrisaoChaoCripta",
         Parede = "PrisaoParedeCripta",
@@ -175,6 +184,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Abismo = new TemaDoAndar
     {
         Nome = "Abismo",
+        Sala = "Abismo",
         CorDaPedra = new Color(1f, 0.78f, 0.72f),
         Chao = "PrisaoChaoAbismo",
         Parede = "PrisaoParedeAbismo",

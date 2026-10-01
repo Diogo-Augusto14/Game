@@ -94,6 +94,9 @@ public class Sala : MonoBehaviour
 
     public IReadOnlyList<InimigoDeSala> Inimigos => inimigos;
 
+    /// <summary>A sala usa a imagem pronta do Old Prison (paredes e portas desenhadas por cima dela).</summary>
+    public bool ComFundo { get; private set; }
+
     /// <summary>Primeira camada que vale como parede no projeto (Parede, Wall...).</summary>
     public static int CamadaDeParede
     {
@@ -231,6 +234,10 @@ public class Sala : MonoBehaviour
         // O tema do andar decide quanto osso, runa e candelabro aparece.
         TemaDoAndar tema = TemaDoAndar.Atual;
 
+        // A sala pronta ja traz enfeites encostados nas paredes: no meio vai so metade.
+        if (ComFundo)
+            quantos /= 2;
+
         for (int i = 0; i < quantos; i++)
         {
             Sprite sprite = tema != null && Random.value < tema.ChanceDeRuna ? ArteImportada.Runa : null;
@@ -252,7 +259,14 @@ public class Sala : MonoBehaviour
 
         // Tochas na parte de baixo da parede de cima, a um quarto da largura de cada lado. A
         // camera corta o alto da parede (cabe a largura da sala): a chama tem de caber abaixo disso.
-        Sprite[] tocha = ArteImportada.TochaDeParede(32f);
+        // Sala pronta: as arandelas ja estao na parede de cima (x = +-3,25); aqui so acende a luz delas.
+        if (ComFundo)
+        {
+            for (int lado = -1; lado <= 1; lado += 2)
+                HaloCintilante.Criar(cenario, new Vector2(lado * 3.25f, meio.y + 0.15f), 3.2f, new Color(1f, 0.72f, 0.35f, 0.32f));
+        }
+
+        Sprite[] tocha = ComFundo ? null : ArteImportada.TochaDeParede(32f);
 
         for (int lado = -1; lado <= 1 && tocha != null; lado += 2)
         {
@@ -277,7 +291,7 @@ public class Sala : MonoBehaviour
         }
 
         // Bandeiras do Old Prison penduradas na parede de cima, perto dos cantos.
-        for (int lado = -1; lado <= 1; lado += 2)
+        for (int lado = -1; lado <= 1 && !ComFundo; lado += 2)
         {
             Sprite bandeira = ArteImportada.BandeiraDaPrisao(6);
 
@@ -474,7 +488,15 @@ public class Sala : MonoBehaviour
         cenario = new GameObject("Cenario").transform;
         cenario.SetParent(transform, false);
 
-        FormasDaSala.DesenhoLadrilhado(cenario, "Chao", ArteGerada.Chao(), corDoChao, Vector2.zero, tamanhoInterno, -10);
+        // Com tema do Old Prison a sala inteira (chao, paredes, sombra, enfeites) e uma imagem so;
+        // as paredes continuam la, so sem desenho, pra colisao ficar igual.
+        Sprite fundo = tamanhoInterno == TamanhoPadrao && espessuraDaParede == 1f ? ArteImportada.SalaDaPrisao() : null;
+        ComFundo = fundo != null;
+
+        if (ComFundo)
+            FormasDaSala.Desenho(cenario, "Chao", fundo, corDoChao, Vector2.zero, Vector2.one, -10);
+        else
+            FormasDaSala.DesenhoLadrilhado(cenario, "Chao", ArteGerada.Chao(), corDoChao, Vector2.zero, tamanhoInterno, -10);
 
         MontarLado(cenario, LadoDaPorta.Cima, portaCima);
         MontarLado(cenario, LadoDaPorta.Baixo, portaBaixo);
@@ -538,6 +560,7 @@ public class Sala : MonoBehaviour
     {
         SpriteRenderer sr = FormasDaSala.DesenhoLadrilhado(pai, nome, ArteGerada.Tijolo(), corDaParede, posicaoLocal, tamanho, 0);
         sr.gameObject.layer = CamadaDeParede;
+        sr.enabled = !ComFundo;
 
         BoxCollider2D caixa = sr.gameObject.AddComponent<BoxCollider2D>();
         caixa.size = tamanho;

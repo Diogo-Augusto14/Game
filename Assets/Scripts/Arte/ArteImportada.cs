@@ -352,6 +352,47 @@ public static class ArteImportada
     public static Sprite[] TochaDeParede(float pixelsPorUnidade)
         => Linha("Masmorra/Tocha", 16, 0, 6, new RectInt(0, 0, 16, 28), new Vector2(8f, 20f), pixelsPorUnidade, 28);
 
+    /// <summary>
+    /// A sala inteira do Old Prison para o tema atual (15x9 unidades: chao, paredes, sombra e
+    /// enfeites), uma das 4 versoes sorteada; null sem tema com sala pronta ou sem a arte.
+    /// </summary>
+    public static Sprite SalaDaPrisao()
+    {
+        string nome = TemaDoAndar.Atual?.Sala;
+        return string.IsNullOrEmpty(nome) ? null : Inteira($"Masmorra/Temas/PrisaoSala{nome}{Random.Range(0, 4)}", PixelsDaPrisao);
+    }
+
+    /// <summary>
+    /// O vao da porta desenhado por cima da sala pronta: passagem escura com batentes na parede de
+    /// cima, chao saindo da sala nas outras. O pivo fica no meio da faixa da parede.
+    /// </summary>
+    public static Sprite VaoDaPrisao(LadoDaPorta lado)
+    {
+        switch (lado)
+        {
+            case LadoDaPorta.Cima:
+                return Unico("Masmorra/Temas/PrisaoVaoCima", 48, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
+            case LadoDaPorta.Baixo:
+                return Unico("Masmorra/Temas/PrisaoVaoBaixo", 48, new RectInt(0, 0, 48, 32), new Vector2(24f, 16f), PixelsDaPrisao, 32);
+            default:
+                return Unico("Masmorra/Temas/PrisaoVaoLado", 32, new RectInt(0, 0, 32, 48), new Vector2(16f, 24f), PixelsDaPrisao, 48);
+        }
+    }
+
+    /// <summary>A grade de ferro da porta (5 quadros: 0 fechada, 4 aberta), mesmo pivo do vao.</summary>
+    public static Sprite[] GradeDaPrisao(LadoDaPorta lado)
+    {
+        switch (lado)
+        {
+            case LadoDaPorta.Cima:
+                return Linha("Masmorra/Temas/PrisaoGradeCima", 48, 0, 5, new RectInt(0, 0, 48, 48), new Vector2(24f, 16f), PixelsDaPrisao, 48);
+            case LadoDaPorta.Baixo:
+                return Linha("Masmorra/Temas/PrisaoGradeBaixo", 48, 0, 5, new RectInt(0, 0, 48, 32), new Vector2(24f, 16f), PixelsDaPrisao, 32);
+            default:
+                return Linha("Masmorra/Temas/PrisaoGradeLado", 32, 0, 5, new RectInt(0, 0, 32, 48), new Vector2(16f, 24f), PixelsDaPrisao, 48);
+        }
+    }
+
     /// <summary>Bandeira de parede do Old Prison (7 modelos), ou null sem a arte.</summary>
     public static Sprite BandeiraDaPrisao(int modelo)
     {
