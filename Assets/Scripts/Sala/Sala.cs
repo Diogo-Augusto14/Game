@@ -67,6 +67,7 @@ public class Sala : MonoBehaviour
     private readonly Dictionary<LadoDaPorta, Porta> portas = new Dictionary<LadoDaPorta, Porta>();
     private readonly List<InimigoDeSala> inimigos = new List<InimigoDeSala>();
     private readonly HashSet<Vector2Int> celulasOcupadas = new HashSet<Vector2Int>();
+    private readonly Dictionary<Vector2Int, Transform> fossos = new Dictionary<Vector2Int, Transform>();
 
     private Transform cenario;
     private Transform pastaDeInimigos;
@@ -213,10 +214,34 @@ public class Sala : MonoBehaviour
 
         Vector2 posicao = celula;
 
-        if (tipo == TipoDeObstaculo.Pedra)
-            Pedra.Criar(cenario, posicao, TemaDoAndar.Atual != null ? TemaDoAndar.Atual.CorDaPedra : Color.white);
-        else
-            Espinhos.Criar(cenario, posicao);
+        switch (tipo)
+        {
+            case TipoDeObstaculo.Pedra:
+                Pedra.Criar(cenario, posicao, TemaDoAndar.Atual != null ? TemaDoAndar.Atual.CorDaPedra : Color.white);
+                break;
+            case TipoDeObstaculo.Muro:
+                Muro.Criar(cenario, posicao);
+                break;
+            case TipoDeObstaculo.Fosso:
+                fossos[celula] = Fosso.Criar(cenario, posicao).transform;
+                break;
+            default:
+                Espinhos.Criar(cenario, posicao);
+                break;
+        }
+    }
+
+    /// <summary>Chamar depois de por todos os obstaculos: desenha a borda dos buracos so onde dao pro chao.</summary>
+    public void AcabarObstaculos()
+    {
+        Color borda = new Color(0.16f, 0.12f, 0.14f);
+
+        foreach (KeyValuePair<Vector2Int, Transform> par in fossos)
+        {
+            Vector2Int c = par.Key;
+            Fosso.DesenharBorda(par.Value, !fossos.ContainsKey(c + Vector2Int.up), !fossos.ContainsKey(c + Vector2Int.down),
+                                !fossos.ContainsKey(c + Vector2Int.left), !fossos.ContainsKey(c + Vector2Int.right), borda);
+        }
     }
 
     /// <summary>
