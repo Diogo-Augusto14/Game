@@ -54,6 +54,15 @@ removido do projeto.
 | `UI/Hud.cs` | Corações (numa área de altura fixa: vida a mais encolhe os corações em vez de empurrar o resto) e a lista de controles |
 | `Itens/HudDoInventario.cs` | Moedas, chaves e bombas em coluna embaixo da vida, e o aviso do item pego |
 | `Itens/PainelDeItens.cs` | Itens pegos na lateral direita; mouse ou `I`/Select mostra o nome e o efeito (`ItemPassivo.Descricao`) |
+| `Itens/ItemAtivoDoJogador.cs` | Item ativo (um por vez): Espaço/RT usa, cada sala limpa recarrega uma carga; pegar outro deixa o antigo no pedestal. Os seis ativos estão em `CatalogoDeAtivos` |
+| `Itens/Sinergias.cs` | Duplas de itens que dão um bônus a mais (um `ItemPassivo` invisível somado pelo `EstatisticasDoJogador`). A descrição de cada item lista com quem combina |
+| `combate/Impacto.cs` | Peso dos golpes: tremor de câmera, congelamento curto (hitstop) e números de dano. Tremor e números desligam nas Configurações |
+| `Chefe/ViradaDeFase.cs` | O momento em que um chefe muda de fase: rugido, tremor, congelamento, os tiros no ar somem e uma frase aparece |
+| `Progresso/Registro.cs` | Estatísticas de todas as partidas, bestiário (visto, derrotados, quem mais matou) |
+| `Progresso/Conquistas.cs` | As conquistas; algumas liberam itens no sorteio (`ItemLiberado`). Aviso no canto (`AvisoDeConquista`) |
+| `Progresso/TelaDeProgresso.cs` | Menu inicial ▸ Progresso (P / Y): abas Estatísticas, Conquistas e Bestiário (`Bestiario.cs` tem nome e descrição de cada inimigo) |
+| `Progresso/Salvamento.cs` | Partida salva no começo de cada fase (herói, fase, semente, vida, itens, ativo, moedas...). Pausa ▸ Salvar e sair; menu ▸ Continuar |
+| `UI/TelaDeNovidades.cs` | Na primeira abertura de uma versão nova, mostra o `novidades.md` que o `gerar-versao.ps1` põe ao lado do exe (vem de `Lancador/notas/<versão>.md`) |
 
 ---
 
@@ -99,6 +108,12 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `InimigoDuelista.cs` | Demônio das lâminas: avança em 3 arrancadas seguidas e descansa |
 | `InimigoTridente.cs` | Demônio do tridente: a meia distância treme e arremessa o tridente reto |
 | `InimigoEspadao.cs` | Esqueleto do espadão: o golpe solta uma onda de corte que atravessa a sala, de perto ou de longe |
+| `Chefe/ChefeLobisomem.cs` | Lobisomem Alfa: botes em sequência, garras em leque, cerco em volta do jogador e uivo que chama cães |
+| `Chefe/ChefeOrc.cs` | Senhor da Guerra: machadada com onda de choque, machados que vão e voltam (`MachadoBumerangue`), investida soltando pedras e grito que chama orcs |
+| `Andar/SalaEscura.cs` | Variação de sala comum: só se vê em volta do herói até limpar |
+| `Andar/SalaDeEmboscada.cs` | Variação de sala comum: vazia até entrar; depois, ondas que nascem de marcas no chão |
+| `Andar/LaminaGiratoria.cs` | Serra que anda num trilho (a partir da fase 2) e corta o herói |
+| `Andar/AltarDeSangue.cs` | Variação da sala amaldiçoada: um coração por prêmio, cada vez melhor, sem nunca matar |
 | `FabricaDeInimigos.cs` | Receita de cada inimigo, montada por código |
 | `JogadorDeTeste.cs` | Boneco **provisório**; só nasce se a cena não tiver objeto com tag `Player` |
 | `DemoDaSala.cs` | Cena de teste: uma sala, e troca por outra ao sair pela porta |

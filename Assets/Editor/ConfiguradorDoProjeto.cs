@@ -48,11 +48,15 @@ public static class ConfiguradorDoProjeto
     [MenuItem("Tools/Jogo/Apagar progresso salvo (herois liberados)", false, 20)]
     private static void ApagarProgresso()
     {
-        if (!EditorUtility.DisplayDialog("Apagar progresso", "Bloquear de novo todos os herois (menos o Arqueiro Azul) e zerar as vitorias?", "Apagar", "Cancelar"))
+        if (!EditorUtility.DisplayDialog("Apagar progresso",
+                "Bloquear de novo todos os herois (menos o Arqueiro Azul), zerar vitorias, estatisticas, bestiario e conquistas, e apagar a partida salva?",
+                "Apagar", "Cancelar"))
             return;
 
         Progresso.Apagar();
-        Debug.Log("[Progresso] apagado: so o Arqueiro Azul esta liberado.");
+        Registro.Apagar();
+        Salvamento.Apagar();
+        Debug.Log("[Progresso] apagado: so o Arqueiro Azul esta liberado, sem conquistas nem partida salva.");
     }
 
     private static int ApelidoExiste(string camada)
