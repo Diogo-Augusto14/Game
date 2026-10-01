@@ -437,8 +437,8 @@ public static class ArteImportada
     public static Sprite IdoloMaldito => Objeto(2, 1);
 
     /// <summary>
-    /// O desenho de cada item passivo, pelo nome: frascos, gemas, livro, pergaminho, taca.
-    /// Nome desconhecido sorteia um fixo (o mesmo nome sempre da o mesmo desenho).
+    /// O desenho de cada item passivo, pelo nome, com os icones do Raven Fantasy Icons.
+    /// Nome desconhecido usa uma gema.
     /// </summary>
     public static Sprite IconeDoItem(string nome)
     {
@@ -451,44 +451,45 @@ public static class ArteImportada
         // Os nomes ganharam acento ("Café"); os casos abaixo continuam sem.
         switch (FonteDoJogo.SemAcentos(nome))
         {
-            case "Cebola Triste": return Objeto(9, 2);
-            case "Seringa Vermelha": return Objeto(9, 3);
-            case "Tenis Velho": return Objeto(6, 1);
-            case "Olho Triplo": return Objeto(5, 1);
-            case "Olho Gemeo": return Objeto(3, 1);
-            case "Luneta": return Objeto(11, 3);
-            case "Coracao Extra": return Objeto(10, 2);
-            case "Lagrima de Chumbo": return Objeto(4, 1);
-            case "Cafe": return Objeto(10, 4);
-            case "Saco de Moedas": return Objeto(4, 3);
-            case "Lagrima Fantasma": return Objeto(11, 4);
-            case "Bussola Maldita": return Objeto(11, 2);
-            case "Olho na Nuca": return Objeto(10, 3);
-            case "Pimenta": return Objeto(10, 1);
-            case "Pena da Fenix": return IconeDaInterface(80, 260, 80, 40, 64f);
-            case "Escudo Sagrado": return ObjetoV2(4, 0);
-            case "Sangue de Vampiro": return ObjetoV2(9, 1);
-            case "Prego Enferrujado": return Objeto(0, 3);
-            case "Pedra-Ima": return Objeto(8, 1);
-            case "Amuleto da Sorte": return IconeDaInterface(134, 216, 36, 32, 38f);
-            case "Bolsa do Mercador": return SacoDeOuro;
-            case "Brasa da Furia": return IconeDaInterface(86, 216, 36, 32, 38f);
-            case "Elixir de Nevoa": return ObjetoV2(7, 2);
-            case "Orbe Guardiao": return IconeDaInterface(182, 216, 36, 32, 38f);
-            case "Barril de Polvora": return Objeto(4, 4);
-            case "Carne Assada": return CarneAssada;
-            case "Pacto de Sangue": return ObjetoV2(7, 0);
+            case "Cebola Triste": return IconeDoPacote(440);
+            case "Seringa Vermelha": return IconeDoPacote(266);
+            case "Tenis Velho": return IconeDoPacote(1938);
+            case "Olho Triplo": return IconeDoPacote(719);
+            case "Olho Gemeo": return IconeDoPacote(691);
+            case "Luneta": return IconeDoPacote(159);
+            case "Coracao Extra": return IconeDoPacote(659);
+            case "Lagrima de Chumbo": return IconeDoPacote(654);
+            case "Cafe": return IconeDoPacote(529);
+            case "Saco de Moedas": return IconeDoPacote(160);
+            case "Lagrima Fantasma": return IconeDoPacote(653);
+            case "Bussola Maldita": return IconeDoPacote(2184);
+            case "Olho na Nuca": return IconeDoPacote(696);
+            case "Pimenta": return IconeDoPacote(438);
+            case "Pena da Fenix": return IconeDoPacote(7);
+            case "Escudo Sagrado": return IconeDoPacote(665);
+            case "Sangue de Vampiro": return IconeDoPacote(742);
+            case "Prego Enferrujado": return IconeDoPacote(1444);
+            case "Pedra-Ima": return IconeDoPacote(117);
+            case "Amuleto da Sorte": return IconeDoPacote(668);
+            case "Bolsa do Mercador": return IconeDoPacote(158);
+            case "Brasa da Furia": return IconeDoPacote(993);
+            case "Elixir de Nevoa": return IconeDoPacote(123);
+            case "Orbe Guardiao": return IconeDoPacote(335);
+            case "Barril de Polvora": return IconeDoPacote(340);
+            case "Carne Assada": return IconeDoPacote(486);
+            case "Pacto de Sangue": return IconeDoPacote(289);
         }
 
-        (int, int)[] reserva = { (7, 1), (8, 1), (8, 2), (1, 3), (1, 4) };
-        int h = 0;
-
-        foreach (char c in nome ?? "")
-            h = h * 31 + c;
-
-        (int coluna, int linha) = reserva[Mathf.Abs(h) % reserva.Length];
-        return Objeto(coluna, linha);
+        // Item sem desenho proprio: uma gema, sempre a mesma.
+        return IconeDoPacote(2129);
     }
+
+    /// <summary>
+    /// Um icone 32x32 do pack Raven Fantasy Icons (Resources/Icones/fbN, N = numero na folha
+    /// completa), ~1 unidade de lado.
+    /// </summary>
+    public static Sprite IconeDoPacote(int numero)
+        => Inteira($"Icones/fb{numero}", 32f);
 
     /// <summary>
     /// Uma celula de 16x16 da folha <c>Masmorra/ObjetosV2</c> (as tres ultimas linhas do
