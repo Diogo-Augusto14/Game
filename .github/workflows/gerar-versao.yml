@@ -127,7 +127,7 @@ jobs:
           retention-days: 1
 
   zip:
-    name: Zip com o lançador${{ inputs.publicar && ' e publicação' || '' }}
+    name: Zip com o lançador e publicação
     needs: build
     runs-on: windows-latest
     timeout-minutes: 30
