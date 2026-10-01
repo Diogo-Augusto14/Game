@@ -11,28 +11,32 @@ using UnityEngine;
 ///   Recuperando -> termina o giro parado; da tempo de revidar
 ///
 /// O golpe sai na direcao em que o jogador ESTAVA quando ele ergueu a arma.
+///
+/// E tambem a base dos lutadores com jeito proprio (lobisomem, lanceiro, escudeiro, urso...):
+/// eles trocam so o <see cref="Mover"/> (como chegam no jogador) e, se quiserem, o
+/// <see cref="AoGolpear"/> (o que acontece junto com o golpe).
 /// </summary>
 public class InimigoDeGolpe : InimigoComArte
 {
     [Header("Golpe")]
-    [SerializeField, Min(0f)] private float alcanceParaGolpear = 1.2f;
+    [SerializeField, Min(0f)] protected float alcanceParaGolpear = 1.2f;
 
     [Tooltip("Telegrafo: segundos erguendo a arma")]
-    [SerializeField, Min(0f)] private float tempoDePreparo = 0.35f;
+    [SerializeField, Min(0f)] protected float tempoDePreparo = 0.35f;
 
     [SerializeField, Min(0f)] private float tempoDeRecuperacao = 0.4f;
 
-    [SerializeField, Min(0.1f)] private float intervaloEntreGolpes = 1.1f;
+    [SerializeField, Min(0.1f)] protected float intervaloEntreGolpes = 1.1f;
 
-    [SerializeField, Min(0f)] private float danoDoGolpe = 15f;
+    [SerializeField, Min(0f)] protected float danoDoGolpe = 15f;
 
     [Tooltip("Raio da area do golpe, centrada a frente dele")]
-    [SerializeField, Min(0.1f)] private float raioDoGolpe = 0.6f;
+    [SerializeField, Min(0.1f)] protected float raioDoGolpe = 0.6f;
 
     [Tooltip("Quadro da animacao de ataque em que o golpe acerta")]
     [SerializeField, Min(0)] private int quadroDoGolpe = 3;
 
-    private Cronometro recarga;
+    protected Cronometro recarga;
     private Cronometro preparo;
     private Cronometro recuperacao;
     private Vector2 direcaoDoGolpe = Vector2.right;
@@ -68,18 +72,38 @@ public class InimigoDeGolpe : InimigoComArte
 
         if (!recarga.Ativo && distancia <= alcanceParaGolpear && VeOJogador())
         {
-            direcaoDoGolpe = alvo / distancia;
-            EstadoAtual = Estado.Preparando;
-            recarga.Forcar(intervaloEntreGolpes);   // levar tiro no meio nao faz ele atacar de novo na hora
-            preparo.Forcar(tempoDePreparo);
-            Frear();
-
-            animacao?.OlharPara(direcaoDoGolpe);
-            TocarAtaque(QuadrosDoGolpe(direcaoDoGolpe), quadroDoGolpe, tempoDePreparo);
+            ComecarGolpe(alvo / distancia);
             return;
         }
 
+        Mover(alvo, distancia, dt);
+    }
+
+    /// <summary>
+    /// Como ele chega no jogador. O padrao e correr atras contornando obstaculo; os lutadores com
+    /// jeito proprio trocam isto (o golpe, quando chegam perto, continua vindo da base).
+    /// </summary>
+    protected virtual void Mover(Vector2 alvo, float distancia, float dt)
+    {
         Andar(PeloCaminho(alvo / distancia), VeOJogador() ? velocidade : velocidade * 0.6f);
+    }
+
+    /// <summary>Ergue a arma pra golpear na <paramref name="direcao"/> (o telegrafo; o golpe sai no fim).</summary>
+    protected void ComecarGolpe(Vector2 direcao)
+    {
+        direcaoDoGolpe = direcao.normalized;
+        EstadoAtual = Estado.Preparando;
+        recarga.Forcar(intervaloEntreGolpes);   // levar tiro no meio nao faz ele atacar de novo na hora
+        preparo.Forcar(tempoDePreparo);
+        Frear();
+
+        animacao?.OlharPara(direcaoDoGolpe);
+        TocarAtaque(QuadrosDoGolpe(direcaoDoGolpe), quadroDoGolpe, tempoDePreparo);
+    }
+
+    /// <summary>Junto com o golpe (o espadao solta uma onda, por exemplo). <paramref name="direcao"/> e a do golpe.</summary>
+    protected virtual void AoGolpear(Vector2 direcao)
+    {
     }
 
     /// <summary>Golpe pra cima ou pra baixo quando o jogador esta mais na vertical.</summary>
@@ -127,6 +151,7 @@ public class InimigoDeGolpe : InimigoComArte
     private void Golpear()
     {
         Sons.Tocar(Som.Pancada, 0.55f);
+        AoGolpear(direcaoDoGolpe);
 
         Vector2 centro = rb.position + direcaoDoGolpe * (Raio + raioDoGolpe * 0.6f);
 

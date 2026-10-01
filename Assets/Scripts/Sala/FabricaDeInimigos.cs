@@ -176,9 +176,9 @@ public static class FabricaDeInimigos
                 return olho;
             }
 
-            // Os inimigos antigos ganharam bicho do Tiny RPG; o comportamento e o mesmo.
+            // Os inimigos antigos ganharam bicho do Tiny RPG (o bruxo agora some e reaparece).
             case TipoDeInimigo.Atirador:
-                return Antigo<InimigoAtirador>("Atirador", tipo, posicao, pai, 0.32f, new Color(0.62f, 0.35f, 0.85f), 30f, "Bruxo", 28f);
+                return Antigo<InimigoBruxo>("Atirador", tipo, posicao, pai, 0.32f, new Color(0.62f, 0.35f, 0.85f), 30f, "Bruxo", 28f);
 
             case TipoDeInimigo.Investidor:
                 return Antigo<InimigoInvestidor>("Investidor", tipo, posicao, pai, 0.33f, new Color(0.95f, 0.55f, 0.15f), 35f, "Minotauro", 28f);
@@ -250,41 +250,43 @@ public static class FabricaDeInimigos
                 return ComArte<InimigoVampiro>("Vampiro", posicao, pai, 0.3f, 40f,
                     ArteImportada.Masmorra("Vampiro", new Vector2(13f, 21f), PixelsDaMasmorra), new Color(0.4f, 0.4f, 0.55f));
 
-            // O resto do Tiny RPG, reaproveitando comportamentos que ja existem.
+            // O resto do Tiny RPG: cada especie com o seu jeito de lutar.
             case TipoDeInimigo.Morcego:
             {
-                InimigoPerseguidor morcego = Antigo<InimigoPerseguidor>("Morcego", TipoDeInimigo.Perseguidor, posicao, pai, 0.26f,
+                InimigoMorcego morcego = Antigo<InimigoMorcego>("Morcego", TipoDeInimigo.Perseguidor, posicao, pai, 0.26f,
                     new Color(0.7f, 0.2f, 0.3f), 15f, "Morcego", 30f);
-                morcego.DefinirVelocidade(3.2f);
+                morcego.UsarVoo(InimigoMorcego.Voo.Mergulho);
                 return morcego;
             }
 
             case TipoDeInimigo.CavaleiroLanca:
-                return Golpe("Cavaleiro da lanca", posicao, pai, 0.3f, 45f, "CavaleiroLanca", 30f, 1.5f, 12, 0.7f, 20f);
+                return Golpe<InimigoLanceiro>("Cavaleiro da lanca", posicao, pai, 0.3f, 45f, "CavaleiroLanca", 30f, 1.5f, 12, 0.7f, 20f);
 
             case TipoDeInimigo.CavaleiroEscudo:
-                return Golpe("Cavaleiro do escudo", posicao, pai, 0.32f, 70f, "CavaleiroEscudo", 28f, 1.3f, 5, 0.45f, 15f);
+                return Golpe<InimigoEscudeiro>("Cavaleiro do escudo", posicao, pai, 0.32f, 70f, "CavaleiroEscudo", 28f, 1.3f, 5, 0.45f, 15f);
 
             case TipoDeInimigo.DemonioTridente:
-                return Golpe("Demonio do tridente", posicao, pai, 0.32f, 40f, "DemonioTridente", 30f, 2.1f, 4, 0.4f, 15f);
+                return Golpe<InimigoTridente>("Demonio do tridente", posicao, pai, 0.32f, 40f, "DemonioTridente", 30f, 2.1f, 4, 0.4f, 15f);
 
             case TipoDeInimigo.DemonioLaminas:
-                return Golpe("Demonio das laminas", posicao, pai, 0.34f, 45f, "DemonioLaminas", 32f, 2.5f, 6, 0.4f, 12f);
+                return Golpe<InimigoDuelista>("Demonio das laminas", posicao, pai, 0.34f, 45f, "DemonioLaminas", 32f, 2.5f, 6, 0.4f, 12f);
 
             case TipoDeInimigo.DemonioArqueiro:
-                return ComArte<InimigoArqueiro>("Demonio arqueiro", posicao, pai, 0.3f, 30f,
+            {
+                InimigoArqueiro arqueiro = ComArte<InimigoArqueiro>("Demonio arqueiro", posicao, pai, 0.3f, 30f,
                     Tiny("DemonioArqueiro", PixelsDoPersonagem), new Color(0.6f, 0.15f, 0.15f));
+                arqueiro.UsarMira(InimigoArqueiro.Mira.Leque);
+                return arqueiro;
+            }
 
             case TipoDeInimigo.Demonia:
-                return Antigo<InimigoAtirador>("Demonia", TipoDeInimigo.Atirador, posicao, pai, 0.32f,
+                return Antigo<InimigoDemonia>("Demonia", TipoDeInimigo.Atirador, posicao, pai, 0.32f,
                     new Color(0.7f, 0.2f, 0.5f), 35f, "Demonia", 26f);
 
             case TipoDeInimigo.FogoFatuo:
             {
-                InimigoAtirador fogo = Antigo<InimigoAtirador>("Fogo fatuo", TipoDeInimigo.Atirador, posicao, pai, 0.28f,
+                return Antigo<InimigoFogoFatuo>("Fogo fatuo", TipoDeInimigo.Atirador, posicao, pai, 0.28f,
                     new Color(0.3f, 0.8f, 1f), 25f, "FogoFatuo", 28f);
-                fogo.DefinirVelocidade(2.4f);
-                return fogo;
             }
 
             case TipoDeInimigo.DemoniaFoice:
@@ -298,15 +300,15 @@ public static class FabricaDeInimigos
                 return ComArte<InimigoEsqueletoFoice>("Demonia da foice", posicao, pai, 0.34f, 55f, clipes, new Color(0.5f, 0.1f, 0.3f));
             }
 
-            // Tiny RPG Pack 01: orcs, esqueletos e feras, nos comportamentos que ja existem.
+            // Tiny RPG Pack 01: orcs, esqueletos e feras, cada um com o seu jeito.
             case TipoDeInimigo.Orc:
                 return Golpe("Orc", posicao, pai, 0.3f, 35f, "Orc", 26f, 2f, 3, 0.4f, 15f);
 
             case TipoDeInimigo.OrcBlindado:
-                return Golpe("Orc blindado", posicao, pai, 0.32f, 70f, "OrcBlindado", 26f, 1.4f, 4, 0.5f, 18f);
+                return Golpe<InimigoBlindado>("Orc blindado", posicao, pai, 0.32f, 70f, "OrcBlindado", 26f, 1.4f, 4, 0.5f, 18f);
 
             case TipoDeInimigo.OrcElite:
-                return Golpe("Orc de elite", posicao, pai, 0.34f, 60f, "OrcElite", 26f, 2f, 3, 0.4f, 20f);
+                return Golpe<InimigoFurioso>("Orc de elite", posicao, pai, 0.34f, 60f, "OrcElite", 26f, 2f, 3, 0.4f, 20f);
 
             case TipoDeInimigo.OrcMontado:
                 return Antigo<InimigoInvestidor>("Orc montado", TipoDeInimigo.Investidor, posicao, pai, 0.36f,
@@ -316,40 +318,48 @@ public static class FabricaDeInimigos
                 return Golpe("Esqueleto guerreiro", posicao, pai, 0.3f, 30f, "EsqueletoGuerreiro", 26f, 1.9f, 3, 0.4f, 12f);
 
             case TipoDeInimigo.EsqueletoBlindado:
-                return Golpe("Esqueleto blindado", posicao, pai, 0.3f, 60f, "EsqueletoBlindado", 26f, 1.4f, 4, 0.5f, 15f);
+                return Golpe<InimigoBlindado>("Esqueleto blindado", posicao, pai, 0.3f, 60f, "EsqueletoBlindado", 26f, 1.4f, 4, 0.5f, 15f);
 
             case TipoDeInimigo.EsqueletoEspadao:
-                return Golpe("Esqueleto do espadao", posicao, pai, 0.33f, 55f, "EsqueletoEspadao", 26f, 1.6f, 5, 0.6f, 22f);
+                return Golpe<InimigoEspadao>("Esqueleto do espadao", posicao, pai, 0.33f, 55f, "EsqueletoEspadao", 26f, 1.6f, 5, 0.6f, 22f);
 
             case TipoDeInimigo.EsqueletoArqueiro:
-                return ComArte<InimigoArqueiro>("Esqueleto arqueiro", posicao, pai, 0.3f, 25f,
+            {
+                InimigoArqueiro arqueiro = ComArte<InimigoArqueiro>("Esqueleto arqueiro", posicao, pai, 0.3f, 25f,
                     Tiny("EsqueletoArqueiro", 26f), new Color(0.8f, 0.8f, 0.7f));
+                arqueiro.UsarMira(InimigoArqueiro.Mira.Alinhada);
+                return arqueiro;
+            }
 
             case TipoDeInimigo.Geleia:
-                return Antigo<InimigoSaltador>("Geleia", TipoDeInimigo.Saltador, posicao, pai, 0.27f,
+            {
+                InimigoSaltador geleia = Antigo<InimigoSaltador>("Geleia", TipoDeInimigo.Saltador, posicao, pai, 0.27f,
                     new Color(0.4f, 0.8f, 0.4f), 20f, "Geleia", 28f);
+                geleia.VirarGeleia();
+                return geleia;
+            }
 
             case TipoDeInimigo.Morceguinho:
             {
-                InimigoPerseguidor bicho = Antigo<InimigoPerseguidor>("Morceguinho", TipoDeInimigo.Perseguidor, posicao, pai, 0.24f,
+                InimigoMorcego bicho = Antigo<InimigoMorcego>("Morceguinho", TipoDeInimigo.Perseguidor, posicao, pai, 0.24f,
                     new Color(0.4f, 0.3f, 0.5f), 10f, "Morceguinho", 32f);
-                bicho.DefinirVelocidade(3.4f);
+                bicho.UsarVoo(InimigoMorcego.Voo.Enxame);
                 return bicho;
             }
 
             case TipoDeInimigo.Lobisomem:
-                return Golpe("Lobisomem", posicao, pai, 0.32f, 45f, "Lobisomem", 26f, 2.8f, 5, 0.35f, 15f);
+                return Golpe<InimigoLobisomem>("Lobisomem", posicao, pai, 0.32f, 45f, "Lobisomem", 26f, 2.8f, 5, 0.35f, 15f);
 
             case TipoDeInimigo.Urso:
-                return Golpe("Urso", posicao, pai, 0.38f, 90f, "Urso", 22f, 1.5f, 5, 0.55f, 25f);
+                return Golpe<InimigoUrso>("Urso", posicao, pai, 0.38f, 90f, "Urso", 22f, 1.5f, 5, 0.55f, 25f);
 
             case TipoDeInimigo.Necromante:
-                return Antigo<InimigoAtirador>("Necromante", TipoDeInimigo.Atirador, posicao, pai, 0.32f,
+                return Antigo<InimigoNecromante>("Necromante", TipoDeInimigo.Atirador, posicao, pai, 0.32f,
                     new Color(0.4f, 0.2f, 0.6f), 40f, "Necromante", 28f);
 
             default:
             {
-                InimigoPerseguidor cao = Antigo<InimigoPerseguidor>("Perseguidor", TipoDeInimigo.Perseguidor, posicao, pai, 0.3f,
+                InimigoCao cao = Antigo<InimigoCao>("Perseguidor", TipoDeInimigo.Perseguidor, posicao, pai, 0.3f,
                     new Color(0.85f, 0.25f, 0.25f), 25f, "CaoInfernal", 30f);
                 return cao;
             }
@@ -373,8 +383,15 @@ public static class FabricaDeInimigos
     private static InimigoDeGolpe Golpe(string nome, Vector2 posicao, Transform pai, float raio, float vidaMaxima,
                                         string pasta, float pixelsPorUnidade, float velocidade, int quadroDoGolpe,
                                         float preparo, float dano)
+        => Golpe<InimigoDeGolpe>(nome, posicao, pai, raio, vidaMaxima, pasta, pixelsPorUnidade, velocidade, quadroDoGolpe, preparo, dano);
+
+    /// <summary>Lutador de perto com arte do Tiny RPG, no comportamento <typeparamref name="T"/> da especie.</summary>
+    private static T Golpe<T>(string nome, Vector2 posicao, Transform pai, float raio, float vidaMaxima,
+                              string pasta, float pixelsPorUnidade, float velocidade, int quadroDoGolpe,
+                              float preparo, float dano)
+        where T : InimigoDeGolpe
     {
-        InimigoDeGolpe inimigo = ComArte<InimigoDeGolpe>(nome, posicao, pai, raio, vidaMaxima,
+        T inimigo = ComArte<T>(nome, posicao, pai, raio, vidaMaxima,
             Tiny(pasta, pixelsPorUnidade), new Color(0.3f, 0.3f, 0.35f));
         inimigo.Ajustar(velocidade, quadroDoGolpe, preparo, dano);
         return inimigo;

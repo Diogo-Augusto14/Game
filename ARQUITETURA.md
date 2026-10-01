@@ -71,7 +71,7 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `InimigoDeSala.cs` | Base: dormir, acordar, dano por encostar, empurrão na direção do golpe |
 | `ContornoClaro.cs` | Borda clara de 1 pixel em volta de todo inimigo (`FabricaDeInimigos` põe), pra bicho escuro não sumir no chão. Sem shader: 4 `SpriteMask` com o quadro do desenho, deslocadas 1 pixel, recortam um retângulo claro logo atrás dele. Some na morte e enquanto o barril está disfarçado (`InimigoDeSala.Disfarcado`) |
 | `InimigoPerseguidor.cs` | Vai atrás do jogador em zigue-zague |
-| `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira |
+| `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira (base antiga; as espécies usam as classes abaixo) |
 | `TiroDaSala.cs` | Projétil dos dois lados (inimigo acerta só o jogador e vice-versa) |
 | `InimigoDemonio.cs` | Demônio (arte importada): persegue, ergue a espada e corta à frente |
 | `InimigoDeSangue.cs` | Monstro de Sangue (arte importada): lento, espirra um anel de gotas |
@@ -81,7 +81,24 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `InimigoVampiro.cs` | Vampiro: se encolhe na capa e dá um bote; se acerta, suga vida e se cura |
 | `InimigoGoblinDinamite.cs` | Goblin da dinamite: fica longe e joga dinamite (`DinamiteLancada.cs`) onde o jogador está; um círculo vermelho avisa onde cai |
 | `InimigoBarril.cs` | Barril de TNT: parece um barril parado; o goblin sai, corre até o jogador, acende o pavio e explode. Morto a tiro, explode na hora |
-| `InimigoArqueiro.cs` | Arqueiro sombrio: mantém distância, puxa o arco e solta uma flecha reta |
+| `InimigoArqueiro.cs` | Arqueiro sombrio: mantém distância, puxa o arco e solta uma flecha reta. `UsarMira`: esqueleto arqueiro (`Alinhada`) corre pra mesma linha/coluna do jogador e só atira dali, reto pelo corredor; demônio arqueiro (`Leque`) solta três flechas abertas |
+
+| `InimigoSaltador.cs` | Gosma: pula atrás do jogador. `VirarGeleia`: pula sem rumo, mais vezes, e ao cair espirra 4 gotas em cruz (alternando + e ×) |
+| `InimigoBruxo.cs` | Bruxo: aparece, solta um leque de 3 orbes, some (intangível) e reaparece noutro ponto perto do jogador |
+| `InimigoNecromante.cs` | Necromante: foge do jogador e levanta esqueletos guerreiros (até 2 por vez); com a sala cheia, joga maldição lenta |
+| `InimigoFogoFatuo.cs` | Fogo-fátuo: orbita o jogador num raio que respira, apaga (intangível) e reacende soltando 4 chamas em cruz |
+| `InimigoDemonia.cs` | Demônia: circula o jogador sem parar e atira leques de 3 |
+| `InimigoMorcego.cs` | Morcego (`Mergulho`): circula e mergulha em linha reta; morceguinho (`Enxame`): voo errático, aos trancos |
+| `InimigoCao.cs` | Cão infernal: persegue e, perto, dá um bote |
+| `InimigoLobisomem.cs` | Lobisomem: rodeia o jogador à espreita e de repente arranca em disparada |
+| `InimigoLanceiro.cs` | Cavaleiro da lança: se alinha com o jogador, avisa e investe com a lança |
+| `InimigoEscudeiro.cs` | Cavaleiro do escudo: bloqueia tiro de frente e vira devagar; tem que flanquear |
+| `InimigoUrso.cs` | Urso: não para com tiro; pisoteia o chão soltando um anel de pedras |
+| `InimigoFurioso.cs` | Orc de elite: com metade da vida entra em fúria (vermelho, mais rápido, golpes mais seguidos) |
+| `InimigoBlindado.cs` | Orc e esqueleto blindados: armadura segura parte do dano, nada interrompe o golpe |
+| `InimigoDuelista.cs` | Demônio das lâminas: avança em 3 arrancadas seguidas e descansa |
+| `InimigoTridente.cs` | Demônio do tridente: a meia distância treme e arremessa o tridente reto |
+| `InimigoEspadao.cs` | Esqueleto do espadão: o golpe solta uma onda de corte que atravessa a sala, de perto ou de longe |
 | `FabricaDeInimigos.cs` | Receita de cada inimigo, montada por código |
 | `JogadorDeTeste.cs` | Boneco **provisório**; só nasce se a cena não tiver objeto com tag `Player` |
 | `DemoDaSala.cs` | Cena de teste: uma sala, e troca por outra ao sair pela porta |

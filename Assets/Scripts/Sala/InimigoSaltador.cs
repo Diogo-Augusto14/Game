@@ -7,9 +7,25 @@ using UnityEngine;
 ///
 ///   Agindo      -> parado, esperando o proximo pulo
 ///   Preparando  -> agacha (aviso) e depois voa ate o ponto escolhido
+///
+/// Com <see cref="VirarGeleia"/> ele pula SEM RUMO pela sala, mais vezes e mais curto, e ao
+/// cair espirra quatro gotas em cruz (alternando + e x). Perigoso e o lugar onde ele cai.
 /// </summary>
 public class InimigoSaltador : InimigoDeSala
 {
+    private bool geleia;
+    private bool cruzEmX;
+
+    [SerializeField, Min(0f)] private float danoDaGota = 8f;
+
+    public void VirarGeleia()
+    {
+        geleia = true;
+        esperaEntrePulos = new Vector2(0.25f, 0.6f);
+        alcanceDoPulo = 2.2f;
+        cruzEmX = Random.value < 0.5f;
+    }
+
     [Header("Pulo")]
     [Tooltip("Segundos parado entre um pulo e outro (sorteado entre os dois)")]
     [SerializeField] private Vector2 esperaEntrePulos = new Vector2(0.5f, 1.1f);
@@ -82,7 +98,9 @@ public class InimigoSaltador : InimigoDeSala
             if (agachado.Ativo)
                 return;
 
-            Vector2 alvo = ParaOJogador() + Random.insideUnitCircle * imprecisao;
+            Vector2 alvo = geleia
+                ? Random.insideUnitCircle.normalized * alcanceDoPulo
+                : ParaOJogador() + Random.insideUnitCircle * imprecisao;
             alvo = Vector2.ClampMagnitude(alvo, alcanceDoPulo);
             velocidadeDoPulo = alvo / duracaoDoPulo;
             voo.Forcar(duracaoDoPulo);
@@ -108,8 +126,21 @@ public class InimigoSaltador : InimigoDeSala
         Pousar();
         rb.linearVelocity = Vector2.zero;
         voando = false;
+
+        if (geleia)
+            Espirrar();
+
         espera.Forcar(Random.Range(esperaEntrePulos.x, esperaEntrePulos.y));
         EstadoAtual = Estado.Agindo;
+    }
+
+    private void Espirrar()
+    {
+        float inicio = cruzEmX ? 45f : 0f;
+        cruzEmX = !cruzEmX;
+
+        for (int i = 0; i < 4; i++)
+            Disparar(inicio + i * 90f, 4.5f, danoDaGota, new Color(0.45f, 0.9f, 0.45f), 0.22f);
     }
 
     private void Pousar()

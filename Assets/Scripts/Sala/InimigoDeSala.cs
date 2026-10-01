@@ -369,6 +369,43 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         return tangente * Mathf.Sign(lado);
     }
 
+    /// <summary>A sala onde o inimigo nasceu (null fora de uma sala). Pra sortear ponto, chamar ajuda...</summary>
+    protected Sala SalaDoInimigo => sala;
+
+    /// <summary>Todo inimigo vivo da mesma sala que esta (pra limitar quem invoca mais bicho).</summary>
+    protected int VivosNaSala => sala != null ? sala.InimigosVivos : 0;
+
+    /// <summary>
+    /// Some ou volta: sem colisor (tiro passa, nao machuca encostando) e com o desenho
+    /// transparente na fracao <paramref name="alfa"/>. Pro bruxo que some e o fogo-fatuo que apaga.
+    /// </summary>
+    protected void Intangivel(bool sumido, float alfa)
+    {
+        foreach (Collider2D c in GetComponents<Collider2D>())
+            c.enabled = !sumido;
+
+        if (desenho != null)
+        {
+            Color cor = desenho.color;
+            cor.a = alfa;
+            desenho.color = cor;
+        }
+    }
+
+    /// <summary>Um tiro do inimigo saindo da borda do corpo, no angulo dado (graus), com o estilo dele.</summary>
+    protected TiroDaSala Disparar(float anguloEmGraus, float velocidadeDoTiro, float dano, Color cor, float diametro = 0.3f)
+    {
+        Vector2 rumo = new Vector2(Mathf.Cos(anguloEmGraus * Mathf.Deg2Rad), Mathf.Sin(anguloEmGraus * Mathf.Deg2Rad));
+        return TiroDaSala.Disparar(rb.position + rumo * (Raio + 0.15f), rumo * velocidadeDoTiro, dano, gameObject, true, cor, diametro);
+    }
+
+    /// <summary>O angulo (graus) do inimigo ate o jogador.</summary>
+    protected float AnguloDoJogador()
+    {
+        Vector2 alvo = ParaOJogador();
+        return Mathf.Atan2(alvo.y, alvo.x) * Mathf.Rad2Deg;
+    }
+
     /// <summary>Raio do corpo (o CircleCollider2D). Bom pra checar colisao a frente.</summary>
     protected float Raio
     {
