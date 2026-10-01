@@ -505,6 +505,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
 
         segundaFase = true;
         velocidade *= 1.25f;
+        ViradaDeFase.Anunciar(this, "O magma ferve!", new Color(1f, 0.45f, 0.2f));
 
         foreach (SpriteRenderer olho in olhos)
             if (olho != null)

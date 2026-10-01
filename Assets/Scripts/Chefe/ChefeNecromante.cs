@@ -715,6 +715,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
 
         segundaFase = true;
         velocidade *= 1.2f;
+        ViradaDeFase.Anunciar(this, "Os mortos respondem!", new Color(0.7f, 0.4f, 1f));
     }
 
     private float Pressa => segundaFase ? pressaNaSegundaFase : 1f;

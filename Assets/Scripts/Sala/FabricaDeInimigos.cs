@@ -44,7 +44,9 @@ public enum TipoDeInimigo
     Urso,
     Necromante,
     ChefeNecromante,
-    ChefeMinotauro
+    ChefeMinotauro,
+    ChefeLobisomem,
+    ChefeOrc
 }
 
 /// <summary>
@@ -86,6 +88,8 @@ public static class FabricaDeInimigos
             case TipoDeInimigo.ChefeFinal:
             case TipoDeInimigo.ChefeNecromante:
             case TipoDeInimigo.ChefeMinotauro:
+            case TipoDeInimigo.ChefeLobisomem:
+            case TipoDeInimigo.ChefeOrc:
                 return Som.MorteChefe;
 
             case TipoDeInimigo.Esqueleto:
@@ -165,6 +169,24 @@ public static class FabricaDeInimigos
                     (ArteGerada.Bola(), new Color(0.6f, 0.35f, 0.2f)), 130f, clipes);
                 touro.Enfeitar(clipes);
                 return touro;
+            }
+
+            case TipoDeInimigo.ChefeLobisomem:
+            {
+                ClipesDePersonagem clipes = Tiny("Lobisomem", 11f);
+                ChefeLobisomem lobo = Montar<ChefeLobisomem>("Chefe Lobisomem", posicao, pai, 0.6f,
+                    (ArteGerada.Bola(), new Color(0.45f, 0.4f, 0.5f)), 140f, clipes);
+                lobo.Enfeitar(clipes);
+                return lobo;
+            }
+
+            case TipoDeInimigo.ChefeOrc:
+            {
+                ClipesDePersonagem clipes = Tiny("OrcElite", 11f);
+                ChefeOrc orc = Montar<ChefeOrc>("Chefe Orc", posicao, pai, 0.7f,
+                    (ArteGerada.Bola(), new Color(0.4f, 0.55f, 0.3f)), 170f, clipes);
+                orc.Enfeitar(clipes);
+                return orc;
             }
 
             case TipoDeInimigo.ChefeFinal:

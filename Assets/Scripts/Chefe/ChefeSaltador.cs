@@ -566,6 +566,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
 
         segundaFase = true;
         velocidade *= 1.2f;
+        ViradaDeFase.Anunciar(this, "O martelo arde!", new Color(1f, 0.55f, 0.2f));
     }
 
     private float Pressa => segundaFase ? pressaNaSegundaFase : 1f;

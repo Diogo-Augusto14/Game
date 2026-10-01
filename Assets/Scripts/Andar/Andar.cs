@@ -989,18 +989,18 @@ public class Andar : MonoBehaviour
     /// Os chefes de cada mundo. Nas fases do comeco sai um da lista de "comuns" (a fase 2
     /// nunca repete o da fase 1); na ultima fase vem o chefe do mundo, o mais forte, com
     /// 15% a mais de vida (DificuldadeDaFase.VidaDoChefe):
-    ///   Mundo 1 Porao      -> Golem de Magma ou Minotauro Furioso; fecha com o Demonio do Martelo
-    ///   Mundo 2 Catacumbas -> Golem de Magma ou Demonio do Martelo; fecha com o Minotauro Furioso (chama orcs)
-    ///   Mundo 3 Cripta     -> Demonio do Martelo ou Minotauro Furioso; fecha com o Rei Necromante (chama esqueletos)
-    ///   Mundo 4 Abismo     -> Minotauro Furioso ou Rei Necromante; fecha com o Olho do Abismo (chefe final)
+    ///   Mundo 1 Porao      -> Golem de Magma, Minotauro Furioso ou Lobisomem Alfa; fecha com o Demonio do Martelo
+    ///   Mundo 2 Catacumbas -> Golem de Magma, Demonio do Martelo ou Senhor da Guerra; fecha com o Minotauro Furioso (chama orcs)
+    ///   Mundo 3 Cripta     -> Demonio do Martelo, Lobisomem Alfa ou Senhor da Guerra; fecha com o Rei Necromante (chama esqueletos)
+    ///   Mundo 4 Abismo     -> Minotauro, Rei Necromante, Senhor da Guerra ou Lobisomem Alfa; fecha com o Olho do Abismo (chefe final)
     /// Com mais de 4 mundos, os do meio repetem a lista.
     /// </summary>
     private static readonly (TipoDeInimigo[] comuns, TipoDeInimigo final)[] ChefesPorMundo =
     {
-        (new[] { TipoDeInimigo.Chefe, TipoDeInimigo.ChefeMinotauro }, TipoDeInimigo.ChefeSaltador),
-        (new[] { TipoDeInimigo.Chefe, TipoDeInimigo.ChefeSaltador }, TipoDeInimigo.ChefeMinotauro),
-        (new[] { TipoDeInimigo.ChefeSaltador, TipoDeInimigo.ChefeMinotauro }, TipoDeInimigo.ChefeNecromante),
-        (new[] { TipoDeInimigo.ChefeMinotauro, TipoDeInimigo.ChefeNecromante }, TipoDeInimigo.ChefeFinal),
+        (new[] { TipoDeInimigo.Chefe, TipoDeInimigo.ChefeMinotauro, TipoDeInimigo.ChefeLobisomem }, TipoDeInimigo.ChefeSaltador),
+        (new[] { TipoDeInimigo.Chefe, TipoDeInimigo.ChefeSaltador, TipoDeInimigo.ChefeOrc }, TipoDeInimigo.ChefeMinotauro),
+        (new[] { TipoDeInimigo.ChefeSaltador, TipoDeInimigo.ChefeLobisomem, TipoDeInimigo.ChefeOrc }, TipoDeInimigo.ChefeNecromante),
+        (new[] { TipoDeInimigo.ChefeMinotauro, TipoDeInimigo.ChefeNecromante, TipoDeInimigo.ChefeOrc, TipoDeInimigo.ChefeLobisomem }, TipoDeInimigo.ChefeFinal),
     };
 
     // O chefe comum que ja saiu neste mundo: a fase seguinte sorteia o outro.

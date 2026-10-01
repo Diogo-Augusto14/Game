@@ -57,6 +57,8 @@ public static class EstilosDeTiro
         { "Chefe Saltador", EstiloDeTiro.Brasa },          // demonio do martelo
         { "Chefe Necromante", EstiloDeTiro.Maldicao },
         { "Chefe Minotauro", EstiloDeTiro.OndaDeChoque },
+        { "Chefe Lobisomem", EstiloDeTiro.GotaDeSangue },
+        { "Chefe Orc", EstiloDeTiro.Pedra },
         { "Chefe Final", EstiloDeTiro.EstrelaDoOlho },
     };
 

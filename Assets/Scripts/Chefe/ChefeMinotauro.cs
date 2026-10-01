@@ -593,6 +593,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
 
         segundaFase = true;
         velocidade *= 1.2f;
+        ViradaDeFase.Anunciar(this, "Fúria do touro!", new Color(1f, 0.35f, 0.25f));
     }
 
     private float Pressa => segundaFase ? pressaNaSegundaFase : 1f;

@@ -534,7 +534,8 @@ public class ChefeFinal : InimigoDeSala, IChefe
         fase = nova;
         escalaOriginal *= 1.08f;
         transform.localScale = escalaOriginal;
-        Sons.Tocar(Som.Rugido);
+        ViradaDeFase.Anunciar(this, fase >= 3 ? "O abismo desperta!" : "O olho se abre!",
+                              fase >= 3 ? new Color(1f, 0.3f, 0.4f) : new Color(0.8f, 0.5f, 1f));
     }
 
     protected override void Morrer()
