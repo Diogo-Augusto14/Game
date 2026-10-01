@@ -417,6 +417,7 @@ public class Andar : MonoBehaviour
         // Chao, paredes, enfeites e inimigos do mundo (TemaDoAndar). Antes de montar as salas.
         Dificuldade = new DificuldadeDaFase(Mundo, Fase, fasesPorMundo);
         Tema = TemaDoAndar.DoMundo(Mundo, quantidadeDeMundos);
+        Registro.ChegouEm(Mundo, Fase);
         TemaDoAndar.Usar(Tema);
 
         // O mapa cresce a cada duas fases (DificuldadeDaFase.TamanhoDoMapa), nao a cada uma:
@@ -511,6 +512,7 @@ public class Andar : MonoBehaviour
 
         if (!sala.Visitada)
             ResumoDaPartida.ContarSala();
+            Registro.ExplorouSala();
 
         Mapa.Visitar(sala);
         Sala destino = NoMundo(sala);
@@ -712,6 +714,7 @@ public class Andar : MonoBehaviour
         Sons.Tocar(Som.MorteJogador, 1f, 0f);
         Musica.Tocar(TemaMusical.FimDeJogo);
 
+        Registro.Morreu(vidaDoJogador != null ? vidaDoJogador.UltimoGolpe.Atacante : null);
         AoMorrerJogador?.Invoke();
         TelaDeFimDeJogo.Mostrar(this);
     }
@@ -1169,6 +1172,7 @@ public class Andar : MonoBehaviour
                     sala.AoLimpar.AddListener(() =>
                     {
                         Musica.Tocar(TemaMusical.Vitoria);
+                        Registro.Venceu();
                         TelaDeFimDeJogo.MostrarVitoria(this, Progresso.Zerou(Herois.Atual));
                     });
                     break;
@@ -1190,6 +1194,9 @@ public class Andar : MonoBehaviour
                     Musica.Tocar(MusicaDoAndar);
 
                     List<Herois.Heroi> liberados = fechouOMundo ? Progresso.VenceuMundo(mundo) : new List<Herois.Heroi>();
+
+                    if (fechouOMundo)
+                        Registro.FechouMundo(mundo);
 
                     if (liberados.Count == 0)
                         AvisoDoAndar.Mostrar("O chefe deixou uma chave dourada!");

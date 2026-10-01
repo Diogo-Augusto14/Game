@@ -109,6 +109,9 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     /// <summary>Fracao da velocidade ao andar: 1 = normal, menos = gelado (flecha de gelo).</summary>
     public float MultiplicadorDeVelocidade { get; set; } = 1f;
 
+    /// <summary>A especie (a fabrica preenche). O bestiario e as conquistas contam por aqui.</summary>
+    public TipoDeInimigo Tipo { get; set; }
+
     /// <summary>Velocidade maxima andando agora (a dificuldade da fase multiplica em cima dela).</summary>
     public float Velocidade => velocidade;
 
@@ -179,6 +182,8 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     {
         if (EstadoAtual != Estado.Dormindo)
             return;
+
+        Registro.Viu(Tipo);
 
         EstadoAtual = Estado.Acordando;
         acordando.Forcar(tempoAcordando);

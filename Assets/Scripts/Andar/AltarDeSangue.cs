@@ -88,6 +88,7 @@ public class AltarDeSangue : MonoBehaviour
         }
 
         sacrificios++;
+        Registro.Sacrificou();
         Sons.Tocar(Som.Espinhos);
         EfeitosDeImpacto.Mostrar(EfeitoDeImpacto.Respingo, transform.position, new Color(0.8f, 0.1f, 0.15f), 1.2f);
         Pagar(sacrificios);

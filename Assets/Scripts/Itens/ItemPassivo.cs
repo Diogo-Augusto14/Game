@@ -333,12 +333,15 @@ public static class CatalogoDeItens
     {
         List<ItemPassivo> sobra = new List<ItemPassivo>();
 
+        // Item preso a uma conquista (Conquistas.ItemLiberado) so sai depois dela.
         foreach (ItemPassivo item in Todos)
-            if (jaSairam == null || !jaSairam.Contains(item))
+            if ((jaSairam == null || !jaSairam.Contains(item)) && Conquistas.ItemLiberado(item.nome))
                 sobra.Add(item);
 
         if (sobra.Count == 0)
-            sobra.AddRange(Todos);
+            foreach (ItemPassivo item in Todos)
+                if (Conquistas.ItemLiberado(item.nome))
+                    sobra.Add(item);
 
         ItemPassivo sorteado = sobra[Random.Range(0, sobra.Count)];
         jaSairam?.Add(sorteado);

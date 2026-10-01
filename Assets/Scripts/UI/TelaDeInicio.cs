@@ -3,15 +3,15 @@ using UnityEngine.UI;
 
 /// <summary>
 /// O menu inicial: nome do jogo, a escolha do heroi (esquerda e direita trocam, ver
-/// <see cref="Herois"/>) e os botoes Jogar, Configuracoes e Sair do jogo. Aparece so na
+/// <see cref="Herois"/>) e os botoes Jogar, Progresso, Configuracoes e Sair do jogo. Aparece so na
 /// primeira vez que a cena abre; recomecar depois de morrer vai direto pro andar 1, como no
 /// Isaac. Com o menu na tela o jogo fica congelado e o jogador nao anda.
 ///
 ///   W/S ou Cima/Baixo   escolhe o botao       A/D ou Esquerda/Direita   troca o heroi
-///   Enter / Espaco      aperta                O                         configuracoes
+///   Enter / Espaco      aperta                O / P                     configuracoes / progresso
 ///   Esc                 vai pro "Sair do jogo" (de novo: sai)
 ///
-/// No controle: cruz, A aperta, Start joga, X configuracoes, Select vai pro sair. O mouse
+/// No controle: cruz, A aperta, Start joga, X configuracoes, Y progresso, Select vai pro sair. O mouse
 /// escolhe e clica nos botoes e nas setas do heroi.
 ///
 /// Abre com animacao (o titulo cai no lugar, o heroi e os botoes sobem) e, no Jogar, some
@@ -134,10 +134,11 @@ public class TelaDeInicio : MonoBehaviour
         painelDoHeroi = TelaSimples.Camada(transform, "Heroi");
         MontarEscolhaDoHeroi(painelDoHeroi.transform, 105f);
 
-        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, 82f), 38) { AtrasoDaEntrada = 0.3f, IntervaloDaEntrada = 0.06f };
-        botaoJogar = menu.Adicionar("Jogar", -140f, Jogar, "[Enter] || [Pad A]");
-        menu.Adicionar("Configurações", -232f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
-        botaoSair = menu.Adicionar("Sair do jogo", -324f, SairDoJogo, "[Esc] || [Pad Select]", IconeDoBotao.Sair, perigo: true);
+        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, 66f), 34) { AtrasoDaEntrada = 0.3f, IntervaloDaEntrada = 0.06f };
+        botaoJogar = menu.Adicionar("Jogar", -118f, Jogar, "[Enter] || [Pad A]");
+        menu.Adicionar("Progresso", -192f, AbrirProgresso, "[P] || [Pad Y]");
+        menu.Adicionar("Configurações", -266f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
+        botaoSair = menu.Adicionar("Sair do jogo", -340f, SairDoJogo, "[Esc] || [Pad Select]", IconeDoBotao.Sair, perigo: true);
 
         MontarRodape();
         MostrarHeroi();
@@ -206,7 +207,7 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         // Com as opcoes por cima, as teclas sao delas (o Esc de la nao pode sair do jogo).
-        menu.Ligado = !TelaDeOpcoes.Ocupada && t - abriu >= 0.4f;
+        menu.Ligado = !TelaDeOpcoes.Ocupada && !TelaDeProgresso.Ocupada && t - abriu >= 0.4f;
 
         if (menu.Ligado && !TransicaoDeTela.Ocupada)
             LerAtalhos();
@@ -230,6 +231,10 @@ public class TelaDeInicio : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
         {
             AbrirOpcoes();
+        }
+        else if (Input.GetKeyDown(KeyCode.P) || Controle.Apertou(BotaoDoControle.Y))
+        {
+            AbrirProgresso();
         }
         else if (Controle.Apertou(BotaoDoControle.Start))
         {
@@ -268,6 +273,8 @@ public class TelaDeInicio : MonoBehaviour
 
     private static void AbrirOpcoes() => TelaDeOpcoes.Abrir();
 
+    private static void AbrirProgresso() => TelaDeProgresso.Abrir();
+
     /// <summary>O menu some crescendo de leve; no fim, o jogo comeca.</summary>
     private void Sair(float agora)
     {
@@ -283,6 +290,7 @@ public class TelaDeInicio : MonoBehaviour
     private void Comecar()
     {
         JaPassou = true;
+        Registro.ComecouPartida();
         Time.timeScale = 1f;
 
         // O jogador ja esta na sala desde antes do menu: veste o heroi escolhido agora.

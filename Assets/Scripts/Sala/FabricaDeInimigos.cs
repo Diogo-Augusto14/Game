@@ -65,6 +65,7 @@ public static class FabricaDeInimigos
         if (inimigo != null)
         {
             inimigo.SomDeMorte = SomDeMorte(tipo);
+            inimigo.Tipo = tipo;
 
             // Quem voa passa por cima dos buracos do chao, como os tiros.
             if (Voa(tipo))

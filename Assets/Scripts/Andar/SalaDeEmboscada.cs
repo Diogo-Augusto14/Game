@@ -59,6 +59,7 @@ public class SalaDeEmboscada : MonoBehaviour
         {
             sala.AoEsvaziar.RemoveListener(Esvaziou);
             sala.Liberar();
+            Conquistas.Conquistar(Conquistas.NinguemMePega);
             yield break;
         }
 

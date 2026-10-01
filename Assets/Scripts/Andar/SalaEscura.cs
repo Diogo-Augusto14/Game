@@ -66,7 +66,11 @@ public class SalaEscura : MonoBehaviour
         return obj.transform;
     }
 
-    private void Clarear() => sumindo = 0f;
+    private void Clarear()
+    {
+        sumindo = 0f;
+        Conquistas.Conquistar(Conquistas.OlhosNoEscuro);
+    }
 
     private void LateUpdate()
     {

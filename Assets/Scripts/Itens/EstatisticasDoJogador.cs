@@ -98,6 +98,7 @@ public class EstatisticasDoJogador : MonoBehaviour
             }
 
             Sons.Tocar(Som.Item);
+            Registro.PegouItem();
             AoPegarItem?.Invoke(item);
             return antigo;
         }
@@ -117,6 +118,7 @@ public class EstatisticasDoJogador : MonoBehaviour
 
         Sons.Tocar(Som.Item);
         Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
+        Registro.PegouItem();
         AoPegarItem?.Invoke(item);
 
         foreach (ItemPassivo sinergia in formadas)
@@ -126,6 +128,7 @@ public class EstatisticasDoJogador : MonoBehaviour
             Impacto.Tremer(0.1f, 0.25f);
             TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.2f, "Sinergia!", new Color(1f, 0.85f, 0.4f));
             AoFormarSinergia?.Invoke(sinergia);
+            Registro.FormouSinergia();
         }
 
         return null;
