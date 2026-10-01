@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Esqueleto da foice (Enemy Animations Set): anda devagar ate o jogador e, perto, gira
+/// Demonia da foice: anda devagar ate o jogador e, perto, gira
 /// a foice em volta de si duas vezes. O giro acerta em todo o circulo, entao nao adianta
 /// dar a volta nele: tem que se afastar durante a preparacao.
 ///

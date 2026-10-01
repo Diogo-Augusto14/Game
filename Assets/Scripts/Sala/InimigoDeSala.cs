@@ -111,20 +111,21 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
     /// <summary>
     /// Como o bicho chega perto do jogador quando so anda atras dele. Cada jeito e de UMA
-    /// especie so (a fabrica escolhe), pra nenhuma andar igual a outra:
+    /// especie so (a fabrica escolhe), pra nenhuma andar igual a outra ("livre" = sem dono, pronto
+    /// pra uma especie nova):
     ///   Direta       -> reto, contornando obstaculo (so quem nao tem jeito proprio)
-    ///   Ziguezague   -> vai e volta de lado enquanto avanca, rapido            (goblin da tocha)
+    ///   Ziguezague   -> vai e volta de lado enquanto avanca, rapido            (livre)
     ///   PassoPesado  -> passada forte, para, passada                          (orc)
     ///   Marcha       -> escolhe um rumo e vai reto nele; so corrige de tempo em tempo (orc blindado)
     ///   Finta        -> avanca, recua um passo, avanca de novo                (esqueleto blindado)
     ///   Pulsante     -> anda em pulsos, como batida de coracao: tum-tum... pausa (monstro de sangue)
     ///   Flanco       -> faz uma curva e chega pelo lado                        (demonio)
-    ///   Revoada      -> arrancadas curtas em V (esquerda, direita) e paradas no ar (vampiro)
+    ///   Revoada      -> arrancadas curtas em V (esquerda, direita) e paradas no ar (livre)
     ///   Interceptar  -> corre pra onde o jogador VAI estar, nao pra onde esta  (orc de elite)
     ///   Cerco        -> cada um mira um ponto em volta do jogador: o bando cerca (esqueleto guerreiro)
     ///   Espiral      -> chega girando em volta do jogador, em espiral          (demonia da foice)
-    ///   Cambaleante  -> lento e torto, acelerando e quase parando              (esqueleto)
-    ///   Arrasto      -> arrasta os pes devagar e de vez em quando desliza rapido (esqueleto da foice)
+    ///   Cambaleante  -> lento e torto, acelerando e quase parando              (livre)
+    ///   Arrasto      -> arrasta os pes devagar e de vez em quando desliza rapido (livre)
     ///   Vaivem       -> chega perto e se afasta, sem parar, de 2,5 a 6          (demonio do tridente)
     ///   Guarda       -> parado em guarda; so avanca com o jogador perto        (esqueleto do espadao)
     ///   Embalo       -> de longe vem correndo, de perto anda pesado            (urso)

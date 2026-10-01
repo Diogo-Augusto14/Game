@@ -12,11 +12,8 @@ using UnityEngine;
 ///   InterfacePixel/00.png ... 07.png  (Pixel UI pack 3)
 ///       coracoes, paineis e barras recortados pelos retangulos la embaixo
 ///   TinySwords/...  (Tiny Swords e Tiny Swords Free Pack, da Pixel Frog)
-///       folhas em grade (uma linha por animacao): o arqueiro azul do jogador, goblins,
-///       barril, arqueiro, dinamite,
-///       explosao, caveira de morte e enfeites de chao
-///   Masmorra/Esqueleto, EsqueletoFoice, Vampiro  (Enemy Animations Set)
-///       uma tira por animacao, quadros de 32x32
+///       dinamite (a bomba do jogador), flecha, explosao, caveira de morte e enfeites de chao.
+///       Personagem nenhum vem daqui: inimigos e herois sao todos do Tiny RPG.
 ///   Masmorra/Tocha, Candelabro, Objetos  (2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon v2.0)
 ///       tocha de parede, candelabro e caveira/ossos do chao, em ladrilhos de 16 px
 ///   Masmorra/Chao, Parede, Portao, Espinhos, Ladrilhos  (2D Dungeon Asset Pack v5.2)
@@ -157,76 +154,7 @@ public static class ArteImportada
     // retangulos abaixo (recorte e centro do corpo) estao em coordenadas de UMA celula,
     // y pra baixo, do jeito que aparecem num editor de imagem.
 
-    /// <summary>
-    /// Goblin da tocha: parado, correndo e o golpe de tocha em tres direcoes
-    /// (lado, baixo, cima). O golpe acerta no quarto quadro (indice 3).
-    /// </summary>
-    public static ClipesDePersonagem GoblinDaTocha(float pixelsPorUnidade)
-    {
-        const string folha = "TinySwords/GoblinTocha";
-        RectInt recorte = new RectInt(8, 16, 176, 160);
-        Vector2 centro = new Vector2(92f, 100f);
-
-        return Clipes(folha, pixelsPorUnidade, c =>
-        {
-            c.Parado = Linha(folha, 192, 0, 7, recorte, centro, pixelsPorUnidade);
-            c.Andando = Linha(folha, 192, 1, 6, recorte, centro, pixelsPorUnidade);
-            c.Ataque = Linha(folha, 192, 2, 6, recorte, centro, pixelsPorUnidade);
-            c.AtaqueBaixo = Linha(folha, 192, 3, 6, recorte, centro, pixelsPorUnidade);
-            c.AtaqueCima = Linha(folha, 192, 4, 6, recorte, centro, pixelsPorUnidade);
-        });
-    }
-
-    /// <summary>Goblin da dinamite: parado, correndo e o arremesso (a dinamite sai no indice 5).</summary>
-    public static ClipesDePersonagem GoblinDaDinamite(float pixelsPorUnidade)
-    {
-        const string folha = "TinySwords/GoblinDinamite";
-        RectInt recorte = new RectInt(40, 40, 120, 112);
-        Vector2 centro = new Vector2(94f, 104f);
-
-        return Clipes(folha, pixelsPorUnidade, c =>
-        {
-            c.Parado = Linha(folha, 192, 0, 6, recorte, centro, pixelsPorUnidade);
-            c.Andando = Linha(folha, 192, 1, 6, recorte, centro, pixelsPorUnidade);
-            c.Ataque = Linha(folha, 192, 2, 7, recorte, centro, pixelsPorUnidade);
-        });
-    }
-
-    /// <summary>
-    /// Barril de TNT com um goblin dentro:
-    ///   Parado = fechado, AtaqueEspecial = saindo do barril, Andando = correndo com o
-    ///   barril, Ataque = pavio aceso (em loop enquanto queima).
-    /// </summary>
-    public static ClipesDePersonagem Barril(float pixelsPorUnidade)
-    {
-        const string folha = "TinySwords/Barril";
-        RectInt recorte = new RectInt(24, 0, 80, 112);
-        Vector2 centro = new Vector2(64f, 72f);
-
-        return Clipes(folha, pixelsPorUnidade, c =>
-        {
-            c.Parado = Linha(folha, 128, 0, 1, recorte, centro, pixelsPorUnidade);
-            c.AtaqueEspecial = Linha(folha, 128, 1, 6, recorte, centro, pixelsPorUnidade);
-            c.Andando = Linha(folha, 128, 4, 3, recorte, centro, pixelsPorUnidade);
-            c.Ataque = Linha(folha, 128, 5, 3, recorte, centro, pixelsPorUnidade);
-        });
-    }
-
-    /// <summary>Arqueiro sombrio (Free Pack): parado, correndo e o tiro (a flecha sai no indice 5).</summary>
-    public static ClipesDePersonagem Arqueiro(float pixelsPorUnidade)
-    {
-        RectInt recorte = new RectInt(40, 40, 112, 104);
-        Vector2 centro = new Vector2(94f, 100f);
-
-        return Clipes("TinySwords/Arqueiro", pixelsPorUnidade, c =>
-        {
-            c.Parado = Linha("TinySwords/ArqueiroParado", 192, 0, 6, recorte, centro, pixelsPorUnidade);
-            c.Andando = Linha("TinySwords/ArqueiroAndando", 192, 0, 4, recorte, centro, pixelsPorUnidade);
-            c.Ataque = Linha("TinySwords/ArqueiroAtirando", 192, 0, 8, recorte, centro, pixelsPorUnidade);
-        });
-    }
-
-    /// <summary>A caveira que sobe quando um goblin ou o arqueiro morre (14 quadros).</summary>
+    /// <summary>A caveira que sobe quando um bicho sem animacao de morte morre (14 quadros).</summary>
     public static Sprite[] Caveira(float pixelsPorUnidade)
     {
         RectInt recorte = new RectInt(24, 24, 80, 88);
@@ -243,10 +171,6 @@ public static class ArteImportada
         return todos;
     }
 
-    /// <summary>A banana de dinamite girando (6 quadros).</summary>
-    public static Sprite[] Dinamite(float pixelsPorUnidade)
-        => Linha("TinySwords/Dinamite", 64, 0, 6, new RectInt(0, 0, 64, 64), new Vector2(34f, 28f), pixelsPorUnidade);
-
     /// <summary>
     /// A explosao (9 quadros). A bola de fogo tem uns 105 px de largura: pra ela cobrir um
     /// circulo de raio r, use <c>ExplosaoPixelsPorUnidade(r)</c>.
@@ -261,35 +185,6 @@ public static class ArteImportada
     {
         Sprite[] um = Linha("TinySwords/Flecha", 64, 0, 1, new RectInt(8, 24, 48, 16), new Vector2(32f, 32f), pixelsPorUnidade);
         return um != null ? um[0] : null;
-    }
-
-    /// <summary>
-    /// O jogador: o arqueiro azul do Tiny Swords (Update 010). Parado, correndo e o tiro pra
-    /// cima, pro lado e pra baixo (as diagonais da folha ficam de fora: o tiro e em 4 direcoes).
-    /// A morte e a caveira do pacote.
-    /// </summary>
-    public static ClipesDePersonagem ArqueiroAzul(float pixelsPorUnidade)
-    {
-        RectInt recorte = new RectInt(0, 0, 192, 192);
-        Vector2 centro = new Vector2(98f, 100f);
-        const string folha = "TinySwords/ArqueiroAzul";
-
-        return Clipes(folha, pixelsPorUnidade, c =>
-        {
-            c.Parado = Linha(folha, 192, 0, 6, recorte, centro, pixelsPorUnidade);
-            c.Andando = Linha(folha, 192, 1, 6, recorte, centro, pixelsPorUnidade);
-            c.AtaqueCima = Linha(folha, 192, 2, 8, recorte, centro, pixelsPorUnidade);
-            c.Ataque = Linha(folha, 192, 4, 8, recorte, centro, pixelsPorUnidade);
-            c.AtaqueBaixo = Linha(folha, 192, 6, 8, recorte, centro, pixelsPorUnidade);
-            // So a caveira subindo (a primeira linha): ela fica na tela ate o fim de jogo.
-            Sprite[] caveira = Caveira(pixelsPorUnidade * 128f / 192f);
-
-            if (caveira != null)
-            {
-                c.Morte = new Sprite[7];
-                System.Array.Copy(caveira, c.Morte, 7);
-            }
-        });
     }
 
     /// <summary>Os 25 ossos e caveiras do Old Prison (null antes do primeiro sorteio ou sem a arte).</summary>
@@ -344,26 +239,6 @@ public static class ArteImportada
         string nome = Enfeites[Random.Range(0, Enfeites.Length)];
         Sprite[] um = Linha("TinySwords/Enfeites/" + nome, 64, 0, 1, new RectInt(0, 0, 64, 64), new Vector2(32f, 32f), 64f);
         return um != null ? um[0] : null;
-    }
-
-    // ================================================================ masmorra
-    /// <summary>
-    /// Um bicho do Enemy Animations Set (Esqueleto, EsqueletoFoice, Vampiro): tiras de
-    /// quadros 32x32, o corpo com uns 16 px. <paramref name="centro"/> e o meio do corpo no quadro.
-    /// </summary>
-    public static ClipesDePersonagem Masmorra(string pasta, Vector2 centro, float pixelsPorUnidade)
-    {
-        string caminho = "Masmorra/" + pasta + "/";
-        RectInt recorte = new RectInt(0, 0, 32, 32);
-
-        return Clipes(caminho, pixelsPorUnidade, c =>
-        {
-            c.Parado = Linha(caminho + "Parado", 32, 0, 99, recorte, centro, pixelsPorUnidade);
-            c.Andando = Linha(caminho + "Andando", 32, 0, 99, recorte, centro, pixelsPorUnidade);
-            c.Ataque = Linha(caminho + "Ataque", 32, 0, 99, recorte, centro, pixelsPorUnidade);
-            c.Dor = Linha(caminho + "Dor", 32, 0, 99, recorte, centro, pixelsPorUnidade);
-            c.Morte = Linha(caminho + "Morte", 32, 0, 99, recorte, centro, pixelsPorUnidade);
-        });
     }
 
     /// <summary>Tocha de parede acesa (6 quadros de 16x28), com o pivo no suporte.</summary>
@@ -627,6 +502,10 @@ public static class ArteImportada
     /// <summary>Uma das quatro pedras do Tiny Swords, sorteada; ~1 unidade de lado.</summary>
     public static Sprite PedraAleatoria()
         => Inteira($"TinySwords/Pedra{Random.Range(1, 5)}", 60f);
+
+    /// <summary>Dinamite acesa do Tiny Swords (6 quadros): o desenho da bomba do jogador.</summary>
+    public static Sprite[] Dinamite(float pixelsPorUnidade)
+        => Linha("TinySwords/Dinamite", 64, 0, 6, new RectInt(0, 0, 64, 64), new Vector2(34f, 28f), pixelsPorUnidade);
 
     /// <summary>A dinamite parada do Tiny Swords, como icone de bomba (~1 unidade).</summary>
     public static Sprite BombaDeDinamite

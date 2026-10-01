@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Inimigo corpo a corpo com arte importada: corre atras do jogador e, chegando perto,
-/// ergue a arma e golpeia a frente. Usado pelo goblin da tocha (Tiny Swords, com golpe
+/// ergue a arma e golpeia a frente. Usado pelo orc e pelo esqueleto guerreiro (com golpe
 /// pro lado, pra baixo e pra cima) e pelo esqueleto da espada (Enemy Animations Set).
 ///
 ///   Agindo      -> persegue

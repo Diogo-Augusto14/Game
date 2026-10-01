@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Base dos inimigos com arte do Tiny Swords (goblins, barril, arqueiro). Guarda a
+/// Base dos inimigos com arte animada (Tiny RPG). Guarda a
 /// animacao, troca a morte encolhida pela animacao de morte (ou uma caveira), e tem a ajuda de
 /// manter distancia que os de longe usam.
 /// </summary>

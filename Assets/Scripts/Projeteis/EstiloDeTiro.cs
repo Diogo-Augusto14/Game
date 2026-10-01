@@ -50,7 +50,6 @@ public static class EstilosDeTiro
         { "Necromante", EstiloDeTiro.MaldicaoTeleguiada },
         { "Sentinela", EstiloDeTiro.BalaDeCanhao },        // cavaleiro do canhao
         { "Monstro de sangue", EstiloDeTiro.GotaDeSangue },
-        { "Arqueiro", EstiloDeTiro.FlechaGoblin },
         { "Demonio arqueiro", EstiloDeTiro.FlechaDemoniaca },
         { "Esqueleto arqueiro", EstiloDeTiro.FlechaDeOsso },
         { "Chefe", EstiloDeTiro.Pedra },                   // golem

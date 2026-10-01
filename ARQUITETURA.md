@@ -47,7 +47,7 @@ removido do projeto.
 | `TopDown/AtiradorTopDown.cs` | Dano, alcance, cadência, velocidade do tiro; o desenho do tiro vem do herói |
 | `TopDown/Lagrima.cs` | O projétil: voa até o alcance, bate em `IDanificavel` ou parede e estoura |
 | `TopDown/Herois.cs` | Os heróis jogáveis e os números de cada um. Cavaleiro, templário, espadachim e machadeiro (`OndaDeCorte`) disparam ondas de corte que atravessam inimigos e golpeiam em combo (ataque 1, 2 e 3 da folha) |
-| `TopDown/Progresso.cs` | O que fica salvo entre partidas (PlayerPrefs): vitórias e heróis liberados. Só o Arqueiro Azul começa livre; os outros saem vencendo chefes e zerando (condições em `Herois.cs`). `Tools ▸ Jogo ▸ Apagar progresso salvo` bloqueia tudo de novo |
+| `TopDown/Progresso.cs` | O que fica salvo entre partidas (PlayerPrefs): vitórias e heróis liberados. Só o Arqueiro começa livre; os outros saem vencendo chefes e zerando (condições em `Herois.cs`). `Tools ▸ Jogo ▸ Apagar progresso salvo` bloqueia tudo de novo |
 | `TopDown/BootstrapTopDown.cs` | `CriarJogador` (usado pelo `Andar`) e a sala de treino |
 | `combate/Vida.cs` | Vida, dano, invencibilidade e empurrão de tudo que apanha |
 | `Jogador/Entrada.cs` | Teclado (WASD e setas separados) |
@@ -84,13 +84,10 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `TiroDaSala.cs` | Projétil dos dois lados (inimigo acerta só o jogador e vice-versa) |
 | `InimigoDemonio.cs` | Demônio (arte importada): persegue, ergue a espada e corta à frente |
 | `InimigoDeSangue.cs` | Monstro de Sangue (arte importada): lento, espirra um anel de gotas |
-| `InimigoComArte.cs` | Base dos inimigos do Tiny Swords: animação, caveira ao morrer, manter distância |
-| `InimigoDeGolpe.cs` | Corpo a corpo com arte: goblin da tocha (golpe pro lado, pra cima ou pra baixo) e esqueleto da espada |
-| `InimigoEsqueletoFoice.cs` | Esqueleto da foice: lento; perto, gira a foice duas vezes em volta de si |
-| `InimigoVampiro.cs` | Vampiro: se encolhe na capa e dá um bote; se acerta, suga vida e se cura |
-| `InimigoGoblinDinamite.cs` | Goblin da dinamite: fica longe e joga dinamite (`DinamiteLancada.cs`) onde o jogador está; um círculo vermelho avisa onde cai |
-| `InimigoBarril.cs` | Barril de TNT: parece um barril parado; o goblin sai, corre até o jogador, acende o pavio e explode. Morto a tiro, explode na hora |
-| `InimigoArqueiro.cs` | Arqueiro sombrio: mantém distância, puxa o arco e solta uma flecha reta. `UsarMira`: esqueleto arqueiro (`Alinhada`) corre pra mesma linha/coluna do jogador e só atira dali, reto pelo corredor; demônio arqueiro (`Leque`) solta três flechas abertas |
+| `InimigoComArte.cs` | Base dos inimigos com arte animada: animação, caveira ao morrer, manter distância |
+| `InimigoDeGolpe.cs` | Corpo a corpo com arte: orc, esqueleto guerreiro e a base dos lutadores com jeito próprio |
+| `InimigoEsqueletoFoice.cs` | Demônia da foice: perto, gira a foice duas vezes em volta de si |
+| `InimigoArqueiro.cs` | Arqueiros: puxam o arco e soltam flecha. `UsarMira`: esqueleto arqueiro (`Alinhada`) corre pra mesma linha/coluna do jogador e só atira dali, reto pelo corredor; demônio arqueiro (`Leque`) solta três flechas abertas |
 
 | `InimigoSaltador.cs` | Gosma: pula atrás do jogador. `VirarGeleia`: pula sem rumo, mais vezes e mais curto. Os dois sem animação de ataque (só pulam) |
 | `InimigoBruxo.cs` | Bruxo: aparece, solta um leque de 3 orbes, some (intangível) e reaparece noutro ponto perto do jogador |
@@ -143,9 +140,9 @@ Cada espécie é de **um mundo só** (nenhuma se repete entre listas, e nada vem
 
 | Mundo | Tema | Inimigos (os três primeiros são os básicos) |
 |---|---|---|
-| 1 | Porão | goblin da tocha, gosma, morceguinho, geleia, bolha, barril, morcego, arqueiro sombrio, goblin da dinamite |
-| 2 | Catacumbas | orc, lobisomem, cavaleiro da lança, orc blindado, cavaleiro do escudo, minotauro, orc montado, urso, cavaleiro canhão, orc de elite |
-| 3 | Cripta | esqueleto, esqueleto guerreiro, esqueleto da foice, esqueleto arqueiro, vampiro, fogo-fátuo, bruxo, esqueleto blindado, esqueleto do espadão, necromante |
+| 1 | Porão | orc, gosma, morceguinho, geleia, bolha, morcego, orc blindado |
+| 2 | Catacumbas | lobisomem, cavaleiro da lança, cavaleiro do escudo, minotauro, orc montado, urso, cavaleiro canhão, orc de elite |
+| 3 | Cripta | esqueleto guerreiro, esqueleto blindado, fogo-fátuo, esqueleto arqueiro, bruxo, esqueleto do espadão, necromante |
 | 4 (último) | Abismo | demônio, cão infernal, demônio das lâminas, demônio do tridente, demônio arqueiro, demônia, demônia da foice, monstro de sangue |
 
 Chefes, salas especiais e desbloqueios não mudam com o tema. A sala de desafio usa a
@@ -164,13 +161,12 @@ preta (`Sala.Coberta`) que esconde tudo o que não é a sala atual.
 Cada sala comum tem uma **espécie dominante** e, quase sempre, uma ou duas de apoio
 (`Andar.MontarBando`): a dominante leva de 55% a 80% do orçamento da sala (`inimigosPorSala`, mais
 os extras da fase), as de apoio o resto, e o número de cada uma sai do custo do bicho
-(`CustoNoBando`): bicho fraco vem em mais, pesado em menos. Barril, goblin da dinamite, necromante e
+(`CustoNoBando`): bicho fraco vem em mais, pesado em menos. Necromante e
 sentinela têm teto por sala (`MaximoNaSala`). Cada um nasce num ponto seu, longe das portas e dos
 outros, com um pouco mais ou menos de velocidade.
 
 Movimento: quem persegue contorna pedra, bloco e buraco por um mapa de distâncias nos ladrilhos da
-sala (`Sala.ProximoPasso`, via `InimigoDeSala.PeloCaminho`); quem atira (bruxo, arqueiros, goblin da
-dinamite...) passeia pela sala entre um tiro e outro (`InimigoDeSala.Passear`) e só recua quando o
+sala (`Sala.ProximoPasso`, via `InimigoDeSala.PeloCaminho`); quem atira (bruxo, arqueiros...) passeia pela sala entre um tiro e outro (`InimigoDeSala.Passear`) e só recua quando o
 jogador chega perto demais.
 
 ---
@@ -223,20 +219,19 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | Pasta | Pacote | Onde aparece |
 |---|---|---|
 | `Personagens/*` (20 bichos) e `Personagens/Projeteis` | Tiny RPG Character Asset Pack 02 (versão com sombra quando existe) | Todos os inimigos antigos (perseguidor = cão infernal, atirador = bruxo, investidor = minotauro, saltador = gosma, sentinela = cavaleiro do canhão, divisor = bolha), os chefes (golem, demônio do martelo, monstro-olho), o vendedor da loja e as variações `Morcego`, `CavaleiroLanca`, `CavaleiroEscudo`, `DemonioTridente`, `DemonioLaminas`, `DemonioArqueiro`, `Demonia`, `FogoFatuo`, `DemoniaFoice`; do Pack 01 v2.0: `Orc`, `OrcBlindado`, `OrcElite`, `OrcMontado`, `EsqueletoGuerreiro`, `EsqueletoBlindado`, `EsqueletoEspadao`, `EsqueletoArqueiro`, `Geleia`, `Morceguinho`, `Lobisomem`, `Urso` e `Necromante`. Animados por `Animacao/AnimacaoDePersonagem.cs`, que toca o ataque sozinho no telégrafo |
-| `Personagens/Herois/*` e os tiros `FlechaDoSoldado`, `FlechaDoArqueiro`, `Dardo`, `BolaDeFogo`, `Cristais` | Tiny RPG Character Asset Pack 01 v2.0 | Os 9 heróis jogáveis (soldado, cavaleiro, templário, lanceiro, espadachim, machadeiro, arqueiro, mago, padre). `TopDown/Herois.cs` guarda vida, velocidade e tiro de cada um; o menu (`UI/TelaDeInicio.cs`) escolhe com esquerda/direita; o padre cura sozinho (`TopDown/CuraDoHeroi.cs`) |
+| `Personagens/Herois/*` e os tiros `FlechaDoSoldado`, `FlechaDoArqueiro`, `Dardo`, `BolaDeFogo`, `Cristais` | Tiny RPG Character Asset Pack 01 v2.0 | Os 9 heróis jogáveis (arqueiro, que começa livre, soldado, cavaleiro, templário, lanceiro, espadachim, machadeiro, mago, padre). `TopDown/Herois.cs` guarda vida, velocidade e tiro de cada um; o menu (`UI/TelaDeInicio.cs`) escolhe com esquerda/direita; o padre cura sozinho (`TopDown/CuraDoHeroi.cs`) |
 | `InterfacePixel` | Pixel UI pack 3 | Corações da vida, barras (vermelha/amarela) do chefe, placa de preço da loja |
 | `InterfaceDragao` | Tiny RPG Dragon Regalia GUI (CC0) | Molduras douradas do menu/pausa/fim de jogo, faixas de título e do aviso de andar, botões dos menus, ícones redondos de configurações e de sair, setas e ponteiro, moldura da barra do chefe, cursor do mouse (`ArteDaInterface.cs`) |
 | `Fontes` | Jersey 15 e Jacquard 12 (Google Fonts, licença OFL: `LICENCA-*.txt` do lado) | Jersey 15 em todo texto do jogo (números bem legíveis; o arquivo tem o unitsPerEm diminuído pra ficar do tamanho da fonte antiga); Jacquard 12 (gótica pixelada) nos títulos grandes: nome do jogo, Pausado, Você morreu, Configurações (`UI/FonteDoJogo.cs`) |
 | `Teclas` | Controllers and Keyboard (Vryell) | Desenho das teclas nas dicas de controle do menu, da pausa, do fim de jogo e da HUD (`TelaSimples.LinhaDeTeclas`, `IconeDeTecla`) |
 | `Sons` (os `.wav`) | Universal UI Soundpack (Nathan Gibson, CC BY 4.0: crédito no menu) | Sons de menu: navegar, confirmar, abrir/fechar pausa, herói bloqueado, herói liberado, aviso de fase |
 | `Sons` (os `.ogg`) e `Musica` | Feitos pro jogo; vozes e monstros do Freedoom (BSD); músicas gravadas no soundfont MuseScore General (MIT) | Os efeitos de jogo e as 10 músicas (seção 10). Créditos e licenças em `Assets/StreamingAssets/CREDITOS-AUDIO.txt`, que vai junto no build |
-| `Masmorra/Esqueleto`, `EsqueletoFoice`, `Vampiro` | Enemy Animations Set (tiras de 32×32) | Inimigos `Esqueleto`, `EsqueletoFoice` e `Vampiro`, com a própria animação de morte |
 | `Masmorra/Tocha`, `Candelabro`, `Objetos` | 2D Dungeon Asset Pack v5.2 e 2D Pixel Dungeon Asset Pack v2.0 | Tochas acesas na parede de cima de toda sala, candelabro num canto, caveira e ossos entre os enfeites de chão |
 | `Masmorra/Chao`, `Parede`, `Portao`, `Espinhos`, `Ladrilhos` | 2D Dungeon Asset Pack v5.2 | Chão e tijolos das salas (a cor do andar só tinge de leve), portão de grade nas portas e na tranca, espinhos, buraco do alçapão. Da folha `Objetos`: frasco (coração), moeda, chave, altar do pedestal, mesas da loja, estandartes das portas especiais, gema do tiro dos inimigos e o ícone de cada item passivo |
 | `Efeitos/Poeira`, `ExplosaoPequena`, `Respingo`, `Chama` e `Personagens/Projeteis/MagiaVerde` | Tiny Swords Free Pack (Particle FX) e Tiny RPG Pack 01 v2.0 (magia do necromante) | Impacto e rastro das flechas especiais e dos tiros dos inimigos (seção 9) |
 | `Masmorra/Bau`, `ChaveDourada` e `Masmorra/BauDeFerro` | 2D Dungeon Asset Pack v5.2 (items_animation) e 2D Pixel Dungeon Asset Pack v2.0 (chest e chest_open juntos numa tira) | Baú de madeira abrindo, chave dourada girando que o chefe deixa (`Itens/ChaveDoChefe.cs`) e baú de ferro trancado respirando e abrindo com brilho (`Itens/Bau.cs`) |
 | `Masmorra/Temas` | 2D Pixel Dungeon Asset Pack v2.0 e 2D Dungeon Asset Pack v5.2 (ladrilhos recortados e juntados) | Chão e parede de cada tema de andar (`Andar/TemaDoAndar.cs`): `ChaoPorao`/`ParedePorao` (tijolos marrons do v2.0), `ChaoCripta`/`ParedeCripta` (laje rachada e friso azul do v5.2), `ChaoAbismo`/`ParedeAbismo` (pedra lisa e friso vermelho do v5.2) e a `Runa` vermelha do chão do Abismo. As Catacumbas usam o `Chao`/`Parede` padrão |
-| `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Goblins da tocha e da dinamite, barril de TNT, arqueiro sombrio, flecha, dinamite, explosão (bomba do jogador também), caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`); o jogador é o arqueiro azul (`TopDown/ArqueiroDoJogador.cs`) e atira flechas; pedras das salas; a dinamite é a bomba |
+| `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Flecha, dinamite (a bomba do jogador), explosão, caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`); pedras das salas. Nenhum personagem: inimigos e heróis são todos do Tiny RPG |
 
 ### Menus
 
@@ -340,8 +335,7 @@ certo; os outros variam um pouco o tom pra não cansar.
 - Cada estilo de tiro inimigo tem o seu disparo (`EstilosDeTiro.SomDoDisparo`): flecha,
   fogo, canhão, gosma ou magia. O mago e o padre atiram com som de magia
   (`AtiradorTopDown.DefinirSomDoTiro`).
-- Também têm som: o tiro do herói estourando, o pavio da bomba e do barril, o goblin
-  jogando a dinamite, a mordida do vampiro, o feitiço do necromante, o alçapão abrindo, o
+- Também têm som: o tiro do herói estourando, o pavio da bomba, o feitiço do necromante, o alçapão abrindo, o
   Prego Enferrujado, as curas e a morte do herói.
 
 Os arquivos de som e música foram gerados pelos scripts de `Ferramentas/Audio` (síntese,

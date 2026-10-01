@@ -14,13 +14,6 @@ public enum TipoDeInimigo
     ChefeFinal,
     Demonio,
     MonstroDeSangue,
-    GoblinTocha,
-    GoblinDinamite,
-    Barril,
-    Arqueiro,
-    Esqueleto,
-    EsqueletoFoice,
-    Vampiro,
     Morcego,
     CavaleiroLanca,
     CavaleiroEscudo,
@@ -93,8 +86,6 @@ public static class FabricaDeInimigos
             case TipoDeInimigo.ChefeOrc:
                 return Som.MorteChefe;
 
-            case TipoDeInimigo.Esqueleto:
-            case TipoDeInimigo.EsqueletoFoice:
             case TipoDeInimigo.EsqueletoGuerreiro:
             case TipoDeInimigo.EsqueletoBlindado:
             case TipoDeInimigo.EsqueletoEspadao:
@@ -123,7 +114,6 @@ public static class FabricaDeInimigos
             case TipoDeInimigo.Urso:
             case TipoDeInimigo.Morcego:
             case TipoDeInimigo.Morceguinho:
-            case TipoDeInimigo.Vampiro:
                 return Som.MorteFera;
 
             default:
@@ -239,53 +229,6 @@ public static class FabricaDeInimigos
                 monstro.UsarArte(monstro.GetComponent<AnimacaoDePersonagem>(), clipes);
                 monstro.JeitoDeChegar = InimigoDeSala.Aproximacao.Pulsante;
                 return monstro;
-            }
-
-            // Arte do Tiny Swords. Sem a imagem, cada um vira uma bola da sua cor.
-            case TipoDeInimigo.GoblinTocha:
-            {
-                InimigoDeGolpe goblin = ComArte<InimigoDeGolpe>("Goblin da tocha", posicao, pai, 0.3f, 35f,
-                    ArteImportada.GoblinDaTocha(InimigoComArte.PixelsDoTinySwords), new Color(0.75f, 0.3f, 0.15f));
-                goblin.JeitoDeChegar = InimigoDeSala.Aproximacao.Ziguezague;
-                return goblin;
-            }
-
-            case TipoDeInimigo.GoblinDinamite:
-                return ComArte<InimigoGoblinDinamite>("Goblin da dinamite", posicao, pai, 0.32f, 30f,
-                    ArteImportada.GoblinDaDinamite(InimigoComArte.PixelsDoTinySwords), new Color(0.3f, 0.6f, 0.3f));
-
-            case TipoDeInimigo.Barril:
-                return ComArte<InimigoBarril>("Barril", posicao, pai, 0.32f, 20f,
-                    ArteImportada.Barril(InimigoComArte.PixelsDoTinySwords), new Color(0.7f, 0.25f, 0.2f));
-
-            case TipoDeInimigo.Arqueiro:
-                return ComArte<InimigoArqueiro>("Arqueiro", posicao, pai, 0.3f, 30f,
-                    ArteImportada.Arqueiro(InimigoComArte.PixelsDoTinySwords), new Color(0.3f, 0.3f, 0.4f));
-
-            // Enemy Animations Set: quadros de 32 px com o corpo (uns 16 px) no meio.
-            case TipoDeInimigo.Esqueleto:
-            {
-                InimigoDeGolpe esqueleto = ComArte<InimigoDeGolpe>("Esqueleto", posicao, pai, 0.3f, 35f,
-                    ArteImportada.Masmorra("Esqueleto", new Vector2(15f, 22f), PixelsDaMasmorra), new Color(0.85f, 0.82f, 0.7f));
-                esqueleto.Ajustar(1.7f, 6, 0.5f, 15f);
-                esqueleto.JeitoDeChegar = InimigoDeSala.Aproximacao.Cambaleante;
-                return esqueleto;
-            }
-
-            case TipoDeInimigo.EsqueletoFoice:
-            {
-                InimigoEsqueletoFoice foice = ComArte<InimigoEsqueletoFoice>("Esqueleto da foice", posicao, pai, 0.32f, 45f,
-                    ArteImportada.Masmorra("EsqueletoFoice", new Vector2(16f, 22f), PixelsDaMasmorra), new Color(0.75f, 0.72f, 0.65f));
-                foice.JeitoDeChegar = InimigoDeSala.Aproximacao.Arrasto;
-                return foice;
-            }
-
-            case TipoDeInimigo.Vampiro:
-            {
-                InimigoVampiro vampiro = ComArte<InimigoVampiro>("Vampiro", posicao, pai, 0.3f, 40f,
-                    ArteImportada.Masmorra("Vampiro", new Vector2(13f, 21f), PixelsDaMasmorra), new Color(0.4f, 0.4f, 0.55f));
-                vampiro.JeitoDeChegar = InimigoDeSala.Aproximacao.Revoada;
-                return vampiro;
             }
 
             // O resto do Tiny RPG: cada especie com o seu jeito de lutar.
@@ -534,7 +477,7 @@ public static class FabricaDeInimigos
 
         obj.SetActive(true);
 
-        // Borda clara de 1 pixel: bicho escuro (morcego roxo, vampiro) nao some no chao.
+        // Borda clara de 1 pixel: bicho escuro (morcego roxo, demonios) nao some no chao.
         ContornoClaro.Criar(desenho, CorDoContorno);
         return inimigo;
     }

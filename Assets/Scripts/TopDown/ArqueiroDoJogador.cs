@@ -2,8 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// Anima o jogador com o heroi escolhido (<see cref="Herois"/>): parado ou correndo conforme
-/// a velocidade, o golpe a cada disparo do <see cref="AtiradorTopDown"/> (o arqueiro azul
-/// tem tiro pra cima, pro lado e pra baixo; os do Tiny RPG, so de lado) e a morte.
+/// a velocidade, o golpe a cada disparo do <see cref="AtiradorTopDown"/> (o golpe e de lado,
+/// virado pro rumo do tiro) e a morte.
 /// Os herois de espada alternam os ataques da folha a cada golpe (combo de 2 ou 3), e no
 /// dash o heroi corre acelerado (o rastro e a poeira sao do <see cref="RastroDoDash"/>).
 ///

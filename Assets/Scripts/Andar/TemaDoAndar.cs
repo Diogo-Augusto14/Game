@@ -98,7 +98,7 @@ public sealed class TemaDoAndar
     /// Um dos tres bichos mais simples do mundo: o que os chefes chamam pra ajudar. Assim nem
     /// o lacaio de chefe traz bicho de outro mundo.
     /// </summary>
-    public static TipoDeInimigo Lacaio() => Atual != null ? Atual.SortearInimigo(0f) : TipoDeInimigo.GoblinTocha;
+    public static TipoDeInimigo Lacaio() => Atual != null ? Atual.SortearInimigo(0f) : TipoDeInimigo.Orc;
 
     /// <summary>
     /// Um inimigo comum do tema, sorteado pelo peso, so entre a primeira parte da lista
@@ -143,13 +143,12 @@ public sealed class TemaDoAndar
         ChanceDeCandelabro = 0.3f,
         inimigos = new[]
         {
-            // Mundo 1: goblins, gosmas e morcegos. Os primeiros tres sao os mais simples (e os
+            // Mundo 1: orcs, gosmas e morcegos. Os primeiros tres sao os mais simples (e os
             // que os chefes chamam).
-            (TipoDeInimigo.GoblinTocha, 3f), (TipoDeInimigo.Saltador, 2.5f),
-            (TipoDeInimigo.Morceguinho, 2f), (TipoDeInimigo.Geleia, 2f),
-            (TipoDeInimigo.Divisor, 1.5f), (TipoDeInimigo.Barril, 1.5f),
-            (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.Arqueiro, 1.5f),
-            (TipoDeInimigo.GoblinDinamite, 1.5f),
+            (TipoDeInimigo.Orc, 3f), (TipoDeInimigo.Saltador, 2.5f),
+            (TipoDeInimigo.Morceguinho, 2.5f), (TipoDeInimigo.Geleia, 2f),
+            (TipoDeInimigo.Divisor, 1.5f), (TipoDeInimigo.Morcego, 1.5f),
+            (TipoDeInimigo.OrcBlindado, 1.5f),
         },
     };
 
@@ -168,11 +167,10 @@ public sealed class TemaDoAndar
         ChanceDeOsso = 0.35f,
         inimigos = new[]
         {
-            // Mundo 2: orcs, feras e cavaleiros.
-            (TipoDeInimigo.Orc, 3f), (TipoDeInimigo.Lobisomem, 2f),
-            (TipoDeInimigo.CavaleiroLanca, 2f), (TipoDeInimigo.OrcBlindado, 1.5f),
-            (TipoDeInimigo.CavaleiroEscudo, 1.5f), (TipoDeInimigo.Investidor, 1.5f),
-            (TipoDeInimigo.OrcMontado, 1.5f), (TipoDeInimigo.Urso, 1f),
+            // Mundo 2: feras e cavaleiros.
+            (TipoDeInimigo.Lobisomem, 3f), (TipoDeInimigo.CavaleiroLanca, 2.5f),
+            (TipoDeInimigo.CavaleiroEscudo, 2f), (TipoDeInimigo.Investidor, 2f),
+            (TipoDeInimigo.OrcMontado, 1.5f), (TipoDeInimigo.Urso, 1.5f),
             (TipoDeInimigo.Sentinela, 1f), (TipoDeInimigo.OrcElite, 1f),
         },
     };
@@ -194,11 +192,10 @@ public sealed class TemaDoAndar
         inimigos = new[]
         {
             // Mundo 3: mortos-vivos e magia.
-            (TipoDeInimigo.Esqueleto, 3f), (TipoDeInimigo.EsqueletoGuerreiro, 2f),
-            (TipoDeInimigo.EsqueletoFoice, 2f), (TipoDeInimigo.EsqueletoArqueiro, 2f),
-            (TipoDeInimigo.Vampiro, 1.5f), (TipoDeInimigo.FogoFatuo, 1.5f),
-            (TipoDeInimigo.Atirador, 1.5f), (TipoDeInimigo.EsqueletoBlindado, 1.5f),
-            (TipoDeInimigo.EsqueletoEspadao, 1.5f), (TipoDeInimigo.Necromante, 1f),
+            (TipoDeInimigo.EsqueletoGuerreiro, 3f), (TipoDeInimigo.EsqueletoBlindado, 2f),
+            (TipoDeInimigo.FogoFatuo, 2f), (TipoDeInimigo.EsqueletoArqueiro, 2f),
+            (TipoDeInimigo.Atirador, 1.5f), (TipoDeInimigo.EsqueletoEspadao, 1.5f),
+            (TipoDeInimigo.Necromante, 1f),
         },
     };
 

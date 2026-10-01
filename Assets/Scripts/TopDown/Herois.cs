@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Os personagens jogaveis: o arqueiro azul do Tiny Swords e os nove herois do Tiny RPG
+/// Os personagens jogaveis: os oito herois do Tiny RPG (o Arqueiro comeca livre)
 /// Pack 01. Cada um tem vida, velocidade e um tiro proprios, como os personagens do Isaac.
 ///
 /// O menu inicial escolhe (<see cref="Escolher"/>) e aplica no jogador que ja esta na sala;
@@ -16,7 +16,7 @@ public static class Herois
     {
         public string Nome;
 
-        /// <summary>Pasta em Personagens/Herois. Null = o arqueiro azul do Tiny Swords.</summary>
+        /// <summary>Pasta em Personagens/Herois.</summary>
         public string Pasta;
 
         public string Descricao;
@@ -69,9 +69,6 @@ public static class Herois
     /// <summary>Pixels por unidade dos herois do Tiny RPG: o corpo (uns 20 px) fica com ~0.8 unidade.</summary>
     private const float PixelsDoHeroi = 20f;
 
-    /// <summary>Pixels por unidade do arqueiro azul: o corpo (uns 75 px) fica com ~1 unidade na escala 0.8.</summary>
-    private const float PixelsDoArqueiroAzul = 60f;
-
     /// <summary>Pixels por unidade da onda de corte: a meia-lua (uns 29 px) fica com ~0.85 unidade no tamanho 0.45.</summary>
     private const float PixelsDaOnda = 16f;
 
@@ -82,8 +79,10 @@ public static class Herois
     {
         new Heroi
         {
-            Nome = "Arqueiro Azul", Pasta = null,
-            Descricao = "Equilibrado. Flechas em linha reta.",
+            Nome = "Arqueiro", Pasta = "Arqueiro",
+            Descricao = "Pouca vida, mas atira rápido e longe.",
+            Vida = 80f, Velocidade = 4.8f, Dano = 3f, Cadencia = 4f, Alcance = 8.5f,
+            VelocidadeDoTiro = 11f, TamanhoDoTiro = 0.26f, TipoDoTiro = Tiro.FlechaDoArqueiro,
         },
         new Heroi
         {
@@ -138,14 +137,6 @@ public static class Herois
         },
         new Heroi
         {
-            Nome = "Arqueiro", Pasta = "Arqueiro",
-            LiberaNoMundo = 2,
-            Descricao = "Pouca vida, mas atira rápido e longe.",
-            Vida = 80f, Velocidade = 4.8f, Dano = 3f, Cadencia = 4f, Alcance = 8.5f,
-            VelocidadeDoTiro = 11f, TamanhoDoTiro = 0.26f, TipoDoTiro = Tiro.FlechaDoArqueiro,
-        },
-        new Heroi
-        {
             Nome = "Mago", Pasta = "Mago",
             LiberaComVitorias = 1,
             Descricao = "Só três corações, mas bolas de fogo fortes.",
@@ -186,9 +177,7 @@ public static class Herois
     /// <summary>As animacoes do heroi, ou null se a arte nao estiver no projeto.</summary>
     public static ClipesDePersonagem Clipes(Heroi heroi)
     {
-        return heroi.Pasta == null
-            ? ArteImportada.ArqueiroAzul(PixelsDoArqueiroAzul)
-            : ArteImportada.Personagem("Herois/" + heroi.Pasta, PixelsDoHeroi);
+        return ArteImportada.Personagem("Herois/" + heroi.Pasta, PixelsDoHeroi);
     }
 
     /// <summary>O desenho do tiro. <paramref name="apontar"/> = gira pro rumo (flechas e bola de fogo).</summary>
@@ -296,8 +285,7 @@ public static class Herois
         if (animacao == null)
             animacao = jogador.AddComponent<ArqueiroDoJogador>();
 
-        // O arqueiro azul comeca o tiro com o arco puxado; os do Tiny RPG no meio do golpe.
-        // Os de espada alternam os ataques da folha (combo).
-        animacao.Configurar(clipes, corpo, heroi.Pasta == null ? 3 : -1, heroi.OndaDeCorte >= 0);
+        // O tiro sai no meio do golpe; os de espada alternam os ataques da folha (combo).
+        animacao.Configurar(clipes, corpo, -1, heroi.OndaDeCorte >= 0);
     }
 }

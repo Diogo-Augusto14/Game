@@ -1015,9 +1015,7 @@ public class Andar : MonoBehaviour
 
             case TipoDeInimigo.Morcego:
             case TipoDeInimigo.Saltador:
-            case TipoDeInimigo.GoblinTocha:
             case TipoDeInimigo.EsqueletoGuerreiro:
-            case TipoDeInimigo.Esqueleto:
             case TipoDeInimigo.Perseguidor:
                 return 0.75f;
 
@@ -1048,9 +1046,7 @@ public class Andar : MonoBehaviour
         switch (tipo)
         {
             case TipoDeInimigo.Sentinela: return Mathf.Max(1, maximoDeSentinelas);
-            case TipoDeInimigo.Barril: return 3;
             case TipoDeInimigo.Necromante: return 2;
-            case TipoDeInimigo.GoblinDinamite: return 3;
             default: return MaximoNoBando;
         }
     }
