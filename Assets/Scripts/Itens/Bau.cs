@@ -61,7 +61,7 @@ public class Bau : MonoBehaviour
         sr.color = primeiro != null ? Color.white
             : trancado ? new Color(0.45f, 0.47f, 0.52f) : new Color(0.5f, 0.33f, 0.18f);
         sr.sortingOrder = 4;
-        obj.transform.localScale = Vector3.one * (primeiro != null ? 1.2f : 0.8f);
+        obj.transform.localScale = Vector3.one * (primeiro != null ? 1f : 0.8f);
 
         // Solido (nao da pra atravessar) e um sensor um pouco maior pra abrir encostando.
         GameObject corpo = new GameObject("Corpo");

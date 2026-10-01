@@ -25,18 +25,15 @@ public class LaminaGiratoria : MonoBehaviour
     private float sentido = 1f;
     private float sumindo = -1f;
     private Transform desenho;
+    private float escalaDaSerra = 1f;
 
     /// <summary>Uma serra entre <paramref name="a"/> e <paramref name="b"/> (relativos ao centro da sala).</summary>
     public static LaminaGiratoria Criar(Sala sala, Vector2 a, Vector2 b, float comecoDoCaminho)
     {
         Vector2 centro = sala.transform.position;
 
-        // Trilho: faixa escura de ponta a ponta.
-        Vector2 meio = (a + b) * 0.5f;
-        Vector2 eixo = b - a;
-        bool deitado = Mathf.Abs(eixo.x) >= Mathf.Abs(eixo.y);
-        Vector2 tamanho = deitado ? new Vector2(Mathf.Abs(eixo.x) + 0.6f, 0.16f) : new Vector2(0.16f, Mathf.Abs(eixo.y) + 0.6f);
-        FormasDaSala.Desenho(sala.transform, "Trilho", Fosso.Pixel(), new Color(0.08f, 0.06f, 0.06f, 0.75f), meio, tamanho, 2);
+        // Trilho do Old Prison: uma peca por ladrilho, com as pontas fechando. Sem a arte, faixa escura.
+        PorTrilho(sala, a, b);
 
         GameObject obj = new GameObject("Lamina giratoria");
         obj.transform.SetParent(sala.transform, false);
@@ -64,7 +61,10 @@ public class LaminaGiratoria : MonoBehaviour
         d.transform.SetParent(transform, false);
         d.transform.localScale = Vector3.one * Raio * 2f;
         SpriteRenderer sr = d.AddComponent<SpriteRenderer>();
-        sr.sprite = Serra();
+        Sprite daPrisao = ArteImportada.SerraDaPrisao;
+        sr.sprite = daPrisao != null ? daPrisao : Serra();
+        d.transform.localScale = daPrisao != null ? Vector3.one * 1.05f : d.transform.localScale;
+        escalaDaSerra = d.transform.localScale.x;
         sr.sortingOrder = 8;
         desenho = d.transform;
     }
@@ -76,7 +76,7 @@ public class LaminaGiratoria : MonoBehaviour
         if (sumindo >= 0f)
         {
             sumindo += Time.fixedDeltaTime;
-            desenho.localScale = Vector3.one * Raio * 2f * Mathf.Clamp01(1f - sumindo / 0.5f);
+            desenho.localScale = Vector3.one * escalaDaSerra * Mathf.Clamp01(1f - sumindo / 0.5f);
 
             if (sumindo >= 0.5f)
                 Destroy(gameObject);
@@ -114,6 +114,32 @@ public class LaminaGiratoria : MonoBehaviour
         Vector2 direcao = (Vector2)quem.transform.position - rb.position;
         vida.TomarDano(new DanoInfo(dano, direcao, 5f, rb.position, gameObject));
         Sons.Tocar(Som.Corte, 0.8f);
+    }
+
+    private static void PorTrilho(Sala sala, Vector2 a, Vector2 b)
+    {
+        Vector2 eixo = b - a;
+        bool deitado = Mathf.Abs(eixo.x) >= Mathf.Abs(eixo.y);
+        Sprite[] pecas = ArteImportada.TrilhoDaPrisao;
+
+        if (pecas == null || pecas.Length < 6)
+        {
+            Vector2 meio = (a + b) * 0.5f;
+            Vector2 tamanho = deitado ? new Vector2(Mathf.Abs(eixo.x) + 0.6f, 0.16f) : new Vector2(0.16f, Mathf.Abs(eixo.y) + 0.6f);
+            FormasDaSala.Desenho(sala.transform, "Trilho", Fosso.Pixel(), new Color(0.08f, 0.06f, 0.06f, 0.75f), meio, tamanho, 2);
+            return;
+        }
+
+        int passos = Mathf.Max(1, Mathf.RoundToInt(eixo.magnitude));
+
+        for (int i = 0; i <= passos; i++)
+        {
+            Vector2 ponto = Vector2.Lerp(a, b, i / (float)passos);
+            Sprite peca = i == 0 ? pecas[deitado ? (eixo.x > 0f ? 2 : 3) : (eixo.y > 0f ? 5 : 4)]
+                        : i == passos ? pecas[deitado ? (eixo.x > 0f ? 3 : 2) : (eixo.y > 0f ? 4 : 5)]
+                        : pecas[deitado ? 0 : 1];
+            FormasDaSala.Desenho(sala.transform, "Trilho", peca, Color.white, ponto, Vector2.one, 2);
+        }
     }
 
     /// <summary>Disco de metal com doze dentes e um furo no meio, gerado uma vez.</summary>

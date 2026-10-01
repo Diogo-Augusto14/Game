@@ -22,8 +22,8 @@ public class Pedra : MonoBehaviour
 {
     public static Pedra Criar(Transform pai, Vector2 posicaoLocal, Color cor)
     {
-        // O desenho ja e cinza sombreado; a cor e o tom da pedra de cada tema.
-        SpriteRenderer sr = FormasDaSala.Desenho(pai, "Pedra", ArteGerada.PedraSolta(), cor,
+        // Pedra do Old Prison, da paleta da sala: o tom do tema so puxa de leve.
+        SpriteRenderer sr = FormasDaSala.Desenho(pai, "Pedra", ArteGerada.PedraSolta(), Color.Lerp(Color.white, cor, 0.3f),
             posicaoLocal, Vector2.one * 1.05f, -1);
         GameObject obj = sr.gameObject;
         obj.layer = Sala.CamadaDeParede;

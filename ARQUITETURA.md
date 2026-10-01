@@ -231,7 +231,8 @@ import de cada PNG já vem no `.meta`: Sprite, filtro Point, sem compressão, se
 | `Efeitos/Poeira`, `ExplosaoPequena`, `Respingo`, `Chama` e `Personagens/Projeteis/MagiaVerde` | Tiny Swords Free Pack (Particle FX) e Tiny RPG Pack 01 v2.0 (magia do necromante) | Impacto e rastro das flechas especiais e dos tiros dos inimigos (seção 9) |
 | `Masmorra/Bau`, `ChaveDourada` e `Masmorra/BauDeFerro` | 2D Dungeon Asset Pack v5.2 (items_animation) e 2D Pixel Dungeon Asset Pack v2.0 (chest e chest_open juntos numa tira) | Baú de madeira abrindo, chave dourada girando que o chefe deixa (`Itens/ChaveDoChefe.cs`) e baú de ferro trancado respirando e abrindo com brilho (`Itens/Bau.cs`) |
 | `Masmorra/Temas` | 2D Pixel Dungeon Asset Pack v2.0 e 2D Dungeon Asset Pack v5.2 (ladrilhos recortados e juntados) | Chão e parede de cada tema de andar (`Andar/TemaDoAndar.cs`): `ChaoPorao`/`ParedePorao` (tijolos marrons do v2.0), `ChaoCripta`/`ParedeCripta` (laje rachada e friso azul do v5.2), `ChaoAbismo`/`ParedeAbismo` (pedra lisa e friso vermelho do v5.2) e a `Runa` vermelha do chão do Abismo. As Catacumbas usam o `Chao`/`Parede` padrão |
-| `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Flecha, dinamite (a bomba do jogador), explosão, caveira de morte e enfeites de chão nas salas (`Sala.Enfeitar`); pedras das salas. Nenhum personagem: inimigos e heróis são todos do Tiny RPG |
+| `Masmorra/Prisao` | Epic RPG World – Old Prison (Rafael Matos) | Pedras das salas e dos tiros de pedra (`PedraAleatoria`, `Pedra`), miudezas de chão (`EnfeiteAleatorio`), baú de madeira e baú de pedra trancado abrindo (`Bau`), serra giratória e o trilho dela (`LaminaGiratoria`), barril e caixote da loja |
+| `TinySwords` | Tiny Swords (Update 010) e Tiny Swords Free Pack, da Pixel Frog | Só efeitos e itens: flecha, dinamite (a bomba do jogador), explosão, poeira, caveira de morte e a carne. Nenhum personagem nem cenário |
 
 ### Menus
 

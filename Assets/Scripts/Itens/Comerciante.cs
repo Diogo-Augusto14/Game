@@ -91,15 +91,16 @@ public class Comerciante : MonoBehaviour
             FormasDaSala.Desenho(transform, "Moedas", moeda, Color.white, new Vector2(-0.45f, 0.2f), Vector2.one * 0.55f, 10);
 
         // Enfeites de mercador dos lados.
-        Sprite barril = ArteImportada.Objeto(4, 4);
+        // Barril e caixote do Old Prison, no tamanho do ladrilho da sala.
+        Sprite barril = ArteImportada.BarrilDaPrisao;
 
         if (barril != null)
-            FormasDaSala.Desenho(transform, "Barril", barril, Color.white, new Vector2(-1.5f, 0.1f), Vector2.one * 1.1f, 7);
+            FormasDaSala.Desenho(transform, "Barril", barril, Color.white, new Vector2(-1.5f, -0.3f), Vector2.one, 7);
 
-        Sprite caixa = ArteImportada.Objeto(7, 2);
+        Sprite caixa = ArteImportada.CaixoteDaPrisao;
 
         if (caixa != null)
-            FormasDaSala.Desenho(transform, "Caixa", caixa, Color.white, new Vector2(1.5f, 0.1f), Vector2.one * 1.1f, 7);
+            FormasDaSala.Desenho(transform, "Caixa", caixa, Color.white, new Vector2(1.5f, -0.1f), Vector2.one, 7);
 
         // Placa de LOJA acima da cabeca.
         Placa("LOJA", new Vector2(0f, 2.05f), new Color(1f, 0.85f, 0.35f));

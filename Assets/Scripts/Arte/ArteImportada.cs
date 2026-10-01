@@ -205,13 +205,12 @@ public static class ArteImportada
         => OssoDaPrisao(enfeite) && System.Array.IndexOf(EsqueletosInteiros, System.Array.IndexOf(ossosDaPrisao, enfeite)) >= 0;
 
     /// <summary>Nomes dos enfeites de chao (cogumelos, pedrinhas, moitas, ossos).</summary>
-    private static readonly string[] Enfeites = { "01", "02", "03", "04", "05", "06", "07", "10", "14", "15" };
 
     /// <summary>
     /// Um enfeite de chao sorteado, ou null sem a arte: os do Tiny Swords (64 px = 1
     /// ladrilho) e, de vez em quando, uma caveira ou ossos da masmorra.
     /// </summary>
-    public static Sprite EnfeiteAleatorio() => EnfeiteAleatorio(2f / (Enfeites.Length + 2));
+    public static Sprite EnfeiteAleatorio() => EnfeiteAleatorio(0.5f);
 
     /// <summary>
     /// Como <see cref="EnfeiteAleatorio()"/>, com a chance de sair caveira ou ossos
@@ -226,19 +225,9 @@ public static class ArteImportada
         if (prisao != null && prisao.Length >= 25 && Random.value < Mathf.Max(chanceDeOsso, 0.5f))
             return prisao[Random.Range(0, 25)];
 
-        if (Random.value < chanceDeOsso)
-        {
-            // Objetos.png: caveira na coluna 2 da linha 3, ossos na coluna 2 da linha 4.
-            Sprite[] osso = Linha("Masmorra/Objetos", 16, Random.value < 0.5f ? 3 : 4, 1,
-                                  new RectInt(32, 0, 16, 16), new Vector2(40f, 8f), 20f);
-
-            if (osso != null)
-                return osso[0];
-        }
-
-        string nome = Enfeites[Random.Range(0, Enfeites.Length)];
-        Sprite[] um = Linha("TinySwords/Enfeites/" + nome, 64, 0, 1, new RectInt(0, 0, 64, 64), new Vector2(32f, 32f), 64f);
-        return um != null ? um[0] : null;
+        // O resto: pedrinhas, ossinhos e papeis soltos do Old Prison.
+        Sprite[] miudezas = Linha("Masmorra/Prisao/Miudezas", 32, 0, 10, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
+        return miudezas != null && miudezas.Length > 0 ? miudezas[Random.Range(0, miudezas.Length)] : null;
     }
 
     /// <summary>Tocha de parede acesa (6 quadros de 16x28), com o pivo no suporte.</summary>
@@ -362,21 +351,21 @@ public static class ArteImportada
 
     /// <summary>Bau de madeira abrindo (4 quadros de 16x16): fechado, tampa tremendo, aberto, aberto com o ouro.</summary>
     public static Sprite[] BauAbrindo
-        => Linha("Masmorra/Bau", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
+        => Linha("Masmorra/Prisao/BauDeMadeira", 128, 0, 11, new RectInt(30, 40, 68, 68), new Vector2(63f, 86f), 48f, 160);
 
-    /// <summary>Bau de ferro trancado parado (4 quadros, respirando), com o pivo no meio.</summary>
+    /// <summary>Bau de pedra do Old Prison, fechado (o trancado: pede chave).</summary>
     public static Sprite[] BauDeFerroParado
-        => Linha("Masmorra/BauDeFerro", 16, 0, 4, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
-
-    /// <summary>Bau de ferro abrindo (4 quadros, o ultimo com o brilho do tesouro).</summary>
-    public static Sprite[] BauDeFerroAbrindo
     {
         get
         {
-            Sprite[] todos = Linha("Masmorra/BauDeFerro", 16, 0, 8, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), PixelsDoLadrilho);
-            return todos != null && todos.Length >= 8 ? new[] { todos[4], todos[5], todos[6], todos[7] } : null;
+            Sprite[] todos = BauDeFerroAbrindo;
+            return todos != null && todos.Length > 0 ? new[] { todos[0] } : null;
         }
     }
+
+    /// <summary>Bau de pedra do Old Prison abrindo (16 quadros: a tampa desliza pro lado).</summary>
+    public static Sprite[] BauDeFerroAbrindo
+        => Linha("Masmorra/Prisao/BauDePedra", 169, 0, 16, new RectInt(24, 48, 120, 60), new Vector2(103f, 82f), 56f, 120);
 
     /// <summary>Chave dourada girando (8 quadros de 16x16): a chave que o chefe deixa.</summary>
     public static Sprite[] ChaveDourada
@@ -501,7 +490,33 @@ public static class ArteImportada
 
     /// <summary>Uma das quatro pedras do Tiny Swords, sorteada; ~1 unidade de lado.</summary>
     public static Sprite PedraAleatoria()
-        => Inteira($"TinySwords/Pedra{Random.Range(1, 5)}", 60f);
+    {
+        // Old Prison: doze pedras de um ladrilho cada (32 px), da mesma paleta da sala.
+        Sprite[] pedras = Linha("Masmorra/Prisao/Pedras", 32, 0, 12, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
+        return pedras != null && pedras.Length > 0 ? pedras[Random.Range(0, pedras.Length)] : null;
+    }
+
+    /// <summary>Barril do Old Prison (enfeite da loja), com o pivo no pe.</summary>
+    public static Sprite BarrilDaPrisao
+        => Unico("Masmorra/Prisao/Barril", 32, new RectInt(0, 16, 32, 48), new Vector2(16f, 60f), PixelsDaPrisao, 64);
+
+    /// <summary>Caixote do Old Prison (enfeite da loja).</summary>
+    public static Sprite CaixoteDaPrisao
+        => Unico("Masmorra/Prisao/Caixote", 32, new RectInt(0, 0, 32, 32), new Vector2(16f, 24f), PixelsDaPrisao);
+
+    /// <summary>
+    /// A serra giratoria da armadilha do Old Prison (sem sombra: ela gira inteira), com o pivo no
+    /// eixo. Uns 60 px de lamina = 1 unidade.
+    /// </summary>
+    public static Sprite SerraDaPrisao
+        => Unico("Masmorra/Prisao/Serra", 128, new RectInt(34, 22, 76, 76), new Vector2(72f, 60f), 60f);
+
+    /// <summary>
+    /// Pecas do trilho da serra (32 px = 1 ladrilho): 0 deitado, 1 em pe, 2 ponta da esquerda,
+    /// 3 ponta da direita, 4 ponta de cima, 5 ponta de baixo.
+    /// </summary>
+    public static Sprite[] TrilhoDaPrisao
+        => Linha("Masmorra/Prisao/Trilhos", 32, 0, 6, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), PixelsDaPrisao);
 
     /// <summary>Dinamite acesa do Tiny Swords (6 quadros): o desenho da bomba do jogador.</summary>
     public static Sprite[] Dinamite(float pixelsPorUnidade)
@@ -573,9 +588,15 @@ public static class ArteImportada
     public static Sprite BalaDeCanhao(float pixelsPorUnidade)
         => Unico("Personagens/Projeteis/BolaDeCanhao", 32, new RectInt(11, 12, 11, 9), new Vector2(16.5f, 16.5f), pixelsPorUnidade);
 
-    /// <summary>Uma das quatro pedras do Tiny Swords, no tamanho pedido (1 a 4).</summary>
+    /// <summary>
+    /// Uma pedra do Old Prison pros tiros de pedra (1 a 12). A pedra tem 32 px, metade das do
+    /// Tiny Swords de antes: os pixels por unidade caem pela metade pro tiro ficar do mesmo tamanho.
+    /// </summary>
     public static Sprite Pedra(int qual, float pixelsPorUnidade)
-        => Inteira($"TinySwords/Pedra{Mathf.Clamp(qual, 1, 4)}", pixelsPorUnidade);
+    {
+        Sprite[] pedras = Linha("Masmorra/Prisao/Pedras", 32, 0, 12, new RectInt(0, 0, 32, 32), new Vector2(16f, 16f), pixelsPorUnidade * 0.5f);
+        return pedras != null && pedras.Length > 0 ? pedras[Mathf.Clamp(qual, 1, pedras.Length) - 1] : null;
+    }
 
     /// <summary>Explosao pequena (Tiny Swords Free Pack, 8 quadros): a da flecha explosiva.</summary>
     public static Sprite[] ExplosaoPequena(float pixelsPorUnidade)
