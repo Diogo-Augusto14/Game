@@ -263,12 +263,12 @@ public class Sala : MonoBehaviour
         // Bandeiras do Old Prison penduradas na parede de cima, perto dos cantos.
         for (int lado = -1; lado <= 1; lado += 2)
         {
-            Sprite bandeira = ArteImportada.BandeiraDaPrisao(Random.Range(0, 7));
+            Sprite bandeira = ArteImportada.BandeiraDaPrisao(6);
 
             if (bandeira == null)
                 break;
 
-            Vector2 local = new Vector2(lado * meio.x * 0.3f, meio.y + espessuraDaParede * 0.35f);
+            Vector2 local = new Vector2(lado * meio.x * 0.62f, meio.y + espessuraDaParede * 0.35f);
             FormasDaSala.Desenho(cenario, "Bandeira", bandeira, Color.white, local, Vector2.one, 1);
         }
 

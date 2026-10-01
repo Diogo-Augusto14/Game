@@ -175,7 +175,7 @@ public sealed class TemaDoAndar
     public static readonly TemaDoAndar Abismo = new TemaDoAndar
     {
         Nome = "Abismo",
-        CorDaPedra = new Color(1f, 0.55f, 0.5f),
+        CorDaPedra = new Color(1f, 0.78f, 0.72f),
         Chao = "PrisaoChaoAbismo",
         Parede = "PrisaoParedeAbismo",
         CorDoChao = Color.white,
