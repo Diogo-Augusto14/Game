@@ -24,6 +24,7 @@ public class InimigoUrso : InimigoDeGolpe
     protected override void Awake()
     {
         base.Awake();
+        JeitoDeChegar = Aproximacao.Embalo;   // de longe vem correndo
         recargaDaPatada.Forcar(intervaloEntrePatadas * Random.Range(0.5f, 0.9f));
 
         if (desenho != null)

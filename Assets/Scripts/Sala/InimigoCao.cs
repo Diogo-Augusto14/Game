@@ -35,6 +35,10 @@ public class InimigoCao : InimigoPerseguidor
     protected override void Awake()
     {
         base.Awake();
+
+        // Cao de faro: vem em linha reta e rapido, sem o balanco de lado (o zigue-zague e do goblin).
+        zigueZague = 0f;
+        velocidade *= 1.2f;
         danoNormal = danoDeContato;
         recarga.Forcar(intervaloEntreBotes * 0.5f);
 

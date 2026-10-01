@@ -4,8 +4,9 @@ using UnityEngine;
 /// Bolha lenta que persegue o jogador e, ao morrer, se parte em duas menores e mais
 /// rapidas (que nao se partem de novo). A sala so abre quando os pedacos morrem tambem.
 ///
-/// Anda igual ao <see cref="InimigoPerseguidor"/>; a diferenca e so a morte e o
-/// "respirar" do corpo, que deixa claro que ela nao e um perseguidor comum.
+/// Nao persegue: QUICA pela sala na diagonal, batendo nas paredes e pedras e mudando de
+/// rumo como bola de bilhar (com uma puxadinha pro lado do jogador a cada batida). Os
+/// pedacos quicam mais rapido. O corpo "respira" o tempo todo.
 /// </summary>
 public class InimigoDivisor : InimigoPerseguidor
 {
@@ -34,9 +35,27 @@ public class InimigoDivisor : InimigoPerseguidor
             escalaDoCorpo = desenho.transform.localScale;
     }
 
+    private Vector2 rumoDoQuique;
+
     protected override void AtualizarAgindo(float dt)
     {
-        base.AtualizarAgindo(dt);
+        if (rumoDoQuique == Vector2.zero)
+            rumoDoQuique = new Vector2(Random.value < 0.5f ? -1f : 1f, Random.value < 0.5f ? -1f : 1f).normalized;
+
+        RaycastHit2D batida = Physics2D.CircleCast(rb.position, Raio * 0.9f, rumoDoQuique, 0.3f, Camadas.MascaraDeParede);
+
+        if (batida.collider != null)
+        {
+            // Rebate e puxa um pouco pro jogador, pra nao ficar quicando longe dele pra sempre.
+            Vector2 rebatido = Vector2.Reflect(rumoDoQuique, batida.normal);
+            Vector2 paraEle = ParaOJogador().sqrMagnitude > 0.01f ? ParaOJogador().normalized : rebatido;
+            rumoDoQuique = (rebatido + paraEle * 0.35f).normalized;
+
+            if (Vector2.Dot(rumoDoQuique, batida.normal) < 0.2f)
+                rumoDoQuique = rebatido;
+        }
+
+        rb.linearVelocity = rumoDoQuique * velocidade * MultiplicadorDeVelocidade;
 
         // Respira: estica num eixo e encolhe no outro.
         if (desenho != null)

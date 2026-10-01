@@ -9,7 +9,7 @@ public class InimigoPerseguidor : InimigoDeSala
 {
     [Header("Perseguidor")]
     [Tooltip("Quanto ele balanca pros lados enquanto persegue (0 = linha reta)")]
-    [SerializeField, Range(0f, 1f)] private float zigueZague = 0.35f;
+    [SerializeField, Range(0f, 1f)] protected float zigueZague = 0.35f;
 
     [Tooltip("Balancos por segundo")]
     [SerializeField, Min(0f)] private float frequenciaDoZigueZague = 1.5f;

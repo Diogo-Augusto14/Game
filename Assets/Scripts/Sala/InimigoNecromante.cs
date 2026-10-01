@@ -65,11 +65,61 @@ public class InimigoNecromante : InimigoDeSala
             }
         }
 
-        // Perto demais: se afasta. Senao, passeia.
-        if (alvo.magnitude < 3f)
-            Andar(-alvo.normalized, velocidade);
+        // Vai pro canto mais longe do jogador (refaz a escolha de tempo em tempo), deixando os
+        // esqueletos no meio do caminho. Nada de passear como os arqueiros.
+        trocaDeCanto -= dt;
+
+        if (trocaDeCanto <= 0f || !cantoEscolhido)
+        {
+            EscolherCanto();
+            trocaDeCanto = 2.5f;
+        }
+
+        Vector2 falta = canto - rb.position;
+
+        if (falta.magnitude > 0.4f)
+            Andar(PeloCaminhoAte(canto, falta), alvo.magnitude < 3f ? velocidade * 1.3f : velocidade * 0.8f);
         else
-            Passear(velocidade * 0.7f);
+            Frear();
+    }
+
+    private Vector2 canto;
+    private bool cantoEscolhido;
+    private float trocaDeCanto;
+
+    private void EscolherCanto()
+    {
+        Sala sala = SalaDoInimigo;
+
+        if (sala == null || jogador == null)
+        {
+            canto = rb.position;
+            return;
+        }
+
+        Vector2 centro = sala.transform.position;
+        Vector2 meio = sala.TamanhoInterno * 0.5f - Vector2.one * 1.2f;
+        float melhor = -1f;
+
+        for (int x = -1; x <= 1; x += 2)
+        {
+            for (int y = -1; y <= 1; y += 2)
+            {
+                Vector2 ponto = centro + new Vector2(x * meio.x, y * meio.y);
+                float d = Vector2.Distance(ponto, jogador.position);
+
+                if (d > melhor && sala.Livre(ponto - centro, 0.3f))
+                {
+                    melhor = d;
+                    canto = ponto;
+                }
+            }
+        }
+
+        cantoEscolhido = melhor >= 0f;
+
+        if (!cantoEscolhido)
+            canto = rb.position;
     }
 
     protected override void AtualizarPreparando(float dt)

@@ -21,6 +21,7 @@ public class InimigoEspadao : InimigoDeGolpe
     protected override void Awake()
     {
         base.Awake();
+        JeitoDeChegar = Aproximacao.Guarda;   // em guarda ate o jogador chegar
         ondaDeLonge.Forcar(intervaloDaOndaDeLonge * Random.Range(0.5f, 1f));
     }
 

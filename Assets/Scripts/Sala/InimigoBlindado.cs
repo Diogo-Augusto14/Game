@@ -17,8 +17,5 @@ public class InimigoBlindado : InimigoDeGolpe
 
         if (vida != null)
             vida.MultiplicadorDeDanoRecebido = danoQuePassa;
-
-        // Marcha aos trancos, como quem carrega a armadura.
-        JeitoDeChegar = Aproximacao.PassoPesado;
     }
 }

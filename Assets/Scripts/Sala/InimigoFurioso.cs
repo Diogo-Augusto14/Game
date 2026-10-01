@@ -16,7 +16,7 @@ public class InimigoFurioso : InimigoDeGolpe
     protected override void Awake()
     {
         base.Awake();
-        JeitoDeChegar = Aproximacao.Flanco;   // o elite nao vem de frente
+        JeitoDeChegar = Aproximacao.Interceptar;   // o elite corta o caminho
     }
 
     protected override void Mover(Vector2 alvo, float distancia, float dt)

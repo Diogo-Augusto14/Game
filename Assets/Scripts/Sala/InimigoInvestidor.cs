@@ -37,6 +37,21 @@ public class InimigoInvestidor : InimigoDeSala
     [SerializeField, Min(0f)] private float recarga = 1f;
 
     private static readonly Vector2[] Rumos = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+    private static readonly Vector2[] RumosDoGalope = { Vector2.left, Vector2.right };
+
+    private bool galope;
+
+    /// <summary>
+    /// Orc montado: galopa so de um lado pro outro da sala, rapido, e so investe quando o
+    /// jogador fica na mesma LINHA (deitada). O minotauro vagueia nas quatro direcoes.
+    /// </summary>
+    public void UsarGalope()
+    {
+        galope = true;
+        velocidade *= 1.7f;
+        tempoPorDirecao = new Vector2(2.5f, 4f);
+        rumoDoPasseio = Random.value < 0.5f ? Vector2.left : Vector2.right;
+    }
 
     private Vector2 rumoDoPasseio;
     private Vector2 rumoDaInvestida;
@@ -156,9 +171,9 @@ public class InimigoInvestidor : InimigoDeSala
         if (alvo.sqrMagnitude < 0.0001f || alvo.magnitude > alcance || !VeOJogador())
             return false;
 
-        if (Mathf.Abs(alvo.y) <= toleranciaDeAlinhamento)
+        if (Mathf.Abs(alvo.y) <= toleranciaDeAlinhamento * (galope ? 1.6f : 1f))
             rumo = new Vector2(Mathf.Sign(alvo.x), 0f);
-        else if (Mathf.Abs(alvo.x) <= toleranciaDeAlinhamento)
+        else if (!galope && Mathf.Abs(alvo.x) <= toleranciaDeAlinhamento)
             rumo = new Vector2(0f, Mathf.Sign(alvo.y));
 
         return rumo != Vector2.zero;
@@ -168,7 +183,11 @@ public class InimigoInvestidor : InimigoDeSala
     {
         Vector2 anterior = rumoDoPasseio;
 
-        for (int i = 0; i < 4 && rumoDoPasseio == anterior; i++)
+        // Galope: so vira pro outro lado.
+        if (galope)
+            rumoDoPasseio = anterior == Vector2.right ? Vector2.left : Vector2.right;
+
+        for (int i = 0; i < 4 && !galope && rumoDoPasseio == anterior; i++)
             rumoDoPasseio = Rumos[Random.Range(0, Rumos.Length)];
 
         trocaDeRumo.Forcar(Random.Range(tempoPorDirecao.x, tempoPorDirecao.y));

@@ -237,7 +237,7 @@ public static class FabricaDeInimigos
                 InimigoDeSangue monstro = Montar<InimigoDeSangue>("Monstro de sangue", posicao, pai, 0.36f,
                     (null, new Color(0.55f, 0.08f, 0.2f)), 55f, clipes);
                 monstro.UsarArte(monstro.GetComponent<AnimacaoDePersonagem>(), clipes);
-                monstro.JeitoDeChegar = InimigoDeSala.Aproximacao.PassoPesado;
+                monstro.JeitoDeChegar = InimigoDeSala.Aproximacao.Pulsante;
                 return monstro;
             }
 
@@ -276,7 +276,7 @@ public static class FabricaDeInimigos
             {
                 InimigoEsqueletoFoice foice = ComArte<InimigoEsqueletoFoice>("Esqueleto da foice", posicao, pai, 0.32f, 45f,
                     ArteImportada.Masmorra("EsqueletoFoice", new Vector2(16f, 22f), PixelsDaMasmorra), new Color(0.75f, 0.72f, 0.65f));
-                foice.JeitoDeChegar = InimigoDeSala.Aproximacao.Cambaleante;
+                foice.JeitoDeChegar = InimigoDeSala.Aproximacao.Arrasto;
                 return foice;
             }
 
@@ -284,7 +284,7 @@ public static class FabricaDeInimigos
             {
                 InimigoVampiro vampiro = ComArte<InimigoVampiro>("Vampiro", posicao, pai, 0.3f, 40f,
                     ArteImportada.Masmorra("Vampiro", new Vector2(13f, 21f), PixelsDaMasmorra), new Color(0.4f, 0.4f, 0.55f));
-                vampiro.JeitoDeChegar = InimigoDeSala.Aproximacao.Flanco;
+                vampiro.JeitoDeChegar = InimigoDeSala.Aproximacao.Revoada;
                 return vampiro;
             }
 
@@ -336,7 +336,7 @@ public static class FabricaDeInimigos
                     clipes.Ataque = clipes.AtaqueEspecial;
 
                 InimigoEsqueletoFoice demonia = ComArte<InimigoEsqueletoFoice>("Demonia da foice", posicao, pai, 0.34f, 55f, clipes, new Color(0.5f, 0.1f, 0.3f));
-                demonia.JeitoDeChegar = InimigoDeSala.Aproximacao.Cerco;
+                demonia.JeitoDeChegar = InimigoDeSala.Aproximacao.Espiral;
                 return demonia;
             }
 
@@ -349,14 +349,18 @@ public static class FabricaDeInimigos
             }
 
             case TipoDeInimigo.OrcBlindado:
-                return Golpe<InimigoBlindado>("Orc blindado", posicao, pai, 0.32f, 70f, "OrcBlindado", 26f, 1.4f, 4, 0.5f, 18f);
+                return Blindado("Orc blindado", posicao, pai, 0.32f, 70f, "OrcBlindado", 26f, 1.4f, 4, 0.5f, 18f, InimigoDeSala.Aproximacao.Marcha);
 
             case TipoDeInimigo.OrcElite:
                 return Golpe<InimigoFurioso>("Orc de elite", posicao, pai, 0.34f, 60f, "OrcElite", 26f, 2f, 3, 0.4f, 20f);
 
             case TipoDeInimigo.OrcMontado:
-                return Antigo<InimigoInvestidor>("Orc montado", TipoDeInimigo.Investidor, posicao, pai, 0.36f,
+            {
+                InimigoInvestidor montado = Antigo<InimigoInvestidor>("Orc montado", TipoDeInimigo.Investidor, posicao, pai, 0.36f,
                     new Color(0.5f, 0.6f, 0.3f), 45f, "OrcMontado", 28f);
+                montado.UsarGalope();
+                return montado;
+            }
 
             case TipoDeInimigo.EsqueletoGuerreiro:
             {
@@ -366,7 +370,7 @@ public static class FabricaDeInimigos
             }
 
             case TipoDeInimigo.EsqueletoBlindado:
-                return Golpe<InimigoBlindado>("Esqueleto blindado", posicao, pai, 0.3f, 60f, "EsqueletoBlindado", 26f, 1.4f, 4, 0.5f, 15f);
+                return Blindado("Esqueleto blindado", posicao, pai, 0.3f, 60f, "EsqueletoBlindado", 26f, 1.4f, 4, 0.5f, 15f, InimigoDeSala.Aproximacao.Finta);
 
             case TipoDeInimigo.EsqueletoEspadao:
                 return Golpe<InimigoEspadao>("Esqueleto do espadao", posicao, pai, 0.33f, 55f, "EsqueletoEspadao", 26f, 1.6f, 5, 0.6f, 22f);
@@ -436,6 +440,16 @@ public static class FabricaDeInimigos
                                         string pasta, float pixelsPorUnidade, float velocidade, int quadroDoGolpe,
                                         float preparo, float dano)
         => Golpe<InimigoDeGolpe>(nome, posicao, pai, raio, vidaMaxima, pasta, pixelsPorUnidade, velocidade, quadroDoGolpe, preparo, dano);
+
+    private static InimigoBlindado Blindado(string nome, Vector2 posicao, Transform pai, float raio, float vidaMaxima,
+                                            string pasta, float pixelsPorUnidade, float velocidade, int quadroDoGolpe,
+                                            float preparo, float dano, InimigoDeSala.Aproximacao jeito)
+    {
+        InimigoBlindado b = Golpe<InimigoBlindado>(nome, posicao, pai, raio, vidaMaxima, pasta, pixelsPorUnidade,
+                                                   velocidade, quadroDoGolpe, preparo, dano);
+        b.JeitoDeChegar = jeito;
+        return b;
+    }
 
     /// <summary>Lutador de perto com arte do Tiny RPG, no comportamento <typeparamref name="T"/> da especie.</summary>
     private static T Golpe<T>(string nome, Vector2 posicao, Transform pai, float raio, float vidaMaxima,

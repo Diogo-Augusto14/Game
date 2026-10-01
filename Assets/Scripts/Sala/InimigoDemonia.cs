@@ -36,6 +36,8 @@ public class InimigoDemonia : InimigoDeSala
         recarga.Forcar(intervaloEntreLeques * Random.Range(0.5f, 1f));
     }
 
+    private float trocaDoPendulo;
+
     protected override void AtualizarAgindo(float dt)
     {
         recarga.Contar(dt);
@@ -55,6 +57,16 @@ public class InimigoDemonia : InimigoDeSala
             preparo.Forcar(tempoDePreparo);
             Frear();
             return;
+        }
+
+        // Pendulo: anda num arco em volta do jogador e volta pelo mesmo arco (troca o sentido a
+        // cada 1,2 a 1,8 s), em vez de dar a volta inteira como o fogo-fatuo.
+        trocaDoPendulo -= dt;
+
+        if (trocaDoPendulo <= 0f)
+        {
+            sentido = -sentido;
+            trocaDoPendulo = Random.Range(1.2f, 1.8f);
         }
 
         Vector2 frente = alvo / distancia;

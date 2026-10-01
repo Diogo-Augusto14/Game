@@ -97,7 +97,36 @@ public class InimigoArqueiro : InimigoComArte
             return;
         }
 
+        // Demonio arqueiro (leque) foge: recua ate o fundo da sala e atira de la, sem passear.
+        if (mira == Mira.Leque)
+        {
+            Fugir();
+            return;
+        }
+
         ManterDistancia(distanciaMinima, distanciaMaxima);
+    }
+
+    private void Fugir()
+    {
+        Vector2 alvo = ParaOJogador();
+        float d = alvo.magnitude;
+
+        if (d < 0.01f || d >= distanciaMaxima - 0.5f)
+        {
+            Frear();
+            animacao?.OlharPara(alvo);
+            return;
+        }
+
+        Vector2 frente = alvo / d;
+        Vector2 longe = -frente + new Vector2(-frente.y, frente.x) * 0.35f;
+
+        // Encurralado na parede: escorrega de lado em vez de ficar empurrando.
+        if (Physics2D.CircleCast(rb.position, Raio * 0.9f, longe, 0.5f, Camadas.MascaraDeParede).collider != null)
+            longe = new Vector2(-frente.y, frente.x) * (Vector2.Dot(rb.linearVelocity, new Vector2(-frente.y, frente.x)) >= 0f ? 1f : -1f);
+
+        Andar(longe, velocidade * 1.3f);
     }
 
     protected override void AtualizarPreparando(float dt)

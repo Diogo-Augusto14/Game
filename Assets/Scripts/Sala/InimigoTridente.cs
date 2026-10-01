@@ -24,6 +24,7 @@ public class InimigoTridente : InimigoDeGolpe
     protected override void Awake()
     {
         base.Awake();
+        JeitoDeChegar = Aproximacao.Vaivem;   // chega perto e se afasta
         recargaDoArremesso.Forcar(intervaloEntreArremessos * Random.Range(0.3f, 0.7f));
 
         if (desenho != null)

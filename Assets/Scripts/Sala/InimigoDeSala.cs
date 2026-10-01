@@ -110,16 +110,30 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     public float MultiplicadorDeVelocidade { get; set; } = 1f;
 
     /// <summary>
-    /// Como o bicho chega perto do jogador quando so anda atras dele. Cada especie de
-    /// corpo a corpo usa um, pra sala nao virar uma fila de bichos vindo reto:
-    ///   Direta      -> reto, contornando obstaculo
-    ///   Ziguezague  -> vai e volta de lado enquanto avanca, rapido (goblin)
-    ///   PassoPesado -> anda aos trancos: passada forte, para, passada (orc)
-    ///   Flanco      -> faz uma curva e chega pelo lado do jogador (demonio, vampiro)
-    ///   Cerco       -> cada um mira um ponto diferente em volta do jogador: o bando cerca
-    ///   Cambaleante -> lento e torto, acelerando e quase parando (esqueleto)
+    /// Como o bicho chega perto do jogador quando so anda atras dele. Cada jeito e de UMA
+    /// especie so (a fabrica escolhe), pra nenhuma andar igual a outra:
+    ///   Direta       -> reto, contornando obstaculo (so quem nao tem jeito proprio)
+    ///   Ziguezague   -> vai e volta de lado enquanto avanca, rapido            (goblin da tocha)
+    ///   PassoPesado  -> passada forte, para, passada                          (orc)
+    ///   Marcha       -> escolhe um rumo e vai reto nele; so corrige de tempo em tempo (orc blindado)
+    ///   Finta        -> avanca, recua um passo, avanca de novo                (esqueleto blindado)
+    ///   Pulsante     -> anda em pulsos, como batida de coracao: tum-tum... pausa (monstro de sangue)
+    ///   Flanco       -> faz uma curva e chega pelo lado                        (demonio)
+    ///   Revoada      -> arrancadas curtas em V (esquerda, direita) e paradas no ar (vampiro)
+    ///   Interceptar  -> corre pra onde o jogador VAI estar, nao pra onde esta  (orc de elite)
+    ///   Cerco        -> cada um mira um ponto em volta do jogador: o bando cerca (esqueleto guerreiro)
+    ///   Espiral      -> chega girando em volta do jogador, em espiral          (demonia da foice)
+    ///   Cambaleante  -> lento e torto, acelerando e quase parando              (esqueleto)
+    ///   Arrasto      -> arrasta os pes devagar e de vez em quando desliza rapido (esqueleto da foice)
+    ///   Vaivem       -> chega perto e se afasta, sem parar, de 2,5 a 6          (demonio do tridente)
+    ///   Guarda       -> parado em guarda; so avanca com o jogador perto        (esqueleto do espadao)
+    ///   Embalo       -> de longe vem correndo, de perto anda pesado            (urso)
     /// </summary>
-    public enum Aproximacao { Direta, Ziguezague, PassoPesado, Flanco, Cerco, Cambaleante }
+    public enum Aproximacao
+    {
+        Direta, Ziguezague, PassoPesado, Marcha, Finta, Pulsante, Flanco, Revoada,
+        Interceptar, Cerco, Espiral, Cambaleante, Arrasto, Vaivem, Guarda, Embalo
+    }
 
     public Aproximacao JeitoDeChegar { get; set; } = Aproximacao.Direta;
 
@@ -128,6 +142,8 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     private bool passoParado;
     private float ladoDoFlanco;
     private float anguloDoCerco;
+    private Vector2 rumoDaMarcha;
+    private Rigidbody2D corpoDoJogador;
 
     /// <summary>A especie (a fabrica preenche). O bestiario e as conquistas contam por aqui.</summary>
     public TipoDeInimigo Tipo { get; set; }
@@ -352,30 +368,28 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         Vector2 frente = alvo / distancia;
         Vector2 lado = new Vector2(-frente.y, frente.x);
 
-        // Sorteios por bicho, uma vez: fase, lado do flanco e lugar no cerco.
+        // Sorteios por bicho, uma vez: fase, lado e lugar no cerco.
         if (faseDaAproximacao < 0f)
         {
             faseDaAproximacao = Random.value * 10f;
             ladoDoFlanco = Random.value < 0.5f ? -1f : 1f;
             anguloDoCerco = Random.value * 360f;
+            rumoDaMarcha = frente;
         }
 
         faseDaAproximacao += dt;
+        tempoDoPasso -= dt;
 
         switch (JeitoDeChegar)
         {
             case Aproximacao.Ziguezague:
             {
-                // Perto demais pra zigue-zague: vai reto.
                 Vector2 rumo = distancia > 1.4f ? frente + lado * Mathf.Sin(faseDaAproximacao * 6f) * 1.1f : frente;
                 Andar(LivreOuCaminho(rumo, frente), velocidadeBase * 1.15f);
                 return;
             }
 
             case Aproximacao.PassoPesado:
-            {
-                tempoDoPasso -= dt;
-
                 if (tempoDoPasso <= 0f)
                 {
                     passoParado = !passoParado;
@@ -388,11 +402,47 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
                     Andar(PeloCaminho(frente), velocidadeBase * 1.45f);
 
                 return;
+
+            case Aproximacao.Marcha:
+            {
+                // Rumo fixo; so mira de novo a cada 1,6 s ou quando trava em algo.
+                bool travado = Physics2D.CircleCast(rb.position, Raio * 0.9f, rumoDaMarcha, 0.35f, Camadas.MascaraDeParede).collider != null;
+
+                if (tempoDoPasso <= 0f || travado)
+                {
+                    rumoDaMarcha = PeloCaminho(frente).normalized;
+                    tempoDoPasso = 1.6f;
+                }
+
+                Andar(rumoDaMarcha, velocidadeBase);
+                return;
+            }
+
+            case Aproximacao.Finta:
+                // 0,9 s avancando, 0,35 s recuando de lado.
+                if (tempoDoPasso <= 0f)
+                {
+                    passoParado = !passoParado;
+                    tempoDoPasso = passoParado ? 0.35f : 0.9f;
+                }
+
+                if (passoParado && distancia < 4f)
+                    Andar(-frente + lado * ladoDoFlanco * 0.6f, velocidadeBase * 0.9f);
+                else
+                    Andar(PeloCaminho(frente), velocidadeBase * 1.2f);
+
+                return;
+
+            case Aproximacao.Pulsante:
+            {
+                // Tum-tum, pausa: dois empurroes curtos e um descanso, num ciclo de 1,4 s.
+                float t = Mathf.Repeat(faseDaAproximacao, 1.4f);
+                bool pulso = t < 0.18f || (t > 0.32f && t < 0.5f);
+                Andar(PeloCaminho(frente), pulso ? velocidadeBase * 2.6f : 0f);
+                return;
             }
 
             case Aproximacao.Flanco:
-            {
-                // Mira um ponto ao lado do jogador e vai fechando a curva; perto, vai reto.
                 if (distancia > 1.8f)
                 {
                     Vector2 doLado = Quaternion.Euler(0f, 0f, 75f * ladoDoFlanco) * -frente;
@@ -405,11 +455,38 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
                 }
 
                 return;
+
+            case Aproximacao.Revoada:
+                // Arrancada de 0,25 s na diagonal (alternando o lado), parada de 0,45 s no ar.
+                if (tempoDoPasso <= 0f)
+                {
+                    passoParado = !passoParado;
+                    tempoDoPasso = passoParado ? 0.45f : 0.25f;
+
+                    if (!passoParado)
+                        ladoDoFlanco = -ladoDoFlanco;
+                }
+
+                if (passoParado)
+                    Frear();
+                else
+                    Andar(LivreOuCaminho(frente + lado * ladoDoFlanco * 0.9f, frente), velocidadeBase * 3f);
+
+                return;
+
+            case Aproximacao.Interceptar:
+            {
+                if (corpoDoJogador == null)
+                    corpoDoJogador = jogador.GetComponent<Rigidbody2D>();
+
+                // Mira onde o jogador estara daqui a pouco (mais adiante quanto mais longe).
+                Vector2 adiante = corpoDoJogador != null ? corpoDoJogador.linearVelocity * Mathf.Clamp(distancia * 0.25f, 0.2f, 1.2f) : Vector2.zero;
+                Vector2 ponto = (Vector2)jogador.position + adiante;
+                Andar(PeloCaminhoAte(ponto, ponto - rb.position), velocidadeBase * 1.1f);
+                return;
             }
 
             case Aproximacao.Cerco:
-            {
-                // Cada um vai pro seu lugar em volta do jogador; chegando, fecha o cerco.
                 if (distancia > 2.2f)
                 {
                     float a = anguloDoCerco * Mathf.Deg2Rad;
@@ -422,6 +499,13 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
                 }
 
                 return;
+
+            case Aproximacao.Espiral:
+            {
+                // Mais de lado que de frente: entra girando.
+                Vector2 rumo = lado * ladoDoFlanco * 1.2f + frente * (distancia > 1.2f ? 0.7f : 1.5f);
+                Andar(LivreOuCaminho(rumo, frente), velocidadeBase * 1.1f);
+                return;
             }
 
             case Aproximacao.Cambaleante:
@@ -432,6 +516,41 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
                 return;
             }
 
+            case Aproximacao.Arrasto:
+                // Arrasta (60%) e a cada 2,4 s desliza 0,4 s bem rapido.
+                if (tempoDoPasso <= 0f)
+                {
+                    passoParado = !passoParado;
+                    tempoDoPasso = passoParado ? 0.4f : 2.4f;
+                }
+
+                Andar(PeloCaminho(frente), passoParado ? velocidadeBase * 3f : velocidadeBase * 0.55f);
+                return;
+
+            case Aproximacao.Vaivem:
+                // Vai ate 2,5 do jogador e volta ate 6, e de novo: o tridente vem de varias distancias.
+                if (distancia < 2.5f)
+                    passoParado = true;       // passoParado = voltando
+                else if (distancia > 6f)
+                    passoParado = false;
+
+                Andar(passoParado ? LivreOuCaminho(-frente, -frente) : PeloCaminho(frente), velocidadeBase * 1.1f);
+                return;
+
+            case Aproximacao.Guarda:
+                // Em guarda ate o jogador chegar a 4,5; ai avanca firme.
+                if (distancia > 4.5f && VeOJogador())
+                    Frear();
+                else
+                    Andar(PeloCaminho(frente), velocidadeBase * 1.1f);
+
+                return;
+
+            case Aproximacao.Embalo:
+                // Velocidade sobe com a distancia: de longe e uma corrida, de perto um passo.
+                Andar(PeloCaminho(frente), velocidadeBase * Mathf.Lerp(0.6f, 2.2f, Mathf.InverseLerp(1.5f, 6f, distancia)));
+                return;
+
             default:
                 Andar(PeloCaminho(frente), velocidadeBase);
                 return;
@@ -439,7 +558,7 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
     }
 
     /// <summary>O rumo torto se o caminho ate o jogador esta livre; senao, o caminho pela sala.</summary>
-    private Vector2 LivreOuCaminho(Vector2 rumo, Vector2 frente)
+    protected Vector2 LivreOuCaminho(Vector2 rumo, Vector2 frente)
     {
         Vector2 pelaSala = PeloCaminho(frente);
         return pelaSala == frente ? rumo : pelaSala;
