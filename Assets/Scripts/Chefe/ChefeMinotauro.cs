@@ -6,8 +6,8 @@ using UnityEngine;
 /// RPG bem maior. Briga no corpo a corpo e alterna entre quatro ataques, cada um com o
 /// seu aviso:
 ///
-///   Chifrada -> raspa o casco (poeira), mostra uma sombra curta no rumo e dispara reto,
-///               deixando um rastro. Bate na parede e RICOCHETEIA (a sombra nova aparece
+///   Chifrada -> raspa o casco (poeira), mostra a linha de mira (amarela ficando vermelha) e dispara reto,
+///               deixando um rastro. Bate na parede e RICOCHETEIA (a mira nova aparece
 ///               rapidinho), soltando pedras a cada batida
 ///   Pisao    -> ergue o machado e bate no chao: ondas de tiros saem dele, uma atras da
 ///               outra, com um buraco que muda de lugar a cada onda
@@ -338,7 +338,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
             Frear();
             float total = miraDoRicochete / Pressa;
             float t = total <= 0f ? 1f : Mathf.Clamp01(1f - execucao.Restante / total);
-            Rastro.MostrarSombra(rumoDaChifrada, 0.5f + 0.5f * t);
+            Rastro.MostrarMira(rumoDaChifrada, 0.5f + 0.5f * t);
 
             if (execucao.Ativo)
                 return;
@@ -528,10 +528,10 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
         switch (ataqueAtual)
         {
             case Ataque.Chifrada:
-                // Raspa o casco (treme, poeira) e mostra a sombra curta, que segue o jogador ate o fim.
+                // Raspa o casco (treme, poeira) e mostra a linha de mira, que segue o jogador ate o fim.
                 Tingir(Color.Lerp(Color.white, Color.red, t));
                 Rastro.Poeira(RumoParaOJogador());
-                Rastro.MostrarSombra(RumoParaOJogador(), t);
+                Rastro.MostrarMira(RumoParaOJogador(), t);
                 if (animacao != null)
                     animacao.OlharPara(ParaOJogador());
                 if (corpo != null)
@@ -567,7 +567,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
             corpo.localRotation = Quaternion.identity;
         }
 
-        Rastro.EsconderSombra();
+        Rastro.EsconderMira();
     }
 
     private void Tingir(Color cor)

@@ -5,9 +5,10 @@ using UnityEngine;
 /// O que se ve quando um chefe arranca (investida, chifrada): poeira do Tiny Swords nos pes
 /// enquanto ele se prepara e quando sai, e copias apagadas do proprio sprite que ficam para
 /// tras e somem rapido (o rastro). Igual ao dash do heroi, so que sem cor: nada de faixa vermelha.
-/// O aviso de pra onde ele vai e uma sombra curta no chao (uns 3,5 m) que some na ponta.
+/// O aviso de pra onde ele vai e a linha de mira no chao, ate a parede: nasce fina e amarela e
+/// vai engrossando e ficando vermelha conforme o golpe chega.
 /// O chefe liga e desliga com <see cref="Ligado"/>, pede poeira com <see cref="Poeira"/> e mostra
-/// o aviso com <see cref="MostrarSombra"/>.
+/// o aviso com <see cref="MostrarMira"/>.
 /// </summary>
 [DisallowMultipleComponent]
 public class RastroDoChefe : MonoBehaviour
@@ -32,13 +33,16 @@ public class RastroDoChefe : MonoBehaviour
         public float Nasceu;
     }
 
-    [Tooltip("Comprimento da sombra de aviso no chao")]
-    [SerializeField, Min(0.5f)] private float comprimentoDaSombra = 3.5f;
+    [Tooltip("Comprimento maximo da linha de mira (ela para antes, na parede)")]
+    [SerializeField, Min(0.5f)] private float alcanceDaMira = 14f;
 
-    private static Sprite spriteDaSombra;
+    [SerializeField] private Color corDoComeco = new Color(1f, 0.85f, 0.2f);
+    [SerializeField] private Color corDoPerigo = new Color(1f, 0.15f, 0.1f);
+
+    private static Sprite spriteDaMira;
 
     private SpriteRenderer corpo;
-    private SpriteRenderer sombra;
+    private SpriteRenderer mira;
     private float raio = 0.5f;
     private readonly List<Copia> copias = new List<Copia>();
     private float proximaCopia;
@@ -74,48 +78,60 @@ public class RastroDoChefe : MonoBehaviour
     }
 
     /// <summary>
-    /// Sombra de aviso no chao, saindo do chefe para <paramref name="rumo"/> e sumindo na ponta.
-    /// <paramref name="t"/> (0 a 1) e o quanto o aviso ja andou: ela engrossa e escurece.
+    /// Linha de mira no chao, saindo do chefe para <paramref name="rumo"/> ate a parede.
+    /// <paramref name="t"/> (0 a 1) e o quanto o aviso ja andou: de fina e amarela a grossa e vermelha.
     /// </summary>
-    public void MostrarSombra(Vector2 rumo, float t)
+    public void MostrarMira(Vector2 rumo, float t)
     {
         if (rumo == Vector2.zero)
             return;
 
-        if (sombra == null)
+        if (mira == null)
         {
-            GameObject obj = new GameObject("Sombra da arrancada");
+            GameObject obj = new GameObject("Mira da arrancada");
             obj.transform.SetParent(transform, false);
-            sombra = obj.AddComponent<SpriteRenderer>();
-            sombra.sprite = SpriteDaSombra();
-            sombra.sortingOrder = -8;   // no chao: abaixo de tudo que anda, acima do piso
+            mira = obj.AddComponent<SpriteRenderer>();
+            mira.sprite = SpriteDaMira();
+            mira.sortingOrder = -8;   // no chao: abaixo das portas e de tudo que anda, acima do piso
         }
 
         rumo.Normalize();
-        float largura = raio * Mathf.Lerp(0.8f, 1.5f, t);
-        sombra.enabled = true;
-        sombra.transform.localPosition = rumo * (comprimentoDaSombra * 0.5f);
-        sombra.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg);
+        t = Mathf.Clamp01(t);
 
-        // O chefe pode estar escalado (incha, encolhe): a sombra compensa pra ter o tamanho certo no mundo.
+        // Para na parede, em vez de atravessar a sala e as portas.
+        RaycastHit2D parede = Physics2D.Raycast(transform.position, rumo, alcanceDaMira, Camadas.MascaraDeParede);
+        float comprimento = parede.collider != null ? parede.distance : alcanceDaMira;
+        float largura = Mathf.Lerp(0.12f, raio * 1.4f, t * t);
+
+        mira.enabled = true;
+        mira.transform.localRotation = Quaternion.identity;
+        mira.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg);
+        mira.transform.position = transform.position + (Vector3)(rumo * (comprimento * 0.5f));
+
+        // O chefe pode estar escalado (incha, encolhe): a linha compensa pra ter o tamanho certo no mundo.
         Vector3 escala = transform.lossyScale;
-        Vector2 tamanho = sombra.sprite.bounds.size;
-        sombra.transform.localScale = new Vector3(comprimentoDaSombra / (tamanho.x * Mathf.Max(0.01f, Mathf.Abs(escala.x))),
-                                                  largura / (tamanho.y * Mathf.Max(0.01f, Mathf.Abs(escala.y))), 1f);
-        sombra.color = new Color(0f, 0f, 0f, Mathf.Lerp(0.15f, 0.4f, t));
+        Vector2 tamanho = mira.sprite.bounds.size;
+        mira.transform.localScale = new Vector3(comprimento / (tamanho.x * Mathf.Max(0.01f, Mathf.Abs(escala.x))),
+                                                largura / (tamanho.y * Mathf.Max(0.01f, Mathf.Abs(escala.y))), 1f);
+
+        // Amarelo -> vermelho, ficando mais forte; no fim pisca de leve.
+        Color cor = Color.Lerp(corDoComeco, corDoPerigo, t);
+        float pisca = t > 0.75f ? 0.85f + 0.15f * Mathf.Sin(Time.time * 40f) : 1f;
+        cor.a = Mathf.Lerp(0.3f, 0.6f, t) * pisca;
+        mira.color = cor;
     }
 
-    public void EsconderSombra()
+    public void EsconderMira()
     {
-        if (sombra != null)
-            sombra.enabled = false;
+        if (mira != null)
+            mira.enabled = false;
     }
 
-    /// <summary>Faixa escura no comeco no comeco, apagando ate sumir na ponta, com as bordas macias.</summary>
-    private static Sprite SpriteDaSombra()
+    /// <summary>Faixa com as bordas macias e a ponta apagando um pouco, pra nao acabar seca.</summary>
+    private static Sprite SpriteDaMira()
     {
-        if (spriteDaSombra != null)
-            return spriteDaSombra;
+        if (spriteDaMira != null)
+            return spriteDaMira;
 
         const int largura = 64;
         const int altura = 16;
@@ -125,21 +141,22 @@ public class RastroDoChefe : MonoBehaviour
 
         for (int x = 0; x < largura; x++)
         {
-            float aoLongo = 1f - x / (float)(largura - 1);
-            aoLongo *= aoLongo;
+            float u = x / (float)(largura - 1);
+            float aoLongo = Mathf.Clamp01(u / 0.08f) * Mathf.Clamp01((1f - u) / 0.15f);
 
             for (int y = 0; y < altura; y++)
             {
                 float doMeio = Mathf.Abs(y - (altura - 1) * 0.5f) / ((altura - 1) * 0.5f);
-                float borda = 1f - doMeio * doMeio;
-                textura.SetPixel(x, y, new Color(1f, 1f, 1f, aoLongo * borda));
+                float borda = Mathf.Clamp01((1f - doMeio) / 0.45f);
+                float miolo = doMeio < 0.3f ? 1f : 0.75f;   // o meio um pouco mais forte
+                textura.SetPixel(x, y, new Color(1f, 1f, 1f, aoLongo * borda * miolo));
             }
         }
 
         textura.Apply();
-        spriteDaSombra = Sprite.Create(textura, new Rect(0, 0, largura, altura), new Vector2(0.5f, 0.5f), largura, 0, SpriteMeshType.FullRect);
-        spriteDaSombra.name = "Sombra da arrancada";
-        return spriteDaSombra;
+        spriteDaMira = Sprite.Create(textura, new Rect(0, 0, largura, altura), new Vector2(0.5f, 0.5f), largura, 0, SpriteMeshType.FullRect);
+        spriteDaMira.name = "Mira da arrancada";
+        return spriteDaMira;
     }
 
     private int OrdemDoCorpo => corpo != null ? corpo.sortingOrder : 10;

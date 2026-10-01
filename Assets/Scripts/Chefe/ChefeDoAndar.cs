@@ -7,7 +7,7 @@ using UnityEngine;
 ///
 ///   Anel      -> incha e solta tiros em volta, em todas as direcoes
 ///   Rajada    -> treme e solta tres leques de tiros mirados no jogador
-///   Investida -> raspa poeira, mostra uma sombra curta no rumo e dispara reto, deixando um rastro; se bater na parede fica tonto
+///   Investida -> raspa poeira, mostra a linha de mira (amarela ficando vermelha) e dispara reto, deixando um rastro; se bater na parede fica tonto
 ///   Invocar   -> (so na segunda fase) chama dois perseguidores
 ///
 /// Com metade da vida entra na SEGUNDA FASE: avisos mais curtos, tiros mais rapidos,
@@ -395,10 +395,10 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
                 break;
 
             case Ataque.Investida:
-                // Raspa o chao (poeira nos pes) e a sombra curta no chao segue o jogador ate o ultimo instante.
+                // Raspa o chao (poeira nos pes) e a linha de mira segue o jogador ate o ultimo instante.
                 PintarOlhos(Color.Lerp(Color.white, Color.red, t));
                 Rastro.Poeira(RumoParaOJogador());
-                Rastro.MostrarSombra(RumoParaOJogador(), t);
+                Rastro.MostrarMira(RumoParaOJogador(), t);
                 break;
 
             case Ataque.Invocar:
@@ -415,7 +415,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
         if (corpo != null)
             corpo.localPosition = posicaoDoCorpo;
 
-        Rastro.EsconderSombra();
+        Rastro.EsconderMira();
     }
 
     private void PintarOlhos(Color cor)
