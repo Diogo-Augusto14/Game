@@ -14,7 +14,7 @@ using UnityEngine;
 ///   Giro     -> gira o machado andando devagar atras do jogador, soltando lascas de pedra
 ///               em quatro direcoes que vao girando aos poucos (corredores largos entre
 ///               elas). Encostar nele doi mais
-///   Invocar  -> (so na segunda fase) chama dois orcs
+///   Invocar  -> (so na segunda fase) chama dois bichos simples do mundo
 ///
 /// Com metade da vida entra na SEGUNDA FASE: ricocheteia mais vezes, o pisao solta uma
 /// onda a mais, o giro fica mais rapido e os avisos mais curtos.
@@ -455,7 +455,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
         {
             Vector2 lado = i % 2 == 0 ? Vector2.left : Vector2.right;
             Vector2 ponto = DentroDaSala(rb.position + lado * (Raio + 0.9f)) - (Vector2)sala.transform.position;
-            InimigoDeSala lacaio = sala.CriarInimigo(TipoDeInimigo.Orc, ponto);
+            InimigoDeSala lacaio = sala.CriarInimigo(TemaDoAndar.Lacaio(), ponto);
 
             if (lacaio != null)
                 lacaios.Add(lacaio);

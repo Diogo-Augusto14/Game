@@ -8,7 +8,7 @@ using UnityEngine;
 ///   Anel      -> incha e solta tiros em volta, em todas as direcoes
 ///   Rajada    -> treme e solta tres leques de tiros mirados no jogador
 ///   Investida -> raspa poeira, mostra a linha de mira (amarela ficando vermelha) e dispara reto, deixando um rastro; se bater na parede fica tonto
-///   Invocar   -> (so na segunda fase) chama dois perseguidores
+///   Invocar   -> (so na segunda fase) chama dois bichos simples do mundo
 ///
 /// Com metade da vida entra na SEGUNDA FASE: avisos mais curtos, tiros mais rapidos,
 /// anel mais cheio e a investida solta um anel ao bater na parede.
@@ -485,7 +485,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
             Vector2 limite = sala.TamanhoInterno * 0.5f - Vector2.one * 0.6f;
             ponto = new Vector2(Mathf.Clamp(ponto.x, -limite.x, limite.x), Mathf.Clamp(ponto.y, -limite.y, limite.y));
 
-            InimigoDeSala lacaio = sala.CriarInimigo(TipoDeInimigo.Perseguidor, ponto);
+            InimigoDeSala lacaio = sala.CriarInimigo(TemaDoAndar.Lacaio(), ponto);
 
             if (lacaio != null)
                 lacaios.Add(lacaio);

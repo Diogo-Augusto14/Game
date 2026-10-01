@@ -11,7 +11,7 @@ using UnityEngine;
 ///             segundo encaixado nos vaos do primeiro
 ///   Cerco  -> corre em circulo em volta do jogador soltando tiros pra dentro e fecha com
 ///             um bote
-///   Uivo   -> se estica e uiva: chama caes infernais (na segunda fase, com um anel de tiros)
+///   Uivo   -> se estica e uiva: chama bichos do mundo (na segunda fase, com um anel de tiros)
 ///
 /// Com metade da vida entra na SEGUNDA FASE (<see cref="ViradaDeFase"/>): um bote a mais,
 /// garras nos botes, cerco mais rapido e avisos mais curtos.
@@ -391,7 +391,7 @@ public class ChefeLobisomem : InimigoDeSala, IChefe
         for (int i = 0; i < quantos; i++)
         {
             Vector2 local = sala.PontoLivreAleatorio(1.5f);
-            InimigoDeSala cao = sala.CriarInimigo(TipoDeInimigo.Perseguidor, local);
+            InimigoDeSala cao = sala.CriarInimigo(TemaDoAndar.Lacaio(), local);
 
             if (cao != null)
             {

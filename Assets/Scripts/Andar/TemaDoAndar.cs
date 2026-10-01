@@ -95,6 +95,12 @@ public sealed class TemaDoAndar
     public TipoDeInimigo SortearInimigo() => SortearInimigo(1f);
 
     /// <summary>
+    /// Um dos tres bichos mais simples do mundo: o que os chefes chamam pra ajudar. Assim nem
+    /// o lacaio de chefe traz bicho de outro mundo.
+    /// </summary>
+    public static TipoDeInimigo Lacaio() => Atual != null ? Atual.SortearInimigo(0f) : TipoDeInimigo.GoblinTocha;
+
+    /// <summary>
     /// Um inimigo comum do tema, sorteado pelo peso, so entre a primeira parte da lista
     /// (<paramref name="variedade"/> de 0 a 1). As listas comecam pelos bichos mais simples,
     /// entao a primeira fase do mundo tem os basicos e as outras vao abrindo o resto.
@@ -137,12 +143,13 @@ public sealed class TemaDoAndar
         ChanceDeCandelabro = 0.3f,
         inimigos = new[]
         {
-            (TipoDeInimigo.GoblinTocha, 3f), (TipoDeInimigo.Barril, 1.5f),
-            (TipoDeInimigo.Geleia, 2f), (TipoDeInimigo.Divisor, 1.5f),
-            (TipoDeInimigo.Morceguinho, 2f), (TipoDeInimigo.Morcego, 1.5f),
-            (TipoDeInimigo.Perseguidor, 2.5f), (TipoDeInimigo.Orc, 2f),
-            (TipoDeInimigo.Atirador, 1.5f), (TipoDeInimigo.Investidor, 1f),
-            (TipoDeInimigo.MonstroDeSangue, 1f),
+            // Mundo 1: goblins, gosmas e morcegos. Os primeiros tres sao os mais simples (e os
+            // que os chefes chamam).
+            (TipoDeInimigo.GoblinTocha, 3f), (TipoDeInimigo.Saltador, 2.5f),
+            (TipoDeInimigo.Morceguinho, 2f), (TipoDeInimigo.Geleia, 2f),
+            (TipoDeInimigo.Divisor, 1.5f), (TipoDeInimigo.Barril, 1.5f),
+            (TipoDeInimigo.Morcego, 1.5f), (TipoDeInimigo.Arqueiro, 1.5f),
+            (TipoDeInimigo.GoblinDinamite, 1.5f),
         },
     };
 
@@ -161,14 +168,12 @@ public sealed class TemaDoAndar
         ChanceDeOsso = 0.35f,
         inimigos = new[]
         {
-            (TipoDeInimigo.Saltador, 2.5f), (TipoDeInimigo.Orc, 2f),
-            (TipoDeInimigo.OrcBlindado, 1.5f), (TipoDeInimigo.OrcMontado, 1f),
-            (TipoDeInimigo.GoblinDinamite, 2f), (TipoDeInimigo.GoblinTocha, 1.5f),
-            (TipoDeInimigo.Barril, 1f), (TipoDeInimigo.Arqueiro, 1.5f),
-            (TipoDeInimigo.Lobisomem, 1.5f), (TipoDeInimigo.Investidor, 1.5f),
-            (TipoDeInimigo.Esqueleto, 1.5f), (TipoDeInimigo.EsqueletoGuerreiro, 1.5f),
-            (TipoDeInimigo.CavaleiroEscudo, 1f), (TipoDeInimigo.Sentinela, 1f),
-            (TipoDeInimigo.Morcego, 1f), (TipoDeInimigo.Geleia, 1f),
+            // Mundo 2: orcs, feras e cavaleiros.
+            (TipoDeInimigo.Orc, 3f), (TipoDeInimigo.Lobisomem, 2f),
+            (TipoDeInimigo.CavaleiroLanca, 2f), (TipoDeInimigo.OrcBlindado, 1.5f),
+            (TipoDeInimigo.CavaleiroEscudo, 1.5f), (TipoDeInimigo.Investidor, 1.5f),
+            (TipoDeInimigo.OrcMontado, 1.5f), (TipoDeInimigo.Urso, 1f),
+            (TipoDeInimigo.Sentinela, 1f), (TipoDeInimigo.OrcElite, 1f),
         },
     };
 
@@ -188,14 +193,12 @@ public sealed class TemaDoAndar
         ChanceDeCandelabro = 1f,
         inimigos = new[]
         {
-            (TipoDeInimigo.Esqueleto, 2f), (TipoDeInimigo.EsqueletoFoice, 2f),
-            (TipoDeInimigo.Vampiro, 2f), (TipoDeInimigo.EsqueletoGuerreiro, 1.5f),
-            (TipoDeInimigo.EsqueletoBlindado, 1.5f), (TipoDeInimigo.EsqueletoEspadao, 1.5f),
-            (TipoDeInimigo.EsqueletoArqueiro, 2f), (TipoDeInimigo.Necromante, 1.5f),
-            (TipoDeInimigo.FogoFatuo, 1.5f), (TipoDeInimigo.Morceguinho, 1f),
-            (TipoDeInimigo.CavaleiroEscudo, 1f), (TipoDeInimigo.CavaleiroLanca, 1.5f),
-            (TipoDeInimigo.Sentinela, 1.5f), (TipoDeInimigo.Atirador, 1f),
-            (TipoDeInimigo.Urso, 1f),
+            // Mundo 3: mortos-vivos e magia.
+            (TipoDeInimigo.Esqueleto, 3f), (TipoDeInimigo.EsqueletoGuerreiro, 2f),
+            (TipoDeInimigo.EsqueletoFoice, 2f), (TipoDeInimigo.EsqueletoArqueiro, 2f),
+            (TipoDeInimigo.Vampiro, 1.5f), (TipoDeInimigo.FogoFatuo, 1.5f),
+            (TipoDeInimigo.Atirador, 1.5f), (TipoDeInimigo.EsqueletoBlindado, 1.5f),
+            (TipoDeInimigo.EsqueletoEspadao, 1.5f), (TipoDeInimigo.Necromante, 1f),
         },
     };
 
@@ -217,14 +220,11 @@ public sealed class TemaDoAndar
         ChanceDeCandelabro = 0.5f,
         inimigos = new[]
         {
-            (TipoDeInimigo.Demonio, 2.5f), (TipoDeInimigo.DemonioTridente, 2f),
-            (TipoDeInimigo.DemonioLaminas, 2f), (TipoDeInimigo.DemoniaFoice, 2f),
+            // Mundo 4: demonios e o que vive no fundo.
+            (TipoDeInimigo.Demonio, 3f), (TipoDeInimigo.Perseguidor, 2.5f),
+            (TipoDeInimigo.DemonioLaminas, 2f), (TipoDeInimigo.DemonioTridente, 2f),
             (TipoDeInimigo.DemonioArqueiro, 2f), (TipoDeInimigo.Demonia, 2f),
-            (TipoDeInimigo.MonstroDeSangue, 2f), (TipoDeInimigo.Perseguidor, 2f),
-            (TipoDeInimigo.Divisor, 1.5f), (TipoDeInimigo.FogoFatuo, 1.5f),
-            (TipoDeInimigo.Sentinela, 1.5f), (TipoDeInimigo.Investidor, 2f),
-            (TipoDeInimigo.OrcElite, 1.5f), (TipoDeInimigo.Atirador, 1.5f),
-            (TipoDeInimigo.Vampiro, 1f),
+            (TipoDeInimigo.DemoniaFoice, 1.5f), (TipoDeInimigo.MonstroDeSangue, 1.5f),
         },
     };
 

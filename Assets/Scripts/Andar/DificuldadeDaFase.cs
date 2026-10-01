@@ -65,9 +65,6 @@ public sealed class DificuldadeDaFase
     /// </summary>
     public float VariedadeDoTema => FasesPorMundo <= 1 ? 1f : Mathf.Lerp(0.6f, 1f, (Fase - 1f) / (FasesPorMundo - 1f));
 
-    /// <summary>Do mundo 2 em diante, as vezes aparece um inimigo do mundo anterior no meio.</summary>
-    public float ChanceDeInimigoDoMundoAnterior => Mundo >= 2 ? 0.15f : 0f;
-
     /// <summary>
     /// Chance de um inimigo vir campeao (maior, com cor, mais forte, solta premio). Nada na
     /// primeira fase; depois +3% por fase, no maximo 30%.

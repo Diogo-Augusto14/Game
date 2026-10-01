@@ -12,7 +12,7 @@ using UnityEngine;
 ///               tempo depois, cada uma explode em ossos (cruz de tiros)
 ///   Muralha  -> uma parede de tiros atravessa a sala de um lado ao outro, com um buraco
 ///               pra passar. O buraco pisca no aviso
-///   Invocar  -> levanta dois esqueletos do chao
+///   Invocar  -> levanta dois mortos do chao (esqueletos na Cripta; no Abismo, demonios)
 ///
 /// Com metade da vida entra na SEGUNDA FASE: mais marcas de ossos (em X e em cruz), a
 /// muralha vem em dobro (uma de lado e uma de cima), levanta tres esqueletos e depois de
@@ -582,7 +582,8 @@ public class ChefeNecromante : InimigoDeSala, IChefe
         {
             float angulo = i * 360f / Mathf.Max(1, quantos) + 90f;
             Vector2 ponto = DentroDaSala(rb.position + Rumo(angulo) * (Raio + 1f), 0.5f) - (Vector2)sala.transform.position;
-            TipoDeInimigo tipo = i % 2 == 0 ? TipoDeInimigo.EsqueletoGuerreiro : TipoDeInimigo.Esqueleto;
+            // Na Cripta sao esqueletos; em outro mundo ele levanta os mortos de la (nada de bicho de fora).
+            TipoDeInimigo tipo = TemaDoAndar.Lacaio();
             InimigoDeSala lacaio = sala.CriarInimigo(tipo, ponto);
 
             if (lacaio != null)

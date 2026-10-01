@@ -139,15 +139,18 @@ e na pausa), chão, parede, tom, quantos ossos/runas/candelabros enfeitam as sal
 de inimigos comuns com peso. O `Andar` escolhe o tema antes de montar as salas e
 `ArteGerada.Chao`/`Tijolo` desenham o chão e a parede dele.
 
-| Mundo | Tema | Inimigos comuns |
+Cada espécie é de **um mundo só** (nenhuma se repete entre listas, e nada vem do mundo anterior):
+
+| Mundo | Tema | Inimigos (os três primeiros são os básicos) |
 |---|---|---|
-| 1 | Porão | goblins da tocha, barril, gosmas, bolhas, morcegos, cão infernal, orc, bruxo, minotauro, monstro de sangue |
-| 2 | Catacumbas | saltador, orcs, goblin da dinamite, arqueiro sombrio, lobisomem, esqueletos, cavaleiro do escudo, sentinela |
-| 3 | Cripta | esqueletos (foice, espadão, arqueiro...), vampiro, necromante, fogo-fátuo, cavaleiros, sentinela, urso |
-| 4 (último) | Abismo | demônios e demônias, monstro de sangue, cão infernal, bolha, fogo-fátuo, orc elite, minotauro, vampiro |
+| 1 | Porão | goblin da tocha, gosma, morceguinho, geleia, bolha, barril, morcego, arqueiro sombrio, goblin da dinamite |
+| 2 | Catacumbas | orc, lobisomem, cavaleiro da lança, orc blindado, cavaleiro do escudo, minotauro, orc montado, urso, cavaleiro canhão, orc de elite |
+| 3 | Cripta | esqueleto, esqueleto guerreiro, esqueleto da foice, esqueleto arqueiro, vampiro, fogo-fátuo, bruxo, esqueleto blindado, esqueleto do espadão, necromante |
+| 4 (último) | Abismo | demônio, cão infernal, demônio das lâminas, demônio do tridente, demônio arqueiro, demônia, demônia da foice, monstro de sangue |
 
 Chefes, salas especiais e desbloqueios não mudam com o tema. A sala de desafio usa a
-lista do tema nas ondas.
+lista do tema nas ondas, e os ajudantes que os chefes chamam saem dos três básicos do mundo
+(`TemaDoAndar.Lacaio`).
 
 **Salas grandes** (`GeradorDeAndar.Juntar`): depois de montar o andar, casas comuns vizinhas e já
 ligadas por porta viram uma sala só, como no Isaac: corredor (2x1), sala alta (1x2), 2x2 e em L

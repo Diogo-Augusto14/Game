@@ -11,7 +11,7 @@ using UnityEngine;
 ///               no chao mostra onde vai cair
 ///   Espiral  -> gira no lugar soltando bracos de tiro em espiral
 ///   Cuspe    -> cospe bolhas grandes e lentas que estouram num anel de tiros
-///   Invocar  -> (so na segunda fase) chama dois saltadores
+///   Invocar  -> (so na segunda fase) chama dois bichos simples do mundo
 ///
 /// Com metade da vida entra na SEGUNDA FASE: pula tres vezes seguidas, a espiral ganha
 /// um braco, cospe tres bolhas em leque e os avisos ficam mais curtos.
@@ -463,7 +463,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
         {
             Vector2 lado = i % 2 == 0 ? Vector2.left : Vector2.right;
             Vector2 ponto = DentroDaSala(rb.position + lado * (Raio + 0.8f)) - (Vector2)sala.transform.position;
-            InimigoDeSala lacaio = sala.CriarInimigo(TipoDeInimigo.Saltador, ponto);
+            InimigoDeSala lacaio = sala.CriarInimigo(TemaDoAndar.Lacaio(), ponto);
 
             if (lacaio != null)
                 lacaios.Add(lacaio);

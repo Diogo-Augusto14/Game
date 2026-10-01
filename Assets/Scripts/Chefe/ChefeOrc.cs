@@ -11,7 +11,7 @@ using UnityEngine;
 ///                ele: desviar na ida nao basta
 ///   Investida -> abaixa a cabeca, mostra a linha e corre reto ate bater, soltando pedras
 ///                pros lados enquanto corre
-///   Grito     -> grito de guerra: chama orcs (na segunda fase, que ja chegam com pressa)
+///   Grito     -> grito de guerra: chama bichos do mundo (na segunda fase, que ja chegam com pressa)
 ///
 /// Com metade da vida entra na SEGUNDA FASE (<see cref="ViradaDeFase"/>): a machadada solta
 /// duas ondas, joga um machado a mais, corre mais rapido e os avisos ficam mais curtos.
@@ -364,7 +364,7 @@ public class ChefeOrc : InimigoDeSala, IChefe
 
         for (int i = 0; i < quantos; i++)
         {
-            InimigoDeSala orc = sala.CriarInimigo(TipoDeInimigo.Orc, sala.PontoLivreAleatorio(1.5f));
+            InimigoDeSala orc = sala.CriarInimigo(TemaDoAndar.Lacaio(), sala.PontoLivreAleatorio(1.5f));
 
             if (orc == null)
                 continue;

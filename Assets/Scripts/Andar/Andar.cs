@@ -1120,15 +1120,11 @@ public class Andar : MonoBehaviour
     }
 
     /// <summary>
-    /// Um inimigo comum da fase: cada tema tem a sua lista (ver <see cref="TemaDoAndar"/>).
-    /// Na primeira fase do mundo so os do comeco da lista; do mundo 2 em diante, as vezes um
-    /// do mundo anterior aparece no meio.
+    /// Um inimigo do mundo atual (cada especie e de um mundo so: ver <see cref="TemaDoAndar"/>).
+    /// A primeira fase do mundo sorteia entre os mais simples; a variedade abre fase a fase.
     /// </summary>
     private TipoDeInimigo SortearInimigo()
     {
-        if (Mundo >= 2 && UnityEngine.Random.value < Dificuldade.ChanceDeInimigoDoMundoAnterior)
-            return TemaDoAndar.DoMundo(Mundo - 1, quantidadeDeMundos).SortearInimigo(1f);
-
         return Tema.SortearInimigo(Dificuldade.VariedadeDoTema);
     }
 
@@ -1441,9 +1437,10 @@ public class Andar : MonoBehaviour
     {
         TipoDeInimigo tipo = SortearInimigo();
 
-        // Sentinela e parada: numa onda so faz a sala virar tiroteio.
+        // Sentinela e parada: numa onda so faz a sala virar tiroteio. Troca por um bicho simples do
+        // mesmo mundo (antes virava cao infernal, que e do Abismo).
         if (tipo == TipoDeInimigo.Sentinela)
-            tipo = TipoDeInimigo.Perseguidor;
+            tipo = TemaDoAndar.Lacaio();
 
         InimigoDeSala inimigo = sala.CriarInimigo(tipo, ponto);
         Fortalecer(inimigo, sala);

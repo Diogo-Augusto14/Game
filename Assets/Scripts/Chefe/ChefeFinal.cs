@@ -10,7 +10,7 @@ using UnityEngine;
 ///   Rajada   -> (laranja) fila de tiros mirados no jogador
 ///   Espiral  -> (azul) dois bracos de espiral girando
 ///   Laser    -> (vermelha, fase 2+) uma linha de mira e depois um jato de tiros nela
-///   Invocar  -> (roxa) chama dois inimigos do porao
+///   Invocar  -> (roxa) chama dois bichos simples do mundo (demonios no Abismo)
 ///
 /// Tres fases: abaixo de 60% da vida os ataques dobram (dois aneis, rajada em leque) e
 /// aparece o laser; abaixo de 25% ele solta tiros em cruz girando o tempo todo, mesmo
@@ -499,7 +499,6 @@ public class ChefeFinal : InimigoDeSala, IChefe
             return;
 
         lacaios.RemoveAll(l => l == null || l.EstaMorto);
-        TipoDeInimigo[] tipos = { TipoDeInimigo.Perseguidor, TipoDeInimigo.Saltador, TipoDeInimigo.Investidor };
         int quantos = Mathf.Min(2, maximoDeLacaios - lacaios.Count);
 
         for (int i = 0; i < quantos; i++)
@@ -507,7 +506,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
             // Nos cantos da sala, longe do olho.
             Vector2 canto = new Vector2(i % 2 == 0 ? -1f : 1f, Random.value < 0.5f ? -1f : 1f);
             Vector2 ponto = Vector2.Scale(canto, sala.TamanhoInterno * 0.5f - Vector2.one * 1.2f);
-            InimigoDeSala lacaio = sala.CriarInimigo(tipos[Random.Range(0, tipos.Length)], ponto);
+            InimigoDeSala lacaio = sala.CriarInimigo(TemaDoAndar.Lacaio(), ponto);
 
             if (lacaio != null)
                 lacaios.Add(lacaio);
