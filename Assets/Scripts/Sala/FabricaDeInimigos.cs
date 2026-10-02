@@ -421,9 +421,6 @@ public static class FabricaDeInimigos
     /// <summary>Pixels da arte importada por unidade: o corpo (uns 20 px) fica com ~0.9 unidade.</summary>
     private const float PixelsDoPersonagem = 22f;
 
-    /// <summary>Cor do contorno de todo inimigo: clara e meio transparente, pra marcar sem brilhar.</summary>
-    private static readonly Color CorDoContorno = new Color(1f, 0.95f, 0.85f, 0.6f);
-
     /// <summary>A pixel art do bicho (ja colorida): o SpriteRenderer fica branco.</summary>
     private static (Sprite, Color) Rosto(TipoDeInimigo tipo, Color cor) => (ArteGerada.Inimigo(tipo, cor), Color.white);
 
@@ -476,9 +473,6 @@ public static class FabricaDeInimigos
         T inimigo = obj.AddComponent<T>();
 
         obj.SetActive(true);
-
-        // Borda clara de 1 pixel: bicho escuro (morcego roxo, demonios) nao some no chao.
-        ContornoClaro.Criar(desenho, CorDoContorno);
         return inimigo;
     }
 }

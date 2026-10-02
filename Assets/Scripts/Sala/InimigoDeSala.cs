@@ -100,9 +100,6 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
 
     public bool EstaMorto => EstadoAtual == Estado.Morto;
 
-    /// <summary>Ainda se passa por coisa do cenario (o barril fechado): fica sem o <see cref="ContornoClaro"/>, pra nao entregar.</summary>
-    public virtual bool Disfarcado => false;
-
     /// <summary>Troca a velocidade andando (a fabrica usa nas variacoes de um mesmo comportamento).</summary>
     public void DefinirVelocidade(float nova) => velocidade = Mathf.Max(0f, nova);
 
