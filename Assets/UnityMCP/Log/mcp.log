@@ -1,0 +1,10 @@
+{"ts":"2026-10-03T17:36:23.223Z","event":"session_start","unity":"6000.4.1f1"}
+{"ts":"2026-10-03T17:36:23.223Z","tool":"manage_script","type":"tool","status":"ERROR","ms":8,"action":"validate","params":{"action":"validate","name":"ExampleScript","path":"Assets/Scripts","level":"standard"},"error":"Failed to read script: Could not find file \"C:\\Users\\diogo\\OneDrive\\Documentos\\MyGame\\Assets\\Scripts\\ExampleScript.cs\""}
+{"ts":"2026-10-03T17:40:58.838Z","tool":"get_editor_state","type":"resource","status":"SUCCESS","ms":2,"params":{}}
+{"ts":"2026-10-03T17:40:58.959Z","tool":"get_project_info","type":"resource","status":"SUCCESS","ms":14,"params":{}}
+{"ts":"2026-10-03T17:40:59.395Z","tool":"run_tests","type":"tool","status":"SUCCESS","ms":125,"params":{"mode":"EditMode"}}
+{"ts":"2026-10-03T17:54:56.791Z","tool":"unity_reflect","type":"tool","status":"SUCCESS","ms":4043,"action":"get_member","params":{"action":"get_member","class_name":"Physics","member_name":"Raycast"}}
+{"ts":"2026-10-03T17:55:23.274Z","tool":"unity_reflect","type":"tool","status":"SUCCESS","ms":227,"action":"search","params":{"action":"search","query":"RaycastHit"}}
+{"ts":"2026-10-03T18:07:19.826Z","tool":"unity_reflect","type":"tool","status":"SUCCESS","ms":3301,"action":"get_type","params":{"action":"get_type","class_name":"UnityEngine.GameObject"}}
+{"ts":"2026-10-03T18:08:00.825Z","tool":"unity_reflect","type":"tool","status":"SUCCESS","ms":35,"action":"get_type","params":{"action":"get_type","class_name":"Transform"}}
+{"ts":"2026-10-03T18:11:50.908Z","tool":"unity_reflect","type":"tool","status":"SUCCESS","ms":19,"action":"get_member","params":{"action":"get_member","class_name":"Physics","member_name":"Raycast"}}

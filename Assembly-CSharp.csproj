@@ -24,7 +24,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <NoWarn>0169;USG0001</NoWarn>
-    <DefineConstants>UNITY_6000_4_1;UNITY_6000_4;UNITY_6000;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_4_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_2018_2_OR_NEWER;UNITY_2018_3_OR_NEWER;UNITY_2018_4_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2019_2_OR_NEWER;UNITY_2019_3_OR_NEWER;UNITY_2019_4_OR_NEWER;UNITY_2020_1_OR_NEWER;UNITY_2020_2_OR_NEWER;UNITY_2020_3_OR_NEWER;UNITY_2021_1_OR_NEWER;UNITY_2021_2_OR_NEWER;UNITY_2021_3_OR_NEWER;UNITY_2022_1_OR_NEWER;UNITY_2022_2_OR_NEWER;UNITY_2022_3_OR_NEWER;UNITY_2023_1_OR_NEWER;UNITY_2023_2_OR_NEWER;UNITY_2023_3_OR_NEWER;UNITY_6000_0_OR_NEWER;UNITY_6000_1_OR_NEWER;UNITY_6000_2_OR_NEWER;UNITY_6000_3_OR_NEWER;UNITY_6000_4_OR_NEWER;PLATFORM_ARCH_64;UNITY_64;UNITY_INCLUDE_TESTS;ENABLE_AR;ENABLE_AUDIO;ENABLE_AUDIO_SCRIPTABLE_PIPELINE;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_EVENT_QUEUE;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_TEXTURE_STREAMING;ENABLE_VIRTUALTEXTURING;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_VR;ENABLE_WEBCAM;ENABLE_UNITYWEBREQUEST;ENABLE_WWW;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_UNITY_CONSENT;ENABLE_UNITY_CLOUD_IDENTIFIERS;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_EDITOR_GAME_SERVICES;ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_GENERATE_NATIVE_PLUGINS_FOR_ASSEMBLIES_API;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_MANAGED_JOBS;ENABLE_MANAGED_TRANSFORM_JOBS;ENABLE_MANAGED_ANIMATION_JOBS;ENABLE_MANAGED_AUDIO_JOBS;ENABLE_MANAGED_UNITYTLS;INCLUDE_DYNAMIC_GI;ENABLE_SCRIPTING_GC_WBARRIERS;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;ENABLE_MARSHALLING_TESTS;ENABLE_VIDEO;ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK;ENABLE_ACCELERATOR_CLIENT_DEBUGGING;ENABLE_ACCESSIBILITY_SCREEN_READER;TEXTCORE_1_0_OR_NEWER;EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED;PLATFORM_STANDALONE_WIN;PLATFORM_STANDALONE;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_NVIDIA;ENABLE_AMD;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS;ENABLE_OUT_OF_PROCESS_CRASH_HANDLER;ENABLE_CLUSTER_SYNC;ENABLE_CLUSTERINPUT;PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP;GFXDEVICE_WAITFOREVENT_MESSAGEPUMP;PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER;PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION;PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS;ENABLE_MONO;NET_STANDARD_2_0;NET_STANDARD;NET_STANDARD_2_1;NETSTANDARD;NETSTANDARD2_1;ENABLE_PROFILER;ENABLE_PROFILER_ASSISTANT_INTEGRATION;DEBUG;TRACE;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_UNITY_COLLECTIONS_CHECKS;ENABLE_BURST_AOT;UNITY_TEAM_LICENSE;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_DIRECTOR;ENABLE_LOCALIZATION;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_TILEMAP;ENABLE_TIMELINE;ENABLE_INPUT_SYSTEM;ENABLE_LEGACY_INPUT_MANAGER;TEXTCORE_FONT_ENGINE_1_5_OR_NEWER;TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER;TEXTCORE_FONT_ENGINE_1_6_OR_NEWER;CSHARP_7_OR_LATER;CSHARP_7_3_OR_NEWER</DefineConstants>
+    <DefineConstants>UNITY_6000_4_1;UNITY_6000_4;UNITY_6000;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_4_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_2018_2_OR_NEWER;UNITY_2018_3_OR_NEWER;UNITY_2018_4_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2019_2_OR_NEWER;UNITY_2019_3_OR_NEWER;UNITY_2019_4_OR_NEWER;UNITY_2020_1_OR_NEWER;UNITY_2020_2_OR_NEWER;UNITY_2020_3_OR_NEWER;UNITY_2021_1_OR_NEWER;UNITY_2021_2_OR_NEWER;UNITY_2021_3_OR_NEWER;UNITY_2022_1_OR_NEWER;UNITY_2022_2_OR_NEWER;UNITY_2022_3_OR_NEWER;UNITY_2023_1_OR_NEWER;UNITY_2023_2_OR_NEWER;UNITY_2023_3_OR_NEWER;UNITY_6000_0_OR_NEWER;UNITY_6000_1_OR_NEWER;UNITY_6000_2_OR_NEWER;UNITY_6000_3_OR_NEWER;UNITY_6000_4_OR_NEWER;PLATFORM_ARCH_64;UNITY_64;UNITY_INCLUDE_TESTS;ENABLE_AR;ENABLE_AUDIO;ENABLE_AUDIO_SCRIPTABLE_PIPELINE;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_EVENT_QUEUE;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_TEXTURE_STREAMING;ENABLE_VIRTUALTEXTURING;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_VR;ENABLE_WEBCAM;ENABLE_UNITYWEBREQUEST;ENABLE_WWW;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_UNITY_CONSENT;ENABLE_UNITY_CLOUD_IDENTIFIERS;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_EDITOR_GAME_SERVICES;ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_GENERATE_NATIVE_PLUGINS_FOR_ASSEMBLIES_API;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_MANAGED_JOBS;ENABLE_MANAGED_TRANSFORM_JOBS;ENABLE_MANAGED_ANIMATION_JOBS;ENABLE_MANAGED_AUDIO_JOBS;ENABLE_MANAGED_UNITYTLS;INCLUDE_DYNAMIC_GI;ENABLE_SCRIPTING_GC_WBARRIERS;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;ENABLE_MARSHALLING_TESTS;ENABLE_VIDEO;ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK;ENABLE_ACCELERATOR_CLIENT_DEBUGGING;ENABLE_ACCESSIBILITY_SCREEN_READER;TEXTCORE_1_0_OR_NEWER;EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED;PLATFORM_STANDALONE_WIN;PLATFORM_STANDALONE;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_NVIDIA;ENABLE_AMD;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS;ENABLE_OUT_OF_PROCESS_CRASH_HANDLER;ENABLE_CLUSTER_SYNC;ENABLE_CLUSTERINPUT;PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP;GFXDEVICE_WAITFOREVENT_MESSAGEPUMP;PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER;PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION;PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS;ENABLE_MONO;NET_STANDARD_2_0;NET_STANDARD;NET_STANDARD_2_1;NETSTANDARD;NETSTANDARD2_1;ENABLE_PROFILER;ENABLE_PROFILER_ASSISTANT_INTEGRATION;DEBUG;TRACE;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_UNITY_COLLECTIONS_CHECKS;ENABLE_BURST_AOT;UNITY_TEAM_LICENSE;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_DIRECTOR;ENABLE_LOCALIZATION;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_TILEMAP;ENABLE_TIMELINE;ENABLE_INPUT_SYSTEM;ENABLE_LEGACY_INPUT_MANAGER;TEXTCORE_FONT_ENGINE_1_5_OR_NEWER;TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER;TEXTCORE_FONT_ENGINE_1_6_OR_NEWER;SENTIS_ANALYTICS_ENABLED;APP_UI_EDITOR_ONLY;CSHARP_7_OR_LATER;CSHARP_7_3_OR_NEWER</DefineConstants>
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
@@ -43,29 +43,175 @@
     <UnityVersion>6000.4.1f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Users\diogo\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.3.1\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Users\diogo\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.3.2\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
+    <Analyzer Include="C:\Users\diogo\OneDrive\Documentos\MyGame\Library\PackageCache\com.unity.ai.inference@9a123aee5df7\Runtime\Core\SourceGenerator\SourceGenerators.dll" />
+    <Analyzer Include="C:\Users\diogo\OneDrive\Documentos\MyGame\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\SourceGenerators\netstandard2.0\EnumToLowerCase.dll" />
+    <Analyzer Include="C:\Users\diogo\OneDrive\Documentos\MyGame\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\combate\IControladorDeMovimento.cs" />
-    <Compile Include="Assets\Scripts\ataques\Ataque.cs" />
-    <Compile Include="Assets\Scripts\Cameramov.cs" />
-    <Compile Include="Assets\Scripts\Movimento.cs" />
-    <Compile Include="Assets\Scripts\Player.cs" />
-    <Compile Include="Assets\Bandits - Pixel Art\Demo\Bandit.cs" />
-    <Compile Include="Assets\Bandits - Pixel Art\Demo\Sensor_Bandit.cs" />
-    <Compile Include="Assets\Scripts\combate\Vida.cs" />
-    <Compile Include="Assets\Scripts\Inimigo.cs" />
-    <Compile Include="Assets\Scripts\combate\EfeitoDeImpacto.cs" />
+    <Compile Include="Assets\Scripts\Itens\Bomba.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoDeSangue.cs" />
+    <Compile Include="Assets\Scripts\TopDown\BootstrapTopDown.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoDemonio.cs" />
+    <Compile Include="Assets\Scripts\TopDown\MovimentoTopDown.cs" />
+    <Compile Include="Assets\Scripts\Andar\TroncoRolante.cs" />
+    <Compile Include="Assets\Scripts\UI\AvisoDoAndar.cs" />
+    <Compile Include="Assets\Scripts\Audio\Musica.cs" />
+    <Compile Include="Assets\Scripts\Sala\HaloCintilante.cs" />
+    <Compile Include="Assets\Scripts\Sala\Baratas.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoDuelista.cs" />
+    <Compile Include="Assets\Scripts\Andar\AltarDeSangue.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoPerseguidor.cs" />
+    <Compile Include="Assets\Scripts\Sala\Campeao.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\EstiloDeTiro.cs" />
+    <Compile Include="Assets\Scripts\Sala\Sala.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoLanceiro.cs" />
+    <Compile Include="Assets\Scripts\Sala\Pedra.cs" />
+    <Compile Include="Assets\Scripts\Chefe\MachadoBumerangue.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ChefeLobisomem.cs" />
+    <Compile Include="Assets\Scripts\TopDown\Progresso.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoInvestidor.cs" />
+    <Compile Include="Assets\Scripts\Itens\TextoFlutuante.cs" />
+    <Compile Include="Assets\Scripts\Sala\Espinhos.cs" />
+    <Compile Include="Assets\Scripts\UI\Hud.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\RastroQueSome.cs" />
+    <Compile Include="Assets\Scripts\Itens\ProdutoDaLoja.cs" />
+    <Compile Include="Assets\Scripts\Sala\ContornoClaro.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoCao.cs" />
+    <Compile Include="Assets\Scripts\Itens\EfeitosDosItens.cs" />
+    <Compile Include="Assets\Scripts\Itens\Coletavel.cs" />
+    <Compile Include="Assets\Scripts\TopDown\CuraDoHeroi.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\Cronometro.cs" />
+    <Compile Include="Assets\Scripts\Sala\Mesa.cs" />
+    <Compile Include="Assets\Scripts\Andar\SalaDeDesafio.cs" />
+    <Compile Include="Assets\Scripts\Itens\EstatisticasDoJogador.cs" />
+    <Compile Include="Assets\Scripts\Progresso\TelaDeProgresso.cs" />
+    <Compile Include="Assets\Scripts\UI\TransicaoDeTela.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ChefeDoAndar.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoLobisomem.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\VisualDoProjetil.cs" />
+    <Compile Include="Assets\Scripts\Andar\TemaDoAndar.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoBruxo.cs" />
+    <Compile Include="Assets\Scripts\Audio\Sons.cs" />
+    <Compile Include="Assets\Scripts\TopDown\AnimacaoDoTiro.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ChefeFinal.cs" />
+    <Compile Include="Assets\Scripts\UI\FonteDoJogo.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Bestiario.cs" />
+    <Compile Include="Assets\Scripts\Itens\ItemAtivoDoJogador.cs" />
+    <Compile Include="Assets\Scripts\TopDown\Lagrima.cs" />
+    <Compile Include="Assets\Scripts\Itens\OrbeGuardiao.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoDeSala.cs" />
+    <Compile Include="Assets\Scripts\Itens\SoltaColetavel.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoAtirador.cs" />
+    <Compile Include="Assets\Scripts\Andar\GeradorDeAndar.cs" />
+    <Compile Include="Assets\Scripts\Andar\LaminaGiratoria.cs" />
+    <Compile Include="Assets\Scripts\Sala\Fosso.cs" />
+    <Compile Include="Assets\Scripts\UI\Opcoes.cs" />
+    <Compile Include="Assets\Scripts\combate\Impacto.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\EfeitoDaFlecha.cs" />
+    <Compile Include="Assets\Scripts\Andar\DificuldadeDaFase.cs" />
+    <Compile Include="Assets\Scripts\Animacao\EfeitoDeQuadros.cs" />
+    <Compile Include="Assets\Scripts\Sala\FabricaDeInimigos.cs" />
+    <Compile Include="Assets\Scripts\Jogador\Controle.cs" />
+    <Compile Include="Assets\Scripts\Itens\EspinhosQueSaem.cs" />
+    <Compile Include="Assets\Scripts\TopDown\FormasTopDown.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoBlindado.cs" />
     <Compile Include="Assets\Scripts\combate\IDanificavel.cs" />
-    <Compile Include="Assets\Scripts\Cura.cs" />
-    <Compile Include="Assets\Scripts\ataques\Espada.cs" />
+    <Compile Include="Assets\Scripts\TopDown\AtiradorTopDown.cs" />
+    <Compile Include="Assets\Scripts\TopDown\RastroDoDash.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoEscudeiro.cs" />
+    <Compile Include="Assets\Scripts\TopDown\AlvoDeTreino.cs" />
+    <Compile Include="Assets\Scripts\Itens\Bau.cs" />
+    <Compile Include="Assets\Scripts\Itens\Inventario.cs" />
+    <Compile Include="Assets\Scripts\Sala\Porta.cs" />
+    <Compile Include="Assets\Scripts\Itens\HudDoInventario.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\CondicaoDoInimigo.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ChefeSaltador.cs" />
+    <Compile Include="Assets\Scripts\Itens\Sinergias.cs" />
+    <Compile Include="Assets\Scripts\Arte\ArteImportada.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\Camadas.cs" />
+    <Compile Include="Assets\Scripts\UI\MenuDeBotoes.cs" />
+    <Compile Include="Assets\Scripts\UI\TelaDeOpcoes.cs" />
+    <Compile Include="Assets\Scripts\UI\ResumoDaPartida.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\TipoDeFlecha.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoMorcego.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoEsqueletoFoice.cs" />
+    <Compile Include="Assets\Scripts\Andar\SalaDeEmboscada.cs" />
+    <Compile Include="Assets\Scripts\Andar\Andar.cs" />
+    <Compile Include="Assets\Scripts\Sala\TiroDaSala.cs" />
+    <Compile Include="Assets\Scripts\UI\TelaDeNovidades.cs" />
+    <Compile Include="Assets\Scripts\Itens\ChaveDoChefe.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoDemonia.cs" />
+    <Compile Include="Assets\Scripts\combate\IControladorDeMovimento.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ChefeNecromante.cs" />
+    <Compile Include="Assets\Scripts\UI\TelaSimples.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Conquistas.cs" />
+    <Compile Include="Assets\Scripts\UI\IconeDeTecla.cs" />
+    <Compile Include="Assets\Scripts\Andar\SalaEscura.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ChefeMinotauro.cs" />
+    <Compile Include="Assets\Scripts\Itens\Tranca.cs" />
+    <Compile Include="Assets\Scripts\Audio\Sintetizador.cs" />
+    <Compile Include="Assets\Scripts\TopDown\Herois.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoComArte.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Registro.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Salvamento.cs" />
+    <Compile Include="Assets\Scripts\Itens\PainelDeItens.cs" />
+    <Compile Include="Assets\Scripts\Sala\JogadorDeTeste.cs" />
+    <Compile Include="Assets\Scripts\Chefe\BolhaQueEstoura.cs" />
+    <Compile Include="Assets\Scripts\Sala\DemoDaSala.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\EstiloDoAtirador.cs" />
+    <Compile Include="Assets\Scripts\Itens\ItemPassivo.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ViradaDeFase.cs" />
+    <Compile Include="Assets\Scripts\TopDown\GolpeDeEspada.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ChefeOrc.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoArqueiro.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoFogoFatuo.cs" />
+    <Compile Include="Assets\Scripts\Chefe\RastroDoChefe.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoUrso.cs" />
+    <Compile Include="Assets\Scripts\TopDown\ArqueiroDoJogador.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\ComportamentoDoTiro.cs" />
+    <Compile Include="Assets\Scripts\Animacao\AnimacaoDePersonagem.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoEspadao.cs" />
+    <Compile Include="Assets\Scripts\Itens\Pedestal.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoNecromante.cs" />
+    <Compile Include="Assets\Scripts\UI\TelaDeFimDeJogo.cs" />
+    <Compile Include="Assets\Scripts\Sala\Muro.cs" />
+    <Compile Include="Assets\Scripts\Arte\ArteGerada.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoSaltador.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoDivisor.cs" />
+    <Compile Include="Assets\Scripts\Chefe\IChefe.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoTridente.cs" />
+    <Compile Include="Assets\Scripts\Andar\SalaAmaldicoada.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\VersaoDoJogo.cs" />
+    <Compile Include="Assets\Scripts\combate\Vida.cs" />
+    <Compile Include="Assets\Scripts\UI\TelaDeInicio.cs" />
+    <Compile Include="Assets\Scripts\Jogador\Entrada.cs" />
+    <Compile Include="Assets\Scripts\Sala\DisposicoesDaSala.cs" />
+    <Compile Include="Assets\Scripts\UI\TelaDePausa.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoFurioso.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\TrocaDeFlecha.cs" />
+    <Compile Include="Assets\Scripts\Itens\Comerciante.cs" />
+    <Compile Include="Assets\Scripts\combate\Explosao.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoDeGolpe.cs" />
+    <Compile Include="Assets\Scripts\Projeteis\AparenciaDoProjetil.cs" />
+    <Compile Include="Assets\Scripts\Itens\Loja.cs" />
+    <Compile Include="Assets\Scripts\Chefe\BarraDoChefe.cs" />
+    <Compile Include="Assets\Scripts\Andar\Minimapa.cs" />
+    <Compile Include="Assets\Scripts\Arte\ArteDaInterface.cs" />
     <Compile Include="Assets\Scripts\combate\DanoInfo.cs" />
+    <Compile Include="Assets\Scripts\Andar\Alcapao.cs" />
+    <Compile Include="Assets\Scripts\Sala\FormasDaSala.cs" />
+    <Compile Include="Assets\Scripts\Sala\InimigoSentinela.cs" />
+    <Compile Include="Assets\Scripts\Progresso\AvisoDeConquista.cs" />
+    <Compile Include="Assets\Scripts\UI\DicaDupla.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\fourSeasonsPlatformer_ [tileset, version 2.0]\- READ ME -.txt" />
+    <None Include="Assets\StreamingAssets\CREDITOS-AUDIO.txt" />
+    <None Include="Assets\Arte\Resources\Fontes\LICENCA-Jersey15.txt" />
+    <None Include="Assets\Arte\Resources\Fontes\LICENCA-Jacquard12.txt" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -628,6 +774,10 @@
       <HintPath>Library\PackageCache\com.unity.visualscripting@8bed5ad90189\Runtime\VisualScripting.Flow\Dependencies\NCalc\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64\Runtime\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll</HintPath>
       <Private>False</Private>
@@ -1124,10 +1274,6 @@
       <HintPath>C:\Program Files\Unity\Hub\Editor\6000.4.1f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.Xml.Serialization.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.2D.Common.Path.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.2D.Common.Path.Editor.dll</HintPath>
       <Private>False</Private>
@@ -1138,10 +1284,6 @@
     </Reference>
     <Reference Include="Unity.InternalAPIEngineBridge.001">
       <HintPath>Library\ScriptAssemblies\Unity.InternalAPIEngineBridge.001.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEditor.UI.Analytics">
-      <HintPath>Library\ScriptAssemblies\UnityEditor.UI.Analytics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
@@ -1160,44 +1302,24 @@
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.2D.IK.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.IK.Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.VisualScripting.SettingsProvider.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.SettingsProvider.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.2D.Animation.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.Animation.Editor.dll</HintPath>
+    <Reference Include="Unity.AI.Assistant.API.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.Assistant.API.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.InternalAPIEditorBridge.001">
       <HintPath>Library\ScriptAssemblies\Unity.InternalAPIEditorBridge.001.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.2D.Editor.Overrides">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.2D.Editor.Overrides.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Editor.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.2D.Common.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.2D.Common.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.Timeline">
-      <HintPath>Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.PathTracing.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.PathTracing.Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.2D.Tooling.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.Tooling.Editor.dll</HintPath>
+    <Reference Include="Unity.AI.Assistant.Integrations.Profiler.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.Assistant.Integrations.Profiler.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.2D.Animation.Runtime">
@@ -1210,6 +1332,178 @@
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.2D.Runtime">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.2D.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AI.Assistant.Tools.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.Assistant.Tools.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AppUI.Undo">
+      <HintPath>Library\ScriptAssemblies\Unity.AppUI.Undo.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AI.MCP.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.MCP.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.UnifiedRayTracing.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.UnifiedRayTracing.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Aseprite.Common">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Aseprite.Common.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.InferenceEngine.MacBLAS">
+      <HintPath>Library\ScriptAssemblies\Unity.InferenceEngine.MacBLAS.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Rider.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Rider.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AI.Assistant.Bridge.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.Assistant.Bridge.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Aseprite.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Aseprite.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.InferenceEngine.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.InferenceEngine.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Flow">
+      <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.Flow.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Tilemap.Extras.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Tilemap.Extras.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.VisualStudio.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Tilemap.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Tilemap.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.InputSystem.ForUI">
+      <HintPath>Library\ScriptAssemblies\Unity.InputSystem.ForUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.GPUDriven.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.GPUDriven.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.State.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.State.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Shaders">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="HFDownloader">
+      <HintPath>Library\ScriptAssemblies\HFDownloader.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Config.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Config.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AppUI">
+      <HintPath>Library\ScriptAssemblies\Unity.AppUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared">
+      <HintPath>Library\ScriptAssemblies\Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Editor.Shared">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.Shared.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.SpriteShape.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.SpriteShape.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>Library\ScriptAssemblies\Unity.InputSystem.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AppUI.Redux">
+      <HintPath>Library\ScriptAssemblies\Unity.AppUI.Redux.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AI.MCP.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.MCP.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.InferenceEngine.ONNX.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.InferenceEngine.ONNX.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AppUI.Navigation">
+      <HintPath>Library\ScriptAssemblies\Unity.AppUI.Navigation.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEditor.UI.Analytics">
+      <HintPath>Library\ScriptAssemblies\UnityEditor.UI.Analytics.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.IK.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.IK.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AI.Assistant.Agent.Dynamic.Extension.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.Assistant.Agent.Dynamic.Extension.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Animation.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Animation.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.2D.Editor.Overrides">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.2D.Editor.Overrides.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Timeline">
+      <HintPath>Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.PathTracing.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.PathTracing.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Tooling.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Tooling.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.VisualScripting.Shared.Editor">
@@ -1236,22 +1530,6 @@
       <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.UnifiedRayTracing.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.UnifiedRayTracing.Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.2D.Aseprite.Common">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.Aseprite.Common.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Rider.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Rider.Editor.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.2D.Aseprite.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.Aseprite.Editor.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.InternalAPIEditorBridge.ShaderGraph.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.InternalAPIEditorBridge.ShaderGraph.Editor.dll</HintPath>
       <Private>False</Private>
@@ -1260,20 +1538,24 @@
       <HintPath>Library\ScriptAssemblies\Unity.2D.Psdimporter.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.VisualScripting.Flow">
-      <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.Flow.dll</HintPath>
+    <Reference Include="MCPForUnity.Runtime">
+      <HintPath>Library\ScriptAssemblies\MCPForUnity.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.TextMeshPro.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
+    <Reference Include="Unity.AI.Assistant.Annotations.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.Assistant.Annotations.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.2D.Tilemap.Extras.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.Tilemap.Extras.Editor.dll</HintPath>
+    <Reference Include="Unity.AppUI.MVVM">
+      <HintPath>Library\ScriptAssemblies\Unity.AppUI.MVVM.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.AI.Assistant.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.Assistant.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.2D.Tilemap.Extras">
@@ -1292,16 +1574,12 @@
       <HintPath>Library\ScriptAssemblies\Unity.2D.SpriteShape.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.VisualStudio.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
+    <Reference Include="Unity.AI.Tracing">
+      <HintPath>Library\ScriptAssemblies\Unity.AI.Tracing.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.2D.Tilemap.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.Tilemap.Editor.dll</HintPath>
+    <Reference Include="Unity.AppUI.Redux.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AppUI.Redux.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.SurfaceCache.Runtime">
@@ -1316,32 +1594,20 @@
       <HintPath>Library\ScriptAssemblies\Unity.Collections.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.InputSystem.ForUI">
-      <HintPath>Library\ScriptAssemblies\Unity.InputSystem.ForUI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.GPUDriven.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.GPUDriven.Runtime.dll</HintPath>
+    <Reference Include="MCPForUnity.Editor">
+      <HintPath>Library\ScriptAssemblies\MCPForUnity.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.VisualScripting.State.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.State.Editor.dll</HintPath>
+    <Reference Include="Unity.AppUI.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AppUI.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Mathematics">
       <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Shaders">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Multiplayer.Center.Common">
@@ -1368,20 +1634,16 @@
       <HintPath>Library\ScriptAssemblies\Unity.PathTracing.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+    <Reference Include="Unity.InferenceEngine.Tokenization">
+      <HintPath>Library\ScriptAssemblies\Unity.InferenceEngine.Tokenization.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.VisualScripting.State">
       <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.State.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Config.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Config.Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared">
-      <HintPath>Library\ScriptAssemblies\Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.dll</HintPath>
+    <Reference Include="Unity.AppUI.Navigation.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.AppUI.Navigation.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
@@ -1396,20 +1658,16 @@
       <HintPath>Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Editor.Shared">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.Shared.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.2D.SpriteShape.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.SpriteShape.Editor.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.InputSystem">
-      <HintPath>Library\ScriptAssemblies\Unity.InputSystem.dll</HintPath>
+    <Reference Include="Unity.InferenceEngine.iOSBLAS">
+      <HintPath>Library\ScriptAssemblies\Unity.InferenceEngine.iOSBLAS.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.InferenceEngine">
+      <HintPath>Library\ScriptAssemblies\Unity.InferenceEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

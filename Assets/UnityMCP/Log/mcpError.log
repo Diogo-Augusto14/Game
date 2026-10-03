@@ -1,0 +1,1 @@
+{"ts":"2026-10-03T17:36:23.223Z","tool":"manage_script","type":"tool","status":"ERROR","ms":8,"action":"validate","params":{"action":"validate","name":"ExampleScript","path":"Assets/Scripts","level":"standard"},"error":"Failed to read script: Could not find file \"C:\\Users\\diogo\\OneDrive\\Documentos\\MyGame\\Assets\\Scripts\\ExampleScript.cs\""}
