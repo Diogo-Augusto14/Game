@@ -52,9 +52,8 @@
     <Analyzer Include="C:\Users\diogo\OneDrive\Documentos\MyGame\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Editor\CriadorDaSalaDeTeste.cs" />
-    <Compile Include="Assets\Editor\CenaDoAndar.cs" />
-    <Compile Include="Assets\Editor\ConfiguradorDoProjeto.cs" />
+    <Compile Include="Assets\Editor\PlayPelaCenaDoJogo.cs" />
+    <Compile Include="Assets\Editor\MontarJogo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
