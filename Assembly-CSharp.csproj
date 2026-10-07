@@ -70,6 +70,7 @@
     <Compile Include="Assets\Scripts\Inimigos\MorteDoInimigo.cs" />
     <Compile Include="Assets\Scripts\Inimigos\BonecoDeTreino.cs" />
     <Compile Include="Assets\Scripts\Nucleo\EfeitoDeFolha.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\TrocaDoLancador.cs" />
     <Compile Include="Assets\Scripts\Jogador\MorteDoJogador.cs" />
     <Compile Include="Assets\Scripts\Andar\Caverna.cs" />
     <Compile Include="Assets\Scripts\Andar\Automapa.cs" />

@@ -1,13 +1,42 @@
-# Lançador com atualização automática
+# Lançador: escolher a versão, cada uma com o seu save
 
-O `ThePrettie-Lancador.exe` fica na mesma pasta do `ThePrettie.exe`. Toda vez que é aberto ele:
+O `ThePrettie-Lancador.exe` mostra todas as versões publicadas no repositório público
+`Diogo-Augusto14/ThePrettie-Releases`, com as novidades de cada uma. Você escolhe qual jogar (a de cima é
+a mais nova) e aperta **Jogar** (ou dá dois cliques):
 
-1. Lê a versão instalada em `versao.txt` (na pasta do jogo; se não existir, considera `0.0.0`).
-2. Consulta a última release do repositório público `Diogo-Augusto14/ThePrettie-Releases`.
-3. Se a versão publicada for maior, baixa o zip, extrai por cima da pasta do jogo e atualiza o `versao.txt`.
-4. Abre o `ThePrettie.exe`. Sem internet ou com qualquer erro, abre o jogo mesmo assim.
+1. Se a versão ainda não está instalada, ele baixa o zip dela e instala em `versoes\<versão>\`, ao lado
+   do lançador. Cada versão tem a sua pasta; nenhuma apaga a outra.
+2. Põe no lugar o **save dessa versão** e abre o jogo. Enquanto o jogo roda, o lançador fica escondido.
+3. Quando o jogo fecha, guarda o save em `saves\<versão>.txt` e volta a aparecer, pra jogar de novo
+   ou escolher outra.
 
-O jogo deve ser aberto sempre pelo lançador. O repositório de releases guarda só os zips, o código do jogo continua privado.
+Sem internet, ele mostra só as versões já instaladas. Com o jogo já aberto, ele não deixa abrir outra.
+
+## Como o save de cada versão fica separado
+
+A Unity guarda o save do jogo (o PlayerPrefs) no registro do Windows, numa chave só
+(`HKEY_CURRENT_USER\Software\DefaultCompany\The Prettie`), a mesma pra todas as versões. Por isso o
+lançador troca o conteúdo dessa chave: antes de abrir uma versão, põe o save dela; quando o jogo fecha,
+guarda de volta. O jogo não precisa saber de nada disso.
+
+- Versão nunca jogada começa **sem save**. A exceção são as do jogo antigo (antes da 1.2.0): essas
+  começam com o save **antigo**, o que estava no registro quando o lançador novo abriu pela primeira vez.
+- Se o lançador for fechado à força com o jogo aberto, na próxima vez ele guarda o save que ficou
+  pendente (`saves\em-uso.txt` diz de qual versão era) antes de qualquer coisa.
+- Pra começar uma versão do zero, é só apagar o `saves\<versão>.txt` dela com o lançador fechado.
+
+## A primeira vez do lançador novo
+
+O lançador antigo instalava o jogo direto na pasta dele. Na primeira vez, o novo move essa instalação
+pra `versoes\<versão>\` (a de `versao.txt`) e guarda o save que já existe pra ela e como `saves\antigo.txt`.
+
+O lançador antigo não sabe trocar a si mesmo (pula o próprio `.exe` ao instalar). Por isso o zip traz o
+lançador também como `ThePrettie-Lancador-novo.exe`, e o jogo, ao abrir, põe ele no lugar do velho
+(`Assets/Scripts/Nucleo/TrocaDoLancador.cs`). Da segunda vez em diante já abre o lançador novo.
+
+O lançador novo se atualiza sozinho: quando instala a versão mais nova e o lançador que veio nela é
+diferente, troca de nome com ele (um `.exe` aberto não pode ser apagado, mas pode mudar de nome) e o novo
+vale na próxima vez.
 
 ## Preparação (uma vez só)
 
@@ -47,10 +76,9 @@ Mandar o zip da versão mais recente uma única vez. Depois disso, as atualizaç
 
 ## Observações
 
-- O lançador não se sobrescreve durante a atualização; para trocar o próprio lançador, mande um zip novo.
-- Só a última release marcada como "Latest" conta (rascunhos e pré-lançamentos são ignorados).
+- Rascunhos e pré-lançamentos não aparecem na lista.
 - O número da tag segue o formato `v1.2.3`; o `v` é ignorado na comparação.
 
 ## Testar sem o repositório público
 
-Defina a variável de ambiente `PRETTIE_URL_TESTE` com a URL de um JSON no mesmo formato da API do GitHub (precisa de `tag_name` e `browser_download_url` terminando em `.zip`), por exemplo servido por `python -m http.server`, e abra o lançador na mesma janela do terminal. Sem essa variável, ele sempre usa o repositório oficial.
+Defina a variável de ambiente `PRETTIE_URL_TESTE` com a URL de um JSON no mesmo formato da API do GitHub (uma lista de releases, ou uma só; cada uma com `tag_name` e um `browser_download_url` terminando em `.zip`), por exemplo servido por `python -m http.server`, e abra o lançador na mesma janela do terminal. Sem essa variável, ele sempre usa o repositório oficial.

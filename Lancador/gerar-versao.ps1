@@ -9,6 +9,8 @@ if (-not (Test-Path (Join-Path $build 'ThePrettie.exe'))) { throw "Build não en
 
 & (Join-Path $PSScriptRoot 'compilar.bat') | Out-Host
 Copy-Item (Join-Path $PSScriptRoot 'ThePrettie-Lancador.exe') $build -Force
+# O lançador antigo não troca a si mesmo: o novo vai também com outro nome, e o jogo faz a troca (TrocaDoLancador.cs).
+Copy-Item (Join-Path $PSScriptRoot 'ThePrettie-Lancador.exe') (Join-Path $build 'ThePrettie-Lancador-novo.exe') -Force
 Set-Content -Path (Join-Path $build 'versao.txt') -Value $Versao -NoNewline
 # As novidades da versao vao junto: o jogo mostra na primeira vez que abre depois de atualizar.
 $notas = Join-Path $PSScriptRoot "notas\$Versao.md"
