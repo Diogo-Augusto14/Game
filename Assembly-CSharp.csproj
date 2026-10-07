@@ -87,6 +87,9 @@
     <Compile Include="Assets\Scripts\Armas\Bau.cs" />
     <Compile Include="Assets\Scripts\Armas\HudDaArma.cs" />
     <Compile Include="Assets\Scripts\Jogador\InteracaoDoJogador.cs" />
+    <Compile Include="Assets\Scripts\Armas\Rajada.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\DanoAoEncostar.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\TiroAoMorrer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StreamingAssets\CREDITOS-AUDIO.txt" />

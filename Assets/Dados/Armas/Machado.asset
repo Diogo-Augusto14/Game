@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
-  m_Name: Besta
+  m_Name: Machado
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
-  nome: Besta
+  nome: Machado de Arremesso
   desenhoNaMao: {fileID: 21300000, guid: 65a408a3dcbe43048be4ddc1c662b569, type: 3}
   distanciaDaMao: 0.4
   coice: 0.1
@@ -22,19 +22,26 @@ MonoBehaviour:
   recarga: 0.6
   somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
   pesoNoBau: 0.9
-  desenhoDoTiro: {fileID: 21300000, guid: e6f96c04ea2a4277a20fc607b34d2ae7, type: 3}
-  apontarODesenho: 1
+  desenhoDoTiro: {fileID: 21300000, guid: 65a408a3dcbe43048be4ddc1c662b569, type: 3}
+  apontarODesenho: 0
   cor: {r: 1, g: 1, b: 1, a: 1}
-  raio: 0.12
+  raio: 0.2
   automatica: 0
   tirosPorSegundo: 2
-  velocidade: 22
-  alcance: 14
+  velocidade: 15
+  alcance: 10
   dano: 9
-  empurrao: 4
+  empurrao: 6
+  aceleracao: 0
+  curva: 0
+  giroDoDesenho: -900
   tirosPorDisparo: 1
   abertura: 10
+  anel: 0
   dispersao: 0
-  tremor: 0.03
+  rajada: 1
+  intervaloDaRajada: 0.1
+  giroNaRajada: 0
+  tremor: 0.04
   som: {fileID: 8300000, guid: 1a10f5999d6c41d0b808e90569b83702, type: 3}
   volume: 0.5

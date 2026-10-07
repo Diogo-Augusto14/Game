@@ -10,31 +10,38 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
-  m_Name: Metralhadora
+  m_Name: Varinha
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
-  nome: Metralhadora
-  desenhoNaMao: {fileID: 21300000, guid: ce734a1331df491396e44a07525d9e29, type: 3}
+  nome: Varinha de Faiscas
+  desenhoNaMao: {fileID: 21300000, guid: 33bc0260fdaa4a849c15311a128256af, type: 3}
   distanciaDaMao: 0.4
-  coice: 0.05
+  coice: 0.06
   infinita: 0
-  pente: 30
-  municaoMaxima: 300
-  recarga: 1.3
+  pente: 10
+  municaoMaxima: 150
+  recarga: 0.9
   somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
-  pesoNoBau: 1
+  pesoNoBau: 1.2
   desenhoDoTiro: {fileID: 21300000, guid: 88d0700ad7ab49f8adb4b73da8300f7d, type: 3}
   apontarODesenho: 0
   cor: {r: 1, g: 1, b: 1, a: 1}
   raio: 0.1
-  automatica: 1
-  tirosPorSegundo: 11
-  velocidade: 17
-  alcance: 10
-  dano: 2
-  empurrao: 1.5
+  automatica: 0
+  tirosPorSegundo: 5
+  velocidade: 16
+  alcance: 12
+  dano: 4
+  empurrao: 3
+  aceleracao: 0
+  curva: 0
+  giroDoDesenho: 540
   tirosPorDisparo: 1
   abertura: 10
-  dispersao: 7
-  tremor: 0.02
-  som: {fileID: 8300000, guid: 41f8aa4278604c359cafd24c9360c6de, type: 3}
-  volume: 0.25
+  anel: 0
+  dispersao: 3
+  rajada: 1
+  intervaloDaRajada: 0.1
+  giroNaRajada: 0
+  tremor: 0.03
+  som: {fileID: 8300000, guid: 1227c364919e43099fb3b059765b1c1b, type: 3}
+  volume: 0.35

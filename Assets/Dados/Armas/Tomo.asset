@@ -10,31 +10,38 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
-  m_Name: Escopeta
+  m_Name: Tomo
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
-  nome: Escopeta
+  nome: Tomo das Brasas
   desenhoNaMao: {fileID: 21300000, guid: 58b888b69f0c4845807d26bca7227445, type: 3}
-  distanciaDaMao: 0.4
-  coice: 0.15
+  distanciaDaMao: 0.35
+  coice: 0.12
   infinita: 0
   pente: 6
   municaoMaxima: 60
   recarga: 1.4
   somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
   pesoNoBau: 1
-  desenhoDoTiro: {fileID: 21300000, guid: 88d0700ad7ab49f8adb4b73da8300f7d, type: 3}
+  desenhoDoTiro: {fileID: 21300000, guid: 61e437e7cd8746b29a032bf092634d77, type: 3}
   apontarODesenho: 0
   cor: {r: 1, g: 1, b: 1, a: 1}
   raio: 0.1
   automatica: 0
   tirosPorSegundo: 1.4
-  velocidade: 14
+  velocidade: 15
   alcance: 7
   dano: 2.5
   empurrao: 5
+  aceleracao: -10
+  curva: 0
+  giroDoDesenho: 0
   tirosPorDisparo: 6
   abertura: 7
+  anel: 0
   dispersao: 4
+  rajada: 1
+  intervaloDaRajada: 0.1
+  giroNaRajada: 0
   tremor: 0.1
-  som: {fileID: 8300000, guid: b98c2116e09f4ad18ad5ffc706992d77, type: 3}
+  som: {fileID: 8300000, guid: 0fe30ac92cdb485fab2d0bf83ec57005, type: 3}
   volume: 0.35

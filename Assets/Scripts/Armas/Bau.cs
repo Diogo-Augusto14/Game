@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// Um bau fechado na caverna. Interagir abre (a animacao do bau do Old Prison) e ele solta uma arma
-/// sorteada, diferente das que o jogador tem na mao, e as vezes uma caixa de municao. Aberto, fica
+/// sorteada, diferente das que o jogador tem na mao, e as vezes uma bolsa de municao. Aberto, fica
 /// ali vazio. Monte com <see cref="Criar"/>.
 /// </summary>
 [DisallowMultipleComponent]

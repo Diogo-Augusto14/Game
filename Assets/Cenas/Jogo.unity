@@ -580,7 +580,24 @@ MonoBehaviour:
   raioMaximo: 60
   clareira: {x: 5, y: 4}
   inimigos:
-  - {fileID: 7624800600701863497, guid: 6d06fbfc74634d308c00558a827e02d5, type: 3}
+  - prefab: {fileID: 7624800600701863497, guid: 6d06fbfc74634d308c00558a827e02d5, type: 3}
+    primeiroAndar: 1
+    peso: 3
+  - prefab: {fileID: 1054914701463686697, guid: ab044fef951445a28dc394e33d8fb86e, type: 3}
+    primeiroAndar: 1
+    peso: 3
+  - prefab: {fileID: 1193923593394129659, guid: c867c9ca86f243849dbdcad8261fbbca, type: 3}
+    primeiroAndar: 1
+    peso: 2
+  - prefab: {fileID: 1229535317440206029, guid: f501e02e02aa4b16be2d8e6efee9fa19, type: 3}
+    primeiroAndar: 1
+    peso: 2
+  - prefab: {fileID: 612800756158840454, guid: a9cf480c1fae427b9952dc9483ee2127, type: 3}
+    primeiroAndar: 2
+    peso: 1.5
+  - prefab: {fileID: 410441793863870405, guid: ff4b2ca93a414d8881c1cf68e39aa361, type: 3}
+    primeiroAndar: 3
+    peso: 1.5
   inimigosNoPrimeiroAndar: 24
   inimigosAMaisPorAndar: 8
   tamanhoDoGrupo: {x: 2, y: 4}

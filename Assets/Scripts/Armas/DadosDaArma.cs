@@ -71,14 +71,36 @@ public class DadosDaArma : ScriptableObject
     [Tooltip("Velocidade do empurraozinho em quem leva o tiro, em unidades por segundo (0 = nao empurra)")]
     [Min(0f)] public float empurrao = 3f;
 
+    [Tooltip("Quanto a velocidade muda por segundo em voo (negativo: freia ate quase parar; positivo: acelera)")]
+    public float aceleracao;
+
+    [Tooltip("Graus por segundo que o tiro vira em voo (faz curva; 0 = reto)")]
+    public float curva;
+
+    [Tooltip("Graus por segundo que o desenho gira em voo (o machado rodando; 0 = nao gira)")]
+    public float giroDoDesenho;
+
     [Header("Varios tiros")]
     [Min(1)] public int tirosPorDisparo = 1;
 
     [Tooltip("Graus entre um tiro e o vizinho, quando sai mais de um")]
     [Range(0f, 45f)] public float abertura = 10f;
 
+    [Tooltip("Os tiros do disparo saem em volta toda, igualmente espalhados (um anel); a abertura nao conta")]
+    public bool anel;
+
     [Tooltip("Cada tiro sai torto ate esses graus pra cada lado")]
     [Range(0f, 30f)] public float dispersao = 2f;
+
+    [Header("Rajada")]
+    [Tooltip("Quantos disparos seguidos saem a cada vez que atira (1 = um so)")]
+    [Min(1)] public int rajada = 1;
+
+    [Tooltip("Segundos entre um disparo da rajada e o proximo")]
+    [Min(0.01f)] public float intervaloDaRajada = 0.1f;
+
+    [Tooltip("Graus que cada disparo da rajada gira em relacao ao anterior (com anel: uma espiral)")]
+    public float giroNaRajada;
 
     [Header("Sensacao")]
     [Tooltip("Tremor da camera a cada disparo (0 = nada)")]
@@ -89,18 +111,21 @@ public class DadosDaArma : ScriptableObject
     [Range(0f, 1f)] public float volume = 0.45f;
 
     /// <summary>
-    /// Solta um disparo: um tiro, ou o leque de <see cref="tirosPorDisparo"/>, cada um um pouco torto
-    /// (<see cref="dispersao"/>). O <paramref name="lado"/> e de quem atira: o tiro nao machuca esse lado.
+    /// Solta um disparo: um tiro, o leque de <see cref="tirosPorDisparo"/> ou o anel, cada um um pouco
+    /// torto (<see cref="dispersao"/>). <paramref name="giro"/> gira o disparo inteiro, em graus (a
+    /// rajada usa). O <paramref name="lado"/> e de quem atira: o tiro nao machuca esse lado.
+    /// A rajada (varios disparos seguidos) e com a <see cref="Rajada"/>.
     /// </summary>
-    public void Disparar(Vector2 origem, Vector2 rumo, GameObject dono, Lado lado)
+    public void Disparar(Vector2 origem, Vector2 rumo, GameObject dono, Lado lado, float giro = 0f)
     {
-        float angulo = Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg;
-        float primeiro = -abertura * (tirosPorDisparo - 1) * 0.5f;
+        float angulo = Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg + giro;
+        float passo = anel ? 360f / tirosPorDisparo : abertura;
+        float primeiro = anel ? 0f : -abertura * (tirosPorDisparo - 1) * 0.5f;
 
         for (int i = 0; i < tirosPorDisparo; i++)
         {
             float torto = Random.Range(-dispersao, dispersao);
-            float a = (angulo + primeiro + abertura * i + torto) * Mathf.Deg2Rad;
+            float a = (angulo + primeiro + passo * i + torto) * Mathf.Deg2Rad;
             Projetil.Disparar(origem, new Vector2(Mathf.Cos(a), Mathf.Sin(a)), this, dono, lado);
         }
     }

@@ -2,8 +2,10 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Um tiro em voo (flecha, bala...). Vai reto ate o alcance e cai; bate em qualquer coisa solida e
-/// some. Se o que bateu tem <see cref="Vida"/>, machuca e empurra.
+/// Um tiro em voo (flecha, bala...). Vai ate o alcance e cai; bate em qualquer coisa solida e some.
+/// Se o que bateu tem <see cref="Vida"/>, machuca e empurra. Pode frear ou acelerar e fazer curva em
+/// voo (<see cref="DadosDaArma.aceleracao"/>, <see cref="DadosDaArma.curva"/>): e o que da graca aos
+/// padroes de bala dos inimigos.
 ///
 /// Parede (a camada "Wall") e procurada a cada passo, olhando o caminho
 /// da frente: assim o tiro nao atravessa parede fina, por mais rapido que seja.
@@ -24,6 +26,10 @@ public class Projetil : MonoBehaviour
     private float velocidade;
     private float alcance;
     private float raio;
+    private float aceleracao;
+    private float curva;
+    private float giroDoDesenho;
+    private bool apontar;
     private float percorrido;
     private bool acabou;
 
@@ -67,6 +73,10 @@ public class Projetil : MonoBehaviour
         projetil.velocidade = arma.velocidade;
         projetil.alcance = arma.alcance;
         projetil.raio = arma.raio;
+        projetil.aceleracao = arma.aceleracao;
+        projetil.curva = arma.curva;
+        projetil.giroDoDesenho = arma.giroDoDesenho;
+        projetil.apontar = arma.apontarODesenho;
         rb.linearVelocity = rumo * arma.velocidade;
         return projetil;
     }
@@ -80,6 +90,21 @@ public class Projetil : MonoBehaviour
     {
         if (acabou)
             return;
+
+        // Freia ou acelera (sem parar de vez: tiro parado no ar so confunde) e faz a curva.
+        if (aceleracao != 0f || curva != 0f)
+        {
+            velocidade = Mathf.Max(0.8f, velocidade + aceleracao * Time.fixedDeltaTime);
+            float a = Mathf.Atan2(rumo.y, rumo.x) + curva * Mathf.Deg2Rad * Time.fixedDeltaTime;
+            rumo = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+            corpo.linearVelocity = rumo * velocidade;
+
+            if (apontar && giroDoDesenho == 0f)
+                corpo.MoveRotation(a * Mathf.Rad2Deg);
+        }
+
+        if (giroDoDesenho != 0f)
+            corpo.MoveRotation(corpo.rotation + giroDoDesenho * Time.fixedDeltaTime);
 
         float passo = velocidade * Time.fixedDeltaTime;
 

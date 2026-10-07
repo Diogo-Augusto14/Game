@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Uma caixa de municao no chao: encostando, enche metade da municao da arma achada (a que esta na
+/// Uma bolsa de municao no chao: encostando, enche metade da municao da arma achada (a que esta na
 /// mao, ou a outra se a da mao e a do personagem). Se a arma ja esta cheia, a caixa fica no chao
 /// esperando. Cai de alguns inimigos e de alguns baus. Monte com <see cref="Criar"/>.
 /// </summary>
@@ -17,7 +17,7 @@ public class CaixaDeMunicao : MonoBehaviour
 
     public static CaixaDeMunicao Criar(Sprite desenho, Vector2 onde, Transform pai, AudioClip som)
     {
-        GameObject obj = new GameObject("Caixa de municao");
+        GameObject obj = new GameObject("Bolsa de municao");
         obj.transform.SetParent(pai, false);
         obj.transform.position = onde;
 

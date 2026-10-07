@@ -572,7 +572,28 @@ public static class MontarJogo
         somDoAndar.playOnAwake = false;
         somDoAndar.spatialBlend = 0f;
         GeradorDoAndar gerador = andar.AddComponent<GeradorDoAndar>();
-        PreencherLista(gerador, "inimigos", prefabDoBruxo);
+        // O Bruxo e feito aqui; os outros inimigos (e as armas deles) ja vem prontos no projeto.
+        var inimigos = new (GameObject prefab, int andar, float peso)[]
+        {
+            (prefabDoBruxo, 1, 3f),
+            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Esqueleto.prefab"), 1, 3f),
+            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Gosma.prefab"), 1, 2f),
+            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/EsqueletoArqueiro.prefab"), 1, 2f),
+            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Necromante.prefab"), 2, 1.5f),
+            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Olho.prefab"), 3, 1.5f),
+        };
+        Mexer(gerador, "inimigos", p =>
+        {
+            p.arraySize = inimigos.Length;
+
+            for (int i = 0; i < inimigos.Length; i++)
+            {
+                SerializedProperty item = p.GetArrayElementAtIndex(i);
+                item.FindPropertyRelative("prefab").objectReferenceValue = inimigos[i].prefab;
+                item.FindPropertyRelative("primeiroAndar").intValue = inimigos[i].andar;
+                item.FindPropertyRelative("peso").floatValue = inimigos[i].peso;
+            }
+        });
         foreach (string folha in new[] { "Chao", "Paredes", "Abismo", "Sangue", "Enfeites" })
             Preencher(gerador, folha.ToLowerInvariant(), AssetDatabase.LoadAssetAtPath<Texture2D>(OldPrison + folha + ".png"));
         Preencher(gerador, "vortice", AssetDatabase.LoadAssetAtPath<Texture2D>(Vortice));
@@ -580,7 +601,7 @@ public static class MontarJogo
 
         // As armas que caem dos baus e do chao (feitas por Ferramentas/Armas; os .asset ja vem no projeto).
         PreencherLista(gerador, "armas", System.Array.ConvertAll(
-            new[] { "Pistola", "Escopeta", "Metralhadora", "Rifle", "Besta" },
+            new[] { "Varinha", "Tomo", "BestaDeRepeticao", "Cajado", "Machado" },
             nome => (Object)AssetDatabase.LoadAssetAtPath<DadosDaArma>(PastaDasArmas + nome + ".asset")));
         Preencher(gerador, "bau", AssetDatabase.LoadAssetAtPath<Texture2D>(FolhaDoBau));
         Preencher(gerador, "caixaDeMunicao", AssetDatabase.LoadAssetAtPath<Sprite>(DesenhoDaCaixa));

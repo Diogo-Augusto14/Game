@@ -37,8 +37,8 @@ public class GeradorDoAndar : MonoBehaviour
     [SerializeField] private Vector2Int clareira = new Vector2Int(5, 4);
 
     [Header("Inimigos")]
-    [Tooltip("Os prefabs que aparecem (sorteados)")]
-    [SerializeField] private GameObject[] inimigos;
+    [Tooltip("Os inimigos que aparecem: cada um a partir de um andar, sorteado pelo peso")]
+    [SerializeField] private InimigoDoAndar[] inimigos;
 
     [SerializeField, Min(0)] private int inimigosNoPrimeiroAndar = 24;
 
@@ -68,7 +68,7 @@ public class GeradorDoAndar : MonoBehaviour
     [Tooltip("No primeiro andar, um bau ja na clareira do comeco")]
     [SerializeField] private bool bauNoComeco = true;
 
-    [Tooltip("Chance de um inimigo soltar uma caixa de municao ao morrer")]
+    [Tooltip("Chance de um inimigo soltar uma bolsa de municao ao morrer")]
     [SerializeField, Range(0f, 1f)] private float chanceDeMunicao = 0.12f;
 
     [Tooltip("Folha do bau (quadros lado a lado: fechado ate aberto)")]
@@ -301,7 +301,7 @@ public class GeradorDoAndar : MonoBehaviour
         MapaDeCaminhos.Atual = new MapaDeCaminhos(chaoDaCaverna, distanciaDosCaminhos);
         // Os baus primeiro: as celulas deles saem do chao, e ninguem nasce dentro de um.
         EspalharArmas(chaoDaCaverna, andar);
-        EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (andar - 1) * inimigosAMaisPorAndar);
+        EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (andar - 1) * inimigosAMaisPorAndar, andar);
 
         // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no
         // ponto mais longe do comeco: nunca embaixo do jogador.
@@ -324,20 +324,25 @@ public class GeradorDoAndar : MonoBehaviour
         return longe;
     }
 
-    private void EspalharInimigos(HashSet<Vector2Int> chaoDaCaverna, int quantos)
+    private void EspalharInimigos(HashSet<Vector2Int> chaoDaCaverna, int quantos, int andar)
     {
-        List<GameObject> prefabs = new List<GameObject>();
+        // So os que ja aparecem neste andar.
+        List<InimigoDoAndar> possiveis = new List<InimigoDoAndar>();
+        float pesoTotal = 0f;
 
         if (inimigos != null)
         {
-            foreach (GameObject prefab in inimigos)
+            foreach (InimigoDoAndar inimigo in inimigos)
             {
-                if (prefab != null)
-                    prefabs.Add(prefab);
+                if (inimigo != null && inimigo.prefab != null && inimigo.peso > 0f && andar >= inimigo.primeiroAndar)
+                {
+                    possiveis.Add(inimigo);
+                    pesoTotal += inimigo.peso;
+                }
             }
         }
 
-        if (prefabs.Count == 0 || quantos <= 0)
+        if (possiveis.Count == 0 || quantos <= 0)
         {
             Debug.LogWarning("[Andar] nenhum inimigo pra espalhar: confira a lista Inimigos do objeto Andar", this);
             return;
@@ -376,12 +381,27 @@ public class GeradorDoAndar : MonoBehaviour
                 ocupadas.Add(c);
                 noGrupo--;
 
-                GameObject novo = Instantiate(prefabs[Random.Range(0, prefabs.Count)], (Vector2)c, Quaternion.identity, pai);
+                GameObject novo = Instantiate(Sortear(possiveis, pesoTotal), (Vector2)c, Quaternion.identity, pai);
 
                 if (novo.TryGetComponent(out Vida vida))
                     vivos.Add(vida);
             }
         }
+    }
+
+    private static GameObject Sortear(List<InimigoDoAndar> possiveis, float pesoTotal)
+    {
+        float ponto = Random.value * pesoTotal;
+
+        foreach (InimigoDoAndar inimigo in possiveis)
+        {
+            ponto -= inimigo.peso;
+
+            if (ponto <= 0f)
+                return inimigo.prefab;
+        }
+
+        return possiveis[possiveis.Count - 1].prefab;
     }
 
     // Baus e armas no chao, longe do comeco e longe uns dos outros. No primeiro andar, um bau ja na clareira.
@@ -557,4 +577,17 @@ public class GeradorDoAndar : MonoBehaviour
         textura.Apply();
         return textura;
     }
+}
+
+/// <summary>Um inimigo da lista do andar: o prefab, a partir de que andar aparece e quanto sai.</summary>
+[System.Serializable]
+public class InimigoDoAndar
+{
+    public GameObject prefab;
+
+    [Tooltip("Aparece deste andar em diante")]
+    [Min(1)] public int primeiroAndar = 1;
+
+    [Tooltip("Quanto sai, comparado com os outros (0 = nunca)")]
+    [Min(0f)] public float peso = 1f;
 }

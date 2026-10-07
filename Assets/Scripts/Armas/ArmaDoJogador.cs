@@ -45,6 +45,7 @@ public class ArmaDoJogador : MonoBehaviour
     private bool soltouOGatilho = true;
     private float recarregaAte = -1f;
     private float proximoClique;
+    private readonly Rajada rajada = new Rajada();
 
     /// <summary>A arma na mao agora.</summary>
     public ArmaCarregada Atual => maos[naMao];
@@ -100,6 +101,10 @@ public class ArmaDoJogador : MonoBehaviour
         if (controles.Trocou && Outra != null)
             MudarPara(1 - naMao);
 
+        // O resto da rajada sai sozinho, pra onde o jogador mira agora.
+        if (rajada.Atirando)
+            DispararDaRajada();
+
         if (Recarregando && Time.time >= recarregaAte)
         {
             Atual.Recarregar();
@@ -142,6 +147,7 @@ public class ArmaDoJogador : MonoBehaviour
     {
         naMao = qual;
         recarregaAte = -1f;
+        rajada.Parar();
         proximoTiro = Mathf.Max(proximoTiro, Time.time + 0.15f);
         Tocar(somDaTroca, 1f);
         AoTrocar?.Invoke();
@@ -159,15 +165,26 @@ public class ArmaDoJogador : MonoBehaviour
         float intervalo = 1f / dados.tirosPorSegundo;
         proximoTiro = Time.time + intervalo;
         Atual.Gastar();
+        rajada.Comecar(dados);
+        DispararDaRajada();
+        AoAtirar?.Invoke(rumo, intervalo);
+    }
+
+    // Um disparo (o unico, ou o da vez na rajada).
+    private void DispararDaRajada()
+    {
+        DadosDaArma dados = Atual.Dados;
+        Vector2 rumo = controles.Mira;
 
         // A arma na mao atira da ponta dela; a do personagem, de perto do corpo.
         float saida = dados.desenhoNaMao != null ? dados.distanciaDaMao + 0.3f : distanciaDaSaida;
         Vector2 origem = (Vector2)transform.position + Vector2.up * alturaDaSaida + rumo * saida;
-        dados.Disparar(origem, rumo, gameObject, Lado.Jogador);
+
+        if (!rajada.Atualizar(origem, rumo, gameObject, Lado.Jogador))
+            return;
 
         CameraDoJogo.Tremer(dados.tremor, 0.06f);
         Tocar(dados.som, dados.volume, true);
-        AoAtirar?.Invoke(rumo, intervalo);
     }
 
     private void Tocar(AudioClip som, float quanto, bool variar = false)

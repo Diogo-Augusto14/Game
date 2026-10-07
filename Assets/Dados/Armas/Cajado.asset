@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
-  m_Name: Rifle
+  m_Name: Cajado
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
-  nome: Rifle
+  nome: Cajado do Trovao
   desenhoNaMao: {fileID: 21300000, guid: d5f95d47d06346b08d355b961c3e94f1, type: 3}
   distanciaDaMao: 0.5
   coice: 0.12
@@ -22,19 +22,26 @@ MonoBehaviour:
   recarga: 1.6
   somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
   pesoNoBau: 0.8
-  desenhoDoTiro: {fileID: 21300000, guid: 88d0700ad7ab49f8adb4b73da8300f7d, type: 3}
-  apontarODesenho: 0
+  desenhoDoTiro: {fileID: 21300000, guid: a841ebf6ab984d44be9a31103c7079c9, type: 3}
+  apontarODesenho: 1
   cor: {r: 1, g: 1, b: 1, a: 1}
-  raio: 0.1
+  raio: 0.12
   automatica: 0
   tirosPorSegundo: 1.6
   velocidade: 30
   alcance: 18
   dano: 12
   empurrao: 7
+  aceleracao: 0
+  curva: 0
+  giroDoDesenho: 0
   tirosPorDisparo: 1
   abertura: 10
+  anel: 0
   dispersao: 0
+  rajada: 1
+  intervaloDaRajada: 0.1
+  giroNaRajada: 0
   tremor: 0.08
-  som: {fileID: 8300000, guid: 0fe30ac92cdb485fab2d0bf83ec57005, type: 3}
-  volume: 0.4
+  som: {fileID: 8300000, guid: 45b0dff1f5334279a031ba3d0d7c489d, type: 3}
+  volume: 0.45

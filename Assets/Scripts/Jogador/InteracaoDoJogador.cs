@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Acha a coisa usavel mais perto (<see cref="Interativo"/>: arma no chao, bau), mostra a dica em
-/// cima dela ("E: pegar Escopeta") e usa quando o jogador aperta interagir.
+/// cima dela ("E: pegar Tomo das Brasas") e usa quando o jogador aperta interagir.
 /// </summary>
 [DisallowMultipleComponent]
 public class InteracaoDoJogador : MonoBehaviour

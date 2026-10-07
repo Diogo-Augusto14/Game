@@ -16,7 +16,7 @@ public abstract class Interativo : MonoBehaviour
     /// <summary>Ainda da pra usar (um bau aberto nao da mais).</summary>
     public virtual bool Disponivel => true;
 
-    /// <summary>O texto da dica, ex.: "pegar Escopeta".</summary>
+    /// <summary>O texto da dica, ex.: "pegar Tomo das Brasas".</summary>
     public abstract string Dica { get; }
 
     public abstract void Usar(GameObject jogador);

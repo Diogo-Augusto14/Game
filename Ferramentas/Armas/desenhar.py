@@ -1,5 +1,5 @@
 """
-Desenha as armas do jogo em pixel art (uma letra por pixel) e salva em Assets/Arte/Armas.
+Desenha as armas do jogo, os tiros e a bolsa de municao em pixel art (uma letra por pixel) e salva em Assets/Arte/Armas.
 Cada desenho ganha sozinho um contorno escuro de 1 pixel. Todas as armas olham pra direita, com o
 cabo na esquerda (o jogo gira e espelha conforme a mira).
 
@@ -17,78 +17,134 @@ CORES = {
     'g': (176, 182, 198),  # metal claro
     'B': (104, 62, 36),    # madeira escura
     'b': (156, 98, 54),    # madeira clara
-    'Y': (244, 204, 70),   # amarelo
-    'O': (226, 128, 42),   # laranja
-    'W': (246, 244, 236),  # branco
-    'L': (98, 146, 66),    # verde
-    'l': (62, 98, 44),     # verde escuro
+    'Y': (244, 204, 70),   # amarelo / ouro
+    'y': (190, 140, 40),   # ouro escuro
+    'O': (236, 128, 42),   # laranja
+    'W': (250, 248, 236),  # branco
     'R': (204, 60, 52),    # vermelho
+    'r': (128, 34, 40),    # vermelho escuro
+    'C': (92, 214, 240),   # ciano (raio, cristal)
+    'c': (40, 130, 200),   # azul
+    'P': (190, 96, 230),   # roxo
+    'p': (110, 50, 150),   # roxo escuro
+    'V': (120, 230, 110),  # verde claro (magia)
+    'v': (40, 140, 70),    # verde escuro
+    'o': (232, 220, 190),  # osso
 }
 CONTORNO = (24, 22, 30)
 
 DESENHOS = {
-    'Pistola': [
-        ".gggggggggg",
-        ".GGGGGGGGGG",
-        ".DDDDDDDD..",
-        ".DbbD......",
-        ".bbb.......",
-        ".bb........",
+    # ---------- as armas achadas (olhando pra direita, cabo na esquerda) ----------
+    # Varinha de Faiscas: graveto com uma estrela na ponta.
+    'Varinha': [
+        "...........W..",
+        "..........WYW.",
+        "bbbbbbbbbbYWYW",
+        "BBBBBBBBB.WYW.",
+        "...........W..",
     ],
-    'Escopeta': [
-        "...........ggggggg",
-        "bbbbbbDDDDDGGGGGGG",
-        "BBBBbbDDDDDDDDDDDD",
-        "...BBBDD.DDD......",
-        "....BB............",
+    # Tomo das Brasas: livro vermelho de capa dourada, com chamas saindo.
+    'Tomo': [
+        "....O.....",
+        "...OYO.O..",
+        "..OYWYOYO.",
+        ".rRRRRRRRW",
+        ".rRRRYRRRW",
+        ".rRRYOYRRW",
+        ".rRRRYRRRW",
+        ".rRRRRRRRW",
+        ".rrrrrrrrr",
     ],
-    'Metralhadora': [
-        "....gggggggggg..",
-        "..GGGGGGGGGGGGGG",
-        "bbDDDDDDDDDDDD..",
-        "bbDD.DDD........",
-        ".b...DDD........",
-        ".....DD.........",
-        ".....DD.........",
+    # Besta de Repeticao: besta com o carregador de virotes em cima.
+    'BestaDeRepeticao': [
+        "...bbbbbb...b...",
+        "...BBBBBB...bb..",
+        "....DDDD.....b..",
+        "bbbbbbbbbbbbbGgg",
+        "BBBBBDDDDDDDDGGG",
+        ".............b..",
+        "............bb..",
+        "............b...",
     ],
-    'Rifle': [
-        "........DDDD..........",
-        "....gggggggggggggggggg",
-        "bbbbGGGGGGGGGGGGGGGGGG",
-        "BBBBBBDDD.............",
-        "..BBB..D..............",
+    # Cajado do Trovao: cajado comprido com um cristal azul na ponta.
+    'Cajado': [
+        "...................CC.",
+        ".................CCWCC",
+        "bbbbbbbbbbbbbbbbYcCWWC",
+        "BBBBBBBBBBBBBBBBy.cCC.",
     ],
-    'Besta': [
-        "..........b...",
-        "..........bb..",
-        "...........b..",
-        "bbbbbbbbbbbGgg",
-        "BBBBBDDDDDDGGG",
-        "...........b..",
-        "..........bb..",
-        "..........b...",
+    # Machado de Arremesso: cabo curto e lamina larga (tambem e o desenho do tiro, girando).
+    'Machado': [
+        ".....gggg..",
+        "....gGGGGg.",
+        "....gGGGg..",
+        "bbbbDDGg...",
+        "BBBBDD.....",
     ],
-    'Bala': [
-        ".YYYY.",
-        "YWWYYY",
-        "YWYYYO",
-        "YYYYYO",
-        "YYYYOO",
-        ".YOOO.",
+    # ---------- os tiros do jogador ----------
+    'Faisca': [
+        "..W..",
+        ".WYW.",
+        "WYWYW",
+        ".WYW.",
+        "..W..",
+    ],
+    'Brasa': [
+        ".OO.",
+        "OYYO",
+        "OYWO",
+        ".RO.",
+    ],
+    'Raio': [
+        "...CC.....C..",
+        "CCCWWCCCCWWCC",
+        ".....CC...CC.",
     ],
     'Virote': [
         "RR.........",
         "bbbbbbbbbgG",
         "RR.........",
     ],
+    # ---------- os tiros dos inimigos (grandes e claros no meio, pra ver e desviar) ----------
+    'FlechaDeOsso': [
+        "RR..........",
+        "oooooooooogg",
+        "RR..........",
+    ],
+    'OrbeVerde': [
+        "..vvv..",
+        ".vVVVv.",
+        "vVWWWVv",
+        "vVWWWVv",
+        "vVWWWVv",
+        ".vVVVv.",
+        "..vvv..",
+    ],
+    'OrbeRoxo': [
+        "..ppp..",
+        ".pPPPp.",
+        "pPWWWPp",
+        "pPWWWPp",
+        "pPWWWPp",
+        ".pPPPp.",
+        "..ppp..",
+    ],
+    'Gota': [
+        "..r..",
+        ".rRr.",
+        "rRRRr",
+        "rRWRr",
+        ".rRr.",
+    ],
+    # ---------- a bolsa de municao ----------
     'CaixaDeMunicao': [
-        "..Y..Y..Y...",
-        "..Y..Y..Y...",
-        "llllllllllll",
-        "lLLLLLLLLLLl",
-        "lLWWWWWWWWLl",
-        "lLLLLLLLLLLl",
-        "llllllllllll",
+        "...bbbb....",
+        "..b....b...",
+        ".BbbbbbbbB.",
+        "BbbbbYYbbbB",
+        "BbbbbyybbbB",
+        "BbbbbbbbbbB",
+        ".BBBBBBBBB.",
     ],
 }
 

@@ -37,9 +37,9 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Nucleo` | Peças pequenas usadas por todo lado (cortar folha de animação, efeito que toca uma vez) |
 | `Assets/Shaders` | `Silhueta`: pinta o desenho de uma cor só (o branco do golpe) |
 | `Assets/Editor` | Montar a cena e o Play pela cena do jogo |
-| `Assets/Prefabs` | Jogador, Bruxo e Boneco de treino |
-| `Assets/Dados/Armas` | Os assets das armas: as do personagem e do Bruxo (`ArcoDoArqueiro`, `MagiaDoBruxo`) e as achadas (`Pistola`, `Escopeta`, `Metralhadora`, `Rifle`, `Besta`) |
-| `Assets/Arte/Armas` | Os desenhos das armas achadas, das balas delas e da caixa de munição (feitos por `Ferramentas/Armas/desenhar.py`) |
+| `Assets/Prefabs` | Jogador, os inimigos (Bruxo, Esqueleto, Esqueleto Arqueiro, Gosma, Necromante, Olho) e Boneco de treino |
+| `Assets/Dados/Armas` | Os assets das armas: as do personagem e do Bruxo (`ArcoDoArqueiro`, `MagiaDoBruxo`) as achadas (`Varinha`, `Tomo`, `BestaDeRepeticao`, `Cajado`, `Machado`) e as dos inimigos (`FlechaDoEsqueleto`, `AnelDoNecromante`, `EspiralDoOlho`, `GotasDaGosma`) |
+| `Assets/Arte/Armas` | Os desenhos das armas achadas, dos tiros (do jogador e dos inimigos) e da bolsa de munição (feitos por `Ferramentas/Armas/desenhar.py`) |
 | `Assets/Arte/Gerada` | Imagens feitas pelo montador: a mira do cursor, a sombra, a bala inimiga e o boneco de treino |
 | `Assets/Arte/OldPrison` | A arte da caverna, do pacote Old Prison: chão, paredes, abismo, sangue e enfeites (32 × 32 por ladrilho) |
 | `Assets/Arte/Resources` | A arte dos outros pacotes (provisória) |
@@ -57,7 +57,7 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `RastroDaEsquiva` | As cópias azuladas que ficam pra trás na esquiva |
 | `ArmaDoJogador` | As duas armas: a do personagem (o arco, infinito, nunca sai da mão) e a achada. Troca entre elas, atira pra onde mira no ritmo da arma, gasta o pente, recarrega (sozinha com o pente vazio, ou com `R`); sem munição, só o clique. Não atira no meio da esquiva |
 | `ArmaNaMao` | Desenha a arma achada na mão, girando pra mira, com o coice do tiro (com o arco não aparece nada: ele já está no desenho do Arqueiro) |
-| `InteracaoDoJogador` | Acha a coisa usável mais perto (arma no chão, baú), mostra a dica em cima ("E: pegar Escopeta") e usa no `E` |
+| `InteracaoDoJogador` | Acha a coisa usável mais perto (arma no chão, baú), mostra a dica em cima ("E: pegar Tomo das Brasas") e usa no `E` |
 | `HudDaArma` | No canto de baixo: a arma, a munição (pente / reserva), a recarga e a outra arma. Provisório até a etapa 7 |
 | `CursorDaMira` | Troca o cursor por uma mira enquanto o mouse mira; com o controle, o cursor some |
 | `Vida` | 6 de vida; depois de um golpe, 1 segundo sem tomar outro. A esquiva também protege (o `MovimentoDoJogador` é um `IInvulneravel`) |
@@ -134,20 +134,47 @@ jogador, a do inimigo, a animação de morte).
 
 ## Inimigos
 
-O **Bruxo** (`Assets/Prefabs/Bruxo.prefab`) é o primeiro: anda até o jogador e, a uns 8 de distância,
-para, prepara o tiro (a animação do ataque é o aviso) e solta uma bala lenta na direção dele.
+Cada inimigo tem um jeito; todos usam as mesmas peças, com números diferentes:
+
+| Inimigo | Aparece | Jeito |
+|---|---|---|
+| **Bruxo** | andar 1 | Anda até uns 4 de você, prepara e solta uma bala lenta |
+| **Esqueleto** | andar 1 | Vem correndo e, perto, dá uma **investida**: corre reto pra onde você estava e descansa um pouco depois (a hora de bater nele). Encostar nele machuca |
+| **Gosma** | andar 1 | Lenta, dá um pulinho em você; encostar machuca. Ao morrer **estoura num anel de gotas** que começam devagar e aceleram |
+| **Esqueleto Arqueiro** | andar 1 | Fica a uns 6 de você e **recua** se você chega perto; atira um **leque de 3 flechas** |
+| **Necromante** | andar 2 em diante | Também recua; solta **dois anéis** de 12 orbes verdes, o segundo girado (os buracos de um ficam no meio do outro) |
+| **Olho** | andar 3 | Para e solta uma **espiral** de orbes roxos por uns 2 segundos |
+
+Os inimigos de cada andar saem sorteados pelo **peso** da lista **Inimigos** do objeto Andar (cada um diz
+a partir de que andar aparece). Os grupos são misturados.
 
 | Script | O que faz |
 |---|---|
-| `InimigoAtirador` | Anda até o jogador (para a 4 de distância), prepara meio segundo e atira com a arma dele (`MagiaDoBruxo.asset`), a cada uns 2 segundos |
-| `AnimacaoDoInimigo` | Parado, andando, atacando e morrendo, olhando pro jogador. O quadro do disparo chega bem quando a bala sai |
-| `Vida` | 15 de vida (5 flechas), lado `Inimigos` |
-| `PiscarAoTomarDano` | Fica branco a cada flechada |
+| `InimigoAtirador` | O jeito de todos: anda até o jogador (ou recua, se ele chega perto demais), prepara o ataque e ataca. O ataque é a arma (o padrão dela) ou a investida |
+| `DanoAoEncostar` | Machuca e empurra quem é do outro lado e encosta (Esqueleto, Gosma) |
+| `TiroAoMorrer` | Ao morrer, solta um disparo da arma dele (as gotas da Gosma) |
+| `AnimacaoDoInimigo` | Parado, andando, atacando e morrendo, olhando pro jogador. O quadro do disparo chega bem quando o ataque sai |
+| `Vida` | Lado `Inimigos`; a vida muda de um pra outro (Gosma 9, Bruxo 15, Necromante 26...) |
+| `PiscarAoTomarDano` | Fica branco a cada golpe |
 | `MorteDoInimigo` | Para, deixa de bater nas coisas, toca a morte e some numa nuvem de poeira |
+
+### Padrões de bala
+
+O padrão é da **arma** (o asset), então qualquer inimigo (ou o jogador) pode usar qualquer um:
+
+- **leque**: `tirosPorDisparo` tiros separados por `abertura` graus;
+- **anel**: com `anel` ligado, os tiros saem em volta toda;
+- **rajada**: `rajada` disparos seguidos, um a cada `intervaloDaRajada`, cada um girado `giroNaRajada`
+  graus (um anel em rajada girando vira **espiral**);
+- **no voo**: `aceleracao` (o tiro freia ou acelera), `curva` (vai virando) e `giroDoDesenho` (o desenho
+  roda, como o machado).
+
+A `Rajada` (`Assets/Scripts/Armas/Rajada.cs`) solta os disparos no tempo certo; o inimigo fica parado
+enquanto ela sai.
 
 O corpo é um Rigidbody2D Dynamic, como o do jogador: inimigo não atravessa o jogador nem outro inimigo.
 
-O Bruxo começa **dormindo**: parado até ver o jogador (a 10 de distância, sem parede no meio) ou levar
+Todo inimigo começa **dormindo**: parado até ver o jogador (a 10 de distância, sem parede no meio) ou levar
 um tiro. Acordado, não esquece mais e só atira com o caminho livre. Com o caminho livre, vai reto na
 direção do jogador; com parede, buraco ou baú no meio, segue o `MapaDeCaminhos`.
 
@@ -162,10 +189,11 @@ pra testar as armas: a vida dele é imortal, ele pisca e balança na estaca pro 
 
 ## Criar um inimigo que atira
 
-Duplicar o prefab do Bruxo, trocar as folhas na `AnimacaoDoInimigo` (e o **quadro do disparo**), mexer
-nos números do `InimigoAtirador` e da `Vida`, e criar uma arma nova pra ele (**Create ▸ Jogo ▸ Arma**)
-com o desenho da bala. Pra ele aparecer, pôr o prefab na lista **Inimigos** do objeto Andar (os inimigos
-de cada grupo são sorteados dessa lista).
+Duplicar o prefab de um inimigo parecido, trocar as folhas na `AnimacaoDoInimigo` (e o **quadro do
+disparo**), mexer nos números do `InimigoAtirador` e da `Vida`, e criar uma arma nova pra ele
+(**Create ▸ Jogo ▸ Arma**) com o desenho da bala e o padrão. Pra um que bate de perto: sem arma, com a
+**investida** ligada e um `DanoAoEncostar`. Pra ele aparecer, pôr o prefab na lista **Inimigos** do
+objeto Andar, com o primeiro andar e o peso.
 
 ## Tamanho das coisas
 
@@ -207,14 +235,21 @@ sozinha da reserva. Os números ficam no asset (`DadosDaArma`); o pente e a rese
 | `ArmaCarregada` | Uma arma de verdade: os dados (o asset) mais o pente e a reserva dela |
 | `Interativo` | O que o jogador usa chegando perto e apertando `E` (a base da arma no chão e do baú) |
 | `ArmaNoChao` | Arma caída, flutuando; `E` pega (e larga a que estava na mão no lugar) |
-| `Bau` | Fechado na caverna; `E` abre e solta uma arma sorteada pelo peso, diferente das que o jogador tem, e às vezes uma caixa de munição. Conta como parede: segura tiro, e os inimigos contornam |
+| `Bau` | Fechado na caverna; `E` abre e solta uma arma sorteada pelo peso, diferente das que o jogador tem, e às vezes uma bolsa de munição. Conta como parede: segura tiro, e os inimigos contornam |
 | `CaixaDeMunicao` | Encostou, enche metade da munição da arma achada (se ela não estiver cheia) |
 
 No objeto Andar: **3 baús** e **1 arma no chão** por andar, longe do começo e longe uns dos outros, e no
 primeiro andar mais um baú do lado do começo. Cada inimigo morto tem **12%** de chance de largar uma
-caixa de munição.
+bolsa de munição.
 
-As armas achadas: **Pistola** (tiro a tiro, pente de 10), **Escopeta** (6 balas abertas, pente de 6),
-**Metralhadora** (segura o gatilho, pente de 30), **Rifle** (lento e forte, longe, pente de 5) e
-**Besta** (um virote forte por vez, recarga rápida). Os desenhos saem do `Ferramentas/Armas/desenhar.py`
+As armas achadas são de fantasia (não precisam existir, precisam encaixar no mundo):
+
+| Arma | Como atira |
+|---|---|
+| **Varinha de Faíscas** | Tiro a tiro, faíscas rápidas; pente de 10 |
+| **Tomo das Brasas** | 6 brasas abertas que vão freando (de perto); pente de 6 |
+| **Besta de Repetição** | Segura o gatilho: virotes sem parar; pente de 30 |
+| **Cajado do Trovão** | Um raio lento de sair, forte e de longe; pente de 5 |
+| **Machado de Arremesso** | Um machado girando por vez, pesado e com empurrão; recarga rápida |
+ Os desenhos saem do `Ferramentas/Armas/desenhar.py`
 (pixel por pixel, em letras, com o contorno feito sozinho).
