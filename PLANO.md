@@ -24,7 +24,7 @@ de novo.
 |---|---|---|
 | 1 | **Movimento** (feita) | Andar, esquivar, mirar com o mouse e atirar flechas sem parar, num chão aberto que não acaba |
 | 2 | **Algo pra acertar** (feita) | Boneco de treino e um inimigo simples que anda e atira; vida, dano, morrer, piscar ao tomar dano |
-| 3 | **Andares gigantes** (feita, falta jogar) | Cada andar é uma caverna enorme e aberta, sem salas nem portas (como no Nuclear Throne); matar todos os inimigos abre o portal pro próximo andar |
+| 3 | **Andares gigantes** (feita, falta jogar) | Cada andar é uma caverna enorme e aberta, sem salas nem portas (como no Nuclear Throne); matar todos os inimigos abre o portal pro próximo andar. Com a arte do Old Prison (paredes, buracos de abismo, poças, enfeites), montada pelas regras do Tiled do pacote |
 | 4 | Armas | Achar arma no chão e no baú, trocar de arma, e o recurso do tiro (energia ou munição) |
 | 5 | Inimigos e padrões | Mais inimigos, cada um com o seu jeito, e padrões de bala de verdade |
 | 6 | Chefe | O chefe do fim do andar |
@@ -38,5 +38,8 @@ de novo.
 - **Vários personagens com habilidade própria** (como no Soul Knight) ou um só? Decidir depois da etapa 3.
 - **Tamanho dos andares e quantos andares.** Por enquanto 3 andares, o primeiro com umas 1500 células de
   chão e 24 inimigos, crescendo a cada andar. Ajustar jogando.
+- **Personagens do Old Prison.** O pacote tem um esqueleto, um esqueleto mago que atira e um inimigo tipo
+  assassino, com animações. Bons candidatos pra etapa 5. Os pixels do Arqueiro e do Bruxo (Tiny RPG) são
+  maiores que os do cenário do Old Prison; resolver quando entrar o seu boneco (etapa 8).
 - **Inimigo contornando parede.** Por enquanto o Bruxo vai reto na sua direção. Se fizer falta, um
   caminho pela caverna entra na etapa 5.

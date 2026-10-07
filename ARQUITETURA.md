@@ -36,8 +36,10 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Editor` | Montar a cena e o Play pela cena do jogo |
 | `Assets/Prefabs` | Jogador, Bruxo e Boneco de treino |
 | `Assets/Dados/Armas` | Os assets das armas (`ArcoDoArqueiro.asset`, `MagiaDoBruxo.asset`) |
-| `Assets/Arte/Gerada` | Imagens feitas pelo montador: a mira do cursor, a sombra, a bala inimiga, o boneco de treino e o topo das paredes |
-| `Assets/Arte/Resources` | A arte dos pacotes (provisória) |
+| `Assets/Arte/Gerada` | Imagens feitas pelo montador: a mira do cursor, a sombra, a bala inimiga e o boneco de treino |
+| `Assets/Arte/OldPrison` | A arte da caverna, do pacote Old Prison: chão, paredes, abismo, sangue e enfeites (32 × 32 por ladrilho) |
+| `Assets/Arte/Resources` | A arte dos outros pacotes (provisória) |
+| `Ferramentas/OldPrison` | `importar.py`: tira do pacote Old Prison as folhas e as regras do Tiled que a caverna usa |
 
 ## As peças do jogador
 
@@ -67,8 +69,10 @@ objeto **Andar** da cena (`GeradorDoAndar`), com os números no Inspector.
 
 | Script | O que faz |
 |---|---|
-| `Caverna` | Cava a planta: "andarilhos" saem do centro, andam, viram, se dividem e às vezes abrem uma galeria larga, até a caverna ter o tamanho pedido. Sai tudo ligado. O começo é sempre uma clareira |
-| `Pedreiro` | Transforma a planta em mundo: um chão ladrilhado só, os tijolos onde a parede fica de frente pro chão, a rocha vista de cima no resto, e os colisores (camada `Wall`) só onde a rocha encosta no chão. Junta as células em poucos retângulos (um andar inteiro dá uns 200 objetos) |
+| `Caverna` | Cava a planta: "andarilhos" saem do centro, andam, viram, se dividem e às vezes abrem uma galeria larga, até a caverna ter o tamanho pedido. Sai tudo ligado. O começo é sempre uma clareira. Depois ajeita a planta pras paredes do Old Prison e escolhe os buracos e as poças |
+| `Pedreiro` | Transforma a planta em mundo com a arte do Old Prison, em Tilemaps: abismo, chão, sangue, enfeites e paredes, mais os colisores das paredes (camada `Wall`) e dos buracos (camada `Buraco`), só onde encostam no chão |
+| `Automapa` | As regras de encaixe do Tiled ("automapping"): pega os ladrilhos escolhidos pelos cantos e põe as faces de tijolo, os encontros e as variações, igual o Tiled faz |
+| `DadosDoOldPrison` | As tabelas de cantos e as regras do pacote, já convertidas (gerado pela ferramenta; não editar à mão) |
 | `GeradorDoAndar` | Monta o andar, espalha os inimigos em grupos longe do começo, conta quantos faltam, abre a saída quando o último morre e troca de andar. Na tela: o nome do andar, o contador e, quando sobram 3 ou menos, uma seta na beirada apontando pro mais perto |
 | `Saida` | O vórtice: abre onde morreu o último inimigo e, pisado, leva pro próximo andar |
 
@@ -77,8 +81,30 @@ no (0, 0). O primeiro andar tem umas 1500 células de chão (umas 7 telas cheias
 seguinte tem 500 células e 8 inimigos a mais. São 3 andares: depois do último, a partida acaba em
 vitória e recomeça.
 
-A rocha é desenhada por cima de quem anda e os tijolos por trás, então quem encosta na parede de baixo
-some um pouquinho atrás dela, e quem encosta na de cima fica na frente dos tijolos.
+### A arte do Old Prison e as regras do Tiled
+
+O pacote Old Prison vem com arquivos do **Tiled Map Editor**: as folhas de ladrilhos, a tabela de
+**cantos** de cada folha (qual ladrilho vai em cada combinação dos 4 cantos: dentro ou fora da parede)
+e as **regras de encaixe** (automapping), que põem embaixo de cada beirada a face de tijolo de 2 de
+altura e sorteiam variações (tijolo rachado, musgo). O jogo faz o mesmo na hora, a cada andar:
+
+1. a `Caverna` cava e **ajeita** a planta: nada de parede com menos de 3 de altura (o topo mais a face
+   de 2 não cabem) nem de encontro só pela diagonal (o pacote não tem desenho pra ele);
+2. o `Pedreiro` escolhe cada ladrilho pelos cantos: o **topo das paredes** são as células de parede com
+   mais 2 de parede embaixo, porque essas 2 de baixo ficam pra face de tijolo; o **chão** é tudo que não
+   é buraco; as **poças** são manchas no chão;
+3. o `Automapa` aplica as regras do pacote (as mesmas do Tiled; conferi que, aplicadas no mapa de
+   exemplo do pacote, saem iguais ao que o artista fez).
+
+Cada ladrilho tem 1 unidade (32 pixels do pacote) e fica **entre** as células: os cantos dele são os
+centros de 4 células. Os **buracos** são retângulos de abismo nas partes abertas, longe do começo, com
+chão em volta: seguram quem anda, mas o tiro passa por cima (e o inimigo enxerga por cima). As
+**poças de sangue** e os ossos, pedrinhas e papéis no chão são só enfeite.
+
+As paredes ficam atrás de quem anda: quem encosta na parede de cima fica na frente dos tijolos.
+
+Pra trazer o pacote de novo (outra versão, outra cor), rodar `Ferramentas/OldPrison/importar.py` com a
+pasta do pacote descompactado: ele refaz as folhas em `Assets/Arte/OldPrison` e o `DadosDoOldPrison.cs`.
 
 ## Vida e dano
 

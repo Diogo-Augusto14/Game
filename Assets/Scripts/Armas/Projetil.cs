@@ -97,7 +97,8 @@ public class Projetil : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D outro)
     {
-        if (acabou || outro.isTrigger)
+        // Gatilhos nao seguram tiro, e buraco o tiro passa por cima.
+        if (acabou || outro.isTrigger || outro.gameObject.layer == Pedreiro.CamadaDoBuraco)
             return;
 
         // Nao acerta quem atirou.

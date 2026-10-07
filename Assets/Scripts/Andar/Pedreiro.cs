@@ -1,33 +1,48 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 /// <summary>
-/// Transforma a planta da <see cref="Caverna"/> (as celulas de chao) em coisas do mundo:
+/// Transforma a planta da <see cref="Caverna"/> em mundo, com a arte do pacote Old Prison, do jeito
+/// que o Tiled Map Editor do pacote monta: cada ladrilho e escolhido pelos seus 4 cantos (a tabela de
+/// cantos) e depois as regras de encaixe poem as faces de tijolo e as variacoes (<see cref="Automapa"/>).
 ///
-///   chao    um desenho ladrilhado so, por baixo da caverna inteira
-///   frente  a face de tijolos das paredes que tem chao logo embaixo (fica atras de quem anda)
-///   topo    o resto da rocha, visto de cima (fica na frente de quem anda) ate uma margem em volta
-///   parede  os colisores, so nas celulas de rocha encostadas no chao (camada "Wall")
+/// As camadas, de baixo pra cima (cada uma um Tilemap):
 ///
-/// Cada celula e 1 unidade; a celula (x, y) tem o centro no ponto (x, y) do mundo. Pra nao criar um
-/// objeto por celula, as celulas vizinhas iguais viram poucos retangulos (<see cref="Caverna.Juntar"/>).
+///   abismo     o fundo roxo, so nos buracos
+///   chao       a plataforma de pedra; nos buracos ela acaba numa beirada com face caindo no abismo
+///   sangue     as pocas (so enfeite)
+///   enfeites   ossos, pedrinhas e papeis soltos
+///   paredes    as paredes altas: o topo e a face de tijolo de 2 de altura (atras de quem anda)
+///
+/// e os colisores: as paredes na camada "Wall" (seguram gente e tiro) e os buracos na camada "Buraco"
+/// (seguram gente; o tiro passa por cima).
+///
+/// O ladrilho fica entre as celulas: os 4 cantos do ladrilho com canto de baixo-esquerdo em (x, y)
+/// sao os centros das celulas (x, y), (x + 1, y), (x, y + 1) e (x + 1, y + 1). 1 ladrilho = 1 unidade.
 /// </summary>
 public class Pedreiro
 {
-    // Chao embaixo de tudo; a frente da parede atras de quem anda; o topo na frente de quem anda.
-    public const int OrdemDoChao = -100;
-    public const int OrdemDaFrente = 5;
-    public const int OrdemDoTopo = 40;
+    public const int OrdemDoAbismo = -104;
+    public const int OrdemDoChao = -103;
+    public const int OrdemDoSangue = -102;
+    public const int OrdemDosEnfeites = -101;
 
-    /// <summary>Celulas de rocha desenhadas em volta da caverna (alem disso, so o fundo escuro da camera).</summary>
-    private const int Margem = 4;
+    /// <summary>As paredes ficam atras de quem anda (a face de tijolo se ve de frente).</summary>
+    public const int OrdemDasParedes = 5;
+
+    /// <summary>Celulas de parede desenhadas em volta da caverna (alem disso, so o fundo da camera).</summary>
+    private const int Margem = 5;
 
     private static int camadaDaParede = -1;
+    private static int camadaDoBuraco = -2;
 
-    private readonly Sprite chao;
-    private readonly Sprite frente;
-    private readonly Sprite topo;
-    private readonly Color tomDoChao;
+    private readonly Folha chao;
+    private readonly Folha paredes;
+    private readonly Folha abismo;
+    private readonly Folha sangue;
+    private readonly Folha enfeites;
+    private readonly float chanceDeEnfeite;
 
     /// <summary>A camada "Wall" (ou a Default, se o projeto nao tiver essa camada).</summary>
     public static int CamadaDaParede
@@ -41,125 +56,286 @@ public class Pedreiro
         }
     }
 
-    public Pedreiro(Sprite chao, Sprite frente, Sprite topo, Color tomDoChao)
+    /// <summary>A camada "Buraco": segura quem anda, o tiro ignora. -1 se o projeto nao tiver essa camada.</summary>
+    public static int CamadaDoBuraco
     {
-        this.chao = chao;
-        this.frente = frente;
-        this.topo = topo;
-        this.tomDoChao = tomDoChao;
+        get
+        {
+            if (camadaDoBuraco == -2)
+                camadaDoBuraco = LayerMask.NameToLayer("Buraco");
+
+            return camadaDoBuraco;
+        }
     }
 
-    /// <summary>Monta a caverna inteira como filhos de <paramref name="pai"/>.</summary>
-    public void Construir(Transform pai, HashSet<Vector2Int> celulasDeChao)
+    public Pedreiro(Texture2D chao, Texture2D paredes, Texture2D abismo, Texture2D sangue, Texture2D enfeites, float chanceDeEnfeite)
     {
-        RectInt limites = Limites(celulasDeChao);
+        this.chao = new Folha(chao);
+        this.paredes = new Folha(paredes);
+        this.abismo = new Folha(abismo);
+        this.sangue = new Folha(sangue);
+        this.enfeites = new Folha(enfeites);
+        this.chanceDeEnfeite = chanceDeEnfeite;
+    }
 
-        Transform pecasDoChao = Grupo(pai, "Chao");
-        Transform pecasDaFrente = Grupo(pai, "Frente das paredes");
-        Transform pecasDoTopo = Grupo(pai, "Topo das paredes");
-        Transform pecasSolidas = Grupo(pai, "Colisores das paredes");
+    /// <summary>
+    /// Monta a caverna como filhos de <paramref name="pai"/>. A planta (<paramref name="celulasDeChao"/>)
+    /// inclui os buracos; quem anda pisa no chao sem os buracos.
+    /// </summary>
+    public void Construir(Transform pai, HashSet<Vector2Int> celulasDeChao, HashSet<Vector2Int> buracos,
+                          HashSet<Vector2Int> pocas, System.Random sorte)
+    {
+        RectInt planta = Caverna.Limites(celulasDeChao);
+        RectInt limites = new RectInt(planta.xMin - Margem, planta.yMin - Margem, planta.width + Margem * 2, planta.height + Margem * 2);
+        Grade grade = new Grade(limites);
 
-        // O chao: um ladrilhado so, do tamanho da caverna; a rocha cobre o que nao e chao.
-        Peca(pecasDoChao, "Chao", Mundo(limites), chao, OrdemDoChao, tomDoChao);
+        // Paredes: o topo e escolhido pelos cantos; as regras poem as faces embaixo dele.
+        int[,] paredesDaGrade = grade.PorCantos(c => Caverna.Topo(celulasDeChao, c.x, c.y), DadosDoOldPrison.CantosDasParedes, null, sorte);
+        Automapa.Aplicar(paredesDaGrade, DadosDoOldPrison.RegrasQuePoem, false, sorte);
+        Automapa.Aplicar(paredesDaGrade, DadosDoOldPrison.RegrasDeVariacao, true, sorte);
 
-        HashSet<Vector2Int> deFrente = new HashSet<Vector2Int>();
-        HashSet<Vector2Int> deTopo = new HashSet<Vector2Int>();
-        HashSet<Vector2Int> solidas = new HashSet<Vector2Int>();
+        // Chao: a plataforma e tudo que nao e buraco (embaixo das paredes ela fica escondida).
+        int[,] chaoDaGrade = grade.PorCantos(c => !buracos.Contains(c), DadosDoOldPrison.CantosDoChao, Sorteio.Chao, sorte);
+        Automapa.Aplicar(chaoDaGrade, DadosDoOldPrison.RegrasQuePoem, false, sorte);
+        Automapa.Aplicar(chaoDaGrade, DadosDoOldPrison.RegrasDeVariacao, true, sorte);
 
-        for (int x = limites.xMin - Margem; x < limites.xMax + Margem; x++)
+        // Abismo: embaixo de todo ladrilho que encosta num buraco.
+        int[,] abismoDaGrade = grade.Vazia();
+        int[,] sangueDaGrade = grade.PorCantos(c => pocas.Contains(c), DadosDoOldPrison.CantosDoSangue, Sorteio.Sangue, sorte);
+        int[,] enfeitesDaGrade = grade.Vazia();
+
+        for (int coluna = 0; coluna < grade.Largura; coluna++)
         {
-            for (int y = limites.yMin - Margem; y < limites.yMax + Margem; y++)
+            for (int linha = 0; linha < grade.Altura; linha++)
             {
-                Vector2Int c = new Vector2Int(x, y);
+                Vector2Int canto = grade.Canto(coluna, linha);
 
-                if (celulasDeChao.Contains(c))
-                    continue;
-
-                if (celulasDeChao.Contains(c + Vector2Int.down))
-                    deFrente.Add(c);
-                else
-                    deTopo.Add(c);
-
-                if (EncostaNoChao(celulasDeChao, c))
-                    solidas.Add(c);
+                if (grade.AlgumCanto(canto, c => buracos.Contains(c)))
+                    abismoDaGrade[coluna, linha] = sorte.Next(DadosDoOldPrison.LadrilhosDoAbismo);
+                else if (sangueDaGrade[coluna, linha] < 0 && grade.TodosOsCantos(canto, c => Andavel(celulasDeChao, buracos, c))
+                         && sorte.NextDouble() < chanceDeEnfeite)
+                    enfeitesDaGrade[coluna, linha] = sorte.Next(DadosDoOldPrison.Enfeites);
             }
         }
 
-        foreach (RectInt r in Caverna.Juntar(deFrente))
-            Peca(pecasDaFrente, "Parede", Mundo(r), frente, OrdemDaFrente, Color.white);
+        Transform ladrilhos = new GameObject("Ladrilhos").transform;
+        ladrilhos.SetParent(pai, false);
+        ladrilhos.gameObject.AddComponent<Grid>();
 
-        foreach (RectInt r in Caverna.Juntar(deTopo))
-            Peca(pecasDoTopo, "Rocha", Mundo(r), topo, OrdemDoTopo, Color.white);
+        grade.Pintar(ladrilhos, "Abismo", abismoDaGrade, abismo, OrdemDoAbismo);
+        grade.Pintar(ladrilhos, "Chao", chaoDaGrade, chao, OrdemDoChao);
+        grade.Pintar(ladrilhos, "Sangue", sangueDaGrade, sangue, OrdemDoSangue);
+        grade.Pintar(ladrilhos, "Enfeites", enfeitesDaGrade, enfeites, OrdemDosEnfeites);
+        grade.Pintar(ladrilhos, "Paredes", paredesDaGrade, paredes, OrdemDasParedes);
 
-        foreach (RectInt r in Caverna.Juntar(solidas))
+        // Colisores so onde encosta em quem anda: o resto ninguem alcanca.
+        HashSet<Vector2Int> paredesSolidas = new HashSet<Vector2Int>();
+        HashSet<Vector2Int> buracosSolidos = new HashSet<Vector2Int>();
+
+        for (int x = limites.xMin; x < limites.xMax; x++)
         {
-            GameObject obj = new GameObject("Parede");
-            obj.transform.SetParent(pecasSolidas, false);
-            obj.transform.position = Mundo(r).center;
-            obj.layer = CamadaDaParede;
-            obj.AddComponent<BoxCollider2D>().size = Mundo(r).size;
-        }
-    }
+            for (int y = limites.yMin; y < limites.yMax; y++)
+            {
+                Vector2Int c = new Vector2Int(x, y);
 
-    /// <summary>Um retangulo desenhado com o sprite repetido (ladrilhado).</summary>
-    private static void Peca(Transform pai, string nome, Rect lugar, Sprite desenho, int ordem, Color cor)
-    {
+                if (!EncostaEmQuemAnda(celulasDeChao, buracos, c))
+                    continue;
 
-        GameObject obj = new GameObject(nome);
-        obj.transform.SetParent(pai, false);
-        obj.transform.position = lugar.center;
-
-        SpriteRenderer sprite = obj.AddComponent<SpriteRenderer>();
-        sprite.sprite = desenho;
-        sprite.drawMode = SpriteDrawMode.Tiled;
-        sprite.size = lugar.size;
-        sprite.sortingOrder = ordem;
-        sprite.color = cor;
-    }
-
-    /// <summary>Sprite de uma textura inteira, pronto pra ser ladrilhado (FullRect, pivo no meio).</summary>
-    public static Sprite Ladrilho(Texture2D textura, float pixelsPorUnidade)
-    {
-        if (textura == null)
-            return null;
-
-        return Sprite.Create(textura, new Rect(0f, 0f, textura.width, textura.height), new Vector2(0.5f, 0.5f),
-                             pixelsPorUnidade, 0, SpriteMeshType.FullRect);
-    }
-
-    /// <summary>O retangulo do mundo coberto por um bloco de celulas.</summary>
-    public static Rect Mundo(RectInt celulas) =>
-        new Rect(celulas.xMin - 0.5f, celulas.yMin - 0.5f, celulas.width, celulas.height);
-
-    private static RectInt Limites(HashSet<Vector2Int> celulas)
-    {
-        int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue;
-
-        foreach (Vector2Int c in celulas)
-        {
-            x0 = Mathf.Min(x0, c.x);
-            y0 = Mathf.Min(y0, c.y);
-            x1 = Mathf.Max(x1, c.x);
-            y1 = Mathf.Max(y1, c.y);
+                if (!celulasDeChao.Contains(c))
+                    paredesSolidas.Add(c);
+                else if (buracos.Contains(c))
+                    buracosSolidos.Add(c);
+            }
         }
 
-        return new RectInt(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+        Colisores(pai, "Colisores das paredes", paredesSolidas, CamadaDaParede);
+        Colisores(pai, "Colisores dos buracos", buracosSolidos, Mathf.Max(0, CamadaDoBuraco));
     }
 
-    private static bool EncostaNoChao(HashSet<Vector2Int> chao, Vector2Int c)
+    /// <summary>Onde da pra pisar: chao que nao e buraco.</summary>
+    public static bool Andavel(HashSet<Vector2Int> celulasDeChao, HashSet<Vector2Int> buracos, Vector2Int c) =>
+        celulasDeChao.Contains(c) && !buracos.Contains(c);
+
+    private static bool EncostaEmQuemAnda(HashSet<Vector2Int> celulasDeChao, HashSet<Vector2Int> buracos, Vector2Int c)
     {
+        if (Andavel(celulasDeChao, buracos, c))
+            return false;
+
         for (int dx = -1; dx <= 1; dx++)
             for (int dy = -1; dy <= 1; dy++)
-                if (chao.Contains(c + new Vector2Int(dx, dy)))
+                if (Andavel(celulasDeChao, buracos, c + new Vector2Int(dx, dy)))
                     return true;
 
         return false;
     }
 
-    private static Transform Grupo(Transform pai, string nome)
+    private static void Colisores(Transform pai, string nome, HashSet<Vector2Int> celulas, int camada)
     {
-        GameObject obj = new GameObject(nome);
-        obj.transform.SetParent(pai, false);
-        return obj.transform;
+        Transform grupo = new GameObject(nome).transform;
+        grupo.SetParent(pai, false);
+
+        foreach (RectInt r in Caverna.Juntar(celulas))
+        {
+            GameObject obj = new GameObject("Colisor");
+            obj.transform.SetParent(grupo, false);
+            obj.transform.position = new Vector3(r.xMin - 0.5f + r.width * 0.5f, r.yMin - 0.5f + r.height * 0.5f, 0f);
+            obj.layer = camada;
+            obj.AddComponent<BoxCollider2D>().size = new Vector2(r.width, r.height);
+        }
+    }
+
+    // ---------------------------------------------------------------- sorteios dos ladrilhos cheios
+    private static class Sorteio
+    {
+        public static int Chao(System.Random sorte)
+        {
+            float total = 0f;
+
+            foreach (float peso in DadosDoOldPrison.PesoDoChaoInteiro)
+                total += peso;
+
+            double ponto = sorte.NextDouble() * total;
+
+            for (int i = 0; i < DadosDoOldPrison.ChaoInteiro.Length; i++)
+            {
+                ponto -= DadosDoOldPrison.PesoDoChaoInteiro[i];
+
+                if (ponto <= 0)
+                    return DadosDoOldPrison.ChaoInteiro[i];
+            }
+
+            return DadosDoOldPrison.ChaoInteiro[0];
+        }
+
+        public static int Sangue(System.Random sorte) =>
+            DadosDoOldPrison.SangueInteiro[sorte.Next(DadosDoOldPrison.SangueInteiro.Length)];
+    }
+
+    // ---------------------------------------------------------------- a grade de ladrilhos
+    /// <summary>
+    /// Os ladrilhos que cobrem a caverna, como [coluna, linha] com as linhas crescendo pra baixo (o
+    /// jeito do Tiled, que as regras esperam).
+    /// </summary>
+    private class Grade
+    {
+        private readonly int esquerda;
+        private readonly int topo;
+
+        public readonly int Largura;
+        public readonly int Altura;
+
+        public Grade(RectInt celulas)
+        {
+            // Os ladrilhos ficam entre as celulas: um a mais em cada direcao.
+            esquerda = celulas.xMin - 1;
+            topo = celulas.yMax - 1;
+            Largura = celulas.width + 1;
+            Altura = celulas.height + 1;
+        }
+
+        /// <summary>O canto de baixo-esquerdo do ladrilho (a celula de onde ele comeca).</summary>
+        public Vector2Int Canto(int coluna, int linha) => new Vector2Int(esquerda + coluna, topo - linha);
+
+        public int[,] Vazia()
+        {
+            int[,] grade = new int[Largura, Altura];
+
+            for (int x = 0; x < Largura; x++)
+                for (int y = 0; y < Altura; y++)
+                    grade[x, y] = -1;
+
+            return grade;
+        }
+
+        /// <summary>
+        /// Cada ladrilho pela tabela de cantos (cima-esq * 8 + cima-dir * 4 + baixo-dir * 2 + baixo-esq).
+        /// O cheio (os 4 dentro) pode ser sorteado.
+        /// </summary>
+        public int[,] PorCantos(System.Func<Vector2Int, bool> dentro, int[] tabela, System.Func<System.Random, int> cheio, System.Random sorte)
+        {
+            int[,] grade = new int[Largura, Altura];
+
+            for (int coluna = 0; coluna < Largura; coluna++)
+            {
+                for (int linha = 0; linha < Altura; linha++)
+                {
+                    Vector2Int c = Canto(coluna, linha);
+                    int indice = (dentro(c + Vector2Int.up) ? 8 : 0) + (dentro(c + Vector2Int.one) ? 4 : 0)
+                               + (dentro(c + Vector2Int.right) ? 2 : 0) + (dentro(c) ? 1 : 0);
+                    grade[coluna, linha] = indice == 15 && cheio != null ? cheio(sorte) : tabela[indice];
+                }
+            }
+
+            return grade;
+        }
+
+        public bool AlgumCanto(Vector2Int c, System.Func<Vector2Int, bool> teste) =>
+            teste(c) || teste(c + Vector2Int.right) || teste(c + Vector2Int.up) || teste(c + Vector2Int.one);
+
+        public bool TodosOsCantos(Vector2Int c, System.Func<Vector2Int, bool> teste) =>
+            teste(c) && teste(c + Vector2Int.right) && teste(c + Vector2Int.up) && teste(c + Vector2Int.one);
+
+        /// <summary>Poe os ladrilhos num Tilemap novo. O ladrilho (x, y) cobre do ponto (x, y) ao (x + 1, y + 1).</summary>
+        public void Pintar(Transform grid, string nome, int[,] ladrilhos, Folha folha, int ordem)
+        {
+            GameObject obj = new GameObject(nome);
+            obj.transform.SetParent(grid, false);
+            Tilemap mapa = obj.AddComponent<Tilemap>();
+            obj.AddComponent<TilemapRenderer>().sortingOrder = ordem;
+
+            List<Vector3Int> lugares = new List<Vector3Int>();
+            List<TileBase> pecas = new List<TileBase>();
+
+            for (int coluna = 0; coluna < Largura; coluna++)
+            {
+                for (int linha = 0; linha < Altura; linha++)
+                {
+                    Tile peca = folha.Ladrilho(ladrilhos[coluna, linha]);
+
+                    if (peca == null)
+                        continue;
+
+                    Vector2Int c = Canto(coluna, linha);
+                    lugares.Add(new Vector3Int(c.x, c.y, 0));
+                    pecas.Add(peca);
+                }
+            }
+
+            mapa.SetTiles(lugares.ToArray(), pecas.ToArray());
+        }
+    }
+
+    // ---------------------------------------------------------------- uma folha de ladrilhos de 32 x 32
+    /// <summary>Corta os ladrilhos de uma folha so quando precisa, e guarda.</summary>
+    private class Folha
+    {
+        private readonly Texture2D textura;
+        private readonly Dictionary<int, Tile> prontos = new Dictionary<int, Tile>();
+
+        public Folha(Texture2D textura)
+        {
+            this.textura = textura;
+        }
+
+        public Tile Ladrilho(int numero)
+        {
+            if (numero < 0 || textura == null)
+                return null;
+
+            if (prontos.TryGetValue(numero, out Tile pronto))
+                return pronto;
+
+            int lado = DadosDoOldPrison.Lado;
+            int colunas = textura.width / lado;
+            int coluna = numero % colunas, linha = numero / colunas;
+
+            // Na textura a linha 0 e embaixo; a primeira linha de ladrilhos e a de cima.
+            Rect recorte = new Rect(coluna * lado, textura.height - (linha + 1) * lado, lado, lado);
+            Tile tile = ScriptableObject.CreateInstance<Tile>();
+            tile.sprite = Sprite.Create(textura, recorte, new Vector2(0.5f, 0.5f), lado, 0, SpriteMeshType.FullRect);
+            tile.colliderType = Tile.ColliderType.None;
+            prontos[numero] = tile;
+            return tile;
+        }
     }
 }

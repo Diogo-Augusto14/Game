@@ -33,7 +33,7 @@ public class Saida : MonoBehaviour
         saida.quadrosPorSegundo = quadrosPorSegundo;
         saida.abriu = Time.time;
         saida.desenho = obj.AddComponent<SpriteRenderer>();
-        saida.desenho.sortingOrder = Pedreiro.OrdemDoChao + 1;
+        saida.desenho.sortingOrder = Pedreiro.OrdemDosEnfeites + 1;
 
         if (quadros.Length > 0)
             saida.desenho.sprite = quadros[0];

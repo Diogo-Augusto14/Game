@@ -7,7 +7,8 @@ using UnityEngine.SceneManagement;
 /// Monta e troca os andares: cada andar e uma caverna gigante e aberta, sem salas nem portas, como
 /// no Nuclear Throne.
 ///
-/// A caverna e cavada na hora (<see cref="Caverna"/>) e construida pelo <see cref="Pedreiro"/>, com
+/// A caverna e cavada na hora (<see cref="Caverna"/>) e construida pelo <see cref="Pedreiro"/> com a
+/// arte do pacote Old Prison (paredes de tijolo, buracos de abismo, pocas de sangue, ossos), com
 /// o jogador numa clareira no centro do mundo. Os inimigos ficam espalhados em grupos, longe do
 /// comeco, parados ate verem o jogador. Quando o ultimo morre, o vortice da saida abre ali mesmo;
 /// pisar nele escurece a tela e monta o proximo andar, maior e com mais inimigos. Depois do ultimo
@@ -52,15 +53,24 @@ public class GeradorDoAndar : MonoBehaviour
     [Tooltip("Com esta quantidade de inimigos ou menos, uma seta aponta pro mais perto")]
     [SerializeField, Min(0)] private int setaQuandoFaltarem = 3;
 
-    [Header("Desenhos")]
+    [Header("Buracos e enfeites")]
+    [Tooltip("Buracos de abismo no primeiro andar (ninguem passa; o tiro passa por cima)")]
+    [SerializeField, Min(0)] private int buracosNoPrimeiroAndar = 8;
+
+    [SerializeField, Min(0)] private int buracosAMaisPorAndar = 3;
+
+    [Tooltip("Pocas de sangue por andar (so enfeite)")]
+    [SerializeField, Min(0)] private int pocasPorAndar = 10;
+
+    [Tooltip("Chance de cada ladrilho de chao ganhar um osso, pedrinha ou papel")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeEnfeite = 0.05f;
+
+    [Header("Desenhos (folhas de 32 x 32 do Old Prison; ver Ferramentas/OldPrison)")]
     [SerializeField] private Texture2D chao;
-    [SerializeField] private Color tomDoChao = new Color(0.85f, 0.85f, 0.9f);
-
-    [Tooltip("A face de tijolos das paredes (ladrilhada com 1 unidade de altura)")]
-    [SerializeField] private Texture2D paredeDeFrente;
-
-    [Tooltip("A rocha vista de cima")]
-    [SerializeField] private Texture2D topoDaParede;
+    [SerializeField] private Texture2D paredes;
+    [SerializeField] private Texture2D abismo;
+    [SerializeField] private Texture2D sangue;
+    [SerializeField] private Texture2D enfeites;
 
     [Tooltip("Folha do vortice da saida")]
     [SerializeField] private Texture2D vortice;
@@ -110,10 +120,7 @@ public class GeradorDoAndar : MonoBehaviour
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
-        pedreiro = new Pedreiro(Pedreiro.Ladrilho(chao, pixelsPorUnidade),
-                                // A face de tijolos tem 1 unidade de altura, seja qual for o desenho.
-                                Pedreiro.Ladrilho(paredeDeFrente, paredeDeFrente != null ? paredeDeFrente.height : pixelsPorUnidade),
-                                Pedreiro.Ladrilho(topoDaParede, pixelsPorUnidade), tomDoChao);
+        pedreiro = new Pedreiro(chao, paredes, abismo, sangue, enfeites, chanceDeEnfeite);
         quadrosDoVortice = FolhaDeSprites.Cortar(vortice, quadroDoVortice, pixelsPorUnidade);
     }
 
@@ -245,8 +252,15 @@ public class GeradorDoAndar : MonoBehaviour
         raiz = new GameObject($"Andar {andar}");
         raiz.transform.SetParent(transform, false);
 
-        HashSet<Vector2Int> chaoDaCaverna = Caverna.Cavar(celulasNoPrimeiroAndar + (andar - 1) * celulasAMaisPorAndar, raioMaximo, clareira);
-        pedreiro.Construir(raiz.transform, chaoDaCaverna);
+        HashSet<Vector2Int> planta = Caverna.Cavar(celulasNoPrimeiroAndar + (andar - 1) * celulasAMaisPorAndar, raioMaximo, clareira);
+        Caverna.Ajeitar(planta);
+        HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, buracosNoPrimeiroAndar + (andar - 1) * buracosAMaisPorAndar, longeDoComeco * 0.7f);
+        HashSet<Vector2Int> pocas = Caverna.EspalharPocas(planta, buracos, pocasPorAndar);
+        pedreiro.Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+
+        // Daqui pra frente so interessa onde da pra pisar.
+        HashSet<Vector2Int> chaoDaCaverna = new HashSet<Vector2Int>(planta);
+        chaoDaCaverna.ExceptWith(buracos);
         EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (andar - 1) * inimigosAMaisPorAndar);
 
         // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no

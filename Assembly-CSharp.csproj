@@ -72,6 +72,8 @@
     <Compile Include="Assets\Scripts\Nucleo\EfeitoDeFolha.cs" />
     <Compile Include="Assets\Scripts\Jogador\MorteDoJogador.cs" />
     <Compile Include="Assets\Scripts\Andar\Caverna.cs" />
+    <Compile Include="Assets\Scripts\Andar\Automapa.cs" />
+    <Compile Include="Assets\Scripts\Andar\DadosDoOldPrison.cs" />
     <Compile Include="Assets\Scripts\Andar\Pedreiro.cs" />
     <Compile Include="Assets\Scripts\Andar\GeradorDoAndar.cs" />
     <Compile Include="Assets\Scripts\Andar\Saida.cs" />
