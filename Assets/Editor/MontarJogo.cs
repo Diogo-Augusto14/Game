@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -5,8 +6,9 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// Monta a cena do jogo do zero: o jogador (prefab), a camera, a luz e o chao infinito, mais o que
-/// eles usam (a arma do arqueiro, a imagem da mira e a da sombra). Menu Jogo ▸ Montar a cena do zero.
+/// Monta a cena do jogo do zero: o jogador (prefab), a camera, a luz, o chao infinito, o boneco de
+/// treino e a arena que chama os inimigos, mais o que eles usam (as armas, o prefab do Bruxo e as
+/// imagens geradas: mira, sombra, bala inimiga e boneco). Menu Jogo ▸ Montar a cena do zero.
 ///
 /// Rodar de novo refaz tudo: o que voce mudou a mao na cena e no prefab se perde. Depois de montada,
 /// a cena e editada normalmente pelo Inspector; isto aqui so serve pro comeco (ou pra voltar ao
@@ -16,15 +18,23 @@ public static class MontarJogo
 {
     public const string Cena = "Assets/Cenas/Jogo.unity";
     private const string PrefabDoJogador = "Assets/Prefabs/Jogador.prefab";
+    private const string PrefabDoBruxo = "Assets/Prefabs/Bruxo.prefab";
+    private const string PrefabDoBoneco = "Assets/Prefabs/BonecoDeTreino.prefab";
     private const string ArmaDoArqueiro = "Assets/Dados/Armas/ArcoDoArqueiro.asset";
+    private const string ArmaDoBruxo = "Assets/Dados/Armas/MagiaDoBruxo.asset";
     private const string PastaGerada = "Assets/Arte/Gerada";
     private const string Mira = PastaGerada + "/Mira.png";
     private const string Sombra = PastaGerada + "/Sombra.png";
+    private const string Bala = PastaGerada + "/BalaInimiga.png";
+    private const string Boneco = PastaGerada + "/BonecoDeTreino.png";
+    private const string Silhueta = "Assets/Shaders/Silhueta.shader";
 
     private const string Heroi = "Assets/Arte/Resources/Personagens/Herois/Arqueiro/";
+    private const string Bruxo = "Assets/Arte/Resources/Personagens/Bruxo/";
     private const string Flecha = "Assets/Arte/Resources/Personagens/Projeteis/FlechaDoArqueiro.png";
     private const string Chao = "Assets/Arte/Resources/Masmorra/Temas/PrisaoChaoPorao.png";
-    private const string SomDoTiro = "Assets/Arte/Resources/Sons/Tiro.ogg";
+    private const string Poeira = "Assets/Arte/Resources/Efeitos/Poeira.png";
+    private const string Sons = "Assets/Arte/Resources/Sons/";
 
     /// <summary>Todo o desenho do jogo usa 20 pixels por unidade: o boneco (20 px de altura) fica com 1 unidade.</summary>
     public const float PixelsPorUnidade = 20f;
@@ -43,9 +53,13 @@ public static class MontarJogo
         GerarImagens();
         AjustarFlecha();
 
+        Shader silhueta = AssetDatabase.LoadAssetAtPath<Shader>(Silhueta);
         DadosDaArma arco = CriarArco();
-        GameObject jogador = CriarJogador(arco);
-        CriarCena(jogador);
+        DadosDaArma magia = CriarMagiaDoBruxo();
+        GameObject jogador = CriarJogador(arco, silhueta);
+        GameObject bruxo = CriarBruxo(magia, silhueta);
+        GameObject boneco = CriarBoneco(silhueta);
+        CriarCena(jogador, bruxo, boneco);
 
         AssetDatabase.SaveAssets();
         Debug.Log("[Jogo] cena montada: " + Cena);
@@ -58,6 +72,9 @@ public static class MontarJogo
         File.WriteAllBytes(Mira, DesenharMira().EncodeToPNG());
         // Sombra: uma elipse escura e macia debaixo do boneco.
         File.WriteAllBytes(Sombra, DesenharSombra().EncodeToPNG());
+        // A bala do inimigo e o boneco de treino: desenhados letra por letra (ver os desenhos la embaixo).
+        File.WriteAllBytes(Bala, DesenharPorLetras(DesenhoDaBala, CoresDaBala).EncodeToPNG());
+        File.WriteAllBytes(Boneco, DesenharPorLetras(DesenhoDoBoneco, CoresDoBoneco).EncodeToPNG());
         AssetDatabase.Refresh();
 
         TextureImporter mira = (TextureImporter)AssetImporter.GetAtPath(Mira);
@@ -67,14 +84,27 @@ public static class MontarJogo
         mira.mipmapEnabled = false;
         mira.SaveAndReimport();
 
-        TextureImporter sombra = (TextureImporter)AssetImporter.GetAtPath(Sombra);
-        sombra.textureType = TextureImporterType.Sprite;
-        sombra.spriteImportMode = SpriteImportMode.Single;
-        sombra.spritePixelsPerUnit = PixelsPorUnidade;
-        sombra.filterMode = FilterMode.Point;
-        sombra.textureCompression = TextureImporterCompression.Uncompressed;
-        sombra.mipmapEnabled = false;
-        sombra.SaveAndReimport();
+        ImportarSprite(Sombra, SpriteAlignment.Center);
+        ImportarSprite(Bala, SpriteAlignment.Center);
+        // O boneco balanca em volta do pe: o pivo fica embaixo.
+        ImportarSprite(Boneco, SpriteAlignment.BottomCenter);
+    }
+
+    private static void ImportarSprite(string caminho, SpriteAlignment alinhamento)
+    {
+        TextureImporter importador = (TextureImporter)AssetImporter.GetAtPath(caminho);
+        TextureImporterSettings ajustes = new TextureImporterSettings();
+        importador.ReadTextureSettings(ajustes);
+        ajustes.spriteAlignment = (int)alinhamento;
+        importador.SetTextureSettings(ajustes);
+
+        importador.textureType = TextureImporterType.Sprite;
+        importador.spriteImportMode = SpriteImportMode.Single;
+        importador.spritePixelsPerUnit = PixelsPorUnidade;
+        importador.filterMode = FilterMode.Point;
+        importador.textureCompression = TextureImporterCompression.Uncompressed;
+        importador.mipmapEnabled = false;
+        importador.SaveAndReimport();
     }
 
     private static Texture2D DesenharMira()
@@ -155,6 +185,95 @@ public static class MontarJogo
         return textura;
     }
 
+    // Cada letra e um pixel (ponto = vazio); a primeira linha e a de cima.
+    private static readonly string[] DesenhoDaBala =
+    {
+        "...oooo...",
+        ".ooPPPPoo.",
+        ".oPWWPPPo.",
+        "oPWWPPPPPo",
+        "oPWPPPPPPo",
+        "oPPPPPPPdo",
+        "oPPPPPPddo",
+        ".oPPPPddo.",
+        ".ooddddoo.",
+        "...oooo...",
+    };
+
+    private static readonly Dictionary<char, Color32> CoresDaBala = new Dictionary<char, Color32>
+    {
+        { 'o', new Color32(70, 12, 34, 255) },
+        { 'P', new Color32(255, 76, 116, 255) },
+        { 'W', new Color32(255, 220, 228, 255) },
+        { 'd', new Color32(200, 38, 84, 255) },
+    };
+
+    private static readonly string[] DesenhoDoBoneco =
+    {
+        "......ooooooo......",
+        ".....ossssssSo.....",
+        "....osssssssSSo....",
+        "....ossessseSSo....",
+        "....osssssssSSo....",
+        "....ossesesesSo....",
+        ".....osssssSSo.....",
+        "......oyyyyyo......",
+        "oo..osssssssSSo..oo",
+        "oyoooosssssssSoooyo",
+        "oYwwwwwwwwwwwwwwwYo",
+        "oyoWWWWWWWWWWWWWoyo",
+        "oo..ossRRRRRsSo..oo",
+        "....osRrrrrrRSo....",
+        "....osRrRRRrRSo....",
+        "....osRrRRRrRSo....",
+        "....osRrRRRrRSo....",
+        "....osRrrrrrRSo....",
+        "....ossRRRRRsSo....",
+        "....oyYyyYyyYyo....",
+        "....oooowwWoooo....",
+        ".......owwWo.......",
+        ".......owwWo.......",
+        ".......owwWo.......",
+        ".....ooowwWooo.....",
+        ".....oWWWWWWWo.....",
+        ".....ooooooooo.....",
+    };
+
+    private static readonly Dictionary<char, Color32> CoresDoBoneco = new Dictionary<char, Color32>
+    {
+        { 'o', new Color32(40, 24, 28, 255) },    // contorno
+        { 's', new Color32(204, 166, 106, 255) }, // saco
+        { 'S', new Color32(160, 124, 74, 255) },  // saco na sombra
+        { 'e', new Color32(70, 40, 34, 255) },    // costura
+        { 'y', new Color32(236, 208, 110, 255) }, // palha
+        { 'Y', new Color32(192, 158, 70, 255) },  // palha na sombra
+        { 'w', new Color32(132, 82, 46, 255) },   // madeira
+        { 'W', new Color32(88, 52, 32, 255) },    // madeira na sombra
+        { 'R', new Color32(196, 52, 52, 255) },   // alvo
+        { 'r', new Color32(240, 228, 206, 255) }, // alvo, o claro
+    };
+
+    private static Texture2D DesenharPorLetras(string[] linhas, Dictionary<char, Color32> cores)
+    {
+        int largura = linhas[0].Length, altura = linhas.Length;
+        Texture2D textura = new Texture2D(largura, altura, TextureFormat.RGBA32, false);
+        Color32[] pixels = new Color32[largura * altura];
+
+        for (int linha = 0; linha < altura; linha++)
+        {
+            for (int x = 0; x < largura; x++)
+            {
+                // Na textura a linha 0 e embaixo.
+                int y = altura - 1 - linha;
+                pixels[y * largura + x] = cores.TryGetValue(linhas[linha][x], out Color32 cor) ? cor : new Color32(0, 0, 0, 0);
+            }
+        }
+
+        textura.SetPixels32(pixels);
+        textura.Apply();
+        return textura;
+    }
+
     // A flecha do pacote vem a 100 pixels por unidade; no jogo tudo e 20, pra ela ficar no tamanho do boneco.
     private static void AjustarFlecha()
     {
@@ -188,18 +307,51 @@ public static class MontarJogo
         arco.velocidade = 15f;
         arco.alcance = 11f;
         arco.dano = 3f;
+        arco.empurrao = 3f;
         arco.tirosPorDisparo = 1;
         arco.abertura = 10f;
         arco.dispersao = 2.5f;
         arco.tremor = 0.02f;
-        arco.som = AssetDatabase.LoadAssetAtPath<AudioClip>(SomDoTiro);
+        arco.som = Som("Tiro.ogg");
         arco.volume = 0.4f;
         EditorUtility.SetDirty(arco);
         return arco;
     }
 
+    // A bala do Bruxo: lenta, redonda e bem visivel, pra dar tempo de desviar andando.
+    private static DadosDaArma CriarMagiaDoBruxo()
+    {
+        DadosDaArma magia = AssetDatabase.LoadAssetAtPath<DadosDaArma>(ArmaDoBruxo);
+
+        if (magia == null)
+        {
+            magia = ScriptableObject.CreateInstance<DadosDaArma>();
+            AssetDatabase.CreateAsset(magia, ArmaDoBruxo);
+        }
+
+        magia.nome = "Magia do Bruxo";
+        magia.desenhoDoTiro = AssetDatabase.LoadAssetAtPath<Sprite>(Bala);
+        magia.apontarODesenho = false;
+        magia.cor = Color.white;
+        magia.raio = 0.15f;
+        magia.automatica = true;
+        magia.tirosPorSegundo = 1f;
+        magia.velocidade = 4.5f;
+        magia.alcance = 14f;
+        magia.dano = 1f;
+        magia.empurrao = 5f;
+        magia.tirosPorDisparo = 1;
+        magia.abertura = 10f;
+        magia.dispersao = 0f;
+        magia.tremor = 0f;
+        magia.som = Som("TiroInimigo.ogg");
+        magia.volume = 0.35f;
+        EditorUtility.SetDirty(magia);
+        return magia;
+    }
+
     // ---------------- o jogador ----------------
-    private static GameObject CriarJogador(DadosDaArma arco)
+    private static GameObject CriarJogador(DadosDaArma arco, Shader silhueta)
     {
         GameObject raiz = new GameObject("Jogador");
         raiz.tag = "Player";
@@ -220,17 +372,7 @@ public static class MontarJogo
         raiz.AddComponent<MovimentoDoJogador>();
 
         // A sombra no chao e o corpo (filhos: o corpo gira na esquiva sem girar o colisor).
-        GameObject sombra = new GameObject("Sombra");
-        sombra.transform.SetParent(raiz.transform, false);
-        sombra.transform.localPosition = new Vector3(0f, -0.5f, 0f);
-        SpriteRenderer desenhoDaSombra = sombra.AddComponent<SpriteRenderer>();
-        desenhoDaSombra.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(Sombra);
-        desenhoDaSombra.sortingOrder = 1;
-
-        GameObject corpoDesenhado = new GameObject("Corpo");
-        corpoDesenhado.transform.SetParent(raiz.transform, false);
-        SpriteRenderer desenhoDoCorpo = corpoDesenhado.AddComponent<SpriteRenderer>();
-        desenhoDoCorpo.sortingOrder = 10;
+        SpriteRenderer desenhoDoCorpo = CriarSombraECorpo(raiz, -0.5f, 0f);
 
         ArmaDoJogador arma = raiz.AddComponent<ArmaDoJogador>();
         Preencher(arma, "arma", arco);
@@ -240,11 +382,30 @@ public static class MontarJogo
         Preencher(animacao, "parado", AssetDatabase.LoadAssetAtPath<Texture2D>(Heroi + "Idle.png"));
         Preencher(animacao, "andando", AssetDatabase.LoadAssetAtPath<Texture2D>(Heroi + "Walk.png"));
         Preencher(animacao, "ataque", AssetDatabase.LoadAssetAtPath<Texture2D>(Heroi + "Attack01.png"));
+        Preencher(animacao, "morte", AssetDatabase.LoadAssetAtPath<Texture2D>(Heroi + "Death.png"));
 
         raiz.AddComponent<RastroDaEsquiva>();
 
         CursorDaMira cursor = raiz.AddComponent<CursorDaMira>();
         Preencher(cursor, "mira", AssetDatabase.LoadAssetAtPath<Texture2D>(Mira));
+
+        // Vida: 6 pontos, e depois de um golpe 1 segundo sem tomar outro (piscando).
+        Vida vida = raiz.AddComponent<Vida>();
+        AjustarEnum(vida, "lado", (int)Lado.Jogador);
+        Ajustar(vida, "vidaMaxima", 6f);
+        Ajustar(vida, "tempoSemDano", 1f);
+        Preencher(vida, "somDoDano", Som("DanoJogador.ogg"));
+        Preencher(vida, "somDaMorte", Som("MorteJogador.ogg"));
+        Ajustar(vida, "volume", 0.7f);
+        Ajustar(vida, "tremorNoDano", 0.15f);
+        Ajustar(vida, "tremorNaMorte", 0.3f);
+
+        PiscarAoTomarDano piscar = raiz.AddComponent<PiscarAoTomarDano>();
+        PreencherLista(piscar, "desenhos", desenhoDoCorpo);
+        Preencher(piscar, "silhueta", silhueta);
+        Ajustar(piscar, "piscarNoTempoSemDano", true);
+
+        raiz.AddComponent<MorteDoJogador>();
 
         // O desenho do corpo e cortado da folha ao dar Play: na cena parada so aparece a sombra.
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(raiz, PrefabDoJogador);
@@ -252,8 +413,118 @@ public static class MontarJogo
         return prefab;
     }
 
+    // ---------------- o primeiro inimigo ----------------
+    private static GameObject CriarBruxo(DadosDaArma magia, Shader silhueta)
+    {
+        GameObject raiz = new GameObject("Bruxo");
+
+        Rigidbody2D corpo = raiz.AddComponent<Rigidbody2D>();
+        corpo.gravityScale = 0f;
+        corpo.freezeRotation = true;
+
+        // Um pouco maior que o do jogador: o chapeu e o manto tambem levam flechada.
+        CircleCollider2D colisor = raiz.AddComponent<CircleCollider2D>();
+        colisor.radius = 0.4f;
+        colisor.offset = new Vector2(0f, -0.1f);
+
+        AudioSource audioSource = raiz.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;
+
+        SpriteRenderer desenhoDoCorpo = CriarSombraECorpo(raiz, -0.5f, 0f);
+
+        // 15 de vida: 5 flechas do arco.
+        Vida vida = raiz.AddComponent<Vida>();
+        AjustarEnum(vida, "lado", (int)Lado.Inimigos);
+        Ajustar(vida, "vidaMaxima", 15f);
+        Preencher(vida, "somDoDano", Som("Acerto.ogg"));
+        Preencher(vida, "somDaMorte", Som("MorteInimigo.ogg"));
+        Ajustar(vida, "volume", 0.45f);
+        Ajustar(vida, "tremorNaMorte", 0.06f);
+
+        InimigoAtirador atirador = raiz.AddComponent<InimigoAtirador>();
+        Preencher(atirador, "arma", magia);
+
+        AnimacaoDoInimigo animacao = raiz.AddComponent<AnimacaoDoInimigo>();
+        Preencher(animacao, "corpo", desenhoDoCorpo);
+        Preencher(animacao, "parado", AssetDatabase.LoadAssetAtPath<Texture2D>(Bruxo + "Idle.png"));
+        Preencher(animacao, "andando", AssetDatabase.LoadAssetAtPath<Texture2D>(Bruxo + "Walk.png"));
+        Preencher(animacao, "ataque", AssetDatabase.LoadAssetAtPath<Texture2D>(Bruxo + "Attack01.png"));
+        Preencher(animacao, "morte", AssetDatabase.LoadAssetAtPath<Texture2D>(Bruxo + "Death.png"));
+
+        PiscarAoTomarDano piscar = raiz.AddComponent<PiscarAoTomarDano>();
+        PreencherLista(piscar, "desenhos", desenhoDoCorpo);
+        Preencher(piscar, "silhueta", silhueta);
+
+        MorteDoInimigo morte = raiz.AddComponent<MorteDoInimigo>();
+        Preencher(morte, "efeito", AssetDatabase.LoadAssetAtPath<Texture2D>(Poeira));
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(raiz, PrefabDoBruxo);
+        Object.DestroyImmediate(raiz);
+        return prefab;
+    }
+
+    // ---------------- o boneco de treino ----------------
+    private static GameObject CriarBoneco(Shader silhueta)
+    {
+        GameObject raiz = new GameObject("Boneco de treino");
+
+        // Dynamic com tudo travado: nao sai do lugar, ninguem passa por dentro, e o tiro (cinematico) sente ele.
+        Rigidbody2D corpo = raiz.AddComponent<Rigidbody2D>();
+        corpo.gravityScale = 0f;
+        corpo.constraints = RigidbodyConstraints2D.FreezeAll;
+
+        CircleCollider2D colisor = raiz.AddComponent<CircleCollider2D>();
+        colisor.radius = 0.35f;
+
+        AudioSource audioSource = raiz.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;
+
+        // O desenho tem o pivo no pe: o corpo fica embaixo, pra balancar em volta da base.
+        SpriteRenderer desenhoDoCorpo = CriarSombraECorpo(raiz, -0.6f, -0.6f);
+        desenhoDoCorpo.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(Boneco);
+
+        Vida vida = raiz.AddComponent<Vida>();
+        AjustarEnum(vida, "lado", (int)Lado.Inimigos);
+        Ajustar(vida, "vidaMaxima", 100f);
+        Ajustar(vida, "imortal", true);
+        Ajustar(vida, "pesoDoEmpurrao", 0f);
+        Preencher(vida, "somDoDano", Som("Acerto.ogg"));
+        Ajustar(vida, "volume", 0.3f);
+
+        PiscarAoTomarDano piscar = raiz.AddComponent<PiscarAoTomarDano>();
+        PreencherLista(piscar, "desenhos", desenhoDoCorpo);
+        Preencher(piscar, "silhueta", silhueta);
+
+        BonecoDeTreino boneco = raiz.AddComponent<BonecoDeTreino>();
+        Preencher(boneco, "corpo", desenhoDoCorpo.transform);
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(raiz, PrefabDoBoneco);
+        Object.DestroyImmediate(raiz);
+        return prefab;
+    }
+
+    // A sombra no chao e o corpo desenhado, filhos da raiz. Devolve o desenho do corpo.
+    private static SpriteRenderer CriarSombraECorpo(GameObject raiz, float alturaDaSombra, float alturaDoCorpo)
+    {
+        GameObject sombra = new GameObject("Sombra");
+        sombra.transform.SetParent(raiz.transform, false);
+        sombra.transform.localPosition = new Vector3(0f, alturaDaSombra, 0f);
+        SpriteRenderer desenhoDaSombra = sombra.AddComponent<SpriteRenderer>();
+        desenhoDaSombra.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(Sombra);
+        desenhoDaSombra.sortingOrder = 1;
+
+        GameObject corpo = new GameObject("Corpo");
+        corpo.transform.SetParent(raiz.transform, false);
+        corpo.transform.localPosition = new Vector3(0f, alturaDoCorpo, 0f);
+        SpriteRenderer desenhoDoCorpo = corpo.AddComponent<SpriteRenderer>();
+        desenhoDoCorpo.sortingOrder = 10;
+        return desenhoDoCorpo;
+    }
+
     // ---------------- a cena ----------------
-    private static void CriarCena(GameObject prefabDoJogador)
+    private static void CriarCena(GameObject prefabDoJogador, GameObject prefabDoBruxo, GameObject prefabDoBoneco)
     {
         var cena = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -282,13 +553,44 @@ public static class MontarJogo
         ChaoInfinito chaoInfinito = chao.AddComponent<ChaoInfinito>();
         Preencher(chaoInfinito, "ladrilho", AssetDatabase.LoadAssetAtPath<Texture2D>(Chao));
 
+        // O boneco de treino perto de onde o jogador comeca, e a arena que chama os Bruxos.
+        GameObject boneco = (GameObject)PrefabUtility.InstantiatePrefab(prefabDoBoneco);
+        boneco.transform.position = new Vector3(3f, 1.5f, 0f);
+
+        ArenaDeTreino arena = new GameObject("Arena de treino").AddComponent<ArenaDeTreino>();
+        Preencher(arena, "inimigo", prefabDoBruxo);
+
         EditorSceneManager.SaveScene(cena, Cena);
         EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(Cena, true) };
         PlayPelaCenaDoJogo.Aplicar();
     }
 
     // ---------------- ajudas ----------------
-    private static void Preencher(Object componente, string campo, Object valor)
+    private static AudioClip Som(string arquivo) => AssetDatabase.LoadAssetAtPath<AudioClip>(Sons + arquivo);
+
+    private static void Preencher(Object componente, string campo, Object valor) =>
+        Mexer(componente, campo, p => p.objectReferenceValue = valor);
+
+    private static void PreencherLista(Object componente, string campo, params Object[] valores) =>
+        Mexer(componente, campo, p =>
+        {
+            p.arraySize = valores.Length;
+
+            for (int i = 0; i < valores.Length; i++)
+                p.GetArrayElementAtIndex(i).objectReferenceValue = valores[i];
+        });
+
+    private static void Ajustar(Object componente, string campo, float valor) =>
+        Mexer(componente, campo, p => p.floatValue = valor);
+
+    private static void Ajustar(Object componente, string campo, bool valor) =>
+        Mexer(componente, campo, p => p.boolValue = valor);
+
+    private static void AjustarEnum(Object componente, string campo, int indice) =>
+        Mexer(componente, campo, p => p.enumValueIndex = indice);
+
+    // Mexe num campo do componente como o Inspector mexe (vale pros campos privados com SerializeField).
+    private static void Mexer(Object componente, string campo, System.Action<SerializedProperty> mexer)
     {
         SerializedObject so = new SerializedObject(componente);
         SerializedProperty propriedade = so.FindProperty(campo);
@@ -299,7 +601,7 @@ public static class MontarJogo
             return;
         }
 
-        propriedade.objectReferenceValue = valor;
+        mexer(propriedade);
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 

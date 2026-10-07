@@ -3,8 +3,11 @@ using UnityEngine;
 
 /// <summary>
 /// Um tiro em voo (flecha, bala...). Vai reto ate o alcance e cai; bate em qualquer coisa solida e
-/// some. Ainda nao machuca ninguem: quando houver inimigo, e aqui que o dano entra (<see cref="Dano"/>).
-/// Monte com <see cref="Disparar"/>.
+/// some. Se o que bateu tem <see cref="Vida"/>, machuca e empurra.
+///
+/// Atravessa sem machucar quem e do mesmo lado de quem atirou (bala de inimigo passa pelos outros
+/// inimigos) e quem esta protegido (o jogador na esquiva ou no tempinho depois de um golpe).
+/// Monte com <see cref="Disparar"/> (ou <see cref="DadosDaArma.Disparar"/>, que solta o leque inteiro).
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D), typeof(CircleCollider2D))]
@@ -12,16 +15,22 @@ public class Projetil : MonoBehaviour
 {
     private Rigidbody2D corpo;
     private GameObject dono;
+    private DadosDaArma arma;
+    private Lado lado;
+    private Vector2 rumo;
     private float velocidade;
     private float alcance;
     private float percorrido;
     private bool acabou;
 
-    public float Dano { get; private set; }
-
     public GameObject Dono => dono;
 
-    public static Projetil Disparar(Vector2 origem, Vector2 rumo, DadosDaArma arma, GameObject dono)
+    public DadosDaArma Arma => arma;
+
+    /// <summary>O lado de quem atirou: nao machuca ninguem desse lado.</summary>
+    public Lado Lado => lado;
+
+    public static Projetil Disparar(Vector2 origem, Vector2 rumo, DadosDaArma arma, GameObject dono, Lado lado)
     {
         rumo = rumo.sqrMagnitude > 0.0001f ? rumo.normalized : Vector2.right;
 
@@ -48,7 +57,9 @@ public class Projetil : MonoBehaviour
 
         Projetil projetil = obj.AddComponent<Projetil>();
         projetil.dono = dono;
-        projetil.Dano = arma.dano;
+        projetil.arma = arma;
+        projetil.lado = lado;
+        projetil.rumo = rumo;
         projetil.velocidade = arma.velocidade;
         projetil.alcance = arma.alcance;
         rb.linearVelocity = rumo * arma.velocidade;
@@ -79,6 +90,19 @@ public class Projetil : MonoBehaviour
         // Nao acerta quem atirou.
         if (dono != null && outro.transform.IsChildOf(dono.transform))
             return;
+
+        Vida vida = outro.GetComponentInParent<Vida>();
+
+        if (vida != null)
+        {
+            // Mesmo lado de quem atirou: passa reto.
+            if (vida.Lado == lado)
+                return;
+
+            // Protegido (esquiva, tempinho depois do golpe): tambem passa reto.
+            if (!vida.ReceberDano(new Dano(arma.dano, rumo, arma.empurrao, dono)))
+                return;
+        }
 
         Sumir();
     }

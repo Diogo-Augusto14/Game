@@ -63,6 +63,16 @@
     <Compile Include="Assets\Scripts\Nucleo\FolhaDeSprites.cs" />
     <Compile Include="Assets\Scripts\Jogador\RastroDaEsquiva.cs" />
     <Compile Include="Assets\Scripts\Jogador\AnimacaoDoJogador.cs" />
+    <Compile Include="Assets\Scripts\Combate\Dano.cs" />
+    <Compile Include="Assets\Scripts\Combate\Vida.cs" />
+    <Compile Include="Assets\Scripts\Combate\PiscarAoTomarDano.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\InimigoAtirador.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\AnimacaoDoInimigo.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\MorteDoInimigo.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\BonecoDeTreino.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\EfeitoDeFolha.cs" />
+    <Compile Include="Assets\Scripts\Jogador\MorteDoJogador.cs" />
+    <Compile Include="Assets\Scripts\Mundo\ArenaDeTreino.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StreamingAssets\CREDITOS-AUDIO.txt" />

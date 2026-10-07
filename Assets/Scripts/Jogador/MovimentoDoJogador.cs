@@ -9,7 +9,7 @@ using UnityEngine;
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D))]
-public class MovimentoDoJogador : MonoBehaviour
+public class MovimentoDoJogador : MonoBehaviour, IInvulneravel
 {
     [Header("Andar")]
     [Tooltip("Velocidade maxima, em unidades por segundo")]
@@ -44,7 +44,7 @@ public class MovimentoDoJogador : MonoBehaviour
     /// <summary>No meio da esquiva.</summary>
     public bool Esquivando => Time.time < esquivaAcaba;
 
-    /// <summary>Nada machuca agora (o comeco da esquiva). Pros inimigos, quando existirem.</summary>
+    /// <summary>Nada machuca agora (o comeco da esquiva): a <see cref="Vida"/> pergunta, e o tiro atravessa.</summary>
     public bool Invulneravel => Time.time < invulneravelAte;
 
     /// <summary>0 no comeco da esquiva, 1 no fim.</summary>

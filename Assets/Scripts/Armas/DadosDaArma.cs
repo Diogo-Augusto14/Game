@@ -5,7 +5,8 @@ using UnityEngine;
 /// Assets/Dados/Armas): da pra mexer no Inspector com o jogo rodando e criar uma arma nova pelo menu
 /// Create ▸ Jogo ▸ Arma, sem tocar no codigo.
 ///
-/// Quem atira com ela e o <see cref="ArmaDoJogador"/>; cada tiro e um <see cref="Projetil"/>.
+/// Quem atira com ela e o <see cref="ArmaDoJogador"/> (ou um inimigo, como o <see cref="InimigoAtirador"/>);
+/// cada tiro e um <see cref="Projetil"/>.
 /// </summary>
 [CreateAssetMenu(fileName = "NovaArma", menuName = "Jogo/Arma")]
 public class DadosDaArma : ScriptableObject
@@ -38,6 +39,9 @@ public class DadosDaArma : ScriptableObject
 
     [Min(0f)] public float dano = 3f;
 
+    [Tooltip("Velocidade do empurraozinho em quem leva o tiro, em unidades por segundo (0 = nao empurra)")]
+    [Min(0f)] public float empurrao = 3f;
+
     [Header("Varios tiros")]
     [Min(1)] public int tirosPorDisparo = 1;
 
@@ -54,4 +58,21 @@ public class DadosDaArma : ScriptableObject
     public AudioClip som;
 
     [Range(0f, 1f)] public float volume = 0.45f;
+
+    /// <summary>
+    /// Solta um disparo: um tiro, ou o leque de <see cref="tirosPorDisparo"/>, cada um um pouco torto
+    /// (<see cref="dispersao"/>). O <paramref name="lado"/> e de quem atira: o tiro nao machuca esse lado.
+    /// </summary>
+    public void Disparar(Vector2 origem, Vector2 rumo, GameObject dono, Lado lado)
+    {
+        float angulo = Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg;
+        float primeiro = -abertura * (tirosPorDisparo - 1) * 0.5f;
+
+        for (int i = 0; i < tirosPorDisparo; i++)
+        {
+            float torto = Random.Range(-dispersao, dispersao);
+            float a = (angulo + primeiro + abertura * i + torto) * Mathf.Deg2Rad;
+            Projetil.Disparar(origem, new Vector2(Mathf.Cos(a), Mathf.Sin(a)), this, dono, lado);
+        }
+    }
 }

@@ -23,7 +23,7 @@ de novo.
 | # | Etapa | O que dá pra fazer no fim |
 |---|---|---|
 | 1 | **Movimento** (feita) | Andar, esquivar, mirar com o mouse e atirar flechas sem parar, num chão aberto que não acaba |
-| 2 | Algo pra acertar | Boneco de treino e um inimigo simples que anda e atira; vida, dano, morrer, piscar ao tomar dano |
+| 2 | **Algo pra acertar** (feita, falta jogar) | Boneco de treino e um inimigo simples que anda e atira; vida, dano, morrer, piscar ao tomar dano |
 | 3 | Sala e andar | Salas ligadas por corredores; a porta fecha na luta e abre quando a sala fica limpa |
 | 4 | Armas | Achar arma no chão e no baú, trocar de arma, e o recurso do tiro (energia ou munição) |
 | 5 | Inimigos e padrões | Mais inimigos, cada um com o seu jeito, e padrões de bala de verdade |

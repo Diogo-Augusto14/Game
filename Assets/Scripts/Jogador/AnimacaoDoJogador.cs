@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// O desenho do jogador: parado, andando, atirando e rolando na esquiva. O corpo sempre olha pro
+/// O desenho do jogador: parado, andando, atirando, rolando na esquiva e morrendo. O corpo sempre olha pro
 /// lado da mira (espelhado), como no Gungeon, mesmo andando de costas.
 ///
 /// Cada animacao e uma folha (tira de quadros lado a lado, ver <see cref="FolhaDeSprites"/>). Pra
@@ -22,6 +22,9 @@ public class AnimacaoDoJogador : MonoBehaviour
     [Tooltip("O ataque: toca a cada tiro, do quadro do disparo pro fim. Vazio = so atira, sem animacao")]
     [SerializeField] private Texture2D ataque;
 
+    [Tooltip("Toca uma vez quando a vida acaba, e o desenho fica no ultimo quadro")]
+    [SerializeField] private Texture2D morte;
+
     [Tooltip("Tamanho de cada quadro, em pixels")]
     [SerializeField] private Vector2Int tamanhoDoQuadro = new Vector2Int(100, 100);
 
@@ -31,6 +34,7 @@ public class AnimacaoDoJogador : MonoBehaviour
     [Header("Ritmo")]
     [SerializeField, Min(1f)] private float quadrosPorSegundoParado = 8f;
     [SerializeField, Min(1f)] private float quadrosPorSegundoAndando = 12f;
+    [SerializeField, Min(1f)] private float quadrosPorSegundoNaMorte = 8f;
 
     [Tooltip("Quadro do ataque em que o tiro sai (o primeiro e 0): a animacao do tiro comeca nele")]
     [SerializeField, Min(0)] private int quadroDoDisparo = 5;
@@ -50,10 +54,12 @@ public class AnimacaoDoJogador : MonoBehaviour
     private Sprite[] quadrosParado;
     private Sprite[] quadrosAndando;
     private Sprite[] quadrosDoTiro;
+    private Sprite[] quadrosMorte;
 
     private ControlesDoJogador controles;
     private MovimentoDoJogador movimento;
     private ArmaDoJogador arma;
+    private Vida vida;
 
     private Sprite[] tocando;
     private float comecou;
@@ -69,9 +75,11 @@ public class AnimacaoDoJogador : MonoBehaviour
         controles = GetComponent<ControlesDoJogador>();
         movimento = GetComponent<MovimentoDoJogador>();
         arma = GetComponent<ArmaDoJogador>();
+        vida = GetComponent<Vida>();
 
         quadrosParado = FolhaDeSprites.Cortar(parado, tamanhoDoQuadro, pixelsPorUnidade);
         quadrosAndando = FolhaDeSprites.Cortar(andando, tamanhoDoQuadro, pixelsPorUnidade);
+        quadrosMorte = FolhaDeSprites.Cortar(morte, tamanhoDoQuadro, pixelsPorUnidade);
 
         // Do tiro so interessa do quadro do disparo pro fim: o arco ja esta puxado quando a flecha sai.
         Sprite[] todosDoAtaque = FolhaDeSprites.Cortar(ataque, tamanhoDoQuadro, pixelsPorUnidade);
@@ -116,6 +124,12 @@ public class AnimacaoDoJogador : MonoBehaviour
         if (corpo == null || quadrosParado.Length == 0)
             return;
 
+        if (vida != null && vida.Morto)
+        {
+            Morto();
+            return;
+        }
+
         // Olha pro lado da mira.
         if (controles != null && Mathf.Abs(controles.Mira.x) > 0.05f)
             corpo.flipX = controles.Mira.x < 0f;
@@ -138,10 +152,7 @@ public class AnimacaoDoJogador : MonoBehaviour
         }
 
         corpo.transform.localPosition = new Vector3(0f, pulinho, 0f);
-
-        int quadro = Mathf.FloorToInt((Time.time - comecou) * quadrosPorSegundo);
-        quadro = soUmaVez ? Mathf.Min(quadro, tocando.Length - 1) : quadro % tocando.Length;
-        corpo.sprite = tocando[quadro];
+        MostrarQuadro();
 
         // Na esquiva o corpo rola: uma volta inteira pro lado em que vai.
         float angulo = 0f;
@@ -153,6 +164,24 @@ public class AnimacaoDoJogador : MonoBehaviour
         }
 
         corpo.transform.localRotation = Quaternion.Euler(0f, 0f, angulo);
+    }
+
+    // Caido: a animacao de morte uma vez so, sem pulinho nem giro, olhando pro lado em que estava.
+    private void Morto()
+    {
+        if (quadrosMorte.Length > 0 && tocando != quadrosMorte)
+            Tocar(quadrosMorte, quadrosPorSegundoNaMorte, true);
+
+        corpo.transform.localPosition = Vector3.zero;
+        corpo.transform.localRotation = Quaternion.identity;
+        MostrarQuadro();
+    }
+
+    private void MostrarQuadro()
+    {
+        int quadro = Mathf.FloorToInt((Time.time - comecou) * quadrosPorSegundo);
+        quadro = soUmaVez ? Mathf.Min(quadro, tocando.Length - 1) : quadro % tocando.Length;
+        corpo.sprite = tocando[quadro];
     }
 
     private void Tocar(Sprite[] quadros, float novoRitmo, bool umaVez)

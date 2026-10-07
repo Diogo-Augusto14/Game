@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
-  m_Name: ArcoDoArqueiro
+  m_Name: MagiaDoBruxo
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
-  nome: Arco do Arqueiro
-  desenhoDoTiro: {fileID: 21300000, guid: 1a38ca205dc240cf8e9201d909e56392, type: 3}
-  apontarODesenho: 1
+  nome: Magia do Bruxo
+  desenhoDoTiro: {fileID: 21300000, guid: 189e6bbd630342af92943bc737487129, type: 3}
+  apontarODesenho: 0
   cor: {r: 1, g: 1, b: 1, a: 1}
-  raio: 0.12
+  raio: 0.15
   automatica: 1
-  tirosPorSegundo: 6
-  velocidade: 15
-  alcance: 11
-  dano: 3
-  empurrao: 3
+  tirosPorSegundo: 1
+  velocidade: 4.5
+  alcance: 14
+  dano: 1
+  empurrao: 5
   tirosPorDisparo: 1
   abertura: 10
-  dispersao: 2.5
-  tremor: 0.02
-  som: {fileID: 8300000, guid: 41f8aa4278604c359cafd24c9360c6de, type: 3}
-  volume: 0.4
+  dispersao: 0
+  tremor: 0
+  som: {fileID: 8300000, guid: c80e7b91304246158f40e9cc7b8d8d91, type: 3}
+  volume: 0.35

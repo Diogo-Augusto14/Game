@@ -65,15 +65,7 @@ public class ArmaDoJogador : MonoBehaviour
         proximoTiro = Time.time + intervalo;
 
         Vector2 origem = (Vector2)transform.position + Vector2.up * alturaDaSaida + rumo * distanciaDaSaida;
-        float angulo = Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg;
-        float primeiro = -arma.abertura * (arma.tirosPorDisparo - 1) * 0.5f;
-
-        for (int i = 0; i < arma.tirosPorDisparo; i++)
-        {
-            float torto = Random.Range(-arma.dispersao, arma.dispersao);
-            float a = (angulo + primeiro + arma.abertura * i + torto) * Mathf.Deg2Rad;
-            Projetil.Disparar(origem, new Vector2(Mathf.Cos(a), Mathf.Sin(a)), arma, gameObject);
-        }
+        arma.Disparar(origem, rumo, gameObject, Lado.Jogador);
 
         CameraDoJogo.Tremer(arma.tremor, 0.06f);
 
