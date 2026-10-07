@@ -29,7 +29,7 @@ public class ArmaNoChao : Interativo
         GameObject filho = new GameObject("Desenho");
         filho.transform.SetParent(obj.transform, false);
         SpriteRenderer sprite = filho.AddComponent<SpriteRenderer>();
-        sprite.sprite = arma.Dados.desenhoNaMao;
+        sprite.sprite = arma.Dados.Desenho;
         sprite.sortingOrder = -99;
 
         ArmaNoChao noChao = obj.AddComponent<ArmaNoChao>();

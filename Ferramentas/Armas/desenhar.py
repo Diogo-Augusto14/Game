@@ -81,6 +81,18 @@ DESENHOS = {
         "bbbbDDGg...",
         "BBBBDD.....",
     ],
+    # O Arco do Arqueiro (so pro chao e pra moldura: na mao ele ja esta no desenho do Arqueiro).
+    'Arco': [
+        "..bB.....",
+        ".g..bB...",
+        ".g....b..",
+        ".g.....b.",
+        ".g.....b.",
+        ".g.....b.",
+        ".g....b..",
+        ".g..bB...",
+        "..bB.....",
+    ],
     # ---------- os tiros do jogador ----------
     'Faisca': [
         "..W..",

@@ -27,7 +27,7 @@ de novo.
 | 1 | **Movimento** (feita) | Andar, esquivar, mirar com o mouse e atirar flechas sem parar, num chão aberto que não acaba |
 | 2 | **Algo pra acertar** (feita) | Boneco de treino e um inimigo simples que anda e atira; vida, dano, morrer, piscar ao tomar dano |
 | 3 | **Andares gigantes** (feita) | Cada andar é uma caverna enorme e aberta, sem salas nem portas (como no Nuclear Throne); matar todos os inimigos abre o portal pro próximo andar. Com a arte do Old Prison (paredes, buracos de abismo, poças, enfeites), montada pelas regras do Tiled do pacote |
-| 4 | **Armas** (feita) | Achar arma no chão e no baú, carregar duas (a do personagem e uma achada) e trocar, munição por arma com pente e recarga, bolsas de munição. Armas de fantasia (varinha, tomo, besta, cajado, machado). Os inimigos contornam parede pra chegar em você |
+| 4 | **Armas** (feita) | Achar arma no chão e no baú, carregar duas (a do personagem e uma achada) e trocar, munição por arma (um número só, sem recarga), bolsas de munição. Começa só com o arco, que também pode ser trocado. Armas de fantasia (varinha, tomo, besta, cajado, machado). Os inimigos contornam parede pra chegar em você |
 | 5 | **Inimigos e padrões** (feita, falta jogar) | Esqueleto (investida), Gosma (estoura em gotas), Esqueleto Arqueiro (leque, recua), Necromante (anéis), Olho (espiral), além do Bruxo; os mais difíceis só nos andares 2 e 3. Padrões de bala na arma: leque, anel, rajada, espiral, tiro que freia ou acelera |
 | 6 | **Chefes** (feita) | Cada chefe tem um andar só dele, um salão com pilares: Minotauro no andar 3 e Golem de Brasa no andar 6 (o final). Ataques que se alternam, fúria com metade da vida, barra de vida, baú de prêmio |
 | 7 | **Interface** (feita, falta jogar; menus copiados do jogo antigo) | Vida em corações, a arma na moldura com a munição, a barra do chefe, menu inicial, pausa, tela de controles e tela de fim de jogo (morreu ou venceu, com andar, inimigos e tempo), com a arte de interface e fontes em pixel |
@@ -37,10 +37,10 @@ de novo.
 
 - **Armas de fantasia.** Decidido depois da etapa 4: o mundo é medieval de fantasia, então as armas não
   precisam existir, precisam encaixar (nada de pistola e metralhadora).
-- **Energia ou munição?** Decidido na etapa 4: **munição por arma**, como no Gungeon (pente, reserva,
-  recarga, bolsas de munição); a arma do personagem é infinita. E **duas armas** de uma vez: por
-  enquanto a do personagem, fixa, e uma achada. Na etapa 8 a do personagem também passa a poder ser
-  trocada.
+- **Energia ou munição?** Decidido na etapa 4: **munição por arma**; depois de jogar, simplificada pra
+  um número só por arma, sem pente nem recarga (o pente confundia). A arma do personagem é infinita.
+  **Duas armas** de uma vez, e a do personagem também pode ser trocada (senão o arco fica inútil no
+  fim do jogo). O jogo começa só com ela: nada de arma de graça no começo.
 - **Vários personagens.** Decidido depois da etapa 5: vários, como no Soul Knight, cada um com uma
   habilidade e uma arma inicial diferente (etapa 8).
 - **A sua arte.** Talvez não tenha etapa só pra ela; quando o seu boneco ficar pronto, entra no lugar de

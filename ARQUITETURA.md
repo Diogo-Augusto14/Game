@@ -23,7 +23,6 @@ mudado à mão na cena e no prefab se perde.
 | `Esc` ou `P` | `Start` | Pausar |
 | `M` / `N` | `LB` / `RB` (nos menus) | Música / efeitos liga e desliga |
 | `Q` ou a roda do mouse | `Y` | Trocar de arma |
-| `R` | `X` | Recarregar |
 | `E` | `B` | Pegar arma, abrir baú |
 
 ## Pastas
@@ -58,7 +57,7 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `MovimentoDoJogador` | Anda com aceleração e freio; a esquiva é uma arrancada curta na direção do andar, sem tomar dano no começo (`Invulneravel`), com recarga curta |
 | `AnimacaoDoJogador` | Parado, andando, atirando e rolando na esquiva. O arco puxa e solta a cada tiro, parado ou andando (andando, o corpo dá um pulinho de 1 pixel a cada passo, porque o desenho do pacote não tem "andar atirando"). O corpo sempre olha pro lado da mira |
 | `RastroDaEsquiva` | As cópias azuladas que ficam pra trás na esquiva |
-| `ArmaDoJogador` | As duas armas: a do personagem (o arco, infinito, nunca sai da mão) e a achada. Troca entre elas, atira pra onde mira no ritmo da arma, gasta o pente, recarrega (sozinha com o pente vazio, ou com `R`); sem munição, só o clique. Não atira no meio da esquiva |
+| `ArmaDoJogador` | As duas armas: começa só com a do personagem (o arco, infinito). Troca entre elas, atira pra onde mira no ritmo da arma e gasta a munição; sem munição, só o clique. Pegar outra arma ocupa a mão vazia ou troca a da mão (o arco também). Não atira no meio da esquiva |
 | `ArmaNaMao` | Desenha a arma achada na mão, girando pra mira, com o coice do tiro (com o arco não aparece nada: ele já está no desenho do Arqueiro) |
 | `InteracaoDoJogador` | Acha a coisa usável mais perto (arma no chão, baú) e usa no `E` (a dica em cima dela é da interface) |
 | `CursorDaMira` | Troca o cursor por uma mira enquanto o mouse mira; com o controle, o cursor some |
@@ -131,7 +130,7 @@ pasta do pacote descompactado: ele refaz as folhas em `Assets/Arte/OldPrison` e 
 Duas partes:
 
 - **O HUD** (objeto **Interface** da cena, `TelaDoJogo` + `HudDoJogo`): vida em corações, andar e
-  inimigos, a arma na moldura com munição e recarga, a barra do chefe, o nome do andar e a dica do que
+  inimigos, a arma na moldura com a munição, a barra do chefe, o nome do andar e a dica do que
   dá pra usar. Desenhado no OnGUI em pixel art de tamanho inteiro (`Desenho`). Some com qualquer menu
   aberto (o OnGUI desenha por cima dos menus).
 - **Os menus, copiados do jogo antigo** (`Assets/Scripts/Interface`), montados por código em canvas
@@ -291,38 +290,40 @@ dispersão, tremor, som) e arrastar o asset na `ArmaDoJogador`. Dá pra mexer no
 rodando.
 
 Pra ela aparecer na caverna: dar um **desenho na mão** (sem ele a arma não cai em baú nem no chão), a
-**munição** (pente, máximo, tempo de recarga, ou `infinita`, ou `semPente` pra atirar direto do total) e o **peso no baú** (quanto maior, mais
+**munição** (`semPente` e o total em `municaoMaxima`, ou `infinita`; o pente com recarga ainda funciona, mas nenhuma arma usa) e o **peso no baú** (quanto maior, mais
 sai; 0 = nunca), e pôr o asset na lista **Armas** do objeto Andar.
 
 ## Armas, baús e munição
 
-O jogador carrega **duas armas**: a do personagem (o arco do Arqueiro, infinito, nunca sai da mão) e
-uma achada. Pegar outra troca a achada: a velha cai no chão com a munição que tinha.
+O jogador carrega **duas armas** e começa só com a do personagem (o arco do Arqueiro, infinito). Pegar
+uma arma ocupa a mão vazia; com as duas cheias, troca a que está na mão, **o arco também** (senão ele
+fica inútil no fim do jogo): a velha cai no chão com a munição que tinha (o arco largado aparece com
+o desenho dele, o `desenhoNoChao`).
 
-Cada arma achada tem **pente e reserva** (como no Gungeon): atirar gasta o pente; vazio, recarrega
-sozinha da reserva. Os números ficam no asset (`DadosDaArma`); o pente e a reserva de cada arma ficam na
-`ArmaCarregada`, que vai junto quando a arma cai no chão.
+A munição é **um número só por arma**: quantos tiros ela ainda tem, sem pente nem recarga. Acabou, só
+o clique; a bolsa de munição enche metade. Os números ficam no asset (`DadosDaArma`); o que sobra de
+cada arma fica na `ArmaCarregada`, que vai junto quando a arma cai no chão.
 
 | Script | O que faz |
 |---|---|
-| `ArmaCarregada` | Uma arma de verdade: os dados (o asset) mais o pente e a reserva dela |
+| `ArmaCarregada` | Uma arma de verdade: os dados (o asset) mais a munição dela |
 | `Interativo` | O que o jogador usa chegando perto e apertando `E` (a base da arma no chão e do baú) |
 | `ArmaNoChao` | Arma caída, flutuando; `E` pega (e larga a que estava na mão no lugar) |
 | `Bau` | Fechado na caverna; `E` abre e solta uma arma sorteada pelo peso, diferente das que o jogador tem, e às vezes uma bolsa de munição. Conta como parede: segura tiro, e os inimigos contornam |
 | `CaixaDeMunicao` | Encostou, enche metade da munição da arma achada (se ela não estiver cheia) |
 
-No objeto Andar: **3 baús** e **1 arma no chão** por andar, longe do começo e longe uns dos outros, e no
-primeiro andar mais um baú do lado do começo. Cada inimigo morto tem **12%** de chance de largar uma
+No objeto Andar: **3 baús** e **1 arma no chão** por andar, longe do começo e longe uns dos outros (o baú do
+lado do começo existe, `bauNoComeco`, mas fica desligado: o jogo começa só com o arco). Cada inimigo morto tem **12%** de chance de largar uma
 bolsa de munição.
 
 As armas achadas são de fantasia (não precisam existir, precisam encaixar no mundo):
 
 | Arma | Como atira |
 |---|---|
-| **Varinha de Faíscas** | Tiro a tiro, faíscas rápidas; pente de 10 |
-| **Tomo das Brasas** | 6 brasas abertas que vão freando (de perto); pente de 6 |
-| **Besta de Repetição** | Segura o gatilho: virotes sem parar; pente de 30 |
-| **Cajado do Trovão** | Um raio lento de sair, forte e de longe; pente de 5 |
-| **Machado de Arremesso** | Um machado girando por vez, pesado e com empurrão; sem pente nem recarga (`semPente`): arremessa até os machados acabarem |
+| **Varinha de Faíscas** | Tiro a tiro, faíscas rápidas; 120 tiros |
+| **Tomo das Brasas** | 6 brasas abertas que vão freando (de perto); 40 disparos |
+| **Besta de Repetição** | Segura o gatilho: virotes sem parar; 240 virotes |
+| **Cajado do Trovão** | Um raio lento de sair, forte e de longe; 30 raios |
+| **Machado de Arremesso** | Um machado girando por vez, pesado e com empurrão; 40 machados |
  Os desenhos saem do `Ferramentas/Armas/desenhar.py`
 (pixel por pixel, em letras, com o contorno feito sozinho).

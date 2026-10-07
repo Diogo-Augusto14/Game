@@ -18,6 +18,12 @@ public class DadosDaArma : ScriptableObject
              "proprio personagem e ja esta no desenho dele, como o arco do Arqueiro")]
     public Sprite desenhoNaMao;
 
+    [Tooltip("O desenho no chao e na moldura quando nao tem desenho na mao (o arco, que na mao ja esta no desenho do Arqueiro)")]
+    public Sprite desenhoNoChao;
+
+    /// <summary>O desenho da arma solta (no chao, na moldura): o da mao, ou o do chao.</summary>
+    public Sprite Desenho => desenhoNaMao != null ? desenhoNaMao : desenhoNoChao;
+
     [Tooltip("Distancia do centro do corpo ate a arma, na direcao da mira")]
     [Min(0f)] public float distanciaDaMao = 0.4f;
 

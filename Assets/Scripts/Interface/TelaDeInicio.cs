@@ -176,8 +176,8 @@ public class TelaDeInicio : MonoBehaviour
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(pai, "Controles", -408f,
-            "[W][A][S][D] andar | mouse mira e atira | [Espaco] esquiva | [Q] troca a arma | [R] recarrega | [E] pega e abre | [Esc] pausar || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] mirar | [Pad RT] atirar | [Pad A] esquiva | [Pad Y] troca | [Pad X] recarrega | [Pad B] pega | [Pad Start] pausar",
+            "[W][A][S][D] andar | mouse mira e atira | [Espaco] esquiva | [Q] troca a arma | [E] pega e abre | [Esc] pausar || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] mirar | [Pad RT] atirar | [Pad A] esquiva | [Pad Y] troca | [Pad B] pega | [Pad Start] pausar",
             24, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
             "[M] música | [N] efeitos | Baú dá arma. Mate todos do andar pra abrir o portal. || " +

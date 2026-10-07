@@ -624,7 +624,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ca7dc619370c460ba499dbf8adeede2e, type: 2}
   bausPorAndar: 3
   armasNoChaoPorAndar: 1
-  bauNoComeco: 1
+  bauNoComeco: 0
   chanceDeMunicao: 0.12
   bau: {fileID: 2800000, guid: 85f6cf80baa24426b8c0af3f884f65d2, type: 3}
   quadroDoBau: {x: 128, y: 160}

@@ -72,7 +72,7 @@ public class GeradorDoAndar : MonoBehaviour
     [SerializeField, Min(0)] private int armasNoChaoPorAndar = 1;
 
     [Tooltip("No primeiro andar, um bau ja na clareira do comeco")]
-    [SerializeField] private bool bauNoComeco = true;
+    [SerializeField] private bool bauNoComeco;
 
     [Tooltip("Chance de um inimigo soltar uma bolsa de municao ao morrer")]
     [SerializeField, Range(0f, 1f)] private float chanceDeMunicao = 0.12f;

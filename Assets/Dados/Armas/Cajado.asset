@@ -17,8 +17,9 @@ MonoBehaviour:
   distanciaDaMao: 0.5
   coice: 0.12
   infinita: 0
+  semPente: 1
   pente: 5
-  municaoMaxima: 40
+  municaoMaxima: 30
   recarga: 1.6
   somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
   pesoNoBau: 0.8

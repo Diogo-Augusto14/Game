@@ -1,13 +1,14 @@
 using UnityEngine;
 
 /// <summary>
-/// As armas do jogador e o tiro: carrega duas, como no Soul Knight. A primeira e a do personagem
-/// (o arco do Arqueiro: infinita, nunca sai da mao); a segunda e a que ele achar. Troca entre as
-/// duas com Q (ou a roda do mouse, ou Y no controle).
+/// As armas do jogador e o tiro: carrega duas, como no Soul Knight. Comeca so com a do personagem
+/// (o arco do Arqueiro, infinito); a segunda e a que ele achar. Troca entre as duas com Q (ou a roda
+/// do mouse, ou Y no controle).
 ///
-/// Pegar outra arma (<see cref="Pegar"/>) troca a segunda: a velha cai no chao, com a municao que
-/// tinha. A arma atira pra onde o jogador mira, no ritmo dela, gastando o pente; com o pente vazio,
-/// recarrega sozinha (ou com R antes). Sem municao nenhuma, so faz o clique.
+/// Pegar outra arma (<see cref="Pegar"/>) ocupa a mao vazia; com as duas cheias, troca a que esta na
+/// mao, mesmo a do personagem (o arco nao fica inutil no fim do jogo): a velha cai no chao, com a
+/// municao que tinha. A arma atira pra onde o jogador mira, no ritmo dela, gastando a municao (as
+/// armas com pente recarregam sozinhas; as de agora sao todas sem pente). Sem municao, so o clique.
 ///
 /// Nao atira no meio da esquiva. Cada disparo avisa <see cref="AoAtirar"/> (a animacao do arco e a
 /// arma na mao escutam).
@@ -82,14 +83,24 @@ public class ArmaDoJogador : MonoBehaviour
     }
 
     /// <summary>
-    /// Pega uma arma: entra no lugar da segunda e vai pra mao. Devolve a que saiu (pra cair no chao),
-    /// ou nulo se a segunda estava vazia.
+    /// Pega uma arma e ja poe na mao: ocupa o lugar vazio, se tiver; senao troca a que esta na mao
+    /// (qualquer uma, o arco tambem). Devolve a que saiu (pra cair no chao), ou nulo.
     /// </summary>
     public ArmaCarregada Pegar(ArmaCarregada nova)
     {
-        ArmaCarregada velha = maos[1];
-        maos[1] = nova;
-        MudarPara(1);
+        for (int i = 0; i < maos.Length; i++)
+        {
+            if (maos[i] == null)
+            {
+                maos[i] = nova;
+                MudarPara(i);
+                return null;
+            }
+        }
+
+        ArmaCarregada velha = maos[naMao];
+        maos[naMao] = nova;
+        MudarPara(naMao);
         return velha;
     }
 

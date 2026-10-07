@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: ArcoDoArqueiro
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
   nome: Arco do Arqueiro
+  desenhoNoChao: {fileID: 21300000, guid: 89c05de80fda459ba492da7a02d1670a, type: 3}
   infinita: 1
   pesoNoBau: 0
   desenhoDoTiro: {fileID: 21300000, guid: 1a38ca205dc240cf8e9201d909e56392, type: 3}

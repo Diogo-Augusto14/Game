@@ -86,11 +86,11 @@ public class HudDoJogo
         float lado = (moldura != null ? moldura.width : 72) * u;
         Rect quadro = new Rect(Screen.width - m - lado, Screen.height - m - lado, lado, lado);
 
-        // A arma na moldura, no maior tamanho inteiro que cabe (o arco, que nao tem desenho na mao, mostra a flecha).
+        // A arma na moldura, no maior tamanho inteiro que cabe.
         if (moldura != null)
             Desenho.Imagem(quadro, moldura, Color.white);
 
-        Sprite desenho = atual.Dados.desenhoNaMao != null ? atual.Dados.desenhoNaMao : atual.Dados.desenhoDoTiro;
+        Sprite desenho = atual.Dados.Desenho != null ? atual.Dados.Desenho : atual.Dados.desenhoDoTiro;
 
         if (desenho != null)
         {
@@ -105,7 +105,8 @@ public class HudDoJogo
         float direita = quadro.x - 6 * u;
         float largura = 260 * u;
 
-        Desenho.Texto(new Rect(direita - largura, quadro.y, largura, 26 * u), atual.Dados.nome, medio, Desenho.Claro);
+        float linhaDeTexto = 32 * u;
+        Desenho.Texto(new Rect(direita - largura, quadro.y, largura, linhaDeTexto), atual.Dados.nome, medio, Desenho.Claro);
 
         string municao;
         Color cor = Desenho.Claro;
@@ -127,11 +128,13 @@ public class HudDoJogo
         }
         else
         {
-            municao = atual.SemPente ? $"{atual.NoPente}" : $"{atual.NoPente} / {atual.Reserva}";
-            cor = atual.NoPente == 0 ? Desenho.Vermelho : Desenho.Claro;
+            // Um numero so: quantos tiros a arma ainda tem. Pouca municao fica vermelha.
+            int total = atual.NoPente + atual.Reserva;
+            municao = $"{total}";
+            cor = total <= atual.Dados.municaoMaxima / 5 ? Desenho.Vermelho : Desenho.Claro;
         }
 
-        Rect linha = new Rect(direita - largura, quadro.y + 26 * u, largura, 24 * u);
+        Rect linha = new Rect(direita - largura, quadro.y + linhaDeTexto, largura, linhaDeTexto);
         Desenho.Texto(linha, municao, medio, cor);
 
         // A bolsa do lado da municao (so pra arma que gasta).
@@ -153,7 +156,7 @@ public class HudDoJogo
         if (armas.Outra != null)
         {
             GUIStyle outra = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerRight);
-            Desenho.Texto(new Rect(Screen.width - m - largura, quadro.y - 22 * u, largura, 20 * u),
+            Desenho.Texto(new Rect(Screen.width - m - largura, quadro.y - 26 * u, largura, 24 * u),
                           "Q  " + armas.Outra.Dados.nome, outra, Desenho.Apagado);
         }
     }
@@ -164,11 +167,11 @@ public class HudDoJogo
         float largura = 300 * u;
         GUIStyle pequeno = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.UpperRight);
         GUIStyle medio = Desenho.Estilo(tela.fonteTexto, 22 * u, TextAnchor.UpperRight);
-        Rect onde = new Rect(Screen.width - m - largura, m, largura, 20 * u);
+        Rect onde = new Rect(Screen.width - m - largura, m, largura, 24 * u);
 
         Desenho.Texto(onde, $"Andar {gerador.Andar} de {gerador.Andares}", pequeno, Desenho.Apagado);
-        onde.y += 20 * u;
-        onde.height = 26 * u;
+        onde.y += 22 * u;
+        onde.height = 32 * u;
 
         if (gerador.PortalAberto)
             Desenho.Texto(onde, "O portal abriu!", medio, Desenho.Dourado);

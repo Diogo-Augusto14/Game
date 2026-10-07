@@ -307,6 +307,8 @@ public static class MontarJogo
 
         arco.nome = "Arco do Arqueiro";
         arco.desenhoDoTiro = AssetDatabase.LoadAssetAtPath<Sprite>(Flecha);
+        // Na mao o arco ja esta no desenho do Arqueiro; largado no chao, aparece este.
+        arco.desenhoNoChao = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Arte/Armas/Arco.png");
         arco.apontarODesenho = true;
         arco.cor = Color.white;
         arco.raio = 0.12f;
