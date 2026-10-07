@@ -5,6 +5,9 @@ using UnityEngine;
 /// Um tiro em voo (flecha, bala...). Vai reto ate o alcance e cai; bate em qualquer coisa solida e
 /// some. Se o que bateu tem <see cref="Vida"/>, machuca e empurra.
 ///
+/// Parede (a camada "Wall") e procurada a cada passo, olhando o caminho
+/// da frente: assim o tiro nao atravessa parede fina, por mais rapido que seja.
+///
 /// Atravessa sem machucar quem e do mesmo lado de quem atirou (bala de inimigo passa pelos outros
 /// inimigos) e quem esta protegido (o jogador na esquiva ou no tempinho depois de um golpe).
 /// Monte com <see cref="Disparar"/> (ou <see cref="DadosDaArma.Disparar"/>, que solta o leque inteiro).
@@ -20,6 +23,7 @@ public class Projetil : MonoBehaviour
     private Vector2 rumo;
     private float velocidade;
     private float alcance;
+    private float raio;
     private float percorrido;
     private bool acabou;
 
@@ -62,6 +66,7 @@ public class Projetil : MonoBehaviour
         projetil.rumo = rumo;
         projetil.velocidade = arma.velocidade;
         projetil.alcance = arma.alcance;
+        projetil.raio = arma.raio;
         rb.linearVelocity = rumo * arma.velocidade;
         return projetil;
     }
@@ -76,7 +81,15 @@ public class Projetil : MonoBehaviour
         if (acabou)
             return;
 
-        percorrido += velocidade * Time.fixedDeltaTime;
+        float passo = velocidade * Time.fixedDeltaTime;
+
+        if (Physics2D.CircleCast(corpo.position, raio, rumo, passo, 1 << Pedreiro.CamadaDaParede))
+        {
+            Sumir();
+            return;
+        }
+
+        percorrido += passo;
 
         if (percorrido >= alcance)
             Sumir();

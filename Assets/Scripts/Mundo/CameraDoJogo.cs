@@ -68,6 +68,17 @@ public class CameraDoJogo : MonoBehaviour
         atual.tremorAte = Time.time + segundos;
     }
 
+    /// <summary>Vai direto pro alvo, sem deslizar ate la (o jogador foi levado pra outro lugar).</summary>
+    public static void Pular()
+    {
+        if (atual == null || atual.alvo == null)
+            return;
+
+        atual.semTremor = new Vector3(atual.alvo.position.x, atual.alvo.position.y, atual.transform.position.z);
+        atual.velocidade = Vector3.zero;
+        atual.transform.position = atual.semTremor;
+    }
+
     private void LateUpdate()
     {
         if (alvo == null)

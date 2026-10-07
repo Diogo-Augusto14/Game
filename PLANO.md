@@ -3,7 +3,7 @@
 ## A ideia
 
 Um roguelite de tiro visto de cima, com **Soul Knight** e **Enter the Gungeon** como referência (não
-como cópia): andar, esquivar, mirar e atirar, atravessar andares feitos de salas, inimigos que enchem a
+como cópia): andar, esquivar, mirar e atirar, atravessar andares que são cavernas gigantes, inimigos que enchem a
 tela de tiro, armas achadas no caminho e um chefe no fim de cada andar. Partidas curtas; morreu, começa
 de novo.
 
@@ -23,8 +23,8 @@ de novo.
 | # | Etapa | O que dá pra fazer no fim |
 |---|---|---|
 | 1 | **Movimento** (feita) | Andar, esquivar, mirar com o mouse e atirar flechas sem parar, num chão aberto que não acaba |
-| 2 | **Algo pra acertar** (feita, falta jogar) | Boneco de treino e um inimigo simples que anda e atira; vida, dano, morrer, piscar ao tomar dano |
-| 3 | Sala e andar | Salas ligadas por corredores; a porta fecha na luta e abre quando a sala fica limpa |
+| 2 | **Algo pra acertar** (feita) | Boneco de treino e um inimigo simples que anda e atira; vida, dano, morrer, piscar ao tomar dano |
+| 3 | **Andares gigantes** (feita, falta jogar) | Cada andar é uma caverna enorme e aberta, sem salas nem portas (como no Nuclear Throne); matar todos os inimigos abre o portal pro próximo andar |
 | 4 | Armas | Achar arma no chão e no baú, trocar de arma, e o recurso do tiro (energia ou munição) |
 | 5 | Inimigos e padrões | Mais inimigos, cada um com o seu jeito, e padrões de bala de verdade |
 | 6 | Chefe | O chefe do fim do andar |
@@ -36,4 +36,7 @@ de novo.
 - **Energia ou munição?** Soul Knight usa energia que recarrega; Gungeon usa pente e munição. Decidir na
   etapa 4.
 - **Vários personagens com habilidade própria** (como no Soul Knight) ou um só? Decidir depois da etapa 3.
-- **Quantos andares e quantas salas por andar.** Decidir na etapa 3, jogando.
+- **Tamanho dos andares e quantos andares.** Por enquanto 3 andares, o primeiro com umas 1500 células de
+  chão e 24 inimigos, crescendo a cada andar. Ajustar jogando.
+- **Inimigo contornando parede.** Por enquanto o Bruxo vai reto na sua direção. Se fizer falta, um
+  caminho pela caverna entra na etapa 5.

@@ -4,6 +4,9 @@ using UnityEngine;
 /// O primeiro inimigo: anda ate o jogador e, perto o bastante, para, prepara o tiro (a animacao do
 /// ataque e o aviso) e solta uma bala lenta na direcao dele. Depois de um tempo, prepara de novo.
 ///
+/// Comeca parado, sem saber do jogador. So acorda quando ve o jogador (perto e sem parede no meio)
+/// ou quando leva um tiro; acordado, nao esquece mais. So atira com o caminho livre ate o jogador.
+///
 /// O corpo e um Rigidbody2D Dynamic, como o do jogador: nao atravessa o jogador nem os outros
 /// inimigos, e o empurrao dos golpes funciona sozinho (o andar freia de volta).
 /// </summary>
@@ -11,6 +14,10 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D), typeof(Vida))]
 public class InimigoAtirador : MonoBehaviour
 {
+    [Header("Ver o jogador")]
+    [Tooltip("Acorda quando o jogador chega a esta distancia, sem parede no meio")]
+    [SerializeField, Min(0f)] private float distanciaDeVisao = 10f;
+
     [Header("Andar")]
     [Tooltip("Velocidade maxima, em unidades por segundo")]
     [SerializeField, Min(0f)] private float velocidade = 2.2f;
@@ -47,6 +54,11 @@ public class InimigoAtirador : MonoBehaviour
     private Vector2 querAndar;
     private float atiraEm = -1f;
     private float proximoAtaque;
+    private float proximaOlhada;
+    private bool caminhoLivre;
+
+    /// <summary>Ja viu o jogador (ou levou tiro) e esta atras dele.</summary>
+    public bool Acordado { get; private set; }
 
     /// <summary>Parado, preparando o tiro (a bala sai quando acabar).</summary>
     public bool Preparando => atiraEm >= 0f;
@@ -75,6 +87,30 @@ public class InimigoAtirador : MonoBehaviour
         corpo.interpolation = RigidbodyInterpolation2D.Interpolate;
     }
 
+    private void OnEnable()
+    {
+        vida.AoTomarDano += Apanhou;
+    }
+
+    private void OnDisable()
+    {
+        vida.AoTomarDano -= Apanhou;
+    }
+
+    private void Apanhou(Dano dano) => Acordar();
+
+    /// <summary>Passa a ir atras do jogador (ja acordado, nada muda).</summary>
+    public void Acordar()
+    {
+        if (Acordado)
+            return;
+
+        Acordado = true;
+
+        // Quem acabou de acordar demora um pouco pra atirar.
+        proximoAtaque = Mathf.Max(proximoAtaque, Time.time + Random.Range(0.5f, 1f));
+    }
+
     private void Start()
     {
         GameObject jogador = GameObject.FindWithTag("Player");
@@ -85,8 +121,8 @@ public class InimigoAtirador : MonoBehaviour
             vidaDoAlvo = jogador.GetComponent<Vida>();
         }
 
-        // O primeiro tiro demora um pouco: quem acabou de chegar nao atira na hora.
         proximoAtaque = Time.time + Random.Range(0.8f, intervalo);
+        proximaOlhada = Time.time + Random.Range(0f, 0.2f);
     }
 
     private void Update()
@@ -101,6 +137,19 @@ public class InimigoAtirador : MonoBehaviour
 
         Vector2 ateOAlvo = (Vector2)alvo.position - (Vector2)transform.position;
         float distancia = ateOAlvo.magnitude;
+
+        // Olha pro jogador umas vezes por segundo (nao a cada quadro: sao muitos inimigos no andar).
+        if (Time.time >= proximaOlhada)
+        {
+            proximaOlhada = Time.time + 0.2f;
+            caminhoLivre = distancia <= Mathf.Max(distanciaDeVisao, alcanceDoTiro) && !ParedeNoMeio(alvo.position);
+
+            if (caminhoLivre && distancia <= distanciaDeVisao)
+                Acordar();
+        }
+
+        if (!Acordado)
+            return;
 
         // Continua olhando pro jogador enquanto prepara: a bala vai pra onde ele esta quando sai.
         if (distancia > 0.01f)
@@ -118,7 +167,7 @@ public class InimigoAtirador : MonoBehaviour
             return;
         }
 
-        if (arma != null && distancia <= alcanceDoTiro && Time.time >= proximoAtaque)
+        if (arma != null && caminhoLivre && distancia <= alcanceDoTiro && Time.time >= proximoAtaque)
         {
             atiraEm = Time.time + preparo;
             AoPreparar?.Invoke();
@@ -136,6 +185,9 @@ public class InimigoAtirador : MonoBehaviour
 
         corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade, aceleracao * Time.fixedDeltaTime);
     }
+
+    private bool ParedeNoMeio(Vector2 ate) =>
+        Physics2D.Linecast(transform.position, ate, 1 << Pedreiro.CamadaDaParede).collider != null;
 
     private void Atirar()
     {

@@ -55,7 +55,6 @@
     <Compile Include="Assets\Scripts\Armas\ArmaDoJogador.cs" />
     <Compile Include="Assets\Scripts\Jogador\ControlesDoJogador.cs" />
     <Compile Include="Assets\Scripts\Mundo\CameraDoJogo.cs" />
-    <Compile Include="Assets\Scripts\Mundo\ChaoInfinito.cs" />
     <Compile Include="Assets\Scripts\Armas\Projetil.cs" />
     <Compile Include="Assets\Scripts\Jogador\CursorDaMira.cs" />
     <Compile Include="Assets\Scripts\Jogador\MovimentoDoJogador.cs" />
@@ -72,7 +71,10 @@
     <Compile Include="Assets\Scripts\Inimigos\BonecoDeTreino.cs" />
     <Compile Include="Assets\Scripts\Nucleo\EfeitoDeFolha.cs" />
     <Compile Include="Assets\Scripts\Jogador\MorteDoJogador.cs" />
-    <Compile Include="Assets\Scripts\Mundo\ArenaDeTreino.cs" />
+    <Compile Include="Assets\Scripts\Andar\Caverna.cs" />
+    <Compile Include="Assets\Scripts\Andar\Pedreiro.cs" />
+    <Compile Include="Assets\Scripts\Andar\GeradorDoAndar.cs" />
+    <Compile Include="Assets\Scripts\Andar\Saida.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StreamingAssets\CREDITOS-AUDIO.txt" />

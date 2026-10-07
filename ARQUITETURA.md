@@ -9,8 +9,8 @@ A cena do jogo é `Assets/Cenas/Jogo.unity`. O Play do editor sempre começa por
 cena aberta (menu **Jogo ▸ Play sempre pela cena do jogo**, marcado = ligado).
 
 A cena é feita de objetos de verdade, editáveis no Inspector: o **Jogador** (um prefab, em
-`Assets/Prefabs/Jogador.prefab`), a **Main Camera**, a **Luz global**, o **Chão infinito**, o **Boneco
-de treino** (prefab) e a **Arena de treino**, que vai chamando Bruxos (prefab) pra lutar. O menu
+`Assets/Prefabs/Jogador.prefab`), a **Main Camera**, a **Luz global**, o **Andar** (que cava a caverna
+ao dar Play e espalha os Bruxos, um prefab) e o **Boneco de treino** (prefab), na clareira do começo. O menu
 **Jogo ▸ Montar a cena do zero** (`Assets/Editor/MontarJogo.cs`) refaz tudo como no começo: o que foi
 mudado à mão na cena e no prefab se perde.
 
@@ -29,13 +29,14 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Armas` | Os dados de uma arma (asset), quem atira e o tiro em voo |
 | `Assets/Scripts/Combate` | Vida e dano (a mesma peça pra todo mundo) e o piscar branco |
 | `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, o boneco de treino |
-| `Assets/Scripts/Mundo` | Câmera, chão infinito e a arena de treino |
+| `Assets/Scripts/Andar` | A caverna: cavar, construir as paredes, espalhar os inimigos, a saída e a troca de andar |
+| `Assets/Scripts/Mundo` | A câmera |
 | `Assets/Scripts/Nucleo` | Peças pequenas usadas por todo lado (cortar folha de animação, efeito que toca uma vez) |
 | `Assets/Shaders` | `Silhueta`: pinta o desenho de uma cor só (o branco do golpe) |
 | `Assets/Editor` | Montar a cena e o Play pela cena do jogo |
 | `Assets/Prefabs` | Jogador, Bruxo e Boneco de treino |
 | `Assets/Dados/Armas` | Os assets das armas (`ArcoDoArqueiro.asset`, `MagiaDoBruxo.asset`) |
-| `Assets/Arte/Gerada` | Imagens feitas pelo montador: a mira do cursor, a sombra, a bala inimiga e o boneco de treino |
+| `Assets/Arte/Gerada` | Imagens feitas pelo montador: a mira do cursor, a sombra, a bala inimiga, o boneco de treino e o topo das paredes |
 | `Assets/Arte/Resources` | A arte dos pacotes (provisória) |
 
 ## As peças do jogador
@@ -54,9 +55,30 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `PiscarAoTomarDano` | Fica branco no golpe e pisca durante o segundo sem dano |
 | `MorteDoJogador` | Vida acabou: desliga os controles, o corpo cai, câmera lenta, a tela escurece e a partida recomeça |
 
-Fora do jogador: `Projetil` (o tiro em voo: vai até o alcance e some, ou some ao bater em algo sólido),
-`CameraDoJogo` (segue o jogador e olha um pouco pra frente, na direção da mira; `Tremer` dá o tremor) e
-`ChaoInfinito` (um ladrilho repetido que sempre cobre a tela).
+Fora do jogador: `Projetil` (o tiro em voo: vai até o alcance e some, ou some ao bater em algo sólido;
+parede ele procura olhando o caminho da frente a cada passo, então não atravessa parede nenhuma) e
+`CameraDoJogo` (segue o jogador e olha um pouco pra frente, na direção da mira; `Tremer` dá o tremor,
+`Pular` leva a câmera direto pro jogador quando ele troca de andar).
+
+## O andar: uma caverna gigante
+
+Cada andar é uma caverna grande e aberta, sem salas nem portas, como no Nuclear Throne. Tudo fica no
+objeto **Andar** da cena (`GeradorDoAndar`), com os números no Inspector.
+
+| Script | O que faz |
+|---|---|
+| `Caverna` | Cava a planta: "andarilhos" saem do centro, andam, viram, se dividem e às vezes abrem uma galeria larga, até a caverna ter o tamanho pedido. Sai tudo ligado. O começo é sempre uma clareira |
+| `Pedreiro` | Transforma a planta em mundo: um chão ladrilhado só, os tijolos onde a parede fica de frente pro chão, a rocha vista de cima no resto, e os colisores (camada `Wall`) só onde a rocha encosta no chão. Junta as células em poucos retângulos (um andar inteiro dá uns 200 objetos) |
+| `GeradorDoAndar` | Monta o andar, espalha os inimigos em grupos longe do começo, conta quantos faltam, abre a saída quando o último morre e troca de andar. Na tela: o nome do andar, o contador e, quando sobram 3 ou menos, uma seta na beirada apontando pro mais perto |
+| `Saida` | O vórtice: abre onde morreu o último inimigo e, pisado, leva pro próximo andar |
+
+Cada célula da caverna tem 1 unidade e a célula (x, y) fica no ponto (x, y) do mundo; o jogador começa
+no (0, 0). O primeiro andar tem umas 1500 células de chão (umas 7 telas cheias de chão) e 24 inimigos; cada andar
+seguinte tem 500 células e 8 inimigos a mais. São 3 andares: depois do último, a partida acaba em
+vitória e recomeça.
+
+A rocha é desenhada por cima de quem anda e os tijolos por trás, então quem encosta na parede de baixo
+some um pouquinho atrás dela, e quem encosta na de cima fica na frente dos tijolos.
 
 ## Vida e dano
 
@@ -91,11 +113,11 @@ para, prepara o tiro (a animação do ataque é o aviso) e solta uma bala lenta 
 
 O corpo é um Rigidbody2D Dynamic, como o do jogador: inimigo não atravessa o jogador nem outro inimigo.
 
-A **Arena de treino** (`ArenaDeTreino`, na cena) faz as vezes das salas por enquanto: mantém 3 Bruxos
-vivos, chamando um de cada vez a uns 7 a 10 de distância do jogador, e quando um morre chama outro
-depois de 2,5 segundos.
+O Bruxo começa **dormindo**: parado até ver o jogador (a 10 de distância, sem parede no meio) ou levar
+um tiro. Acordado, não esquece mais; vai reto na direção do jogador (ainda não sabe contornar parede) e
+só atira com o caminho livre.
 
-O **Boneco de treino** (`Assets/Prefabs/BonecoDeTreino.prefab`), perto de onde o jogador começa, serve
+O **Boneco de treino** (`Assets/Prefabs/BonecoDeTreino.prefab`), na clareira onde o jogador começa, serve
 pra testar as armas: a vida dele é imortal, ele pisca e balança na estaca pro lado do golpe
 (`BonecoDeTreino`), e nunca sai do lugar.
 
@@ -103,7 +125,8 @@ pra testar as armas: a vida dele é imortal, ele pisca e balança na estaca pro 
 
 Duplicar o prefab do Bruxo, trocar as folhas na `AnimacaoDoInimigo` (e o **quadro do disparo**), mexer
 nos números do `InimigoAtirador` e da `Vida`, e criar uma arma nova pra ele (**Create ▸ Jogo ▸ Arma**)
-com o desenho da bala. Pra ele aparecer, arrastar o prefab no **Inimigo** da Arena de treino.
+com o desenho da bala. Pra ele aparecer, pôr o prefab na lista **Inimigos** do objeto Andar (os inimigos
+de cada grupo são sorteados dessa lista).
 
 ## Tamanho das coisas
 

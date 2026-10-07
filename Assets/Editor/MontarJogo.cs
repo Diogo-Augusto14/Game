@@ -6,9 +6,9 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// Monta a cena do jogo do zero: o jogador (prefab), a camera, a luz, o chao infinito, o boneco de
-/// treino e a arena que chama os inimigos, mais o que eles usam (as armas, o prefab do Bruxo e as
-/// imagens geradas: mira, sombra, bala inimiga e boneco). Menu Jogo ▸ Montar a cena do zero.
+/// Monta a cena do jogo do zero: o jogador (prefab), a camera, a luz, o gerador do andar (a caverna)
+/// e o boneco de treino, mais o que eles usam (as armas, o prefab do Bruxo e as imagens geradas:
+/// mira, sombra, bala inimiga, boneco e o topo das paredes). Menu Jogo ▸ Montar a cena do zero.
 ///
 /// Rodar de novo refaz tudo: o que voce mudou a mao na cena e no prefab se perde. Depois de montada,
 /// a cena e editada normalmente pelo Inspector; isto aqui so serve pro comeco (ou pra voltar ao
@@ -27,12 +27,15 @@ public static class MontarJogo
     private const string Sombra = PastaGerada + "/Sombra.png";
     private const string Bala = PastaGerada + "/BalaInimiga.png";
     private const string Boneco = PastaGerada + "/BonecoDeTreino.png";
+    private const string Rocha = PastaGerada + "/TopoDaParede.png";
     private const string Silhueta = "Assets/Shaders/Silhueta.shader";
 
     private const string Heroi = "Assets/Arte/Resources/Personagens/Herois/Arqueiro/";
     private const string Bruxo = "Assets/Arte/Resources/Personagens/Bruxo/";
     private const string Flecha = "Assets/Arte/Resources/Personagens/Projeteis/FlechaDoArqueiro.png";
     private const string Chao = "Assets/Arte/Resources/Masmorra/Temas/PrisaoChaoPorao.png";
+    private const string Tijolos = "Assets/Arte/Resources/Masmorra/Temas/PrisaoParedePorao.png";
+    private const string Vortice = "Assets/Arte/Resources/Masmorra/Prisao/Vortice.png";
     private const string Poeira = "Assets/Arte/Resources/Efeitos/Poeira.png";
     private const string Sons = "Assets/Arte/Resources/Sons/";
 
@@ -75,6 +78,7 @@ public static class MontarJogo
         // A bala do inimigo e o boneco de treino: desenhados letra por letra (ver os desenhos la embaixo).
         File.WriteAllBytes(Bala, DesenharPorLetras(DesenhoDaBala, CoresDaBala).EncodeToPNG());
         File.WriteAllBytes(Boneco, DesenharPorLetras(DesenhoDoBoneco, CoresDoBoneco).EncodeToPNG());
+        File.WriteAllBytes(Rocha, DesenharPorLetras(DesenhoDaRocha, CoresDaRocha).EncodeToPNG());
         AssetDatabase.Refresh();
 
         TextureImporter mira = (TextureImporter)AssetImporter.GetAtPath(Mira);
@@ -88,6 +92,7 @@ public static class MontarJogo
         ImportarSprite(Bala, SpriteAlignment.Center);
         // O boneco balanca em volta do pe: o pivo fica embaixo.
         ImportarSprite(Boneco, SpriteAlignment.BottomCenter);
+        ImportarSprite(Rocha, SpriteAlignment.Center);
     }
 
     private static void ImportarSprite(string caminho, SpriteAlignment alinhamento)
@@ -251,6 +256,38 @@ public static class MontarJogo
         { 'W', new Color32(88, 52, 32, 255) },    // madeira na sombra
         { 'R', new Color32(196, 52, 52, 255) },   // alvo
         { 'r', new Color32(240, 228, 206, 255) }, // alvo, o claro
+    };
+
+    // O topo das paredes: pedras escuras em fileiras desencontradas (1 unidade, ladrilhado).
+    private static readonly string[] DesenhoDaRocha =
+    {
+        "llllllllldllllllllld",
+        "lbbbbbbbbdlbbbbbbbbd",
+        "lbbbbbbbbdlbbbbbbbbd",
+        "lbbbbbbbbdlbbbbbbbbd",
+        "lbbbbbbbbdlbbbbbbbbd",
+        "lbbbbbbbbdlbbbbbbbbd",
+        "lbbbbbbbbdlbbbbbbbbd",
+        "lbbbbbbbbdlbbbbbbbbd",
+        "lbbbbbbbbdlbbbbbbbbd",
+        "dddddddddddddddddddd",
+        "lllldllllllllldlllll",
+        "bbbbdlbbbbbbbbdlbbbb",
+        "bbbbdlbbbbbbbbdlbbbb",
+        "bbbbdlbbbbbbbbdlbbbb",
+        "bbbbdlbbbbbbbbdlbbbb",
+        "bbbbdlbbbbbbbbdlbbbb",
+        "bbbbdlbbbbbbbbdlbbbb",
+        "bbbbdlbbbbbbbbdlbbbb",
+        "bbbbdlbbbbbbbbdlbbbb",
+        "dddddddddddddddddddd",
+    };
+
+    private static readonly Dictionary<char, Color32> CoresDaRocha = new Dictionary<char, Color32>
+    {
+        { 'b', new Color32(46, 40, 56, 255) },  // pedra
+        { 'l', new Color32(66, 58, 78, 255) },  // beirada clara
+        { 'd', new Color32(26, 22, 32, 255) },  // junta escura
     };
 
     private static Texture2D DesenharPorLetras(string[] linhas, Dictionary<char, Color32> cores)
@@ -538,7 +575,8 @@ public static class MontarJogo
         cam.orthographic = true;
         cam.orthographicSize = 5.5f;
         cam.clearFlags = CameraClearFlags.SolidColor;
-        cam.backgroundColor = new Color(0.05f, 0.04f, 0.06f);
+        // Da cor das juntas da rocha: alem da beirada da caverna, a rocha continua no escuro.
+        cam.backgroundColor = new Color32(26, 22, 32, 255);
         objCamera.AddComponent<AudioListener>();
         CameraDoJogo cameraDoJogo = objCamera.AddComponent<CameraDoJogo>();
         Preencher(cameraDoJogo, "alvo", jogador.transform);
@@ -548,17 +586,22 @@ public static class MontarJogo
         luz.lightType = Light2D.LightType.Global;
         luz.intensity = 1f;
 
-        GameObject chao = new GameObject("Chao infinito");
-        chao.AddComponent<SpriteRenderer>();
-        ChaoInfinito chaoInfinito = chao.AddComponent<ChaoInfinito>();
-        Preencher(chaoInfinito, "ladrilho", AssetDatabase.LoadAssetAtPath<Texture2D>(Chao));
+        // O andar: cava a caverna ao dar Play, com o comeco (a clareira) no centro do mundo.
+        GameObject andar = new GameObject("Andar");
+        AudioSource somDoAndar = andar.AddComponent<AudioSource>();
+        somDoAndar.playOnAwake = false;
+        somDoAndar.spatialBlend = 0f;
+        GeradorDoAndar gerador = andar.AddComponent<GeradorDoAndar>();
+        PreencherLista(gerador, "inimigos", prefabDoBruxo);
+        Preencher(gerador, "chao", AssetDatabase.LoadAssetAtPath<Texture2D>(Chao));
+        Preencher(gerador, "paredeDeFrente", AssetDatabase.LoadAssetAtPath<Texture2D>(Tijolos));
+        Preencher(gerador, "topoDaParede", AssetDatabase.LoadAssetAtPath<Texture2D>(Rocha));
+        Preencher(gerador, "vortice", AssetDatabase.LoadAssetAtPath<Texture2D>(Vortice));
+        Preencher(gerador, "portalAbrindo", Som("Segredo.ogg"));
 
-        // O boneco de treino perto de onde o jogador comeca, e a arena que chama os Bruxos.
+        // O boneco de treino na clareira do comeco.
         GameObject boneco = (GameObject)PrefabUtility.InstantiatePrefab(prefabDoBoneco);
         boneco.transform.position = new Vector3(3f, 1.5f, 0f);
-
-        ArenaDeTreino arena = new GameObject("Arena de treino").AddComponent<ArenaDeTreino>();
-        Preencher(arena, "inimigo", prefabDoBruxo);
 
         EditorSceneManager.SaveScene(cena, Cena);
         EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(Cena, true) };
