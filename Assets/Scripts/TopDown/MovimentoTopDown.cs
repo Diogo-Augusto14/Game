@@ -85,6 +85,9 @@ public class MovimentoTopDown : MonoBehaviour, IControladorDeMovimento
     /// <summary>Durante o dash (e um instante depois) o golpe passa reto: e a esquiva.</summary>
     public bool IgnorandoDano => dashando.Ativo || protecaoDash.Ativo;
 
+    /// <summary>Golpe nenhum passa por esse tempo (o vazio). E a mesma protecao do fim do dash.</summary>
+    public void DarProtecao(float segundos) => protecaoDash.Forcar(segundos);
+
     public void AplicarImpulsoExterno(Vector2 impulso, float travaSegundos)
     {
         if (rb == null)

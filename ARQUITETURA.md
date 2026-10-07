@@ -8,7 +8,8 @@ o **código deste jogo**.
 
 ## 0. Só dar Play
 
-O jogo é um roguelike visto de cima, no estilo do Isaac. A cena do jogo é
+O jogo é um roguelike visto de cima, no estilo do Isaac, com o tiro do Gungeon: mira livre com o
+mouse e armas de fogo com pente, recarga e munição (seção 11). A cena do jogo é
 `Assets/Scenes/Jogo.unity`: uma câmera, a luz 2D e um objeto com o componente `Andar`, que
 monta tudo por código (andar, salas, jogador, menu, HUD, música).
 
@@ -31,9 +32,14 @@ removido do projeto.
 | Tecla | Ação |
 |---|---|
 | `W A S D` | Andar em 8 direções |
-| `Setas` | Atirar (só as 4 retas; vale a última seta apertada) |
+| Mouse | Mira em qualquer ângulo; o botão esquerdo atira (o cursor vira uma mira) |
+| `Setas` | Atirar sem mouse (só as 4 retas; vale a última seta apertada; mandam sobre o mouse) |
+| `R` (controle: clique no analógico esquerdo) | Recarrega a arma de fogo |
+| `Q` ou roda do mouse (controle: `LT`) | Próxima arma; com o herói na mão, anda primeiro pelas flechas dele |
+| `1` a `9` | Escolhe a arma pelo lugar |
+| `F` (controle: clique no analógico direito) | Vazio: apaga os tiros inimigos e empurra os inimigos |
 | `E` | Bomba |
-| `Shift` (controle: `RB` ou `RT`) | Dash: arrancada curta, sem tomar dano durante ela, com recarga |
+| `Shift` ou botão direito do mouse (controle: `RB`) | Dash: arrancada curta, sem tomar dano durante ela, com recarga |
 | `Esc` | Pausa |
 | `M` / `N` | Liga/desliga música / efeitos |
 | `I` (Select no controle) | Mostra o efeito dos itens pegos, um por um (ou passe o mouse no item) |
@@ -44,13 +50,15 @@ removido do projeto.
 | `TopDown/RastroDoDash.cs` | O que se vê no dash: poeira do Tiny Swords, rastro azulado do herói e o brilho quando a recarga acaba |
 | `TopDown/GolpeDeEspada.cs` | Heróis de espada/machado: brilho de lâmina a cada golpe |
 | `TopDown/AnimacaoDoTiro.cs` | Tiro animado: a onda de corte tremula e se abre ao sair |
-| `TopDown/AtiradorTopDown.cs` | Dano, alcance, cadência, velocidade do tiro; o desenho do tiro vem do herói |
+| `TopDown/AtiradorTopDown.cs` | Dano, alcance, cadência, velocidade do tiro; o desenho do tiro vem do herói. Com arma de fogo na mão (`DefinirArma`) atira as balas dela (`AtirarComArma`) |
+| `TopDown/MiraNaTela.cs` | Troca o cursor do mouse por uma mira enquanto o mouse mira e o jogo roda; nos menus volta o cursor dourado |
+| `Armas/*` | As armas de fogo: dados e catálogo, arsenal, arma na mão, painel de munição e o vazio (seção 11) |
 | `TopDown/Lagrima.cs` | O projétil: voa até o alcance, bate em `IDanificavel` ou parede e estoura |
 | `TopDown/Herois.cs` | Os heróis jogáveis e os números de cada um. Cavaleiro, templário, espadachim e machadeiro (`OndaDeCorte`) disparam ondas de corte que atravessam inimigos e golpeiam em combo (ataque 1, 2 e 3 da folha) |
 | `TopDown/Progresso.cs` | O que fica salvo entre partidas (PlayerPrefs): vitórias e heróis liberados. Só o Arqueiro começa livre; os outros saem vencendo chefes e zerando (condições em `Herois.cs`). `Tools ▸ Jogo ▸ Apagar progresso salvo` bloqueia tudo de novo |
 | `TopDown/BootstrapTopDown.cs` | `CriarJogador` (usado pelo `Andar`) e a sala de treino |
 | `combate/Vida.cs` | Vida, dano, invencibilidade e empurrão de tudo que apanha |
-| `Jogador/Entrada.cs` | Teclado (WASD e setas separados) |
+| `Jogador/Entrada.cs` | Teclado (WASD e setas separados), mouse e controle. `Tiro` é a direção de quem atira; `Mira` é pra onde o jogador aponta (segue o cursor, ou fica onde as setas e o analógico deixaram) |
 | `UI/Hud.cs` | Corações (numa área de altura fixa: vida a mais encolhe os corações em vez de empurrar o resto) e a lista de controles |
 | `Itens/HudDoInventario.cs` | Moedas, chaves e bombas em coluna embaixo da vida, e o aviso do item pego |
 | `Itens/PainelDeItens.cs` | Itens pegos na lateral direita; mouse ou `I`/Select mostra o nome e o efeito (`ItemPassivo.Descricao`) |
@@ -81,7 +89,9 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `ContornoClaro.cs` | Borda clara de 1 pixel em volta de todo inimigo (`FabricaDeInimigos` põe), pra bicho escuro não sumir no chão. Sem shader: 4 `SpriteMask` com o quadro do desenho, deslocadas 1 pixel, recortam um retângulo claro logo atrás dele. Some na morte e enquanto o barril está disfarçado (`InimigoDeSala.Disfarcado`) |
 | `InimigoPerseguidor.cs` | Vai atrás do jogador em zigue-zague |
 | `InimigoAtirador.cs` | Mantém distância, telegrafa (incha) e atira (base antiga; as espécies usam as classes abaixo) |
-| `TiroDaSala.cs` | Projétil dos dois lados (inimigo acerta só o jogador e vice-versa) |
+| `TiroDaSala.cs` | Projétil dos dois lados (inimigo acerta só o jogador e vice-versa). Conta as balas inimigas no ar (`NoAr`) e apaga todas (`LimparDosInimigos`) |
+| `PadroesDeBala.cs` | Os desenhos que as balas fazem: anel, anel com buraco, leque, cortina, rosa. Com teto de 160 balas no ar |
+| `AtiradorDePadroes.cs` | Faz um inimigo soltar padrões de bala, com aviso de carga e os padrões no tempo (rajada, espiral); sozinho ou chamado pelo inimigo |
 | `InimigoDemonio.cs` | Demônio (arte importada): persegue, ergue a espada e corta à frente |
 | `InimigoDeSangue.cs` | Monstro de Sangue (arte importada): lento, espirra um anel de gotas |
 | `InimigoComArte.cs` | Base dos inimigos com arte animada: animação, caveira ao morrer, manter distância |
@@ -90,10 +100,10 @@ Saindo por uma porta aberta, a demo troca por uma sala nova com um inimigo a mai
 | `InimigoArqueiro.cs` | Arqueiros: puxam o arco e soltam flecha. `UsarMira`: esqueleto arqueiro (`Alinhada`) corre pra mesma linha/coluna do jogador e só atira dali, reto pelo corredor; demônio arqueiro (`Leque`) solta três flechas abertas |
 
 | `InimigoSaltador.cs` | Gosma: pula atrás do jogador. `VirarGeleia`: pula sem rumo, mais vezes e mais curto. Os dois sem animação de ataque (só pulam) |
-| `InimigoBruxo.cs` | Bruxo: aparece, solta um leque de 3 orbes, some (intangível) e reaparece noutro ponto perto do jogador |
+| `InimigoBruxo.cs` | Bruxo: aparece, solta o próximo padrão do ciclo dele (leque que cresce com a fase, anel com buraco, rajada; seção 12), some (intangível) e reaparece noutro ponto perto do jogador |
 | `InimigoNecromante.cs` | Necromante: foge do jogador e levanta esqueletos guerreiros (até 2 por vez); com a sala cheia, joga maldição lenta |
-| `InimigoFogoFatuo.cs` | Fogo-fátuo: orbita o jogador num raio que respira, apaga (intangível) e reacende soltando 4 chamas em cruz |
-| `InimigoDemonia.cs` | Demônia: circula o jogador sem parar e atira leques de 3 |
+| `InimigoFogoFatuo.cs` | Fogo-fátuo: orbita o jogador num raio que respira, apaga (intangível) e reacende soltando o próximo padrão do ciclo (cruz, anel com buraco, espiral) |
+| `InimigoDemonia.cs` | Demônia: circula o jogador sem parar e atira o próximo padrão do ciclo (leque que cresce, cortina, rosa) |
 | `InimigoMorcego.cs` | Morcego (`Mergulho`): circula e mergulha em linha reta; morceguinho (`Enxame`): voo errático, aos trancos |
 | `InimigoCao.cs` | Cão infernal: persegue e, perto, dá um bote |
 | `InimigoLobisomem.cs` | Lobisomem: rodeia o jogador à espreita e de repente arranca em disparada |
@@ -345,3 +355,120 @@ certo; os outros variam um pouco o tom pra não cansar.
 Os arquivos de som e música foram gerados pelos scripts de `Ferramentas/Audio` (síntese,
 trechos do Freedoom e notas tocadas no soundfont; o `LEIAME.md` de lá explica como gerar
 de novo). Os créditos estão no `CREDITOS-AUDIO.txt`.
+
+---
+
+## 11. Armas de fogo (o tiro do Gungeon)
+
+Pasta `Assets/Scripts/Armas/`. O jogo continua um roguelike de salas, mas o tiro é de Gungeon: o
+jogador **mira com o mouse em qualquer ângulo**, atira com o botão esquerdo, e a arma na mão tem
+**pente que acaba e pede recarga** e **munição que acaba de vez**.
+
+**Mira.** `Jogador/Entrada.cs` calcula `Mira` (do corpo até o cursor, na mesma conta de
+`Camera.ScreenToWorldPoint`) e `Tiro` (a direção de quem está atirando). O mouse só retoma a mira
+quando mexe ou clica; setas e analógico direito seguram a mira onde estiverem. O clique só atira se
+começou com o jogo rodando (o clique que aperta "Jogar" no menu não vira tiro, porque o menu congela
+`Time.timeScale`). `TopDown/MiraNaTela.cs` troca o cursor por uma mira de 32x32 (`ArteDasArmas.TexturaDaMira`)
+e devolve o cursor dourado nos menus, na pausa e depois da morte.
+
+| Arquivo | O que faz |
+|---|---|
+| `ArmaDeFogo.cs` | Os números de uma arma (dano por bala, tiros por segundo, balas por tiro, abertura, imprecisão, pente, recarga, munição, efeito) e o `CatalogoDeArmas` com todas |
+| `ArsenalDoJogador.cs` | As armas que o jogador carrega: lugar 0 é a arma do herói (infinita, sem pente), lugar 1 em diante as de fogo. Pente, munição, recarga (R, ou sozinha quando o pente acaba) e troca de arma |
+| `ArmaNaMao.cs` | A arma desenhada na mão: gira pra mira (e vira de ponta-cabeça pro outro lado), coiceia, solta clarão na boca do cano, mostra a barrinha de recarga e vira o corpo do herói pro lado da mira |
+| `HudDasArmas.cs` | Painel no canto de baixo à direita: arma, pente (uma bala desenhada por tiro), munição que sobra e "Recarregando..." |
+| `ArteDasArmas.cs` | A pixel art das armas, da bala, da caixa de munição, do vazio e da mira, desenhada em texto (uma letra por pixel) e transformada em sprite. Não precisa de imagem no projeto |
+| `Vazio.cs` | O vazio: apaga os tiros inimigos da sala, empurra os inimigos acordados e protege o jogador por 0,6 s |
+
+**Como o tiro sai.** Com a arma do herói na mão tudo é como era (lágrima, flecha, onda de corte).
+Com arma de fogo, o `AtiradorTopDown` pergunta `ArsenalDoJogador.PodeDisparar`, solta as balas da boca
+do cano (em linha reta com a mira, sem herdar a velocidade do jogador) e avisa `RegistrarDisparo`.
+Cada bala é uma `Lagrima`, então parede, mesa que tomba, pedra, empurrão e atravessar funcionam igual. Os
+itens passivos continuam valendo: o `EstatisticasDoJogador` calcula o quanto os itens subiram o dano, a
+cadência e o alcance do herói (`DefinirFatores`) e a arma de fogo multiplica os números dela por isso.
+Lágrimas extras viram balas extras em leque, e atravessar, perseguir, golpe pesado, explodir ao acertar
+e a cor de bala dos itens valem pras balas também.
+
+**Efeito da arma.** `ArmaDeFogo.efeito` usa os mesmos efeitos das flechas especiais
+(`Projeteis/EfeitoDaFlecha.cs`): `Explosiva`, `Gelo`, `Venenosa` e `Ricochete`. Só o efeito vale; os
+multiplicadores de dano e cadência da flecha não.
+
+**De onde vêm as armas.** Toda partida começa com a **Pistola** (`ArmaDeFogo.inicial`: munição infinita,
+pente de 10) na mão, e a arma do herói fica no lugar 0 (`Q` chega nela). As outras viram itens
+(`ItemPassivo.arma`, uma por arma do catálogo, menos a inicial) e saem de baú, loja e pedestal como
+qualquer item; pegar uma já passa pra ela. Pegar uma repetida enche metade da munição dela. O
+`Herois.Aplicar` chama `ArsenalDoJogador.ComecarPartida`, que volta o arsenal pro começo.
+
+**Munição e vazio.** `TipoDeColetavel.Municao` (caixa: enche 35% da munição máxima de cada arma de fogo,
+e só é pega se alguma precisar) e `TipoDeColetavel.Vazio` caem dos inimigos pela `TabelaDeDrops`. A
+caixa só entra na roda quando o jogador tem arma de munição limitada, e com mais chance quando ela está
+baixa. O jogador começa com 2 vazios (`Inventario`, tecla `F`); a HUD mostra o contador embaixo das
+bombas. O salvamento guarda os vazios e as armas voltam junto com os itens, com pente e munição cheios.
+
+**Teclas de arma.** `Q` (e `LT`) anda pelas flechas do herói e depois pelas armas; a roda do mouse e `1` a
+`9` escolhem direto; `R` recarrega. Trocar de arma cancela a recarga. `Tab` é do minimapa.
+
+**Acrescentar uma arma.** Uma entrada nova em `CatalogoDeArmas.Montar` (e, se quiser um desenho novo, um
+`EstiloDeArma` com as linhas dele em `ArteDasArmas`). Ela vira item sozinha. Os números pra equilibrar são
+a munição máxima e o dano por bala; o resto é sensação (`recuo`, `tremor`, `som`).
+
+---
+
+## 12. Bullet hell (os padrões de bala dos inimigos)
+
+O outro lado do Gungeon: em vez de um tiro solto de vez em quando, os inimigos soltam **padrões**: anéis,
+leques, espirais, cortinas com um buraco pra passar. A resposta é desviar, rolar (dash) ou gastar um vazio.
+Quase tudo fica em `Sala/` e `Andar/`.
+
+| Arquivo | O que faz |
+|---|---|
+| `Sala/PadroesDeBala.cs` | Os desenhos que saem de uma vez: `Anel`, `AnelComBuraco`, `Leque`, `Cortina`, `Rosa`. Respeita o teto de 160 balas inimigas no ar |
+| `Sala/AtiradorDePadroes.cs` | Componente que faz um inimigo soltar um ciclo de `AtaqueDeBalas`. Cuida do aviso (um anel claro que fecha em volta do inimigo) e dos padrões no tempo (`Rajada`, `Espiral`). Funciona **sozinho** (conta o próprio intervalo, só com o inimigo livre, sem atirar no meio de um golpe) ou **chamado** (o inimigo manda, como a sentinela que já avisava incha) |
+| `Andar/PerfilDeBalas.cs` | A tabela de quem atira o quê e como isso fica mais denso a cada fase. O `Andar.Fortalecer` chama `Equipar` em todo inimigo comum |
+| `Sala/TiroDaSala.cs` | Conta as balas inimigas (`NoAr`), apaga todas (`LimparDosInimigos`) e dá à bala de padrão a cara própria (abaixo) |
+
+**Quem atira.** Os quatro atiradores de antes (bruxo, sentinela, fogo-fátuo, demônia) continuam mandando no
+aviso e no andar deles, mas agora soltam o próximo padrão do ciclo em vez do leque ou da cruz fixos. Alguns
+bichos que só perseguiam ganharam um ataque no ritmo deles, e os outros ficaram como eram: nem toda sala é de
+tiro. Todo campeão ganha um padrão da cor dele (vermelho: anel; amarelo: rajada; roxo: espiral).
+
+| Mundo | Quem atira | Padrões |
+|---|---|---|
+| 1 Porão | orc, gosma, bolha | rajada de 2 mirada; anel de 6; anel de 6 |
+| 2 Catacumbas | cavaleiro da lança, orc de elite, cavaleiro do canhão | rajada; leque de 5; anel de 8, cruz e espiral |
+| 3 Cripta | bruxo, fogo-fátuo | leque, anel com buraco, rajada; cruz, anel com buraco, espiral |
+| 4 Abismo | demônio, demônia, demônia da foice | leque; leque, cortina, rosa; espiral |
+
+Espiral, cortina e rosa só do mundo 2 em diante (`DificuldadeDaFase.PadroesComplicados`); o primeiro mundo só tem
+anel, leque e rajada.
+
+**Dificuldade.** `DificuldadeDaFase` guarda três números: `DensidadeDeBalas` (+7% por fase, no máximo 1,6x: mais
+que isso o anel fecha e não sobra buraco), `PressaDasBalas` (+1,5% por fase: bala lenta é o que deixa o padrão
+legível) e `RitmoDeTiro` (+3% por fase, e o intervalo nunca passa de 1,8 s pra baixo). O dano da bala continua
+o do jogo (`Vida.MultiplicadorDeDanoRecebido`: meio coração, e coração inteiro no mundo 4).
+
+**Legibilidade.** A bala de padrão não usa o estilo de quem atirou (a bala de ferro da sentinela e as chamas escuras
+sumiam no chão escuro): tem sempre miolo claro, contorno escuro e um brilho na cor dela. Ao bater na parede ou ser
+apagada, estoura em poeira. Quando a sala é vencida (`Sala.Limpar`) todas as balas inimigas no ar somem.
+
+**Acrescentar.** Um padrão novo: uma entrada em `PadraoDeBala`, o `case` em `AtiradorDePadroes.Disparar` e, se sair
+de uma vez, uma função em `PadroesDeBala`. Dar tiro a uma espécie: um `case` em `PerfilDeBalas.CicloDoBicho`.
+
+**Os chefes.** Cada chefe já tinha anéis, leques, espirais, muralhas e ondas, com aviso e duas fases (o Olho,
+três), e isso continua como era. Cada um ganhou **mais um ataque**, `Extra`, que usa a biblioteca de padrões e
+fica mais denso na segunda fase. A fila de padrões de cada um está em `PerfilDeBalas.ExtraDoChefe`; cada
+chefe só liga o `Chefe/ExtraDoChefe.cs` (criar no `Awake`, avisar, `Soltar`, esperar `Ocupado` acabar).
+
+| Chefe | Ataque extra (primeira fase; na segunda fica mais cheio) |
+|---|---|
+| Golem de Magma | Florescer: uma rosa de tiros (duas, encaixadas nos vãos) |
+| Demônio do Martelo | Muralha de brasa: cortinas largas com buraco, indo pro jogador (três) |
+| Rei Necromante | Maldição girando: espiral de 3 fios (4, e fecha com um anel com buraco) |
+| Minotauro Furioso | Ondas duplas: dois anéis com buraco, cada um no seu lugar (três) |
+| Lobisomem Alfa | Uivo da lua: espiral rápida de 2 fios (3, e uma rajada mirada no fim) |
+| Senhor da Guerra | Chuva de lanças: 3 leques seguidos de 5, cada um mirado de novo (4 de 7) |
+| Olho do Abismo | Desabrochar: uma flor, um anel com buraco e outra flor encaixada (e uma espiral junto) |
+
+As balas dos chefes (e a de todo inimigo com estilo próprio) ganharam o brilho de legibilidade; as de padrão de
+chefe passam do teto dos bichos comuns (mais 80 balas), pra o chefe nunca ficar sem padrão por causa dos lacaios.
+O `Andar` passa a dificuldade da fase ao chefe (`AtiradorDePadroes.Dificuldade`), que escala a densidade.

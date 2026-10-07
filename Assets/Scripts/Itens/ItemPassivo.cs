@@ -49,6 +49,10 @@ public class ItemPassivo
     [Tooltip("Tipo de flecha que o item da (fica na aljava; Q/LT troca). Normal = nenhum")]
     public TipoDeFlecha flecha;
 
+    [Header("Arma de fogo")]
+    [Tooltip("Arma que o item da (vai pro ArsenalDoJogador e ja entra na mao; Q troca). Nenhuma = null")]
+    public ArmaDeFogo arma;
+
     [Header("Corpo")]
     public float somaVelocidade;
     public float somaVidaMaxima;
@@ -321,6 +325,12 @@ public static class CatalogoDeItens
         // Um item pra cada flecha especial, com o nome e o efeito dela (ver CatalogoDeFlechas).
         foreach (DefinicaoDeFlecha f in CatalogoDeFlechas.Especiais())
             lista.Add(new ItemPassivo(f.nome, f.descricao, f.cor) { flecha = f.tipo });
+
+        // Um pra cada arma de fogo, com o nome e o efeito dela (ver CatalogoDeArmas). A inicial nao:
+        // o jogador ja nasce com ela.
+        foreach (ArmaDeFogo a in CatalogoDeArmas.Todas)
+            if (!a.inicial)
+                lista.Add(new ItemPassivo(a.nome, a.descricao, a.cor) { arma = a, Descricao = a.DescricaoCompleta });
 
         return lista;
     }

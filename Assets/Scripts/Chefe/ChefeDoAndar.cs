@@ -9,6 +9,7 @@ using UnityEngine;
 ///   Rajada    -> treme e solta tres leques de tiros mirados no jogador
 ///   Investida -> raspa poeira, mostra a linha de mira (amarela ficando vermelha) e dispara reto, deixando um rastro; se bater na parede fica tonto
 ///   Invocar   -> (so na segunda fase) chama dois bichos simples do mundo
+///   Extra     -> floresce: uma rosa de tiros de magma (na segunda fase, duas, encaixadas) - ver ExtraDoChefe
 ///
 /// Com metade da vida entra na SEGUNDA FASE: avisos mais curtos, tiros mais rapidos,
 /// anel mais cheio e a investida solta um anel ao bater na parede.
@@ -26,7 +27,8 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
         Anel,
         Rajada,
         Investida,
-        Invocar
+        Invocar,
+        Extra
     }
 
     [Header("Chefe")]
@@ -117,6 +119,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
     private Vector3 posicaoDoCorpo;
     private readonly List<SpriteRenderer> olhos = new List<SpriteRenderer>();
     private RastroDoChefe rastro;
+    private ExtraDoChefe extra;
 
     public string Nome => nomeDoChefe;
 
@@ -168,6 +171,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
 
         recarga.Forcar(esperaInicial);
         AoAcordar.AddListener(MostrarBarra);
+        extra = ExtraDoChefe.Para(this, TipoDeInimigo.Chefe);
     }
 
     private void MostrarBarra()
@@ -209,7 +213,11 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
 
     private Ataque EscolherAtaque()
     {
-        List<Ataque> opcoes = new List<Ataque> { Ataque.Anel, Ataque.Rajada };
+        List<Ataque> opcoes = new List<Ataque> { Ataque.Anel, Ataque.Rajada, Ataque.Extra };
+
+        // Na segunda fase o florescer sai mais.
+        if (segundaFase)
+            opcoes.Add(Ataque.Extra);
 
         if (VeOJogador())
             opcoes.Add(Ataque.Investida);
@@ -240,6 +248,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
             case Ataque.Anel: tempo = avisoDoAnel; break;
             case Ataque.Rajada: tempo = avisoDaRajada; break;
             case Ataque.Investida: tempo = avisoDaInvestida; break;
+            case Ataque.Extra: tempo = extra.Aviso; break;
             default: tempo = avisoDeInvocar; break;
         }
 
@@ -292,6 +301,10 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
                 Invocar();
                 Recuperar(tempoDeRecuperacao);
                 break;
+
+            case Ataque.Extra:
+                extra.Soltar(segundaFase ? 2 : 1);
+                break;
         }
     }
 
@@ -339,6 +352,15 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
 
                 if (!execucao.Ativo)
                     TerminarInvestida(tempoDeRecuperacao);
+
+                break;
+
+            case Ataque.Extra:
+                // Parado ate a ultima rosa sair.
+                Frear();
+
+                if (!extra.Ocupado)
+                    Recuperar(tempoDeRecuperacao);
 
                 break;
 
@@ -404,6 +426,12 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
             case Ataque.Invocar:
                 PintarOlhos(Color.Lerp(Color.white, new Color(0.6f, 0.3f, 1f), t));
                 transform.localScale = escalaOriginal * (1f - 0.12f * Mathf.Sin(t * Mathf.PI * 4f));
+                break;
+
+            case Ataque.Extra:
+                // Incha e brilha na cor das balas que vem.
+                PintarOlhos(Color.Lerp(Color.white, extra.Cor, t));
+                transform.localScale = escalaOriginal * (1f + 0.2f * t);
                 break;
         }
     }
@@ -521,6 +549,7 @@ public class ChefeDoAndar : InimigoDeSala, IChefe
             case Ataque.Anel: return avisoDoAnel / Pressa;
             case Ataque.Rajada: return avisoDaRajada / Pressa;
             case Ataque.Investida: return avisoDaInvestida / Pressa;
+            case Ataque.Extra: return extra.Aviso / Pressa;
             default: return avisoDeInvocar / Pressa;
         }
     }

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Pedaco de HUD dos itens: os contadores de moeda, chave e bomba (com icone) embaixo da
+/// Pedaco de HUD dos itens: os contadores de moeda, chave, bomba e vazio (com icone) embaixo da
 /// vida, um em cada linha, e o nome do item no meio da tela quando o jogador pega um (some
 /// sozinho). Os itens pegos ficam na lateral direita (<see cref="PainelDeItens"/>).
 ///
@@ -29,6 +29,7 @@ public class HudDoInventario : MonoBehaviour
     private Text moedas;
     private Text chaves;
     private Text bombas;
+    private Text vazios;
     private Text aviso;
     private Image iconeDoAviso;
     private float fimDoAviso;
@@ -39,9 +40,9 @@ public class HudDoInventario : MonoBehaviour
     private const float PassoDaLinha = 48f;
 
     // Pulinho do contador que acabou de mudar: da pra ver o que entrou ou saiu.
-    private readonly int[] ultimos = { -1, -1, -1 };
-    private readonly float[] fimDoPulo = new float[3];
-    private readonly RectTransform[] linhas = new RectTransform[3];
+    private readonly int[] ultimos = { -1, -1, -1, -1 };
+    private readonly float[] fimDoPulo = new float[4];
+    private readonly RectTransform[] linhas = new RectTransform[4];
     private const float DuracaoDoPulo = 0.25f;
 
     // Espaco do item ativo, embaixo dos contadores: moldura, icone, barra de carga e a tecla.
@@ -79,14 +80,15 @@ public class HudDoInventario : MonoBehaviour
 
         Font fonte = FonteDoJogo.Texto;
 
-        // Uma coluna embaixo da area da vida: moedas, chaves e bombas, uma por linha.
+        // Uma coluna embaixo da area da vida: moedas, chaves, bombas e vazios, uma por linha.
         float y = -Hud.CantoDaVida.y - Hud.AlturaDaVida - 12f;
         float x = Hud.CantoDaVida.x;
         moedas = Contador(0, "Moedas", TipoDeColetavel.Moeda, fonte, new Vector2(x, y));
         chaves = Contador(1, "Chaves", TipoDeColetavel.Chave, fonte, new Vector2(x, y - PassoDaLinha));
         bombas = Contador(2, "Bombas", TipoDeColetavel.Bomba, fonte, new Vector2(x, y - PassoDaLinha * 2f));
+        vazios = Contador(3, "Vazios", TipoDeColetavel.Vazio, fonte, new Vector2(x, y - PassoDaLinha * 3f));
 
-        MontarEspacoDoAtivo(fonte, new Vector2(x, y - PassoDaLinha * 3f - 10f));
+        MontarEspacoDoAtivo(fonte, new Vector2(x, y - PassoDaLinha * 4f - 10f));
 
         aviso = CriarTexto("Aviso do item", transform, fonte, tamanhoDaFonte + 14, TextAnchor.MiddleCenter,
             new Vector2(0.5f, 1f), new Vector2(-400f, -180f), new Vector2(800f, 100f));
@@ -107,6 +109,10 @@ public class HudDoInventario : MonoBehaviour
 
         if (estatisticas != null)
             PainelDeItens.Criar(estatisticas);
+
+        // O painel da arma na mao (so aparece depois da primeira arma de fogo).
+        if (estatisticas != null && estatisticas.TryGetComponent(out ArsenalDoJogador arsenal))
+            HudDasArmas.Criar(arsenal);
 
         if (inventario != null)
             inventario.AoMudar += AtualizarContadores;
@@ -256,6 +262,7 @@ public class HudDoInventario : MonoBehaviour
         Mostrar(0, moedas, inventario.Moedas);
         Mostrar(1, chaves, inventario.Chaves);
         Mostrar(2, bombas, inventario.Bombas);
+        Mostrar(3, vazios, inventario.Vazios);
     }
 
     private void Mostrar(int indice, Text texto, int valor)

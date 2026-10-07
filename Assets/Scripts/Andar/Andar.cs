@@ -165,8 +165,8 @@ public class Andar : MonoBehaviour
     // Teclas entre colchetes aparecem desenhadas na HUD (TelaSimples.LinhaDeTeclas); depois
     // do "||" vem a mesma linha com os botoes do controle.
     private const string CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar\n[E] bomba | [Shift] dash | [Espaco] item | [Esc] pausa || " +
-        "[Pad AnalogicoEsquerdo] andar | [Pad Y][Pad X][Pad A][Pad B] atirar\n[Pad LB] bomba | [Pad RB] dash | [Pad RT] item | [Pad Start] pausa";
+        "[W][A][S][D] andar | Mouse mira e atira\n[R] recarrega | [Q] troca de arma | [F] vazio\n[E] bomba | [Shift] dash | [Espaco] item | [Esc] pausa || " +
+        "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] mira e atira\n[Pad LT] troca de arma | L3 recarrega | R3 vazio\n[Pad LB] bomba | [Pad RB] dash | [Pad RT] item | [Pad Start] pausa";
 
     // ---------------- estado ----------------
     private Sala[,] noMundo;
@@ -858,6 +858,10 @@ public class Andar : MonoBehaviour
                 if (chefe != null && chefe.Vida != null)
                     chefe.Vida.AumentarVidaMaxima(chefe.Vida.VidaMaxima * ((UltimoAndar ? Dificuldade.VidaDoChefeFinal : Dificuldade.VidaDoChefe) - 1f));
 
+                // O ataque extra de padrao do chefe fica mais denso com a fase (ver ExtraDoChefe).
+                if (chefe != null)
+                    AtiradorDePadroes.Em(chefe).Dificuldade = Dificuldade;
+
                 return;
             default:
                 return; // inicio e item: sala tranquila, como no Isaac
@@ -1087,7 +1091,15 @@ public class Andar : MonoBehaviour
         // Cada um com um pouco mais ou menos de pressa: o bando nao anda em fila, todo igual.
         inimigo.DefinirVelocidade(inimigo.Velocidade * Dificuldade.VelocidadeDosInimigos * UnityEngine.Random.Range(0.88f, 1.12f));
 
-        bool campeao = UnityEngine.Random.value < Dificuldade.ChanceDeCampeao && Campeao.Aplicar(inimigo, Mundo) != null;
+        // Os padroes de bala da especie (e do campeao, que ganha o da cor dele): ver PerfilDeBalas.
+        PerfilDeBalas.Equipar(inimigo, Dificuldade);
+
+        Campeao daCor = UnityEngine.Random.value < Dificuldade.ChanceDeCampeao ? Campeao.Aplicar(inimigo, Mundo) : null;
+        bool campeao = daCor != null;
+
+        if (campeao)
+            PerfilDeBalas.DarPadraoDeCampeao(inimigo, daCor.Qual, Dificuldade);
+
         float chance = campeao ? 1f : chanceDeDropDoInimigo + Dificuldade.BonusDeDrop;
 
         if (chance > 0f)

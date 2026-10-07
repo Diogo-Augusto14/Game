@@ -119,8 +119,9 @@ public static class Controle
     }
 
     /// <summary>
-    /// Tiro numa das quatro direcoes, como no Isaac: A B X Y (A baixo, B direita, X
-    /// esquerda, Y cima) ou o analogico direito, pelo eixo mais empurrado. Zero = nao atira.
+    /// Tiro: o analogico direito atira pra onde aponta, em qualquer angulo (como no Gungeon),
+    /// e A B X Y atiram numa das quatro retas (A baixo, B direita, X esquerda, Y cima).
+    /// Tamanho 1. Zero = nao atira.
     /// </summary>
     public static Vector2 Tiro
     {
@@ -131,20 +132,17 @@ public static class Controle
             if (c == null)
                 return Vector2.zero;
 
+            Vector2 analogico = c.rightStick.ReadValue();
+
+            if (analogico.magnitude >= 0.5f)
+                return analogico.normalized;
+
             if (c.buttonNorth.isPressed) return Vector2.up;
             if (c.buttonSouth.isPressed) return Vector2.down;
             if (c.buttonWest.isPressed) return Vector2.left;
             if (c.buttonEast.isPressed) return Vector2.right;
 
-            Vector2 analogico = c.rightStick.ReadValue();
-
-            if (analogico.magnitude < 0.5f)
-                return Vector2.zero;
-
-            if (Mathf.Abs(analogico.x) > Mathf.Abs(analogico.y))
-                return analogico.x > 0f ? Vector2.right : Vector2.left;
-
-            return analogico.y > 0f ? Vector2.up : Vector2.down;
+            return Vector2.zero;
         }
     }
 

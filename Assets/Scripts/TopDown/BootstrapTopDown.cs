@@ -46,7 +46,7 @@ public class BootstrapTopDown : MonoBehaviour
 
     // Teclas entre colchetes aparecem desenhadas (TelaSimples.LinhaDeTeclas).
     private const string CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash | [Espaco] item";
+        "[W][A][S][D] andar | Mouse mira e atira | [R] recarrega | [E] bomba | [Shift] dash | [Espaco] item";
 
     private Vector2 gravidadeAnterior;
     private bool mexeuNaGravidade;
@@ -181,6 +181,10 @@ public class BootstrapTopDown : MonoBehaviour
         vida.UsarEmpurraoTopDown();
 
         AtiradorTopDown atirador = raiz.AddComponent<AtiradorTopDown>();
+
+        // As armas de fogo (a do heroi e a primeira) e a mira do mouse no lugar do cursor.
+        raiz.AddComponent<ArsenalDoJogador>();
+        raiz.AddComponent<MiraNaTela>();
 
         // Poeira, rastro e brilho de recarga do dash.
         raiz.AddComponent<RastroDoDash>();

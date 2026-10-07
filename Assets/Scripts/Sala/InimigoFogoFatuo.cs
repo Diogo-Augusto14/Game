@@ -43,7 +43,8 @@ public class InimigoFogoFatuo : InimigoDeSala
         recarga.Contar(dt);
         Orbitar(dt, 1f);
 
-        if (recarga.Ativo)
+        // Uma espiral anterior ainda saindo: espera ela acabar pra apagar de novo.
+        if (recarga.Ativo || (Padroes != null && Padroes.Ocupado))
             return;
 
         EstadoAtual = Estado.Preparando;
@@ -59,13 +60,22 @@ public class InimigoFogoFatuo : InimigoDeSala
         if (apagado.Ativo)
             return;
 
-        // Reacende atirando.
+        // Reacende atirando: o proximo padrao do perfil da fase (cruz, anel com buraco, espiral); sem
+        // perfil, a cruz de chamas de sempre.
         Intangivel(false, 1f);
-        float inicio = emX ? 45f : 0f;
-        emX = !emX;
 
-        for (int i = 0; i < 4; i++)
-            Disparar(inicio + i * 90f, 3.6f, danoDaChama, corDaChama);
+        if (Padroes != null)
+        {
+            Padroes.Atacar(Padroes.ProximoDoCiclo(), false);
+        }
+        else
+        {
+            float inicio = emX ? 45f : 0f;
+            emX = !emX;
+
+            for (int i = 0; i < 4; i++)
+                Disparar(inicio + i * 90f, 3.6f, danoDaChama, corDaChama);
+        }
 
         Sons.Tocar(Som.TiroDeFogo, 0.5f);
         recarga.Forcar(intervaloEntreApagoes);

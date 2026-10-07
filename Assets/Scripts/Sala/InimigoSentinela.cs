@@ -81,6 +81,10 @@ public class InimigoSentinela : InimigoDeSala
 
     protected override void AtualizarRecuperando(float dt)
     {
+        // Uma espiral leva um ou dois segundos: so respira (e conta o proximo tiro) depois dela.
+        if (Padroes != null && Padroes.Ocupado)
+            return;
+
         recuperacao.Contar(dt);
 
         if (recuperacao.Ativo)
@@ -92,6 +96,13 @@ public class InimigoSentinela : InimigoDeSala
 
     private void Atirar()
     {
+        // Com o perfil de balas da fase: a cruz, o anel de oito e a espiral, em ciclo.
+        if (Padroes != null)
+        {
+            Padroes.Atacar(Padroes.ProximoDoCiclo(), false);
+            return;
+        }
+
         int quantos = oitoDirecoes ? 8 : 4;
         float inicio = oitoDirecoes || !emX ? 0f : 45f;
         emX = !emX;

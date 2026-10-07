@@ -81,6 +81,16 @@ public class AtiradorTopDown : MonoBehaviour
     private readonly System.Collections.Generic.Dictionary<TipoDeFlecha, AparenciaDoProjetil> rajadas =
         new System.Collections.Generic.Dictionary<TipoDeFlecha, AparenciaDoProjetil>();
 
+    // ---------------- arma de fogo (ArsenalDoJogador) ----------------
+    // Com uma arma de fogo na mao os numeros dela mandam; do heroi e dos itens vem so o que sobe
+    // ou desce o tiro (os fatores: 1 = sem item nenhum) e os efeitos de bala (atravessar, perseguir...).
+    private ArmaDeFogo arma;
+    private ArsenalDoJogador arsenal;
+    private ArmaNaMao naMao;
+    private float fatorDeDano = 1f;
+    private float fatorDeCadencia = 1f;
+    private float fatorDeAlcance = 1f;
+
     // ---------------- estado ----------------
     private Entrada entrada;
     private MovimentoTopDown movimento;
@@ -147,6 +157,8 @@ public class AtiradorTopDown : MonoBehaviour
 
         if (entrada.Atirando)
             olhando = entrada.Tiro;
+        else if (entrada.MouseNaMira)
+            olhando = entrada.Mira;
         else if (entrada.Andar != Vector2.zero)
             olhando = entrada.Andar;
 
@@ -155,18 +167,38 @@ public class AtiradorTopDown : MonoBehaviour
 
         if (entrada.Atirando && !recarga.Ativo)
         {
-            Atirar(entrada.Tiro);
-            recarga.Forcar(1f / CadenciaAtual);
+            if (arma == null)
+            {
+                Atirar(entrada.Tiro);
+                recarga.Forcar(1f / CadenciaAtual);
+            }
+            else if (arsenal != null && arsenal.PodeDisparar)
+            {
+                // A cadencia vem antes do registro: acabando a municao a arma da mao muda.
+                float intervalo = 1f / (arma.tirosPorSegundo * fatorDeCadencia);
+                Atirar(entrada.Tiro);
+                recarga.Forcar(intervalo);
+                arsenal.RegistrarDisparo();
+            }
+            else if (arsenal != null)
+            {
+                arsenal.AvisarSemTiro();
+                recarga.Forcar(0.15f);
+            }
         }
     }
 
     // ---------------- tiro ----------------
     /// <summary>
     /// Solta as lagrimas de um disparo na direcao pedida (uma so, ou um leque se algum item
-    /// deu lagrimas extras). Devolve a do meio. Publico pra dar pra testar/roteirizar.
+    /// deu lagrimas extras). Devolve a do meio. Com arma de fogo na mao, sao as balas dela.
+    /// Publico pra dar pra testar/roteirizar.
     /// </summary>
     public Lagrima Atirar(Vector2 direcao)
     {
+        if (arma != null)
+            return AtirarComArma(direcao);
+
         direcao = direcao.sqrMagnitude > 0.0001f ? direcao.normalized : Vector2.down;
 
         // Olho esquerdo, olho direito: desloca um pouquinho pro lado da direcao do tiro.
@@ -197,6 +229,133 @@ public class AtiradorTopDown : MonoBehaviour
             Soltar((Vector2)transform.position - direcao * distanciaDoCorpo, -direcao * velocidade + heranca);
 
         return doMeio;
+    }
+
+    // ---------------- tiro de arma de fogo ----------------
+    /// <summary>
+    /// Poe uma arma de fogo na mao (null = volta pra arma do heroi). Quem chama e o
+    /// <see cref="ArsenalDoJogador"/>, que tambem cuida de pente, municao e recarga.
+    /// </summary>
+    public void DefinirArma(ArmaDeFogo nova, ArsenalDoJogador dono)
+    {
+        arma = nova;
+        arsenal = dono;
+    }
+
+    /// <summary>
+    /// O quanto os itens subiram (ou desceram) o dano, a cadencia e o alcance do heroi: 1 = nada.
+    /// As armas de fogo multiplicam os numeros delas por isso. Quem calcula e o <see cref="EstatisticasDoJogador"/>.
+    /// </summary>
+    public void DefinirFatores(float dano, float cadencia, float alcance)
+    {
+        fatorDeDano = Mathf.Max(0.1f, dano);
+        fatorDeCadencia = Mathf.Max(0.1f, cadencia);
+        fatorDeAlcance = Mathf.Max(0.1f, alcance);
+    }
+
+    private Lagrima AtirarComArma(Vector2 direcao)
+    {
+        direcao = direcao.sqrMagnitude > 0.0001f ? direcao.normalized : Vector2.down;
+
+        if (naMao == null)
+            naMao = GetComponent<ArmaNaMao>();
+
+        // Da boca do cano, em linha reta com a mira; a bala nao herda a velocidade do jogador (a
+        // mira com o mouse tem que sair exata). Itens de lagrima extra viram balas extras em leque.
+        Vector2 origem = naMao != null ? naMao.PontaDoCano(direcao) : (Vector2)transform.position + direcao * distanciaDoCorpo;
+        int balas = arma.balasPorTiro + Mathf.Max(0, lagrimasPorDisparo - 1);
+        float abertura = arma.abertura > 0f || arma.balasPorTiro > 1 ? arma.abertura : aberturaDoLeque;
+        float primeiroAngulo = -abertura * (balas - 1) * 0.5f;
+
+        Sons.Tocar(arma.som, arma.volumeDoSom);
+        Impacto.Tremer(arma.tremor, 0.07f);
+
+        Lagrima doMeio = null;
+
+        for (int i = 0; i < balas; i++)
+        {
+            float desvio = arma.imprecisao > 0f ? Random.Range(-arma.imprecisao, arma.imprecisao) : 0f;
+            Vector2 rumo = Quaternion.Euler(0f, 0f, primeiroAngulo + abertura * i + desvio) * direcao;
+            float velocidade = arma.velocidadeDaBala * (1f + Random.Range(-arma.variacaoDeVelocidade, arma.variacaoDeVelocidade));
+            Lagrima bala = SoltarBala(origem, rumo * velocidade);
+
+            if (i == balas / 2)
+                doMeio = bala;
+        }
+
+        // Elmo de Duas Faces: uma bala pra tras tambem.
+        if (paraTras)
+            SoltarBala((Vector2)transform.position - direcao * distanciaDoCorpo, -direcao * arma.velocidadeDaBala);
+
+        return doMeio;
+    }
+
+    private Lagrima SoltarBala(Vector2 origem, Vector2 velocidade)
+    {
+        float danoDaBala = arma.dano * fatorDeDano;
+        DefinicaoDeFlecha efeito = CatalogoDeFlechas.De(arma.efeito);
+
+        GameObject obj = new GameObject(arma.nome);
+        obj.transform.position = origem;
+        obj.transform.localScale = Vector3.one * arma.tamanhoDaBala * efeito.multiplicaTamanho;
+
+        // O desenho vem do VisualDoProjetil (rastro e impacto); o da raiz fica sem sprite.
+        SpriteRenderer desenho = obj.AddComponent<SpriteRenderer>();
+        desenho.sprite = ArteDasArmas.Bala();
+        desenho.sortingOrder = 20;
+
+        CircleCollider2D colisor = obj.AddComponent<CircleCollider2D>();
+        colisor.radius = 0.5f;
+        obj.AddComponent<Rigidbody2D>();
+
+        Lagrima bala = obj.AddComponent<Lagrima>();
+        bala.Pesada = golpePesado;
+        bala.RaioDaExplosao = explosaoAoAcertar;
+        bala.Disparar(gameObject, velocidade, danoDaBala, arma.alcance * fatorDeAlcance * efeito.multiplicaAlcance,
+                      arma.empurrao * efeito.multiplicaEmpurrao);
+        bala.DefinirEfeitos(atravessa || arma.atravessa || efeito.atravessa, teleguiada);
+
+        VisualDoProjetil.Vestir(obj, AparenciaDaBala(efeito));
+
+        // Sempre tem um EfeitoDaFlecha (mesmo sem efeito): e ele que mostra o impacto da bala.
+        EfeitoDaFlecha comEfeito = obj.AddComponent<EfeitoDaFlecha>();
+        comEfeito.Configurar(efeito, danoDaBala, gameObject);
+        bala.UsarEfeito(comEfeito);
+        return bala;
+    }
+
+    /// <summary>A bala redonda na cor da arma, com um rastro curto e o impacto do efeito dela.</summary>
+    private AparenciaDoProjetil AparenciaDaBala(DefinicaoDeFlecha efeito)
+    {
+        // Cor da bala: a que o item de lagrima deu (se deu) ou a da arma.
+        Color corDaBala = cor.a > 0f && guardouCor && cor != corOriginal ? cor : arma.cor;
+        Color rastro = Color.Lerp(corDaBala, Color.white, 0.2f);
+        rastro.a = 0.4f;
+
+        AparenciaDoProjetil aparencia = new AparenciaDoProjetil(ArteDasArmas.Bala(), corDaBala, 1.5f)
+        {
+            apontar = false,
+            intervaloDoRastro = 0.03f,
+            corDoRastro = rastro,
+            duracaoDoRastro = 0.09f,
+            impacto = EfeitoDeImpacto.Poeira,
+            corDoImpacto = new Color(corDaBala.r, corDaBala.g, corDaBala.b, 0.85f),
+            tamanhoDoImpacto = 0.4f,
+        };
+
+        // Efeito com desenho proprio (gelo, veneno, fogo): o impacto e o rastro dele.
+        if (efeito.aparencia != null)
+        {
+            aparencia.impacto = efeito.aparencia.impacto;
+            aparencia.corDoImpacto = efeito.aparencia.corDoImpacto;
+            aparencia.tamanhoDoImpacto = efeito.aparencia.tamanhoDoImpacto;
+            aparencia.faiscas = efeito.aparencia.faiscas;
+            aparencia.intervaloDasFaiscas = efeito.aparencia.intervaloDasFaiscas;
+            aparencia.tamanhoDasFaiscas = efeito.aparencia.tamanhoDasFaiscas * 0.7f;
+            aparencia.corDasFaiscas = efeito.aparencia.corDasFaiscas;
+        }
+
+        return aparencia;
     }
 
     /// <summary>Efeitos que so as sinergias dao: golpe pesado e explosaozinha ao acertar.</summary>

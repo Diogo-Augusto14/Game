@@ -207,7 +207,7 @@ public static class Herois
 
     /// <summary>
     /// Poe o heroi no jogador: vida cheia, velocidade, a arma, o desenho do tiro, as
-    /// animacoes e a cura do padre. Pode chamar de novo pra trocar de heroi (o menu faz isso).
+    /// animacoes, a cura do padre e a pistola inicial na mao. Pode chamar de novo pra trocar de heroi (o menu faz isso).
     /// </summary>
     public static void Aplicar(GameObject jogador, Heroi heroi)
     {
@@ -243,6 +243,10 @@ public static class Herois
             }
 
         }
+
+        // Toda partida comeca com a pistola na mao; a arma do heroi fica no primeiro lugar (Q troca).
+        if (jogador.TryGetComponent(out ArsenalDoJogador arsenal))
+            arsenal.ComecarPartida();
 
         GolpeDeEspada golpe = jogador.GetComponent<GolpeDeEspada>();
 

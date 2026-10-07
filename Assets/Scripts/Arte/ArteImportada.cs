@@ -384,6 +384,12 @@ public static class ArteImportada
         if (flecha != null)
             return flecha;
 
+        // Item de arma de fogo: o desenho da propria arma.
+        Sprite arma = CatalogoDeArmas.IconeDoItem(nome);
+
+        if (arma != null)
+            return arma;
+
         Sprite ativo = CatalogoDeAtivos.Icone(nome);
 
         if (ativo != null)

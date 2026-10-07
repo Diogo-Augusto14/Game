@@ -15,6 +15,8 @@ using UnityEngine;
 ///               em quatro direcoes que vao girando aos poucos (corredores largos entre
 ///               elas). Encostar nele doi mais
 ///   Invocar  -> (so na segunda fase) chama dois bichos simples do mundo
+///   Extra    -> estouro de ondas duplas: aneis de pedra com buraco, um atras do outro (tres na segunda
+///               fase), cada um com o buraco num lugar - ver ExtraDoChefe
 ///
 /// Com metade da vida entra na SEGUNDA FASE: ricocheteia mais vezes, o pisao solta uma
 /// onda a mais, o giro fica mais rapido e os avisos mais curtos.
@@ -26,7 +28,8 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
         Chifrada,
         Pisao,
         Giro,
-        Invocar
+        Invocar,
+        Extra
     }
 
     [Header("Chefe")]
@@ -126,6 +129,8 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
     private AnimacaoDePersonagem animacao;
     private ClipesDePersonagem clipes;
 
+    private ExtraDoChefe extra;
+
     public string Nome => nomeDoChefe;
 
     private RastroDoChefe Rastro => rastro != null ? rastro : (rastro = RastroDoChefe.Em(this, desenho, Raio));
@@ -160,6 +165,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
 
         recarga.Forcar(esperaInicial);
         AoAcordar.AddListener(MostrarBarra);
+        extra = ExtraDoChefe.Para(this, TipoDeInimigo.ChefeMinotauro);
     }
 
     private void MostrarBarra()
@@ -189,7 +195,11 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
 
     private Ataque EscolherAtaque()
     {
-        List<Ataque> opcoes = new List<Ataque> { Ataque.Pisao, Ataque.Giro };
+        List<Ataque> opcoes = new List<Ataque> { Ataque.Pisao, Ataque.Giro, Ataque.Extra };
+
+        // Na segunda fase o estouro sai mais.
+        if (segundaFase)
+            opcoes.Add(Ataque.Extra);
 
         if (VeOJogador())
             opcoes.Add(Ataque.Chifrada);
@@ -229,6 +239,7 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
             case Ataque.Chifrada: return avisoDaChifrada;
             case Ataque.Pisao: return avisoDoPisao;
             case Ataque.Giro: return avisoDoGiro;
+            case Ataque.Extra: return extra.Aviso;
             default: return avisoDeInvocar;
         }
     }
@@ -278,6 +289,11 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
                 Invocar();
                 Recuperar(tempoDeRecuperacao);
                 break;
+
+            case Ataque.Extra:
+                Tocar(clipes?.AtaqueEspecial, 14f);
+                extra.Soltar(segundaFase ? 2 : 1);
+                break;
         }
     }
 
@@ -309,6 +325,15 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
 
             case Ataque.Giro:
                 Girar(dt);
+                break;
+
+            case Ataque.Extra:
+                // Parado ate a ultima onda sair.
+                Frear();
+
+                if (!extra.Ocupado)
+                    Recuperar(tempoDeRecuperacao);
+
                 break;
 
             default:
@@ -559,6 +584,13 @@ public class ChefeMinotauro : InimigoDeSala, IChefe
                 PintarCorpo(Color.Lerp(Color.white, new Color(0.5f, 0.8f, 0.3f), t));
                 if (corpo != null)
                     corpo.localScale = escalaDoCorpo * (1f + 0.08f * Mathf.Sin(t * Mathf.PI * 4f));
+                break;
+
+            case Ataque.Extra:
+                // Estica pra cima como no pisao, na cor das pedras que vem.
+                PintarCorpo(Color.Lerp(Color.white, extra.Cor, t));
+                if (corpo != null)
+                    corpo.localScale = new Vector3(escalaDoCorpo.x * (1f - 0.1f * t), escalaDoCorpo.y * (1f + 0.15f * t), 1f);
                 break;
         }
     }

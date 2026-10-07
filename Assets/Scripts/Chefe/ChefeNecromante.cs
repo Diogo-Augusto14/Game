@@ -13,6 +13,8 @@ using UnityEngine;
 ///   Muralha  -> uma parede de tiros atravessa a sala de um lado ao outro, com um buraco
 ///               pra passar. O buraco pisca no aviso
 ///   Invocar  -> levanta dois mortos do chao (esqueletos na Cripta; no Abismo, demonios)
+///   Extra    -> gira uma maldicao: fios lentos de tiros em espiral (na segunda fase, mais fios e um
+///               anel com buraco no fim) - ver ExtraDoChefe
 ///
 /// Com metade da vida entra na SEGUNDA FASE: mais marcas de ossos (em X e em cruz), a
 /// muralha vem em dobro (uma de lado e uma de cima), levanta tres esqueletos e depois de
@@ -25,7 +27,8 @@ public class ChefeNecromante : InimigoDeSala, IChefe
         Sumico,
         Ossos,
         Muralha,
-        Invocar
+        Invocar,
+        Extra
     }
 
     [Header("Chefe")]
@@ -122,6 +125,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
     private AnimacaoDePersonagem animacao;
     private ClipesDePersonagem clipes;
     private float danoDeContatoNormal;
+    private ExtraDoChefe extra;
 
     public string Nome => nomeDoChefe;
 
@@ -161,6 +165,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
 
         recarga.Forcar(esperaInicial);
         AoAcordar.AddListener(MostrarBarra);
+        extra = ExtraDoChefe.Para(this, TipoDeInimigo.ChefeNecromante);
     }
 
     private void OnDestroy()
@@ -200,7 +205,11 @@ public class ChefeNecromante : InimigoDeSala, IChefe
 
     private Ataque EscolherAtaque()
     {
-        List<Ataque> opcoes = new List<Ataque> { Ataque.Sumico, Ataque.Ossos, Ataque.Muralha };
+        List<Ataque> opcoes = new List<Ataque> { Ataque.Sumico, Ataque.Ossos, Ataque.Muralha, Ataque.Extra };
+
+        // Na segunda fase a maldicao sai mais.
+        if (segundaFase)
+            opcoes.Add(Ataque.Extra);
 
         lacaios.RemoveAll(l => l == null || l.EstaMorto);
 
@@ -229,7 +238,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
         if (animacao != null && clipes != null)
         {
             animacao.OlharPara(ParaOJogador());
-            animacao.TocarUmaVez(ataque == Ataque.Invocar || ataque == Ataque.Muralha ? clipes.AtaqueEspecial ?? clipes.Ataque : clipes.Ataque,
+            animacao.TocarUmaVez(ataque == Ataque.Invocar || ataque == Ataque.Muralha || ataque == Ataque.Extra ? clipes.AtaqueEspecial ?? clipes.Ataque : clipes.Ataque,
                                  10f * Pressa);
         }
     }
@@ -241,6 +250,7 @@ public class ChefeNecromante : InimigoDeSala, IChefe
             case Ataque.Sumico: return avisoDoSumico;
             case Ataque.Ossos: return avisoDosOssos;
             case Ataque.Muralha: return avisoDaMuralha;
+            case Ataque.Extra: return extra.Aviso;
             default: return avisoDeInvocar;
         }
     }
@@ -289,6 +299,10 @@ public class ChefeNecromante : InimigoDeSala, IChefe
                 Invocar();
                 Recuperar(tempoDeRecuperacao);
                 break;
+
+            case Ataque.Extra:
+                extra.Soltar(segundaFase ? 2 : 1);
+                break;
         }
     }
 
@@ -296,6 +310,15 @@ public class ChefeNecromante : InimigoDeSala, IChefe
     {
         execucao.Contar(dt);
         Frear();
+
+        // A maldicao: parado ate o ultimo fio sair.
+        if (ataqueAtual == Ataque.Extra)
+        {
+            if (!extra.Ocupado)
+                Recuperar(tempoDeRecuperacao);
+
+            return;
+        }
 
         if (ataqueAtual != Ataque.Sumico)
         {
@@ -687,6 +710,13 @@ public class ChefeNecromante : InimigoDeSala, IChefe
                 PintarCorpo(Color.Lerp(Color.white, new Color(0.5f, 0.5f, 0.6f), t));
                 if (corpo != null)
                     corpo.localScale = escalaDoCorpo * (1f + 0.08f * Mathf.Sin(t * Mathf.PI * 4f));
+                break;
+
+            case Ataque.Extra:
+                // Brilha na cor da maldicao e incha um pouco.
+                PintarCorpo(Color.Lerp(Color.white, extra.Cor, t));
+                if (corpo != null)
+                    corpo.localScale = escalaDoCorpo * (1f + 0.12f * t);
                 break;
         }
     }

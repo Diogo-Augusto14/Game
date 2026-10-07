@@ -7,16 +7,31 @@ using UnityEngine;
 public static class TabelaDeDrops
 {
     /// <summary>
-    /// Sorteia um tipo, com peso: moeda e o mais comum, chave bem rara (a chave de verdade
-    /// vem do chefe; ver <see cref="ChaveDoChefe"/>).
+    /// Sorteia um tipo, com peso: moeda e o mais comum, vazio e chave bem raros (a chave de
+    /// verdade vem do chefe; ver <see cref="ChaveDoChefe"/>). Com arma de fogo de municao limitada no
+    /// arsenal, a caixa de municao entra na roda, e com mais chance quando a municao esta baixa.
     /// </summary>
     public static TipoDeColetavel Sortear()
     {
         float r = Random.value;
 
+        ArsenalDoJogador arsenal = ArsenalDoJogador.Atual;
+
+        if (arsenal != null && arsenal.TemMunicaoLimitada)
+        {
+            float chanceDaCaixa = arsenal.PrecisaDeMunicao ? 0.28f : 0.12f;
+
+            if (r < chanceDaCaixa)
+                return TipoDeColetavel.Municao;
+
+            // O resto da roda continua como era.
+            r = (r - chanceDaCaixa) / (1f - chanceDaCaixa);
+        }
+
         if (r < 0.45f) return TipoDeColetavel.Moeda;
         if (r < 0.72f) return TipoDeColetavel.Coracao;
-        if (r < 0.95f) return TipoDeColetavel.Bomba;
+        if (r < 0.92f) return TipoDeColetavel.Bomba;
+        if (r < 0.95f) return TipoDeColetavel.Vazio;
         return TipoDeColetavel.Chave;
     }
 

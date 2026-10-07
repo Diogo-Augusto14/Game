@@ -77,6 +77,22 @@ public sealed class DificuldadeDaFase
     /// <summary>Monstro de sangue com anel de mais gotas: do mundo 2 em diante.</summary>
     public bool SangueEndurecido => Mundo >= 2;
 
+    // ================================================================ balas (ver PerfilDeBalas)
+    /// <summary>
+    /// Quantas balas a mais cada padrao solta: +7% por fase, no maximo 1,6x. Mais que isso o anel
+    /// fecha e nao sobra buraco pra passar.
+    /// </summary>
+    public float DensidadeDeBalas => Mathf.Min(1.6f, 1f + 0.07f * Nivel);
+
+    /// <summary>Velocidade das balas: +1,5% por fase. Bala lenta e o que deixa o padrao legivel; nao sobe muito.</summary>
+    public float PressaDasBalas => 1f + 0.015f * Nivel;
+
+    /// <summary>Quanto os ataques de bala ficam mais seguidos: +3% por fase (o intervalo nunca passa de 1,8 s pra baixo).</summary>
+    public float RitmoDeTiro => 1f + 0.03f * Nivel;
+
+    /// <summary>Espiral, cortina e rosa: do mundo 2 em diante (o primeiro mundo so tem anel, leque e rajada).</summary>
+    public bool PadroesComplicados => Mundo >= 2;
+
     // ================================================================ salas e armadilhas
     /// <summary>
     /// Tamanho do mapa que o gerador recebe: cresce a cada duas fases (1 a 6), pra as fases

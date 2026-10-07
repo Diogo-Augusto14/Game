@@ -62,10 +62,19 @@ public class InimigoBruxo : InimigoDeSala
         if (preparo.Ativo)
             return;
 
-        float angulo = AnguloDoJogador();
+        // Com o perfil de balas da fase (leque que cresce, anel com buraco, rajada), solta o proximo
+        // do ciclo; sem ele (inimigo criado fora do Andar), o leque de tres de sempre.
+        if (Padroes != null)
+        {
+            Padroes.Atacar(Padroes.ProximoDoCiclo(), false);
+        }
+        else
+        {
+            float angulo = AnguloDoJogador();
 
-        for (int i = -1; i <= 1; i++)
-            Disparar(angulo + i * aberturaDoLeque, velocidadeDoTiro, danoDoTiro, corDoTiro);
+            for (int i = -1; i <= 1; i++)
+                Disparar(angulo + i * aberturaDoLeque, velocidadeDoTiro, danoDoTiro, corDoTiro);
+        }
 
         // Atirou: some.
         fase = Fase.Sumindo;

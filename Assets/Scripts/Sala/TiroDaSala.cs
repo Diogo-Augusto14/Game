@@ -29,21 +29,65 @@ public class TiroDaSala : MonoBehaviour
     private GameObject dono;
     private float nascimento;
     private bool gasto;
+    private bool contado;
+    private bool balaDePadrao;
+    private Color corDaBala;
 
-    /// <summary>Cria e dispara um projetil. Diametro padrao 0.3 unidade.</summary>
+    // As balas inimigas no ar: o teto dos padroes (PadroesDeBala.TetoDeBalas) e a limpeza da sala.
+    private static readonly System.Collections.Generic.List<TiroDaSala> dosInimigos = new System.Collections.Generic.List<TiroDaSala>();
+
+    /// <summary>Quantas balas inimigas estao voando agora.</summary>
+    public static int NoAr => dosInimigos.Count;
+
+    // Com "Enter Play Mode" sem recarregar o dominio, a lista sobreviveria entre Plays.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void Zerar() => dosInimigos.Clear();
+
+    /// <summary>
+    /// Apaga toda bala inimiga no ar, cada uma com o seu estourinho (sala limpa: o Gungeon nao deixa
+    /// bala sobrando matar quem ja ganhou). As do jogador ficam.
+    /// </summary>
+    public static void LimparDosInimigos()
+    {
+        foreach (TiroDaSala tiro in dosInimigos.ToArray())
+            if (tiro != null)
+                tiro.Anular();
+    }
+
+    /// <summary>
+    /// Cria e dispara um projetil. Diametro padrao 0.3 unidade. <paramref name="balaDePadrao"/>: bala
+    /// dos padroes (<see cref="PadroesDeBala"/>), sempre com a mesma cara legível (miolo claro, contorno
+    /// escuro e um brilho na cor dela) em vez do estilo de quem atirou: o estilo das balas de ferro e
+    /// das chamas escuras some no chao escuro, e num padrao denso a bala tem que se ver de longe.
+    /// </summary>
     public static TiroDaSala Disparar(Vector2 origem, Vector2 velocidade, float dano, GameObject dono,
-                                    bool atingeJogador, Color cor, float diametro = 0.3f)
+                                    bool atingeJogador, Color cor, float diametro = 0.3f, bool balaDePadrao = false)
     {
         GameObject obj = new GameObject(atingeJogador ? "TiroDoInimigo" : "TiroDoJogador");
         obj.transform.position = origem;
         obj.transform.localScale = Vector3.one * diametro;
 
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-        // A gema do pacote ja tem cor: a do tiro so tinge pela metade.
-        Sprite gema = ArteImportada.TiroMagico;
-        sr.sprite = gema != null ? gema : ArteGerada.Bola();
-        sr.color = gema != null ? Color.Lerp(Color.white, cor, 0.5f) : cor;
-        sr.sortingOrder = 20;
+
+        if (balaDePadrao)
+        {
+            sr.sprite = ArteDasArmas.Bala();
+            sr.color = Color.Lerp(cor, Color.white, 0.25f);
+            sr.sortingOrder = 21;
+
+            // O brilho atras, na cor da bala: separa ela do chao mesmo com a bala escura ao lado.
+            SpriteRenderer brilho = FormasDaSala.Desenho(obj.transform, "Brilho", HaloCintilante.Suave(),
+                                                         new Color(cor.r, cor.g, cor.b, 0.55f), Vector2.zero, Vector2.one * 2.6f, 19);
+            brilho.transform.localPosition = Vector3.zero;
+        }
+        else
+        {
+            // A gema do pacote ja tem cor: a do tiro so tinge pela metade.
+            Sprite gema = ArteImportada.TiroMagico;
+            sr.sprite = gema != null ? gema : ArteGerada.Bola();
+            sr.color = gema != null ? Color.Lerp(Color.white, cor, 0.5f) : cor;
+            sr.sortingOrder = 20;
+        }
 
         Rigidbody2D corpo = obj.AddComponent<Rigidbody2D>();
         corpo.gravityScale = 0f;
@@ -58,17 +102,37 @@ public class TiroDaSala : MonoBehaviour
         p.dano = dano;
         p.dono = dono;
         p.atingeJogador = atingeJogador;
+        p.balaDePadrao = balaDePadrao;
+        p.corDaBala = cor;
 
         corpo.linearVelocity = velocidade;
 
         if (atingeJogador)
         {
-            EstiloDeTiro estilo = EstilosDeTiro.DoAtirador(dono);
-            EstilosDeTiro.Aplicar(p, estilo);
-            Sons.Tocar(EstilosDeTiro.SomDoDisparo(estilo), 0.45f);
+            dosInimigos.Add(p);
+            p.contado = true;
+
+            // Bala de padrao: o som de cada volta e do AtiradorDePadroes (uma vez so, nao por bala).
+            if (!balaDePadrao)
+            {
+                EstiloDeTiro estilo = EstilosDeTiro.DoAtirador(dono);
+                EstilosDeTiro.Aplicar(p, estilo);
+                Sons.Tocar(EstilosDeTiro.SomDoDisparo(estilo), 0.45f);
+
+                // O estilo (pedra, bala de ferro, brasa escura) some no chao escuro: um brilho fraco na cor
+                // do tiro, atras dele, deixa toda bala inimiga visivel (as dos chefes tambem).
+                FormasDaSala.Desenho(obj.transform, "Brilho", HaloCintilante.Suave(), new Color(cor.r, cor.g, cor.b, 0.4f),
+                                     Vector2.zero, Vector2.one * 2.4f, 19);
+            }
         }
 
         return p;
+    }
+
+    private void OnDestroy()
+    {
+        if (contado)
+            dosInimigos.Remove(this);
     }
 
     /// <summary>O desenho do tiro (o do estilo, se tiver; senao o da raiz).</summary>
@@ -95,11 +159,13 @@ public class TiroDaSala : MonoBehaviour
         EstilosDeTiro.Aplicar(this, estilo);
     }
 
-    /// <summary>Mostra o efeito de impacto do estilo, onde o tiro esta.</summary>
+    /// <summary>Mostra o efeito de impacto do estilo, onde o tiro esta (a bala de padrao estoura em poeira na cor dela).</summary>
     public void MostrarImpacto()
     {
         if (TryGetComponent(out VisualDoProjetil visual))
             visual.MostrarImpacto();
+        else if (balaDePadrao)
+            EfeitosDeImpacto.Mostrar(EfeitoDeImpacto.Poeira, transform.position, new Color(corDaBala.r, corDaBala.g, corDaBala.b, 0.8f), 0.4f);
     }
 
     private void Awake()

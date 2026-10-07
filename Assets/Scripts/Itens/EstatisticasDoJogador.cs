@@ -53,8 +53,14 @@ public class EstatisticasDoJogador : MonoBehaviour
         Recalcular();
 
         foreach (ItemPassivo item in itens)
+        {
             if (item.flecha != TipoDeFlecha.Normal)
                 TrocaDeFlecha.Em(gameObject).Ganhar(item.flecha);
+
+            // A partida salva guarda so os itens: as armas voltam com o pente e a municao cheios.
+            if (item.arma != null)
+                ArsenalDoJogador.Em(gameObject).Ganhar(item.arma);
+        }
 
         AoRestaurar?.Invoke();
     }
@@ -137,6 +143,10 @@ public class EstatisticasDoJogador : MonoBehaviour
         // Flecha nova vai pra aljava e ja entra em uso.
         if (item.flecha != TipoDeFlecha.Normal)
             TrocaDeFlecha.Em(gameObject).Ganhar(item.flecha);
+
+        // Arma de fogo nova vai pro arsenal e ja vai pra mao.
+        if (item.arma != null)
+            ArsenalDoJogador.Em(gameObject).Ganhar(item.arma);
 
         Sons.Tocar(Som.Item);
         Debug.Log($"[Itens] pegou {item.nome}: {item.descricao}");
@@ -235,10 +245,17 @@ public class EstatisticasDoJogador : MonoBehaviour
 
         if (atirador != null)
         {
-            atirador.Configurar(
-                Mathf.Max(danoMinimo, (danoBase + somaDano) * multDano),
-                alcanceBase + somaAlcance,
-                Mathf.Max(cadenciaMinima, (cadenciaBase + somaCadencia) * multCadencia));
+            float danoFinal = Mathf.Max(danoMinimo, (danoBase + somaDano) * multDano);
+            float alcanceFinal = alcanceBase + somaAlcance;
+            float cadenciaFinal = Mathf.Max(cadenciaMinima, (cadenciaBase + somaCadencia) * multCadencia);
+
+            atirador.Configurar(danoFinal, alcanceFinal, cadenciaFinal);
+
+            // As armas de fogo usam os numeros delas, subidos ou descidos pelo que os itens fizeram
+            // com os do heroi (o heroi de dano alto nao deixa a arma de fogo mais forte).
+            atirador.DefinirFatores(danoFinal / Mathf.Max(0.01f, danoBase),
+                                    cadenciaFinal / Mathf.Max(0.01f, cadenciaBase),
+                                    alcanceFinal / Mathf.Max(0.01f, alcanceBase));
 
             atirador.ConfigurarLagrima(
                 Mathf.Max(3f, velocidadeDoTiroBase + somaVelTiro),

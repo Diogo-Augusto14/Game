@@ -51,7 +51,7 @@ public class InimigoDemonia : InimigoDeSala
             return;
         }
 
-        if (!recarga.Ativo && VeOJogador())
+        if (!recarga.Ativo && VeOJogador() && (Padroes == null || !Padroes.Ocupado))
         {
             EstadoAtual = Estado.Preparando;
             preparo.Forcar(tempoDePreparo);
@@ -88,10 +88,18 @@ public class InimigoDemonia : InimigoDeSala
         if (preparo.Ativo)
             return;
 
-        float angulo = AnguloDoJogador();
+        // O proximo do perfil da fase (leque que cresce, cortina, rosa); sem perfil, o leque de tres.
+        if (Padroes != null)
+        {
+            Padroes.Atacar(Padroes.ProximoDoCiclo(), false);
+        }
+        else
+        {
+            float angulo = AnguloDoJogador();
 
-        for (int i = -1; i <= 1; i++)
-            Disparar(angulo + i * aberturaDoLeque, 4.5f, danoDoTiro, corDoTiro);
+            for (int i = -1; i <= 1; i++)
+                Disparar(angulo + i * aberturaDoLeque, 4.5f, danoDoTiro, corDoTiro);
+        }
 
         recarga.Forcar(intervaloEntreLeques);
         pausa.Forcar(0.25f);

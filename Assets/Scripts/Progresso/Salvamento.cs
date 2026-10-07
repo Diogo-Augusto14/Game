@@ -6,7 +6,8 @@ using UnityEngine;
 /// A partida salva, como no Isaac: sair no meio guarda a partida e o menu ganha o botao
 /// "Continuar". O que fica salvo e o COMECO da fase em que o jogador estava: o heroi, a fase,
 /// a semente (a mesma planta, os mesmos inimigos, os mesmos itens), a vida, os itens, o item
-/// ativo, moedas, chaves e bombas. Voltar recomeca essa fase com tudo isso.
+/// ativo, moedas, chaves, bombas e vazios. Voltar recomeca essa fase com tudo isso. As armas de
+/// fogo voltam junto com os itens, com o pente e a municao cheios.
 ///
 /// Quando grava: ao descer pra cada fase nova (<see cref="Andar.ProximoAndar"/>) e, na
 /// primeira fase, ao sair pela pausa. Quando apaga: ao morrer, ao vencer e ao comecar uma
@@ -31,6 +32,10 @@ public static class Salvamento
         public int moedas;
         public int chaves;
         public int bombas;
+
+        /// <summary>-1 = partida salva antes dos vazios existirem: fica com os que o jogador ja nasce.</summary>
+        public int vazios = -1;
+
         public bool renasceu;
         public List<string> jaSairam = new List<string>();
     }
@@ -106,6 +111,7 @@ public static class Salvamento
             d.moedas = inventario.Moedas;
             d.chaves = inventario.Chaves;
             d.bombas = inventario.Bombas;
+            d.vazios = inventario.Vazios;
         }
 
         if (jogador.TryGetComponent(out EfeitosDosItens efeitos))
@@ -211,6 +217,9 @@ public static class Salvamento
             inventario.Adicionar(TipoDeColetavel.Moeda, d.moedas - inventario.Moedas);
             inventario.Adicionar(TipoDeColetavel.Chave, d.chaves - inventario.Chaves);
             inventario.Adicionar(TipoDeColetavel.Bomba, d.bombas - inventario.Bombas);
+
+            if (d.vazios >= 0)
+                inventario.Adicionar(TipoDeColetavel.Vazio, d.vazios - inventario.Vazios);
         }
 
         if (d.renasceu && jogador.TryGetComponent(out EfeitosDosItens efeitos))

@@ -673,6 +673,26 @@ public abstract class InimigoDeSala : MonoBehaviour, IControladorDeMovimento
         }
     }
 
+    /// <summary>True se nao tem parede entre o inimigo e o jogador (o <see cref="AtiradorDePadroes"/> so mira assim).</summary>
+    public bool VeJogador => VeOJogador();
+
+    private AtiradorDePadroes padroes;
+
+    /// <summary>
+    /// Os padroes de bala deste inimigo (<see cref="PerfilDeBalas"/> poe), ou null se nao tem. Quem
+    /// ja atirava (bruxo, sentinela...) chama <see cref="AtiradorDePadroes.Atacar"/> na hora do tiro.
+    /// </summary>
+    protected AtiradorDePadroes Padroes
+    {
+        get
+        {
+            if (padroes == null)
+                TryGetComponent(out padroes);
+
+            return padroes != null && padroes.TemCiclo ? padroes : null;
+        }
+    }
+
     /// <summary>True se nao tem parede entre o inimigo e o jogador.</summary>
     protected bool VeOJogador()
     {

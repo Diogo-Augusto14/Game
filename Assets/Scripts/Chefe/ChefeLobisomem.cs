@@ -12,15 +12,16 @@ using UnityEngine;
 ///   Cerco  -> corre em circulo em volta do jogador soltando tiros pra dentro e fecha com
 ///             um bote
 ///   Uivo   -> se estica e uiva: chama bichos do mundo (na segunda fase, com um anel de tiros)
+///   Extra  -> uiva pra lua: uma espiral rapida de tiros (na segunda fase, tres fios e uma rajada no fim) - ver ExtraDoChefe
 ///
 /// Com metade da vida entra na SEGUNDA FASE (<see cref="ViradaDeFase"/>): um bote a mais,
 /// garras nos botes, cerco mais rapido e avisos mais curtos.
 /// </summary>
 public class ChefeLobisomem : InimigoDeSala, IChefe
 {
-    private enum Ataque { Botes, Garras, Cerco, Uivo }
+    private enum Ataque { Botes, Garras, Cerco, Uivo, Extra }
 
-    private enum Passo { Aviso, Mirando, Saltando, Rasgando, Circulando }
+    private enum Passo { Aviso, Mirando, Saltando, Rasgando, Circulando, Padrao }
 
     [Header("Chefe")]
     [SerializeField] private string nomeDoChefe = "Lobisomem Alfa";
@@ -85,6 +86,7 @@ public class ChefeLobisomem : InimigoDeSala, IChefe
     private RastroDoChefe rastro;
     private AnimacaoDePersonagem animacao;
     private ClipesDePersonagem clipes;
+    private ExtraDoChefe extra;
 
     public string Nome => nomeDoChefe;
     public bool NaSegundaFase => segundaFase;
@@ -116,6 +118,7 @@ public class ChefeLobisomem : InimigoDeSala, IChefe
 
         recarga.Forcar(esperaInicial);
         AoAcordar.AddListener(MostrarBarra);
+        extra = ExtraDoChefe.Para(this, TipoDeInimigo.ChefeLobisomem);
     }
 
     private void MostrarBarra()
@@ -148,7 +151,11 @@ public class ChefeLobisomem : InimigoDeSala, IChefe
 
     private Ataque Escolher()
     {
-        List<Ataque> opcoes = new List<Ataque> { Ataque.Garras, Ataque.Cerco };
+        List<Ataque> opcoes = new List<Ataque> { Ataque.Garras, Ataque.Cerco, Ataque.Extra };
+
+        // Na segunda fase o uivo da lua sai mais.
+        if (segundaFase)
+            opcoes.Add(Ataque.Extra);
 
         if (VeOJogador())
             opcoes.Add(Ataque.Botes);
@@ -183,6 +190,7 @@ public class ChefeLobisomem : InimigoDeSala, IChefe
             case Ataque.Botes: return avisoDoBote;
             case Ataque.Garras: return avisoDasGarras;
             case Ataque.Cerco: return avisoDoCerco;
+            case Ataque.Extra: return extra.Aviso;
             default: return avisoDoUivo;
         }
     }
@@ -199,6 +207,7 @@ public class ChefeLobisomem : InimigoDeSala, IChefe
             case Passo.Saltando: Saltar(dt); break;
             case Passo.Rasgando: Rasgar(); break;
             case Passo.Circulando: Circular(dt); break;
+            case Passo.Padrao: EsperarPadrao(); break;
         }
     }
 
@@ -225,6 +234,11 @@ public class ChefeLobisomem : InimigoDeSala, IChefe
             case Ataque.Cerco:
                 Pintar(Color.Lerp(Color.white, new Color(0.7f, 0.85f, 1f), t));
                 Rastro.Poeira(-paraEle);
+                break;
+            case Ataque.Extra:
+                // Se estica pra cima, de focinho pro alto, na cor da lua.
+                Pintar(Color.Lerp(Color.white, extra.Cor, t));
+                Esticar(1f - 0.08f * t, 1f + 0.18f * t);
                 break;
             default:
                 Pintar(Color.Lerp(Color.white, new Color(0.75f, 0.6f, 1f), t));
@@ -254,11 +268,25 @@ public class ChefeLobisomem : InimigoDeSala, IChefe
                 anguloNoCerco = Mathf.Atan2(doJogador.y, doJogador.x);
                 sentidoDoCerco = Random.value < 0.5f ? 1f : -1f;
                 break;
+            case Ataque.Extra:
+                passo = Passo.Padrao;
+                Tocar(clipes?.AtaqueEspecial, 12f);
+                extra.Soltar(segundaFase ? 2 : 1);
+                break;
             default:
                 Uivar();
                 Recuperar(tempoDeRecuperacao);
                 break;
         }
+    }
+
+    // Parado, uivando, ate a ultima volta do padrao sair.
+    private void EsperarPadrao()
+    {
+        Frear();
+
+        if (!extra.Ocupado)
+            Recuperar(tempoDeRecuperacao);
     }
 
     private void ComecarBote(Vector2 direcao)

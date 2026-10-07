@@ -12,13 +12,15 @@ using UnityEngine;
 ///   Investida -> abaixa a cabeca, mostra a linha e corre reto ate bater, soltando pedras
 ///                pros lados enquanto corre
 ///   Grito     -> grito de guerra: chama bichos do mundo (na segunda fase, que ja chegam com pressa)
+///   Extra     -> chuva de lancas: leques de tiros seguidos, cada um mirado de novo no jogador (quatro e
+///                mais cheios na segunda fase) - ver ExtraDoChefe
 ///
 /// Com metade da vida entra na SEGUNDA FASE (<see cref="ViradaDeFase"/>): a machadada solta
 /// duas ondas, joga um machado a mais, corre mais rapido e os avisos ficam mais curtos.
 /// </summary>
 public class ChefeOrc : InimigoDeSala, IChefe
 {
-    private enum Ataque { Machadada, Arremesso, Investida, Grito }
+    private enum Ataque { Machadada, Arremesso, Investida, Grito, Extra }
 
     [Header("Chefe")]
     [SerializeField] private string nomeDoChefe = "Senhor da Guerra";
@@ -77,6 +79,7 @@ public class ChefeOrc : InimigoDeSala, IChefe
     private RastroDoChefe rastro;
     private AnimacaoDePersonagem animacao;
     private ClipesDePersonagem clipes;
+    private ExtraDoChefe extra;
 
     public string Nome => nomeDoChefe;
     public bool NaSegundaFase => segundaFase;
@@ -108,6 +111,7 @@ public class ChefeOrc : InimigoDeSala, IChefe
 
         recarga.Forcar(esperaInicial);
         AoAcordar.AddListener(MostrarBarra);
+        extra = ExtraDoChefe.Para(this, TipoDeInimigo.ChefeOrc);
     }
 
     private void MostrarBarra()
@@ -137,7 +141,11 @@ public class ChefeOrc : InimigoDeSala, IChefe
 
     private Ataque Escolher()
     {
-        List<Ataque> opcoes = new List<Ataque> { Ataque.Machadada, Ataque.Arremesso };
+        List<Ataque> opcoes = new List<Ataque> { Ataque.Machadada, Ataque.Arremesso, Ataque.Extra };
+
+        // Na segunda fase a chuva de lancas sai mais.
+        if (segundaFase)
+            opcoes.Add(Ataque.Extra);
 
         if (VeOJogador())
             opcoes.Add(Ataque.Investida);
@@ -171,6 +179,7 @@ public class ChefeOrc : InimigoDeSala, IChefe
             case Ataque.Machadada: return avisoDaMachadada;
             case Ataque.Arremesso: return avisoDoArremesso;
             case Ataque.Investida: return avisoDaInvestida;
+            case Ataque.Extra: return extra.Aviso;
             default: return avisoDoGrito;
         }
     }
@@ -208,6 +217,12 @@ public class ChefeOrc : InimigoDeSala, IChefe
                 Rastro.MostrarMira(paraEle, t);
                 Rastro.Poeira(paraEle);
                 break;
+            case Ataque.Extra:
+                // Recua o braco (inclina pra tras) na cor das lancas.
+                Pintar(Color.Lerp(Color.white, extra.Cor, t));
+                if (corpo != null)
+                    corpo.localRotation = Quaternion.Euler(0f, 0f, -14f * t * Mathf.Sign(paraEle.x == 0f ? 1f : paraEle.x));
+                break;
             default:
                 Pintar(Color.Lerp(Color.white, new Color(0.6f, 0.9f, 0.4f), t));
                 if (corpo != null)
@@ -243,6 +258,11 @@ public class ChefeOrc : InimigoDeSala, IChefe
                 relogio.Forcar(2.2f);
                 break;
 
+            case Ataque.Extra:
+                Tocar(clipes?.AtaqueForte ?? clipes?.Ataque, 14f);
+                extra.Soltar(segundaFase ? 2 : 1);
+                break;
+
             default:
                 Gritar();
                 Recuperar(tempoDeRecuperacao);
@@ -272,6 +292,15 @@ public class ChefeOrc : InimigoDeSala, IChefe
 
             case Ataque.Investida:
                 Investir(dt);
+                break;
+
+            case Ataque.Extra:
+                // Parado ate o ultimo leque sair.
+                Frear();
+
+                if (!extra.Ocupado)
+                    Recuperar(tempoDeRecuperacao);
+
                 break;
 
             default:

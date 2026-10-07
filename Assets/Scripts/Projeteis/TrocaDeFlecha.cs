@@ -19,6 +19,8 @@ public class TrocaDeFlecha : MonoBehaviour
     private readonly List<TipoDeFlecha> aljava = new List<TipoDeFlecha> { TipoDeFlecha.Normal };
     private int emUso;
     private AtiradorTopDown atirador;
+    private ArsenalDoJogador arsenal;
+    private bool painelEscondido;
 
     // ---------------- HUD ----------------
     private GameObject hud;
@@ -32,6 +34,9 @@ public class TrocaDeFlecha : MonoBehaviour
 
     /// <summary>A flecha em uso agora.</summary>
     public TipoDeFlecha Atual => aljava[emUso];
+
+    /// <summary>O lugar da flecha em uso na aljava (0 = a normal).</summary>
+    public int Indice => emUso;
 
     public IReadOnlyList<TipoDeFlecha> Aljava => aljava;
 
@@ -47,6 +52,24 @@ public class TrocaDeFlecha : MonoBehaviour
     private void Awake()
     {
         atirador = GetComponent<AtiradorTopDown>();
+        arsenal = GetComponent<ArsenalDoJogador>();
+    }
+
+    /// <summary>Volta pra flecha normal (o arsenal chama ao voltar pra arma do heroi).</summary>
+    public void VoltarParaNormal()
+    {
+        if (emUso != 0)
+            Usar(0);
+    }
+
+    /// <summary>
+    /// Esconde o painel das flechas enquanto uma arma de fogo esta na mao (as flechas so valem pra
+    /// arma do heroi). Volta a aparecer com <paramref name="esconder"/> falso.
+    /// </summary>
+    public void EsconderPainel(bool esconder)
+    {
+        painelEscondido = esconder;
+        AtualizarHud();
     }
 
     private void OnDestroy()
@@ -96,8 +119,9 @@ public class TrocaDeFlecha : MonoBehaviour
 
     private void Update()
     {
-        // Com o jogo parado (pausa, menu), Q e LT sao dos menus.
-        if (Time.timeScale > 0f && aljava.Count > 1
+        // Com o jogo parado (pausa, menu), Q e LT sao dos menus. Com arsenal no jogador, o Q e dele
+        // (passa pelas flechas e depois pelas armas); sem ele, troca so de flecha.
+        if (arsenal == null && Time.timeScale > 0f && aljava.Count > 1
             && (Input.GetKeyDown(teclaTrocar) || Controle.Apertou(BotaoDoControle.LT)))
             Proxima();
 
@@ -107,13 +131,17 @@ public class TrocaDeFlecha : MonoBehaviour
             float t = (Time.unscaledTime - momentoDaTroca) / DuracaoDoDestaque;
             float escala = t < 1f ? 1f + Mathf.Sin(t * Mathf.PI) * 0.15f : 1f;
             painel.localScale = Vector3.one * escala;
+
+            // Com o painel das armas embaixo, este sobe pra nao ficar por cima dele.
+            bool acima = arsenal != null && arsenal.ComArmasDeFogo;
+            painel.anchoredPosition = new Vector2(-24f, acima ? 204f : 24f);
         }
     }
 
     // ---------------- HUD ----------------
     private void AtualizarHud()
     {
-        if (aljava.Count < 2)
+        if (aljava.Count < 2 || painelEscondido)
         {
             if (hud != null)
                 hud.SetActive(false);
@@ -151,7 +179,9 @@ public class TrocaDeFlecha : MonoBehaviour
 
         // Painel no canto de baixo a DIREITA: desenho da flecha, nome e a tecla de trocar. O canto
         // de baixo a esquerda e da linha de teclas da HUD, o meio de baixo e da barra do chefe e
-        // a lateral direita, de cima pra baixo, e do minimapa e dos itens.
+        // a lateral direita, de cima pra baixo, e do minimapa e dos itens. Com arma de fogo na mao
+        // o painel some; o das armas (HudDasArmas) so aparece depois da primeira e fica embaixo do
+        // das flechas, que sobe pra dar lugar.
         GameObject objPainel = new GameObject("Painel", typeof(RectTransform));
         objPainel.transform.SetParent(hud.transform, false);
         painel = (RectTransform)objPainel.transform;

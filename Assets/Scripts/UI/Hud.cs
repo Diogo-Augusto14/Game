@@ -77,7 +77,7 @@ public class Hud : MonoBehaviour
 
     // Teclas entre colchetes viram o desenho da tecla (ver TelaSimples.LinhaDeTeclas).
     private const string TEXTO_DOS_CONTROLES =
-        "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar";
+        "[W][A][S][D] andar | Mouse mira e atira";
 
     /// <summary>
     /// Aponta a HUD pra uma vida. Chame logo depois do AddComponent, antes do Start.

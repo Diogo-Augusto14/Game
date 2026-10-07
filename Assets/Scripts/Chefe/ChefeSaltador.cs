@@ -12,6 +12,7 @@ using UnityEngine;
 ///   Espiral  -> gira no lugar soltando bracos de tiro em espiral
 ///   Cuspe    -> cospe bolhas grandes e lentas que estouram num anel de tiros
 ///   Invocar  -> (so na segunda fase) chama dois bichos simples do mundo
+///   Extra    -> levanta uma muralha de brasa: cortinas de tiros com buraco indo pro jogador - ver ExtraDoChefe
 ///
 /// Com metade da vida entra na SEGUNDA FASE: pula tres vezes seguidas, a espiral ganha
 /// um braco, cospe tres bolhas em leque e os avisos ficam mais curtos.
@@ -23,7 +24,8 @@ public class ChefeSaltador : InimigoDeSala, IChefe
         Pulo,
         Espiral,
         Cuspe,
-        Invocar
+        Invocar,
+        Extra
     }
 
     [Header("Chefe")]
@@ -120,6 +122,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
     private Vector3 escalaDoCorpo;
     private SpriteRenderer marca;
     private Collider2D colisor;
+    private ExtraDoChefe extra;
 
     public string Nome => nomeDoChefe;
 
@@ -179,6 +182,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
 
         recarga.Forcar(esperaInicial);
         AoAcordar.AddListener(MostrarBarra);
+        extra = ExtraDoChefe.Para(this, TipoDeInimigo.ChefeSaltador);
     }
 
     private void OnDestroy()
@@ -214,7 +218,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
 
     private Ataque EscolherAtaque()
     {
-        List<Ataque> opcoes = new List<Ataque> { Ataque.Pulo, Ataque.Espiral, Ataque.Cuspe };
+        List<Ataque> opcoes = new List<Ataque> { Ataque.Pulo, Ataque.Espiral, Ataque.Cuspe, Ataque.Extra };
 
         lacaios.RemoveAll(l => l == null || l.EstaMorto);
 
@@ -246,6 +250,7 @@ public class ChefeSaltador : InimigoDeSala, IChefe
             case Ataque.Pulo: return avisoDoPulo;
             case Ataque.Espiral: return avisoDaEspiral;
             case Ataque.Cuspe: return avisoDoCuspe;
+            case Ataque.Extra: return extra.Aviso;
             default: return avisoDeInvocar;
         }
     }
@@ -293,6 +298,10 @@ public class ChefeSaltador : InimigoDeSala, IChefe
                 Invocar();
                 Recuperar(tempoDeRecuperacao);
                 break;
+
+            case Ataque.Extra:
+                extra.Soltar(segundaFase ? 2 : 1);
+                break;
         }
     }
 
@@ -322,6 +331,15 @@ public class ChefeSaltador : InimigoDeSala, IChefe
                 }
 
                 if (!execucao.Ativo)
+                    Recuperar(tempoDeRecuperacao);
+
+                break;
+
+            case Ataque.Extra:
+                // Parado ate a ultima muralha sair.
+                Frear();
+
+                if (!extra.Ocupado)
                     Recuperar(tempoDeRecuperacao);
 
                 break;
@@ -530,6 +548,12 @@ public class ChefeSaltador : InimigoDeSala, IChefe
             case Ataque.Invocar:
                 PintarOlhos(Color.Lerp(Color.white, new Color(0.6f, 0.3f, 1f), t));
                 transform.localScale = escalaOriginal * (1f - 0.1f * Mathf.Sin(t * Mathf.PI * 4f));
+                break;
+
+            case Ataque.Extra:
+                // Ergue o martelo: incha e brilha na cor da brasa.
+                PintarOlhos(Color.Lerp(Color.white, extra.Cor, t));
+                transform.localScale = escalaOriginal * (1f + 0.2f * t);
                 break;
         }
     }

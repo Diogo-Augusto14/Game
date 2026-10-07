@@ -5,12 +5,20 @@ public enum TipoDeColetavel
     Coracao,
     Moeda,
     Chave,
-    Bomba
+    Bomba,
+
+    // Os valores acima ja estavam salvos: novos entram no fim.
+    /// <summary>Caixa de municao: enche parte da municao de cada arma de fogo (nao e contador).</summary>
+    Municao,
+
+    /// <summary>Vazio: limpa as balas inimigas e empurra os inimigos (tecla F).</summary>
+    Vazio,
 }
 
 /// <summary>
-/// Coisinha no chao que o jogador pega encostando: coracao, moeda, chave ou bomba.
-/// Coracao so e pego se o jogador estiver machucado, como no Isaac.
+/// Coisinha no chao que o jogador pega encostando: coracao, moeda, chave, bomba, caixa de municao
+/// ou vazio. Coracao so e pego se o jogador estiver machucado, como no Isaac; a caixa de municao,
+/// so se alguma arma de fogo precisar.
 ///
 /// Nasce com um pulinho (escala) pra chamar atencao e depois fica flutuando no lugar, subindo
 /// e descendo sobre uma sombra, com um brilho na cor dele atras. Monte por <see cref="Criar"/>.
@@ -22,6 +30,9 @@ public class Coletavel : MonoBehaviour
 
     [Tooltip("Quanto um coracao cura")]
     [SerializeField, Min(0f)] private float cura = 20f;
+
+    [Tooltip("Quanto da municao maxima de cada arma de fogo uma caixa enche (0.35 = 35%)")]
+    [SerializeField, Range(0f, 1f)] private float fracaoDeMunicao = 0.35f;
 
     [Tooltip("Segundos sem poder pegar depois de nascer (da tempo de ver o que caiu)")]
     [SerializeField, Min(0f)] private float atrasoParaPegar = 0.3f;
@@ -47,6 +58,8 @@ public class Coletavel : MonoBehaviour
             case TipoDeColetavel.Coracao: return new Color(0.95f, 0.2f, 0.3f);
             case TipoDeColetavel.Moeda: return new Color(1f, 0.82f, 0.2f);
             case TipoDeColetavel.Chave: return new Color(0.8f, 0.8f, 0.85f);
+            case TipoDeColetavel.Municao: return new Color(1f, 0.86f, 0.35f);
+            case TipoDeColetavel.Vazio: return new Color(0.6f, 0.9f, 1f);
             default: return new Color(0.2f, 0.2f, 0.25f);
         }
     }
@@ -64,6 +77,8 @@ public class Coletavel : MonoBehaviour
             case TipoDeColetavel.Coracao: return new Color(1f, 0.3f, 0.35f, 0.45f);
             case TipoDeColetavel.Moeda: return new Color(1f, 0.85f, 0.3f, 0.45f);
             case TipoDeColetavel.Chave: return new Color(1f, 0.95f, 0.6f, 0.45f);
+            case TipoDeColetavel.Municao: return new Color(1f, 0.85f, 0.35f, 0.45f);
+            case TipoDeColetavel.Vazio: return new Color(0.5f, 0.85f, 1f, 0.5f);
             default: return new Color(1f, 0.6f, 0.25f, 0.5f);
         }
     }
@@ -162,6 +177,16 @@ public class Coletavel : MonoBehaviour
 
             vida.Curar(cura);
             Sons.Tocar(Som.Coracao);
+        }
+        else if (tipo == TipoDeColetavel.Municao)
+        {
+            // So pega se alguma arma de fogo precisar: sem arma (ou com tudo cheio) a caixa fica no chao.
+            ArsenalDoJogador arsenal = quem.GetComponent<ArsenalDoJogador>();
+
+            if (arsenal == null || !arsenal.AdicionarMunicao(fracaoDeMunicao))
+                return;
+
+            Sons.Tocar(Som.Chave);
         }
         else
         {

@@ -918,6 +918,10 @@ public class Sala : MonoBehaviour
 
         Limpa = true;
 
+        // Sala vencida: as balas inimigas que ainda voam somem (o Gungeon nao deixa bala sobrando
+        // acertar quem ja ganhou).
+        TiroDaSala.LimparDosInimigos();
+
         foreach (Porta porta in portas.Values)
             porta.Abrir();
 

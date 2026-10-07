@@ -79,15 +79,34 @@ public class Entrada : MonoBehaviour
     public Vector2 Andar { get; private set; }
 
     /// <summary>
-    /// Top-down: direcao do tiro pelas setas — so uma das quatro, nunca diagonal. Se duas
-    /// setas estao seguradas, vale a ULTIMA apertada (como no Isaac). Zero = nao atirando.
+    /// Top-down: direcao do tiro. Botao esquerdo do mouse = pra onde o cursor aponta, em
+    /// qualquer angulo (como no Gungeon). Setas = uma das quatro retas; se duas setas estao
+    /// seguradas, vale a ULTIMA apertada. Controle = analogico direito livre ou A B X Y.
+    /// As setas mandam sobre o mouse. Zero = nao atirando.
     /// </summary>
     public Vector2 Tiro { get; private set; }
 
     public bool Atirando => Tiro != Vector2.zero;
 
+    /// <summary>
+    /// Top-down: pra onde o jogador aponta agora, tamanho 1, mesmo sem atirar. Segue o cursor
+    /// enquanto o mouse for o ultimo a mirar; setas e analogico direito mudam e seguram a mira.
+    /// </summary>
+    public Vector2 Mira { get; private set; } = Vector2.down;
+
+    /// <summary>Ponto do mundo debaixo do cursor do mouse (valido com camera na cena).</summary>
+    public Vector2 PontoDoMouse { get; private set; }
+
+    /// <summary>O mouse foi o ultimo a mirar: o cursor vira mira e a arma segue ele.</summary>
+    public bool MouseNaMira { get; private set; }
+
     // Ultima seta apertada: e ela que manda enquanto continuar segurada.
     private KeyCode ultimaSeta = KeyCode.None;
+
+    // O clique so atira se comecou com o jogo rodando: o clique que aperta "Jogar" no menu
+    // ainda esta segurado quando o tempo volta, e nao pode virar um tiro.
+    private bool cliqueNoJogo;
+    private Vector3 ultimoMouse;
 
     private static readonly KeyCode[] Setas = { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow };
 
@@ -123,7 +142,7 @@ public class Entrada : MonoBehaviour
         // Com o jogo parado (pausa, menu) o aperto nao fica guardado: o RB do controle
         // liga/desliga os efeitos na pausa e o buffer nao conta tempo com timeScale 0.
         bool pediuDash = Input.GetKeyDown(teclaDash) || Input.GetKeyDown(KeyCode.RightShift)
-                         || (modoTopDown && Controle.Apertou(BotaoDoControle.RB));
+                         || (modoTopDown && (Controle.Apertou(BotaoDoControle.RB) || Input.GetMouseButtonDown(1)));
 
         if (pediuDash && Time.timeScale > 0f)
             dashGuardado.Forcar(bufferDoDash);
@@ -167,9 +186,68 @@ public class Entrada : MonoBehaviour
 
         Tiro = DirecaoDaSeta(ultimaSeta);
 
-        // Nenhuma seta: vale o controle (A B X Y ou analogico direito).
-        if (Tiro == Vector2.zero)
-            Tiro = Controle.Tiro;
+        LerMouse();
+
+        if (Tiro != Vector2.zero)
+        {
+            // Seta apertada: ela manda na mira ate o mouse se mexer de novo.
+            Mira = Tiro;
+            MouseNaMira = false;
+            return;
+        }
+
+        if (MouseNaMira && cliqueNoJogo && Input.GetMouseButton(0))
+        {
+            Tiro = Mira;
+            return;
+        }
+
+        // Nenhuma seta nem clique: vale o controle (A B X Y ou analogico direito).
+        Tiro = Controle.Tiro;
+
+        if (Tiro != Vector2.zero)
+        {
+            Mira = Tiro;
+            MouseNaMira = false;
+        }
+    }
+
+    // Acha o cursor no mundo e, enquanto o mouse mira, aponta pra ele.
+    private void LerMouse()
+    {
+        Vector3 naTela = Input.mousePosition;
+        bool jogando = Time.timeScale > 0f;
+
+        if (!jogando)
+            cliqueNoJogo = false;
+        else if (Input.GetMouseButtonDown(0))
+            cliqueNoJogo = true;
+
+        if (!Input.GetMouseButton(0))
+            cliqueNoJogo = false;
+
+        // O mouse so retoma a mira quando mexe ou clica (parado, vale o que as setas deixaram).
+        if (jogando && ((naTela - ultimoMouse).sqrMagnitude > 1f || Input.GetMouseButtonDown(0)))
+            MouseNaMira = true;
+
+        ultimoMouse = naTela;
+
+        Camera camera = Camera.main;
+
+        if (camera != null)
+        {
+            // Camera ortografica: o z e a distancia ate o plano do jogo (z = 0).
+            Vector3 mundo = camera.ScreenToWorldPoint(new Vector3(naTela.x, naTela.y, Mathf.Abs(camera.transform.position.z)));
+            PontoDoMouse = mundo;
+        }
+
+        if (MouseNaMira)
+        {
+            Vector2 ate = PontoDoMouse - (Vector2)transform.position;
+
+            if (ate.sqrMagnitude > 0.01f)
+                Mira = ate.normalized;
+        }
     }
 
     private static Vector2 DirecaoDaSeta(KeyCode seta)
@@ -219,6 +297,7 @@ public class Entrada : MonoBehaviour
         ataqueGuardado.Zerar();
         puloSoltou = false;
         ultimaSeta = KeyCode.None;
+        cliqueNoJogo = false;
         Andar = Vector2.zero;
         Tiro = Vector2.zero;
     }

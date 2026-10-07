@@ -186,12 +186,12 @@ public class TelaDeInicio : MonoBehaviour
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(pai, "Controles", -408f,
-            "[W][A][S][D] andar | [Cima][Esquerda][Baixo][Direita] atirar | [E] bomba | [Shift] dash | [Espaco] item | [Esc] pausar || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] ou [Pad Y][Pad X][Pad A][Pad B] atirar | [Pad LB] bomba | [Pad RB] dash | [Pad RT] item | [Pad Start] pausar",
-            24, corDasDicas);
+            "[W][A][S][D] andar | Mouse mira e atira | [R] recarrega | [Q] troca arma | [F] vazio | [E] bomba | [Shift] dash | [Espaco] item || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] mira e atira | L3 recarrega | [Pad LT] troca arma | R3 vazio | [Pad LB] bomba | [Pad RB] dash | [Pad RT] item",
+            22, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
-            "[M] música | [N] efeitos | Bomba abre parede rachada. Moeda compra na loja. || " +
-            "[Pad LB] música | [Pad RB] efeitos | Bomba abre parede rachada. Moeda compra na loja.", 22, new Color(0.8f, 0.85f, 0.95f));
+            "[M] música | [N] efeitos | [Esc] pausar | Bomba abre parede rachada. Moeda compra na loja. || " +
+            "[Pad LB] música | [Pad RB] efeitos | [Pad Start] pausar | Bomba abre parede rachada. Moeda compra na loja.", 22, new Color(0.8f, 0.85f, 0.95f));
 
         TelaSimples.Texto(pai, "Creditos", 16, new Color(0.5f, 0.47f, 0.5f), -514f,
             "Sons de interface: Nathan Gibson (CC BY 4.0)    Efeitos: Freedoom (BSD)    Interface: Tiny RPG Dragon Regalia GUI    " +

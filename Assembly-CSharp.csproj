@@ -68,11 +68,14 @@
     <Compile Include="Assets\Scripts\Sala\Campeao.cs" />
     <Compile Include="Assets\Scripts\Projeteis\EstiloDeTiro.cs" />
     <Compile Include="Assets\Scripts\Sala\Sala.cs" />
+    <Compile Include="Assets\Scripts\Chefe\ExtraDoChefe.cs" />
     <Compile Include="Assets\Scripts\Sala\InimigoLanceiro.cs" />
     <Compile Include="Assets\Scripts\Sala\Pedra.cs" />
     <Compile Include="Assets\Scripts\Chefe\MachadoBumerangue.cs" />
     <Compile Include="Assets\Scripts\Chefe\ChefeLobisomem.cs" />
     <Compile Include="Assets\Scripts\TopDown\Progresso.cs" />
+    <Compile Include="Assets\Scripts\Armas\ArteDasArmas.cs" />
+    <Compile Include="Assets\Scripts\Sala\AtiradorDePadroes.cs" />
     <Compile Include="Assets\Scripts\Sala\InimigoInvestidor.cs" />
     <Compile Include="Assets\Scripts\Itens\TextoFlutuante.cs" />
     <Compile Include="Assets\Scripts\Sala\Espinhos.cs" />
@@ -114,6 +117,7 @@
     <Compile Include="Assets\Scripts\Projeteis\EfeitoDaFlecha.cs" />
     <Compile Include="Assets\Scripts\Andar\DificuldadeDaFase.cs" />
     <Compile Include="Assets\Scripts\Animacao\EfeitoDeQuadros.cs" />
+    <Compile Include="Assets\Scripts\Armas\Vazio.cs" />
     <Compile Include="Assets\Scripts\Sala\FabricaDeInimigos.cs" />
     <Compile Include="Assets\Scripts\Jogador\Controle.cs" />
     <Compile Include="Assets\Scripts\Itens\EspinhosQueSaem.cs" />
@@ -139,6 +143,7 @@
     <Compile Include="Assets\Scripts\Projeteis\TipoDeFlecha.cs" />
     <Compile Include="Assets\Scripts\Sala\InimigoMorcego.cs" />
     <Compile Include="Assets\Scripts\Sala\InimigoEsqueletoFoice.cs" />
+    <Compile Include="Assets\Scripts\Andar\PerfilDeBalas.cs" />
     <Compile Include="Assets\Scripts\Andar\SalaDeEmboscada.cs" />
     <Compile Include="Assets\Scripts\Andar\Andar.cs" />
     <Compile Include="Assets\Scripts\Sala\TiroDaSala.cs" />
@@ -147,7 +152,10 @@
     <Compile Include="Assets\Scripts\Sala\InimigoDemonia.cs" />
     <Compile Include="Assets\Scripts\combate\IControladorDeMovimento.cs" />
     <Compile Include="Assets\Scripts\Chefe\ChefeNecromante.cs" />
+    <Compile Include="Assets\Scripts\Sala\PadroesDeBala.cs" />
     <Compile Include="Assets\Scripts\UI\TelaSimples.cs" />
+    <Compile Include="Assets\Scripts\Armas\ArmaNaMao.cs" />
+    <Compile Include="Assets\Scripts\Armas\HudDasArmas.cs" />
     <Compile Include="Assets\Scripts\Progresso\Conquistas.cs" />
     <Compile Include="Assets\Scripts\UI\IconeDeTecla.cs" />
     <Compile Include="Assets\Scripts\Andar\SalaEscura.cs" />
@@ -159,6 +167,7 @@
     <Compile Include="Assets\Scripts\Progresso\Registro.cs" />
     <Compile Include="Assets\Scripts\Progresso\Salvamento.cs" />
     <Compile Include="Assets\Scripts\Itens\PainelDeItens.cs" />
+    <Compile Include="Assets\Scripts\Armas\ArmaDeFogo.cs" />
     <Compile Include="Assets\Scripts\Sala\JogadorDeTeste.cs" />
     <Compile Include="Assets\Scripts\Chefe\BolhaQueEstoura.cs" />
     <Compile Include="Assets\Scripts\Sala\DemoDaSala.cs" />
@@ -187,6 +196,7 @@
     <Compile Include="Assets\Scripts\Andar\SalaAmaldicoada.cs" />
     <Compile Include="Assets\Scripts\Nucleo\VersaoDoJogo.cs" />
     <Compile Include="Assets\Scripts\combate\Vida.cs" />
+    <Compile Include="Assets\Scripts\Armas\ArsenalDoJogador.cs" />
     <Compile Include="Assets\Scripts\UI\TelaDeInicio.cs" />
     <Compile Include="Assets\Scripts\Jogador\Entrada.cs" />
     <Compile Include="Assets\Scripts\Sala\DisposicoesDaSala.cs" />
@@ -204,6 +214,7 @@
     <Compile Include="Assets\Scripts\combate\DanoInfo.cs" />
     <Compile Include="Assets\Scripts\Andar\Alcapao.cs" />
     <Compile Include="Assets\Scripts\Sala\FormasDaSala.cs" />
+    <Compile Include="Assets\Scripts\TopDown\MiraNaTela.cs" />
     <Compile Include="Assets\Scripts\Sala\InimigoSentinela.cs" />
     <Compile Include="Assets\Scripts\Progresso\AvisoDeConquista.cs" />
     <Compile Include="Assets\Scripts\UI\DicaDupla.cs" />

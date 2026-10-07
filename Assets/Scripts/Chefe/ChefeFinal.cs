@@ -11,6 +11,8 @@ using UnityEngine;
 ///   Espiral  -> (azul) dois bracos de espiral girando
 ///   Laser    -> (vermelha, fase 2+) uma linha de mira e depois um jato de tiros nela
 ///   Invocar  -> (roxa) chama dois bichos simples do mundo (demonios no Abismo)
+///   Extra    -> (rosada) desabrocha: uma flor de tiros, um anel com buraco e outra flor encaixada na
+///               primeira; da segunda fase uma espiral junto - ver ExtraDoChefe
 ///
 /// Tres fases: abaixo de 60% da vida os ataques dobram (dois aneis, rajada em leque) e
 /// aparece o laser; abaixo de 25% ele solta tiros em cruz girando o tempo todo, mesmo
@@ -24,7 +26,8 @@ public class ChefeFinal : InimigoDeSala, IChefe
         Rajada,
         Espiral,
         Laser,
-        Invocar
+        Invocar,
+        Extra
     }
 
     [Header("Chefe")]
@@ -99,6 +102,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
     private Transform pupila;
     private SpriteRenderer mira;
     private float raio;
+    private ExtraDoChefe extra;
 
     public string Nome => nomeDoChefe;
 
@@ -163,6 +167,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
 
         recarga.Forcar(esperaInicial);
         AoAcordar.AddListener(MostrarBarra);
+        extra = ExtraDoChefe.Para(this, TipoDeInimigo.ChefeFinal);
     }
 
     private void MostrarBarra()
@@ -200,7 +205,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
 
     private Ataque EscolherAtaque()
     {
-        List<Ataque> opcoes = new List<Ataque> { Ataque.Anel, Ataque.Rajada, Ataque.Espiral };
+        List<Ataque> opcoes = new List<Ataque> { Ataque.Anel, Ataque.Rajada, Ataque.Espiral, Ataque.Extra };
 
         if (fase >= 2)
             opcoes.Add(Ataque.Laser);
@@ -234,6 +239,7 @@ public class ChefeFinal : InimigoDeSala, IChefe
         {
             case Ataque.Laser: return avisoDoLaser / pressa;
             case Ataque.Invocar: return 0.9f / pressa;
+            case Ataque.Extra: return extra.Aviso / pressa;
             default: return 0.6f / pressa;
         }
     }
@@ -293,6 +299,10 @@ public class ChefeFinal : InimigoDeSala, IChefe
             case Ataque.Invocar:
                 Invocar();
                 Recuperar(0.6f);
+                break;
+
+            case Ataque.Extra:
+                extra.Soltar(fase);
                 break;
         }
     }
@@ -367,6 +377,13 @@ public class ChefeFinal : InimigoDeSala, IChefe
 
                 break;
 
+            case Ataque.Extra:
+                // Parado ate a ultima flor sair.
+                if (!extra.Ocupado)
+                    Recuperar(0.7f);
+
+                break;
+
             default:
                 Recuperar(0.5f);
                 break;
@@ -422,6 +439,11 @@ public class ChefeFinal : InimigoDeSala, IChefe
             case Ataque.Invocar:
                 PintarIris(Color.Lerp(Color.white, new Color(0.6f, 0.3f, 1f), t));
                 transform.localScale = escalaOriginal * (1f - 0.08f * Mathf.Sin(t * Mathf.PI * 4f));
+                break;
+
+            case Ataque.Extra:
+                PintarIris(Color.Lerp(Color.white, extra.Cor, t));
+                transform.localScale = escalaOriginal * (1f + 0.1f * t);
                 break;
         }
     }

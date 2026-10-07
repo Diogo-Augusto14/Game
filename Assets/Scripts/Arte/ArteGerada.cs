@@ -337,6 +337,8 @@ public static class ArteGerada
             case TipoDeColetavel.Coracao: return ArteImportada.IconeDoPacote(659) ?? Guardado("coracao", () => Texto(Coracao));
             case TipoDeColetavel.Moeda: return ArteImportada.IconeDoPacote(131) ?? Guardado("moeda", () => Texto(Moeda));
             case TipoDeColetavel.Chave: return ArteImportada.IconeDoPacote(179) ?? Guardado("chave", () => Texto(Chave));
+            case TipoDeColetavel.Municao: return ArteDasArmas.Municao();
+            case TipoDeColetavel.Vazio: return ArteDasArmas.VazioDoJogador();
             default: return ArteImportada.IconeDoPacote(764) ?? Guardado("bomba", () => Texto(Bomba));
         }
     }
