@@ -580,7 +580,7 @@ MonoBehaviour:
   raioMaximo: 60
   clareira: {x: 5, y: 4}
   inimigos:
-  - {fileID: 100100000, guid: 6d06fbfc74634d308c00558a827e02d5, type: 3}
+  - {fileID: 7624800600701863497, guid: 6d06fbfc74634d308c00558a827e02d5, type: 3}
   inimigosNoPrimeiroAndar: 24
   inimigosAMaisPorAndar: 8
   tamanhoDoGrupo: {x: 2, y: 4}

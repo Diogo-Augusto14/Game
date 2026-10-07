@@ -89,6 +89,7 @@ public class GeradorDoAndar : MonoBehaviour
     private Camera cam;
     private GameObject raiz;
     private Saida saida;
+    private HashSet<Vector2Int> chaoDoAndar;
     private Vector2 ondeMorreuOUltimo;
     private bool trocando;
     private float escuro;
@@ -127,12 +128,12 @@ public class GeradorDoAndar : MonoBehaviour
             vidaDoJogador = jogador.GetComponent<Vida>();
         }
 
-        Gerar(1);
+        GerarSemTravar(1);
     }
 
     private void Update()
     {
-        if (raiz == null || saida != null)
+        if (raiz == null || saida != null || chaoDoAndar == null)
             return;
 
         // Guarda onde caiu quem acabou de morrer: o vortice abre onde morreu o ultimo.
@@ -183,7 +184,7 @@ public class GeradorDoAndar : MonoBehaviour
             yield break;
         }
 
-        Gerar(Andar + 1);
+        GerarSemTravar(Andar + 1);
 
         // De volta a clareira do comeco, que fica sempre no centro do mundo.
         if (Jogador != null)
@@ -215,12 +216,27 @@ public class GeradorDoAndar : MonoBehaviour
     }
 
     // ---------------- montar o andar ----------------
+    // Um erro montando o andar nao pode deixar o jogo preso (na tela escura da troca, por exemplo):
+    // fica no Console, e o jogo segue com o que deu pra montar.
+    private void GerarSemTravar(int andar)
+    {
+        try
+        {
+            Gerar(andar);
+        }
+        catch (System.Exception erro)
+        {
+            Debug.LogException(erro, this);
+        }
+    }
+
     private void Gerar(int andar)
     {
         Andar = andar;
         nome = $"Andar {andar} de {quantidadeDeAndares}";
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
+        chaoDoAndar = null;
         vivos.Clear();
 
         if (raiz != null)
@@ -232,12 +248,46 @@ public class GeradorDoAndar : MonoBehaviour
         HashSet<Vector2Int> chaoDaCaverna = Caverna.Cavar(celulasNoPrimeiroAndar + (andar - 1) * celulasAMaisPorAndar, raioMaximo, clareira);
         pedreiro.Construir(raiz.transform, chaoDaCaverna);
         EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (andar - 1) * inimigosAMaisPorAndar);
+
+        // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no
+        // ponto mais longe do comeco: nunca embaixo do jogador.
+        if (vivos.Count == 0)
+            AbrirSaida(MaisLongeDoComeco(chaoDaCaverna));
+
+        chaoDoAndar = chaoDaCaverna;
+    }
+
+    private static Vector2 MaisLongeDoComeco(HashSet<Vector2Int> chaoDaCaverna)
+    {
+        Vector2Int longe = Vector2Int.zero;
+
+        foreach (Vector2Int c in chaoDaCaverna)
+        {
+            if (c.sqrMagnitude > longe.sqrMagnitude && CercadaDeChao(chaoDaCaverna, c))
+                longe = c;
+        }
+
+        return longe;
     }
 
     private void EspalharInimigos(HashSet<Vector2Int> chaoDaCaverna, int quantos)
     {
-        if (inimigos == null || inimigos.Length == 0 || quantos <= 0)
+        List<GameObject> prefabs = new List<GameObject>();
+
+        if (inimigos != null)
+        {
+            foreach (GameObject prefab in inimigos)
+            {
+                if (prefab != null)
+                    prefabs.Add(prefab);
+            }
+        }
+
+        if (prefabs.Count == 0 || quantos <= 0)
+        {
+            Debug.LogWarning("[Andar] nenhum inimigo pra espalhar: confira a lista Inimigos do objeto Andar", this);
             return;
+        }
 
         // So celulas longe do comeco e com chao em volta (ninguem nasce grudado na parede).
         List<Vector2Int> lugares = new List<Vector2Int>();
@@ -272,7 +322,7 @@ public class GeradorDoAndar : MonoBehaviour
                 ocupadas.Add(c);
                 noGrupo--;
 
-                GameObject novo = Instantiate(inimigos[Random.Range(0, inimigos.Length)], (Vector2)c, Quaternion.identity, pai);
+                GameObject novo = Instantiate(prefabs[Random.Range(0, prefabs.Count)], (Vector2)c, Quaternion.identity, pai);
 
                 if (novo.TryGetComponent(out Vida vida))
                     vivos.Add(vida);
