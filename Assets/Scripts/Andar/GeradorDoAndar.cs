@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Monta e troca os andares: cada andar e uma caverna gigante e aberta, sem salas nem portas, como
@@ -17,7 +16,8 @@ using UnityEngine.SceneManagement;
 ///
 /// Na tela, a <see cref="TelaDoJogo"/> desenha o nome do andar ao chegar, quantos inimigos faltam e o
 /// escuro da troca (daqui ela le); aqui fica so a seta na beirada apontando pro inimigo mais perto,
-/// quando sobram poucos.
+/// quando sobram poucos. Ao abrir o jogo, mostra o menu inicial (<see cref="TelaDeInicio"/>); a
+/// pausa (<see cref="TelaDePausa"/>) fica neste mesmo objeto. Cada andar toca a musica dele.
 /// </summary>
 [DisallowMultipleComponent]
 public class GeradorDoAndar : MonoBehaviour
@@ -183,6 +183,9 @@ public class GeradorDoAndar : MonoBehaviour
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
+
+        if (!TryGetComponent(out TelaDePausa _))
+            gameObject.AddComponent<TelaDePausa>();
         pedreiro = new Pedreiro(chao, paredes, abismo, sangue, enfeites, chanceDeEnfeite);
         quadrosDoVortice = FolhaDeSprites.Cortar(vortice, quadroDoVortice, pixelsPorUnidade);
         quadrosDoBau = FolhaDeSprites.Cortar(bau, quadroDoBau, DadosDoOldPrison.Lado);
@@ -200,7 +203,17 @@ public class GeradorDoAndar : MonoBehaviour
         }
 
         GerarSemTravar(1);
+
+        // Na primeira vez, o menu inicial por cima do andar 1; "tentar de novo" vem direto pro jogo.
+        if (!TelaDeInicio.JaPassou)
+            TelaDeInicio.Mostrar(this);
+        else
+            Musica.Tocar(MusicaDoAndar);
     }
+
+    /// <summary>A musica deste andar: a do chefe (a do final, no ultimo) ou a da caverna.</summary>
+    public TemaMusical MusicaDoAndar =>
+        chefe != null ? (Andar >= Andares ? TemaMusical.ChefeFinal : TemaMusical.Chefe) : Musica.DaCaverna(CavernasAte(Andar));
 
     private void Update()
     {
@@ -221,7 +234,10 @@ public class GeradorDoAndar : MonoBehaviour
             if (vida != null)
             {
                 ondeMorreuOUltimo = vida.transform.position;
-                Partida.InimigosMortos++;
+                ResumoDaPartida.ContarInimigo();
+
+                if (chefe != null && vida.gameObject == chefe.gameObject)
+                    ResumoDaPartida.ContarChefe();
 
                 if (caixaDeMunicao != null && Random.value < chanceDeMunicao)
                     CaixaDeMunicao.Criar(caixaDeMunicao, ondeMorreuOUltimo, raiz.transform, somDaMunicao);
@@ -273,21 +289,14 @@ public class GeradorDoAndar : MonoBehaviour
 
         if (Andar >= Andares)
         {
-            // Venceu: a tela do fim (sem ela, so recomeca).
-            if (TelaDoJogo.Atual != null)
-            {
-                TelaDoJogo.Atual.Fim(true);
-            }
-            else
-            {
-                yield return new WaitForSecondsRealtime(tempoDoNome);
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            }
-
+            // Venceu: a tela da vitoria escurece sozinha por cima do salao do chefe.
+            escuro = 0f;
+            TelaDeFimDeJogo.MostrarVitoria(this);
             yield break;
         }
 
         GerarSemTravar(Andar + 1);
+        Musica.Tocar(MusicaDoAndar);
 
         // De volta a clareira do comeco, que fica sempre no centro do mundo.
         if (Jogador != null)
@@ -339,8 +348,6 @@ public class GeradorDoAndar : MonoBehaviour
         Andar = andar;
         nome = esse != null && !string.IsNullOrEmpty(esse.nome) ? $"Andar {andar} de {Andares}: {esse.nome}" : $"Andar {andar} de {Andares}";
         nomeAte = Time.unscaledTime + tempoDoNome;
-        Partida.Andar = andar;
-        Partida.NomeDoAndar = nome;
         saida = null;
         chefe = null;
         chaoDoAndar = null;
@@ -586,7 +593,8 @@ public class GeradorDoAndar : MonoBehaviour
         // Embaixo da interface (que desenha o resto e o escuro da troca por cima).
         GUI.depth = 10;
 
-        if (raiz != null && escuro <= 0f && chefe == null && (TelaDoJogo.Atual == null || !TelaDoJogo.Atual.Parado))
+        // Nenhum menu aberto e o jogo andando (os menus do jogo antigo sao canvas: o OnGUI fica por cima deles).
+        if (raiz != null && escuro <= 0f && chefe == null && Time.timeScale > 0f && !TelaDoJogo.MenuAberto)
             DesenharSeta();
     }
 

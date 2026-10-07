@@ -36,13 +36,24 @@ public class CursorDaMira : MonoBehaviour
         if (quer == 1 && mira != null)
             Cursor.SetCursor(mira, new Vector2(mira.width * 0.5f, mira.height * 0.5f), CursorMode.Auto);
         else
-            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            Cursor.SetCursor(CursorNormal(), Vector2.zero, CursorMode.Auto);
     }
 
     private void OnDisable()
     {
         Cursor.visible = true;
-        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        Cursor.SetCursor(CursorNormal(), Vector2.zero, CursorMode.Auto);
         estado = -1;
+    }
+
+    private static Texture2D normal;
+
+    // Fora da mira, o cursor dourado do pacote de interface (o mesmo dos menus), ou a setinha do sistema.
+    private static Texture2D CursorNormal()
+    {
+        if (normal == null)
+            normal = Resources.Load<Texture2D>("InterfaceDragao/Cursor");
+
+        return normal;
     }
 }

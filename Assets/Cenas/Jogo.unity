@@ -797,15 +797,7 @@ MonoBehaviour:
   coracao: {fileID: 2800000, guid: 076f52cf5d4a498eb81842fd8f7a552a, type: 3}
   bolsa: {fileID: 2800000, guid: bf4f07cca11540eb82cb3cd95660b90b, type: 3}
   molduraPequena: {fileID: 2800000, guid: 18a9ae83bf0f4708a735b0365153bbd3, type: 3}
-  molduraGrande: {fileID: 2800000, guid: 51be92aa4d9e47f294a5d6618420efb9, type: 3}
   barraDourada: {fileID: 2800000, guid: 65d48015a57d46658b6c94433efb791a, type: 3}
-  botao: {fileID: 2800000, guid: 44fd41b647ba4bb3a810e92930cf4b72, type: 3}
-  ponteiro: {fileID: 2800000, guid: c4d92e0269d442b595430210e4bf8218, type: 3}
-  somDeMover: {fileID: 8300000, guid: 78b0ed112b4d40cd9ae916a56f941bd1, type: 3}
-  somDeEscolher: {fileID: 8300000, guid: 1f7a6fe24f6749bcb72305d507aa1dce, type: 3}
-  somDeAbrir: {fileID: 8300000, guid: c5d4c71561414202892b9f8337b55e7f, type: 3}
-  somDeFechar: {fileID: 8300000, guid: b232e59f1f7b4d1b96d871c9ae843014, type: 3}
-  volume: 0.6
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

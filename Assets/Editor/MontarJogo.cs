@@ -630,25 +630,15 @@ public static class MontarJogo
         Preencher(gerador, "somDoBau", Som("BauAbre.ogg"));
         Preencher(gerador, "somDaMunicao", Som("Item.ogg"));
 
-        // A interface: o HUD, o menu inicial, a pausa e o fim da partida.
+        // A interface do jogo (o HUD). Os menus do jogo antigo se montam sozinhos ao dar Play.
         GameObject objInterface = new GameObject("Interface");
-        AudioSource somDaInterface = objInterface.AddComponent<AudioSource>();
-        somDaInterface.playOnAwake = false;
-        somDaInterface.spatialBlend = 0f;
         TelaDoJogo tela = objInterface.AddComponent<TelaDoJogo>();
         tela.fonteTexto = AssetDatabase.LoadAssetAtPath<Font>(Fontes + "Jersey15.ttf");
         tela.fonteTitulo = AssetDatabase.LoadAssetAtPath<Font>(Fontes + "Jacquard12.ttf");
         tela.coracao = AssetDatabase.LoadAssetAtPath<Texture2D>(Icones + "fb659.png");
         tela.bolsa = AssetDatabase.LoadAssetAtPath<Texture2D>(Icones + "fb158.png");
         tela.molduraPequena = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "MolduraPequena.png");
-        tela.molduraGrande = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "MolduraGrande.png");
         tela.barraDourada = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "BarraDourada.png");
-        tela.botao = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "BotaoLosango.png");
-        tela.ponteiro = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "Ponteiro.png");
-        Preencher(tela, "somDeMover", Som("Menu.wav"));
-        Preencher(tela, "somDeEscolher", Som("MenuConfirmar.wav"));
-        Preencher(tela, "somDeAbrir", Som("MenuAbrir.wav"));
-        Preencher(tela, "somDeFechar", Som("MenuFechar.wav"));
 
         // O boneco de treino na clareira do comeco.
         GameObject boneco = (GameObject)PrefabUtility.InstantiatePrefab(prefabDoBoneco);

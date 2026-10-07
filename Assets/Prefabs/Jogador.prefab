@@ -547,10 +547,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d957cbf2ebb46dbbe36136c9abf2ae8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MorteDoJogador
-  camaraLenta: 0.3
-  duracaoDaCamaraLenta: 0.8
-  escurecer: 1.2
-  esperaNoEscuro: 0.8
 --- !u!114 &5113420987766120401
 MonoBehaviour:
   m_ObjectHideFlags: 0

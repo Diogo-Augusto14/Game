@@ -54,7 +54,8 @@ public class CameraDoJogo : MonoBehaviour
     /// <summary>Treme a camera. Um tremor fraco nao apaga um forte que ainda esta acontecendo.</summary>
     public static void Tremer(float forca, float segundos)
     {
-        if (atual == null || forca <= 0f || segundos <= 0f)
+        // Da pra desligar nas configuracoes.
+        if (atual == null || forca <= 0f || segundos <= 0f || !Opcoes.TremorLigado)
             return;
 
         float restante = Mathf.Max(0f, atual.tremorAte - Time.time);

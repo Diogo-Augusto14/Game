@@ -20,7 +20,8 @@ mudado à mão na cena e no prefab se perde.
 | Mouse | analógico direito (solto: mira pra onde anda) | Mirar |
 | Botão esquerdo (segurar) | `RT` ou `RB` | Atirar |
 | `Espaço`, `Shift` ou botão direito | `LT`, `LB` ou `A` | Esquiva |
-| `Esc` | `Start` | Pausar |
+| `Esc` ou `P` | `Start` | Pausar |
+| `M` / `N` | `LB` / `RB` (nos menus) | Música / efeitos liga e desliga |
 | `Q` ou a roda do mouse | `Y` | Trocar de arma |
 | `R` | `X` | Recarregar |
 | `E` | `B` | Pegar arma, abrir baú |
@@ -63,7 +64,7 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `CursorDaMira` | Troca o cursor por uma mira enquanto o mouse mira; com o controle, o cursor some |
 | `Vida` | 6 de vida; depois de um golpe, 1 segundo sem tomar outro. A esquiva também protege (o `MovimentoDoJogador` é um `IInvulneravel`) |
 | `PiscarAoTomarDano` | Fica branco no golpe e pisca durante o segundo sem dano |
-| `MorteDoJogador` | Vida acabou: desliga os controles, o corpo cai, câmera lenta, a tela escurece e aparece a tela do fim da partida |
+| `MorteDoJogador` | Vida acabou: desliga os controles, o corpo cai e abre a `TelaDeFimDeJogo` (câmera lenta, escurece, resumo) |
 
 Fora do jogador: `Projetil` (o tiro em voo: vai até o alcance e some, ou some ao bater em algo sólido;
 parede ele procura olhando o caminho da frente a cada passo, então não atravessa parede nenhuma) e
@@ -127,28 +128,38 @@ pasta do pacote descompactado: ele refaz as folhas em `Assets/Arte/OldPrison` e 
 
 ## A interface
 
-Tudo no objeto **Interface** da cena (`TelaDoJogo`), desenhado no OnGUI com a arte do pacote de
-interface (`Assets/Arte/Resources/InterfaceDragao`: molduras, botões, a barra dourada, o ponteiro), os
-ícones (o coração, a bolsa) e duas fontes em pixel: **Jersey 15** pros textos e **Jacquard 12** (gótica)
-pros títulos. Os desenhos ficam sempre em múltiplos inteiros do tamanho original (`Desenho.U`: 1 até
-810 de altura, 2 em 1080, 3 em 1440), pra os pixels saírem quadrados.
+Duas partes:
 
-| Script | O que faz |
+- **O HUD** (objeto **Interface** da cena, `TelaDoJogo` + `HudDoJogo`): vida em corações, andar e
+  inimigos, a arma na moldura com munição e recarga, a barra do chefe, o nome do andar e a dica do que
+  dá pra usar. Desenhado no OnGUI em pixel art de tamanho inteiro (`Desenho`). Some com qualquer menu
+  aberto (o OnGUI desenha por cima dos menus).
+- **Os menus, copiados do jogo antigo** (`Assets/Scripts/Interface`), montados por código em canvas
+  (uGUI), com a arte do Dragon Regalia (faixas, molduras, botões de losango, ponteiro, setas), as
+  fontes Jersey 15 e Jacquard 12, os desenhos das teclas e dos botões do controle nas dicas (trocam
+  sozinhos entre teclado e controle, Xbox ou PlayStation), a transição escura entre telas e a música.
+
+| Tela | O que tem |
 |---|---|
-| `TelaDoJogo` | Os estados: menu inicial, jogando, pausado, controles e fim da partida. Parar o jogo é o tempo parado (`Time.timeScale = 0`). Nos menus vale mouse, teclado (setas ou W/S, Enter) e controle (direcional, A escolhe, B volta) |
-| `HudDoJogo` | Durante o jogo: a vida em corações (cada um vale 2), o andar e quantos inimigos faltam, a arma na moldura com nome, munição, recarga e a outra arma, a barra do chefe, o nome do andar ao chegar e a dica do que dá pra usar perto |
-| `Desenho` | Ajudas pra desenhar em pixel art: pedaço de imagem, sprite, moldura em 9 partes (os cantos não esticam), texto com sombra |
-| `Partida` | O que a partida conta pra tela do fim (andar, inimigos derrotados, tempo) e o "jogar de novo" que pula o menu quando a cena recarrega |
+| `TelaDeInicio` | Título com a faixa rosa, o herói (retrato animado, descrição, números; as setas aparecem quando tiver mais de um), Jogar, Configurações e Sair do jogo, os controles com o desenho das teclas, os créditos e a versão. Só na primeira vez: "tentar de novo" vai direto pro jogo |
+| `TelaDeOpcoes` | Volume da música e dos efeitos (barras), tela cheia, resolução e tremor da tela, tudo salvo (`Opcoes`) |
+| `TelaDePausa` | `Esc`, `P` ou `Start`: o andar, as armas, Continuar, Reiniciar partida, Configurações, Menu principal e Sair do jogo |
+| `TelaDeFimDeJogo` | Morreu (clarão vermelho) ou venceu (dourado): câmera lenta, o retrato do herói caindo ou parado, o resumo (herói, andar, tempo, inimigos e chefes derrotados, armas) e Tentar de novo, Menu principal, Sair do jogo |
+| `TelaDeNovidades` | Na primeira vez que abre uma versão nova, as novidades dela (as notas do lançador) |
 
-| Tela | Opções |
+| Peça | O que faz |
 |---|---|
-| Menu inicial (por cima da primeira caverna) | Jogar, Controles, Sair |
-| Pausa (`Esc` ou `Start`) | Continuar, Controles, Recomeçar, Menu inicial, Sair |
-| Fim da partida (morreu ou venceu) | Jogar de novo, Menu inicial |
+| `TelaSimples`, `MenuDeBotoes` | Montar canvas, textos, painéis e a coluna de botões animados (teclado, controle e mouse) |
+| `TransicaoDeTela` | Escurece, troca (recarregar a cena, voltar ao menu) e clareia |
+| `ArteDaInterface`, `FonteDoJogo`, `IconeDeTecla`, `DicaDupla` | A arte e as fontes lidas de `Resources`, e as dicas com o desenho das teclas |
+| `Controle` | O controle nos menus (qual foi mexido por último, Xbox ou PlayStation) |
+| `Sons`, `Musica` | Os sons dos menus e a música: menu, uma por caverna, chefe, chefe final, vitória e fim de jogo. `M` liga e desliga a música, `N` os efeitos |
+| `ResumoDaPartida`, `VersaoDoJogo`, `Herois` | Os números da partida, a versão instalada e os heróis da escolha (por enquanto só o Arqueiro) |
 
-Saindo de um menu, os botões do jogador só voltam a valer depois de soltos (o clique em "Continuar" não
-vira tiro). Os outros que desenham na tela ficam embaixo da interface: a seta do inimigo mais perto (o
-`GeradorDoAndar`) e o escuro da morte (a `MorteDoJogador`).
+O volume dos efeitos é o do `AudioListener` (vale pra todos os sons do jogo); a música fica de fora e
+tem o volume dela. Do jogo antigo **ficaram de fora** o "Continuar" (partida salva), a tela de
+"Progresso" (conquistas e bestiário) e os "números de dano": dependem de sistemas que o jogo novo ainda
+não tem.
 
 ## Vida e dano
 

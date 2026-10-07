@@ -92,10 +92,28 @@
     <Compile Include="Assets\Scripts\Inimigos\IAnimavel.cs" />
     <Compile Include="Assets\Scripts\Inimigos\Chefe.cs" />
     <Compile Include="Assets\Scripts\Andar\Arena.cs" />
-    <Compile Include="Assets\Scripts\Nucleo\Partida.cs" />
     <Compile Include="Assets\Scripts\Interface\Desenho.cs" />
     <Compile Include="Assets\Scripts\Interface\HudDoJogo.cs" />
     <Compile Include="Assets\Scripts\Interface\TelaDoJogo.cs" />
+    <Compile Include="Assets\Scripts\Interface\ArteDaInterface.cs" />
+    <Compile Include="Assets\Scripts\Interface\DicaDupla.cs" />
+    <Compile Include="Assets\Scripts\Interface\FonteDoJogo.cs" />
+    <Compile Include="Assets\Scripts\Interface\IconeDeTecla.cs" />
+    <Compile Include="Assets\Scripts\Interface\MenuDeBotoes.cs" />
+    <Compile Include="Assets\Scripts\Interface\Opcoes.cs" />
+    <Compile Include="Assets\Scripts\Interface\ResumoDaPartida.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDeFimDeJogo.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDeInicio.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDeNovidades.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDeOpcoes.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDePausa.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaSimples.cs" />
+    <Compile Include="Assets\Scripts\Interface\TransicaoDeTela.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\Controle.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\VersaoDoJogo.cs" />
+    <Compile Include="Assets\Scripts\Audio\Musica.cs" />
+    <Compile Include="Assets\Scripts\Audio\Sons.cs" />
+    <Compile Include="Assets\Scripts\Jogador\Herois.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StreamingAssets\CREDITOS-AUDIO.txt" />

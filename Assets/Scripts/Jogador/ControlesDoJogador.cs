@@ -123,6 +123,11 @@ public class ControlesDoJogador : MonoBehaviour
         recarregar.Disable();
         interagir.Disable();
         Trocou = Recarregou = Interagiu = false;
+
+        // Desligado (um menu travou o jogador): solta tudo, e ao voltar os botoes so valem depois de soltos.
+        Movimento = Vector2.zero;
+        Atirando = false;
+        esperandoSoltar = true;
     }
 
     private void OnDestroy()
