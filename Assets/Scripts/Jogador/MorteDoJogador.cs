@@ -28,7 +28,6 @@ public class MorteDoJogador : MonoBehaviour
     private Vida vida;
     private float escuro;
     private bool mexeuNoTempo;
-    private GUIStyle estiloDoTexto;
 
     private void Awake()
     {
@@ -91,7 +90,11 @@ public class MorteDoJogador : MonoBehaviour
         escuro = 1f;
         yield return new WaitForSecondsRealtime(esperaNoEscuro);
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // A tela do fim (morreu); sem ela, recomeca direto.
+        if (TelaDoJogo.Atual != null)
+            TelaDoJogo.Atual.Fim(false);
+        else
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     private void OnGUI()
@@ -99,19 +102,10 @@ public class MorteDoJogador : MonoBehaviour
         if (escuro <= 0f)
             return;
 
-        GUI.color = new Color(0f, 0f, 0f, escuro);
+        // Embaixo da interface: a tela do fim aparece por cima do escuro.
+        GUI.depth = 5;
+        GUI.color = new Color(0f, 0f, 0f, escuro * 0.75f);
         GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
-
-        if (estiloDoTexto == null)
-        {
-            estiloDoTexto = new GUIStyle(GUI.skin.label)
-            {
-                alignment = TextAnchor.MiddleCenter,
-                fontSize = Mathf.Max(24, Screen.height / 14),
-            };
-        }
-
-        GUI.color = new Color(1f, 1f, 1f, escuro);
-        GUI.Label(new Rect(0f, 0f, Screen.width, Screen.height), "Fim da partida", estiloDoTexto);
+        GUI.color = Color.white;
     }
 }

@@ -10,7 +10,7 @@ cena aberta (menu **Jogo ▸ Play sempre pela cena do jogo**, marcado = ligado).
 
 A cena é feita de objetos de verdade, editáveis no Inspector: o **Jogador** (um prefab, em
 `Assets/Prefabs/Jogador.prefab`), a **Main Camera**, a **Luz global**, o **Andar** (que cava a caverna
-ao dar Play e espalha os Bruxos, um prefab) e o **Boneco de treino** (prefab), na clareira do começo. O menu
+ao dar Play e espalha os Bruxos, um prefab) e o **Boneco de treino** (prefab), na clareira do começo. Também tem a **Interface** (o HUD e os menus). O menu
 **Jogo ▸ Montar a cena do zero** (`Assets/Editor/MontarJogo.cs`) refaz tudo como no começo: o que foi
 mudado à mão na cena e no prefab se perde.
 
@@ -20,6 +20,7 @@ mudado à mão na cena e no prefab se perde.
 | Mouse | analógico direito (solto: mira pra onde anda) | Mirar |
 | Botão esquerdo (segurar) | `RT` ou `RB` | Atirar |
 | `Espaço`, `Shift` ou botão direito | `LT`, `LB` ou `A` | Esquiva |
+| `Esc` | `Start` | Pausar |
 | `Q` ou a roda do mouse | `Y` | Trocar de arma |
 | `R` | `X` | Recarregar |
 | `E` | `B` | Pegar arma, abrir baú |
@@ -34,6 +35,7 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, o boneco de treino |
 | `Assets/Scripts/Andar` | A caverna: cavar, construir as paredes, espalhar os inimigos, a saída e a troca de andar |
 | `Assets/Scripts/Mundo` | A câmera |
+| `Assets/Scripts/Interface` | O HUD, o menu inicial, a pausa, os controles e o fim da partida |
 | `Assets/Scripts/Nucleo` | Peças pequenas usadas por todo lado (cortar folha de animação, efeito que toca uma vez) |
 | `Assets/Shaders` | `Silhueta`: pinta o desenho de uma cor só (o branco do golpe) |
 | `Assets/Editor` | Montar a cena e o Play pela cena do jogo |
@@ -57,12 +59,11 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `RastroDaEsquiva` | As cópias azuladas que ficam pra trás na esquiva |
 | `ArmaDoJogador` | As duas armas: a do personagem (o arco, infinito, nunca sai da mão) e a achada. Troca entre elas, atira pra onde mira no ritmo da arma, gasta o pente, recarrega (sozinha com o pente vazio, ou com `R`); sem munição, só o clique. Não atira no meio da esquiva |
 | `ArmaNaMao` | Desenha a arma achada na mão, girando pra mira, com o coice do tiro (com o arco não aparece nada: ele já está no desenho do Arqueiro) |
-| `InteracaoDoJogador` | Acha a coisa usável mais perto (arma no chão, baú), mostra a dica em cima ("E: pegar Tomo das Brasas") e usa no `E` |
-| `HudDaArma` | No canto de baixo: a arma, a munição (pente / reserva), a recarga e a outra arma. Provisório até a etapa 7 |
+| `InteracaoDoJogador` | Acha a coisa usável mais perto (arma no chão, baú) e usa no `E` (a dica em cima dela é da interface) |
 | `CursorDaMira` | Troca o cursor por uma mira enquanto o mouse mira; com o controle, o cursor some |
 | `Vida` | 6 de vida; depois de um golpe, 1 segundo sem tomar outro. A esquiva também protege (o `MovimentoDoJogador` é um `IInvulneravel`) |
 | `PiscarAoTomarDano` | Fica branco no golpe e pisca durante o segundo sem dano |
-| `MorteDoJogador` | Vida acabou: desliga os controles, o corpo cai, câmera lenta, a tela escurece e a partida recomeça |
+| `MorteDoJogador` | Vida acabou: desliga os controles, o corpo cai, câmera lenta, a tela escurece e aparece a tela do fim da partida |
 
 Fora do jogador: `Projetil` (o tiro em voo: vai até o alcance e some, ou some ao bater em algo sólido;
 parede ele procura olhando o caminho da frente a cada passo, então não atravessa parede nenhuma) e
@@ -123,6 +124,31 @@ As paredes ficam atrás de quem anda: quem encosta na parede de cima fica na fre
 
 Pra trazer o pacote de novo (outra versão, outra cor), rodar `Ferramentas/OldPrison/importar.py` com a
 pasta do pacote descompactado: ele refaz as folhas em `Assets/Arte/OldPrison` e o `DadosDoOldPrison.cs`.
+
+## A interface
+
+Tudo no objeto **Interface** da cena (`TelaDoJogo`), desenhado no OnGUI com a arte do pacote de
+interface (`Assets/Arte/Resources/InterfaceDragao`: molduras, botões, a barra dourada, o ponteiro), os
+ícones (o coração, a bolsa) e duas fontes em pixel: **Jersey 15** pros textos e **Jacquard 12** (gótica)
+pros títulos. Os desenhos ficam sempre em múltiplos inteiros do tamanho original (`Desenho.U`: 1 até
+810 de altura, 2 em 1080, 3 em 1440), pra os pixels saírem quadrados.
+
+| Script | O que faz |
+|---|---|
+| `TelaDoJogo` | Os estados: menu inicial, jogando, pausado, controles e fim da partida. Parar o jogo é o tempo parado (`Time.timeScale = 0`). Nos menus vale mouse, teclado (setas ou W/S, Enter) e controle (direcional, A escolhe, B volta) |
+| `HudDoJogo` | Durante o jogo: a vida em corações (cada um vale 2), o andar e quantos inimigos faltam, a arma na moldura com nome, munição, recarga e a outra arma, a barra do chefe, o nome do andar ao chegar e a dica do que dá pra usar perto |
+| `Desenho` | Ajudas pra desenhar em pixel art: pedaço de imagem, sprite, moldura em 9 partes (os cantos não esticam), texto com sombra |
+| `Partida` | O que a partida conta pra tela do fim (andar, inimigos derrotados, tempo) e o "jogar de novo" que pula o menu quando a cena recarrega |
+
+| Tela | Opções |
+|---|---|
+| Menu inicial (por cima da primeira caverna) | Jogar, Controles, Sair |
+| Pausa (`Esc` ou `Start`) | Continuar, Controles, Recomeçar, Menu inicial, Sair |
+| Fim da partida (morreu ou venceu) | Jogar de novo, Menu inicial |
+
+Saindo de um menu, os botões do jogador só voltam a valer depois de soltos (o clique em "Continuar" não
+vira tiro). Os outros que desenham na tela ficam embaixo da interface: a seta do inimigo mais perto (o
+`GeradorDoAndar`) e o escuro da morte (a `MorteDoJogador`).
 
 ## Vida e dano
 
@@ -201,7 +227,7 @@ pra testar as armas: a vida dele é imortal, ele pisca e balança na estaca pro 
 
 Cada chefe tem um **andar só dele**: um salão (a `Arena`) sem caverna e sem inimigos comuns, com quatro
 pilares pra se esconder dos tiros. O jogador entra por baixo, o chefe espera no meio de cima. Depois
-de uma apresentação de 2 segundos (o nome e a barra de vida aparecem no alto da tela), ele alterna os
+de uma apresentação de 2 segundos (aí o nome e a barra de vida aparecem no alto da tela), ele alterna os
 ataques sem repetir o mesmo duas vezes seguidas, andando um pouco entre eles. Com metade da vida entra
 em **fúria**: fica avermelhado, mais rápido, e ganha um ataque a mais. Morto, o portal abre e cai um
 baú no meio do salão.
@@ -213,7 +239,7 @@ baú no meio do salão.
 
 | Script | O que faz |
 |---|---|
-| `Chefe` | A luta: apresentação, escolha dos ataques, investidas, rajadas, fúria e a barra de vida (provisória até a etapa 7). Cada ataque (`AtaqueDoChefe`) diz a arma (o padrão), quantas investidas, o preparo, qual animação toca e se é só da fúria |
+| `Chefe` | A luta: apresentação, escolha dos ataques, investidas, rajadas e fúria (a barra de vida é da interface). Cada ataque (`AtaqueDoChefe`) diz a arma (o padrão), quantas investidas, o preparo, qual animação toca e se é só da fúria |
 | `IAnimavel` | O que a `AnimacaoDoInimigo` precisa saber (pra onde olha, se anda, quando ataca): serve pro inimigo comum e pro chefe |
 | `AnimacaoDoInimigo` | Ganhou `outrosAtaques`: mais folhas de ataque, cada uma com o quadro do golpe (o chefe escolhe qual toca) |
 

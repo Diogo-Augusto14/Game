@@ -85,7 +85,6 @@
     <Compile Include="Assets\Scripts\Armas\ArmaNoChao.cs" />
     <Compile Include="Assets\Scripts\Armas\CaixaDeMunicao.cs" />
     <Compile Include="Assets\Scripts\Armas\Bau.cs" />
-    <Compile Include="Assets\Scripts\Armas\HudDaArma.cs" />
     <Compile Include="Assets\Scripts\Jogador\InteracaoDoJogador.cs" />
     <Compile Include="Assets\Scripts\Armas\Rajada.cs" />
     <Compile Include="Assets\Scripts\Inimigos\DanoAoEncostar.cs" />
@@ -93,6 +92,10 @@
     <Compile Include="Assets\Scripts\Inimigos\IAnimavel.cs" />
     <Compile Include="Assets\Scripts\Inimigos\Chefe.cs" />
     <Compile Include="Assets\Scripts\Andar\Arena.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\Partida.cs" />
+    <Compile Include="Assets\Scripts\Interface\Desenho.cs" />
+    <Compile Include="Assets\Scripts\Interface\HudDoJogo.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDoJogo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StreamingAssets\CREDITOS-AUDIO.txt" />

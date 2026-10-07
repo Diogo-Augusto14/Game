@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Acha a coisa usavel mais perto (<see cref="Interativo"/>: arma no chao, bau), mostra a dica em
-/// cima dela ("E: pegar Tomo das Brasas") e usa quando o jogador aperta interagir.
+/// Acha a coisa usavel mais perto (<see cref="Interativo"/>: arma no chao, bau) e usa quando o
+/// jogador aperta interagir. A <see cref="TelaDoJogo"/> mostra a dica em cima dela ("E  abrir o bau").
 /// </summary>
 [DisallowMultipleComponent]
 public class InteracaoDoJogador : MonoBehaviour
@@ -10,8 +10,9 @@ public class InteracaoDoJogador : MonoBehaviour
     private ControlesDoJogador controles;
     private Vida vida;
     private Interativo perto;
-    private Camera cam;
-    private GUIStyle estilo;
+
+    /// <summary>A coisa usavel mais perto agora (nula se nao tem nenhuma no alcance).</summary>
+    public Interativo Perto => perto;
 
     private void Awake()
     {
@@ -44,27 +45,5 @@ public class InteracaoDoJogador : MonoBehaviour
 
         if (perto != null && controles.Interagiu)
             perto.Usar(gameObject);
-    }
-
-    private void OnGUI()
-    {
-        if (perto == null)
-            return;
-
-        if (cam == null)
-            cam = Camera.main;
-
-        if (cam == null)
-            return;
-
-        if (estilo == null)
-        {
-            estilo = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.LowerCenter, fontSize = Mathf.Max(14, Screen.height / 40) };
-        }
-
-        Vector3 naTela = cam.WorldToScreenPoint(perto.transform.position + Vector3.up * 0.9f);
-        Rect lugar = new Rect(naTela.x - 150f, Screen.height - naTela.y - 30f, 300f, 30f);
-        GUI.color = Color.white;
-        GUI.Label(lugar, "E: " + perto.Dica, estilo);
     }
 }

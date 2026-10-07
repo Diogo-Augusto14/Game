@@ -15,8 +15,9 @@ using UnityEngine.SceneManagement;
 /// um salao so dele (<see cref="Arena"/>): matou o chefe, o portal abre e cai um bau. Depois do ultimo
 /// andar, a partida acaba em vitoria e recomeca.
 ///
-/// Na tela: o nome do andar ao chegar, quantos inimigos faltam e, quando sobram poucos, uma seta
-/// na beirada apontando pro mais perto.
+/// Na tela, a <see cref="TelaDoJogo"/> desenha o nome do andar ao chegar, quantos inimigos faltam e o
+/// escuro da troca (daqui ela le); aqui fica so a seta na beirada apontando pro inimigo mais perto,
+/// quando sobram poucos.
 /// </summary>
 [DisallowMultipleComponent]
 public class GeradorDoAndar : MonoBehaviour
@@ -145,8 +146,6 @@ public class GeradorDoAndar : MonoBehaviour
     private float escuro;
     private string nome;
     private float nomeAte;
-    private GUIStyle estiloDoNome;
-    private GUIStyle estiloDoContador;
     private Texture2D seta;
 
     /// <summary>O andar atual (o primeiro e 1).</summary>
@@ -157,6 +156,24 @@ public class GeradorDoAndar : MonoBehaviour
 
     /// <summary>O andar atual e o de um chefe.</summary>
     public bool AndarDoChefe => chefe != null;
+
+    /// <summary>O chefe deste andar (nulo nas cavernas).</summary>
+    public Chefe ChefeAtual => chefe;
+
+    /// <summary>O portal pro proximo andar ja abriu.</summary>
+    public bool PortalAberto => saida != null;
+
+    /// <summary>No meio da troca de andar (a tela escurecendo ou clareando).</summary>
+    public bool Trocando => trocando;
+
+    /// <summary>Quanto a tela esta escura na troca de andar (0 = nada, 1 = preta).</summary>
+    public float Escuro => escuro;
+
+    /// <summary>O nome do andar que aparece ao chegar ("Andar 3 de 6: Covil do Minotauro").</summary>
+    public string NomeNaTela => nome;
+
+    /// <summary>Quanto o nome do andar aparece (1 = inteiro; some aos poucos no ultimo segundo).</summary>
+    public float AlfaDoNome => Mathf.Clamp01(nomeAte - Time.unscaledTime);
 
     public Transform Jogador { get; private set; }
 
@@ -204,6 +221,7 @@ public class GeradorDoAndar : MonoBehaviour
             if (vida != null)
             {
                 ondeMorreuOUltimo = vida.transform.position;
+                Partida.InimigosMortos++;
 
                 if (caixaDeMunicao != null && Random.value < chanceDeMunicao)
                     CaixaDeMunicao.Criar(caixaDeMunicao, ondeMorreuOUltimo, raiz.transform, somDaMunicao);
@@ -238,6 +256,9 @@ public class GeradorDoAndar : MonoBehaviour
     }
 
     // ---------------- trocar de andar ----------------
+    /// <summary>Mostra o nome do andar de novo (ao sair do menu inicial, que escondia ele).</summary>
+    public void MostrarNome() => nomeAte = Time.unscaledTime + tempoDoNome;
+
     /// <summary>O jogador pisou na saida: vai pro proximo andar (ou vence, se era o ultimo).</summary>
     public void ProximoAndar()
     {
@@ -252,10 +273,17 @@ public class GeradorDoAndar : MonoBehaviour
 
         if (Andar >= Andares)
         {
-            nome = "Voce venceu!";
-            nomeAte = Time.unscaledTime + tempoDoNome;
-            yield return new WaitForSecondsRealtime(tempoDoNome);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            // Venceu: a tela do fim (sem ela, so recomeca).
+            if (TelaDoJogo.Atual != null)
+            {
+                TelaDoJogo.Atual.Fim(true);
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(tempoDoNome);
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+
             yield break;
         }
 
@@ -311,6 +339,8 @@ public class GeradorDoAndar : MonoBehaviour
         Andar = andar;
         nome = esse != null && !string.IsNullOrEmpty(esse.nome) ? $"Andar {andar} de {Andares}: {esse.nome}" : $"Andar {andar} de {Andares}";
         nomeAte = Time.unscaledTime + tempoDoNome;
+        Partida.Andar = andar;
+        Partida.NomeDoAndar = nome;
         saida = null;
         chefe = null;
         chaoDoAndar = null;
@@ -553,37 +583,11 @@ public class GeradorDoAndar : MonoBehaviour
     // ---------------- na tela ----------------
     private void OnGUI()
     {
-        if (estiloDoNome == null)
-        {
-            estiloDoNome = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperCenter, fontSize = Mathf.Max(22, Screen.height / 16) };
-            estiloDoContador = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperLeft, fontSize = Mathf.Max(16, Screen.height / 30) };
-        }
+        // Embaixo da interface (que desenha o resto e o escuro da troca por cima).
+        GUI.depth = 10;
 
-        if (raiz != null && escuro < 1f)
-        {
-            GUI.color = Color.white;
-            // No andar do chefe, a barra dele ja diz tudo.
-            string texto = saida != null ? "O portal abriu!" : chefe != null ? "" : $"Inimigos: {vivos.Count}";
-            GUI.Label(new Rect(16f, 12f, Screen.width * 0.5f, 60f), texto, estiloDoContador);
-
-            if (chefe == null)
-                DesenharSeta();
-        }
-
-        if (escuro > 0f)
-        {
-            GUI.color = new Color(0f, 0f, 0f, escuro);
-            GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
-        }
-
-        float resta = nomeAte - Time.unscaledTime;
-
-        if (resta > 0f && !string.IsNullOrEmpty(nome))
-        {
-            // Aparece de uma vez e some aos poucos no ultimo segundo.
-            GUI.color = new Color(1f, 1f, 1f, Mathf.Clamp01(resta));
-            GUI.Label(new Rect(0f, Screen.height * 0.12f, Screen.width, Screen.height * 0.2f), nome, estiloDoNome);
-        }
+        if (raiz != null && escuro <= 0f && chefe == null && (TelaDoJogo.Atual == null || !TelaDoJogo.Atual.Parado))
+            DesenharSeta();
     }
 
     // Quando sobram poucos e o mais perto esta fora da tela: uma seta na beirada, apontando pra ele.

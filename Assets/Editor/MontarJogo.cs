@@ -40,6 +40,9 @@ public static class MontarJogo
     private const string Vortice = "Assets/Arte/Resources/Masmorra/Prisao/Vortice.png";
     private const string Poeira = "Assets/Arte/Resources/Efeitos/Poeira.png";
     private const string Sons = "Assets/Arte/Resources/Sons/";
+    private const string Fontes = "Assets/Arte/Resources/Fontes/";
+    private const string Icones = "Assets/Arte/Resources/Icones/";
+    private const string Interface = "Assets/Arte/Resources/InterfaceDragao/";
 
     /// <summary>Todo o desenho do jogo usa 20 pixels por unidade: o boneco (20 px de altura) fica com 1 unidade.</summary>
     public const float PixelsPorUnidade = 20f;
@@ -419,10 +422,9 @@ public static class MontarJogo
 
         raiz.AddComponent<MorteDoJogador>();
 
-        // A arma achada na mao, o "E" pra pegar/abrir e a municao no canto da tela.
+        // A arma achada na mao e o "E" pra pegar/abrir.
         raiz.AddComponent<ArmaNaMao>();
         raiz.AddComponent<InteracaoDoJogador>();
-        raiz.AddComponent<HudDaArma>();
 
         // O desenho do corpo e cortado da folha ao dar Play: na cena parada so aparece a sombra.
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(raiz, PrefabDoJogador);
@@ -627,6 +629,26 @@ public static class MontarJogo
         Preencher(gerador, "caixaDeMunicao", AssetDatabase.LoadAssetAtPath<Sprite>(DesenhoDaCaixa));
         Preencher(gerador, "somDoBau", Som("BauAbre.ogg"));
         Preencher(gerador, "somDaMunicao", Som("Item.ogg"));
+
+        // A interface: o HUD, o menu inicial, a pausa e o fim da partida.
+        GameObject objInterface = new GameObject("Interface");
+        AudioSource somDaInterface = objInterface.AddComponent<AudioSource>();
+        somDaInterface.playOnAwake = false;
+        somDaInterface.spatialBlend = 0f;
+        TelaDoJogo tela = objInterface.AddComponent<TelaDoJogo>();
+        tela.fonteTexto = AssetDatabase.LoadAssetAtPath<Font>(Fontes + "Jersey15.ttf");
+        tela.fonteTitulo = AssetDatabase.LoadAssetAtPath<Font>(Fontes + "Jacquard12.ttf");
+        tela.coracao = AssetDatabase.LoadAssetAtPath<Texture2D>(Icones + "fb659.png");
+        tela.bolsa = AssetDatabase.LoadAssetAtPath<Texture2D>(Icones + "fb158.png");
+        tela.molduraPequena = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "MolduraPequena.png");
+        tela.molduraGrande = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "MolduraGrande.png");
+        tela.barraDourada = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "BarraDourada.png");
+        tela.botao = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "BotaoLosango.png");
+        tela.ponteiro = AssetDatabase.LoadAssetAtPath<Texture2D>(Interface + "Ponteiro.png");
+        Preencher(tela, "somDeMover", Som("Menu.wav"));
+        Preencher(tela, "somDeEscolher", Som("MenuConfirmar.wav"));
+        Preencher(tela, "somDeAbrir", Som("MenuAbrir.wav"));
+        Preencher(tela, "somDeFechar", Som("MenuFechar.wav"));
 
         // O boneco de treino na clareira do comeco.
         GameObject boneco = (GameObject)PrefabUtility.InstantiatePrefab(prefabDoBoneco);

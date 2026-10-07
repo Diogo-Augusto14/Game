@@ -61,6 +61,8 @@ public class ControlesDoJogador : MonoBehaviour
     /// <summary>Apertou pra interagir neste quadro (pegar arma, abrir bau).</summary>
     public bool Interagiu { get; private set; }
 
+    private bool esperandoSoltar;
+
     private void Awake()
     {
         mover = new InputAction("Mover", InputActionType.Value);
@@ -137,19 +139,27 @@ public class ControlesDoJogador : MonoBehaviour
 
     private void Update()
     {
-        // Jogo parado (pausa, menu): nada daqui vale.
+        // Jogo parado (pausa, menu): nada daqui vale. Saindo do menu, os botoes so voltam a valer depois
+        // de soltos (o clique ou o espaco que escolheu "Continuar" nao vira tiro nem esquiva).
         bool jogando = Time.timeScale > 0f;
 
-        Movimento = jogando ? Vector2.ClampMagnitude(mover.ReadValue<Vector2>(), 1f) : Vector2.zero;
-        Atirando = jogando && atirar.IsPressed();
+        if (!jogando)
+            esperandoSoltar = true;
+        else if (esperandoSoltar && !atirar.IsPressed() && !esquivar.IsPressed())
+            esperandoSoltar = false;
 
-        if (jogando && esquivar.WasPressedThisFrame())
+        bool botoes = jogando && !esperandoSoltar;
+
+        Movimento = jogando ? Vector2.ClampMagnitude(mover.ReadValue<Vector2>(), 1f) : Vector2.zero;
+        Atirando = botoes && atirar.IsPressed();
+
+        if (botoes && esquivar.WasPressedThisFrame())
             esquivaPedidaEm = Time.time;
 
         float roda = Mouse.current != null ? Mouse.current.scroll.ReadValue().y : 0f;
-        Trocou = jogando && (trocar.WasPressedThisFrame() || Mathf.Abs(roda) > 0.01f);
-        Recarregou = jogando && recarregar.WasPressedThisFrame();
-        Interagiu = jogando && interagir.WasPressedThisFrame();
+        Trocou = botoes && (trocar.WasPressedThisFrame() || Mathf.Abs(roda) > 0.01f);
+        Recarregou = botoes && recarregar.WasPressedThisFrame();
+        Interagiu = botoes && interagir.WasPressedThisFrame();
 
         LerMira();
     }

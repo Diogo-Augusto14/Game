@@ -9,7 +9,7 @@ using UnityEngine;
 /// - ou da investidas seguidas (com arma tambem, ela dispara no fim de cada investida).
 ///
 /// Com pouca vida entra em furia: fica mais rapido e ganha os ataques marcados "so na furia".
-/// No alto da tela, o nome e a barra de vida (provisoria, ate a interface da etapa 7).
+/// No alto da tela, a <see cref="TelaDoJogo"/> mostra o nome e a barra de vida.
 ///
 /// Morrer e com a <see cref="Vida"/> e a <see cref="MorteDoInimigo"/>, como qualquer inimigo; o
 /// <see cref="GeradorDoAndar"/> abre o portal quando ele cai.
@@ -72,9 +72,13 @@ public class Chefe : MonoBehaviour, IAnimavel
     private float velocidadeDaInvestida;
     private int ultimo = -1;
     private bool apresentou;
-    private GUIStyle estiloDoNome;
 
     public string Nome => nome;
+
+    public Vida Vida => vida;
+
+    /// <summary>Ja passou a apresentacao (a barra de vida aparece).</summary>
+    public bool Apresentou => apresentou;
 
     public bool NaFuria { get; private set; }
 
@@ -325,27 +329,6 @@ public class Chefe : MonoBehaviour, IAnimavel
             audioSource.PlayOneShot(som, quanto < 0f ? volume : quanto);
     }
 
-    // O nome e a barra de vida no alto da tela (provisorio: a interface de verdade vem na etapa 7).
-    private void OnGUI()
-    {
-        if (!apresentou || vida.Morto)
-            return;
-
-        if (estiloDoNome == null)
-            estiloDoNome = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.LowerCenter, fontSize = Mathf.Max(16, Screen.height / 32) };
-
-        float largura = Screen.width * 0.5f;
-        float altura = Mathf.Max(10f, Screen.height / 50f);
-        Rect barra = new Rect((Screen.width - largura) * 0.5f, Screen.height * 0.07f, largura, altura);
-
-        GUI.color = Color.white;
-        GUI.Label(new Rect(barra.x, barra.y - 40f, largura, 38f), nome, estiloDoNome);
-        GUI.color = new Color(0f, 0f, 0f, 0.7f);
-        GUI.DrawTexture(new Rect(barra.x - 2f, barra.y - 2f, barra.width + 4f, barra.height + 4f), Texture2D.whiteTexture);
-        GUI.color = NaFuria ? new Color(1f, 0.35f, 0.2f) : new Color(0.85f, 0.15f, 0.2f);
-        GUI.DrawTexture(new Rect(barra.x, barra.y, barra.width * vida.Fracao, barra.height), Texture2D.whiteTexture);
-        GUI.color = Color.white;
-    }
 }
 
 /// <summary>Um ataque do chefe: o padrao (arma), as investidas, o preparo e a animacao.</summary>

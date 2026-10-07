@@ -27,8 +27,8 @@ de novo.
 | 3 | **Andares gigantes** (feita) | Cada andar é uma caverna enorme e aberta, sem salas nem portas (como no Nuclear Throne); matar todos os inimigos abre o portal pro próximo andar. Com a arte do Old Prison (paredes, buracos de abismo, poças, enfeites), montada pelas regras do Tiled do pacote |
 | 4 | **Armas** (feita) | Achar arma no chão e no baú, carregar duas (a do personagem e uma achada) e trocar, munição por arma com pente e recarga, bolsas de munição. Armas de fantasia (varinha, tomo, besta, cajado, machado). Os inimigos contornam parede pra chegar em você |
 | 5 | **Inimigos e padrões** (feita, falta jogar) | Esqueleto (investida), Gosma (estoura em gotas), Esqueleto Arqueiro (leque, recua), Necromante (anéis), Olho (espiral), além do Bruxo; os mais difíceis só nos andares 2 e 3. Padrões de bala na arma: leque, anel, rajada, espiral, tiro que freia ou acelera |
-| 6 | **Chefes** (feita, falta jogar) | Cada chefe tem um andar só dele, um salão com pilares: Minotauro no andar 3 e Golem de Brasa no andar 6 (o final). Ataques que se alternam, fúria com metade da vida, barra de vida, baú de prêmio |
-| 7 | Interface | Vida, munição e a arma desenhadas na tela de verdade (hoje é texto provisório), menu inicial, pausa e tela de fim de jogo (morreu ou venceu) |
+| 6 | **Chefes** (feita) | Cada chefe tem um andar só dele, um salão com pilares: Minotauro no andar 3 e Golem de Brasa no andar 6 (o final). Ataques que se alternam, fúria com metade da vida, barra de vida, baú de prêmio |
+| 7 | **Interface** (feita, falta jogar) | Vida em corações, a arma na moldura com a munição, a barra do chefe, menu inicial, pausa, tela de controles e tela de fim de jogo (morreu ou venceu, com andar, inimigos e tempo), com a arte de interface e fontes em pixel |
 | 8 | Personagens | Vários personagens, cada um com uma habilidade e começando com uma arma diferente. A arma do começo também pode ser trocada (senão o primeiro arco fica inútil no fim do jogo) |
 
 ## Decisões que ficam pra hora certa

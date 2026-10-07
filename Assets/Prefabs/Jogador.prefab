@@ -205,7 +205,6 @@ GameObject:
   - component: {fileID: 438313023371658352}
   - component: {fileID: 5113420987766120401}
   - component: {fileID: 5113420987766120402}
-  - component: {fileID: 5113420987766120403}
   m_Layer: 0
   m_Name: Jogador
   m_TagString: Player
@@ -578,15 +577,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d46c437e0fd425b92ad60e8ab43db6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteracaoDoJogador
---- !u!114 &5113420987766120403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8326051028863995579}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb2303969b5041ec81a4a0a1277b61b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HudDaArma
