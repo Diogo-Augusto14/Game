@@ -23,6 +23,9 @@ public static class MontarJogo
     private const string PrefabDoBoneco = "Assets/Prefabs/BonecoDeTreino.prefab";
     private const string ArmaDoArqueiro = "Assets/Dados/Armas/ArcoDoArqueiro.asset";
     private const string ArmaDoBruxo = "Assets/Dados/Armas/MagiaDoBruxo.asset";
+    private const string PastaDasArmas = "Assets/Dados/Armas/";
+    private const string FolhaDoBau = "Assets/Arte/Resources/Masmorra/Prisao/BauDeMadeira.png";
+    private const string DesenhoDaCaixa = "Assets/Arte/Armas/CaixaDeMunicao.png";
     private const string PastaGerada = "Assets/Arte/Gerada";
     private const string Mira = PastaGerada + "/Mira.png";
     private const string Sombra = PastaGerada + "/Sombra.png";
@@ -316,6 +319,9 @@ public static class MontarJogo
         arco.tremor = 0.02f;
         arco.som = Som("Tiro.ogg");
         arco.volume = 0.4f;
+        // A arma do personagem: nunca acaba e nunca sai do bau.
+        arco.infinita = true;
+        arco.pesoNoBau = 0f;
         EditorUtility.SetDirty(arco);
         return arco;
     }
@@ -348,6 +354,8 @@ public static class MontarJogo
         magia.tremor = 0f;
         magia.som = Som("TiroInimigo.ogg");
         magia.volume = 0.35f;
+        magia.infinita = true;
+        magia.pesoNoBau = 0f;
         EditorUtility.SetDirty(magia);
         return magia;
     }
@@ -378,6 +386,8 @@ public static class MontarJogo
 
         ArmaDoJogador arma = raiz.AddComponent<ArmaDoJogador>();
         Preencher(arma, "arma", arco);
+        Preencher(arma, "somSemMunicao", Som("Negado.ogg"));
+        Preencher(arma, "somDaTroca", Som("Chave.ogg"));
 
         AnimacaoDoJogador animacao = raiz.AddComponent<AnimacaoDoJogador>();
         Preencher(animacao, "corpo", desenhoDoCorpo);
@@ -408,6 +418,11 @@ public static class MontarJogo
         Ajustar(piscar, "piscarNoTempoSemDano", true);
 
         raiz.AddComponent<MorteDoJogador>();
+
+        // A arma achada na mao, o "E" pra pegar/abrir e a municao no canto da tela.
+        raiz.AddComponent<ArmaNaMao>();
+        raiz.AddComponent<InteracaoDoJogador>();
+        raiz.AddComponent<HudDaArma>();
 
         // O desenho do corpo e cortado da folha ao dar Play: na cena parada so aparece a sombra.
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(raiz, PrefabDoJogador);
@@ -562,6 +577,15 @@ public static class MontarJogo
             Preencher(gerador, folha.ToLowerInvariant(), AssetDatabase.LoadAssetAtPath<Texture2D>(OldPrison + folha + ".png"));
         Preencher(gerador, "vortice", AssetDatabase.LoadAssetAtPath<Texture2D>(Vortice));
         Preencher(gerador, "portalAbrindo", Som("Segredo.ogg"));
+
+        // As armas que caem dos baus e do chao (feitas por Ferramentas/Armas; os .asset ja vem no projeto).
+        PreencherLista(gerador, "armas", System.Array.ConvertAll(
+            new[] { "Pistola", "Escopeta", "Metralhadora", "Rifle", "Besta" },
+            nome => (Object)AssetDatabase.LoadAssetAtPath<DadosDaArma>(PastaDasArmas + nome + ".asset")));
+        Preencher(gerador, "bau", AssetDatabase.LoadAssetAtPath<Texture2D>(FolhaDoBau));
+        Preencher(gerador, "caixaDeMunicao", AssetDatabase.LoadAssetAtPath<Sprite>(DesenhoDaCaixa));
+        Preencher(gerador, "somDoBau", Som("BauAbre.ogg"));
+        Preencher(gerador, "somDaMunicao", Som("Item.ogg"));
 
         // O boneco de treino na clareira do comeco.
         GameObject boneco = (GameObject)PrefabUtility.InstantiatePrefab(prefabDoBoneco);

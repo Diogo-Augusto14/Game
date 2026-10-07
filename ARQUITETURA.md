@@ -20,13 +20,16 @@ mudado à mão na cena e no prefab se perde.
 | Mouse | analógico direito (solto: mira pra onde anda) | Mirar |
 | Botão esquerdo (segurar) | `RT` ou `RB` | Atirar |
 | `Espaço`, `Shift` ou botão direito | `LT`, `LB` ou `A` | Esquiva |
+| `Q` ou a roda do mouse | `Y` | Trocar de arma |
+| `R` | `X` | Recarregar |
+| `E` | `B` | Pegar arma, abrir baú |
 
 ## Pastas
 
 | Pasta | O que tem |
 |---|---|
 | `Assets/Scripts/Jogador` | Controles, movimento e esquiva, animação, rastro da esquiva, cursor de mira, morte |
-| `Assets/Scripts/Armas` | Os dados de uma arma (asset), quem atira e o tiro em voo |
+| `Assets/Scripts/Armas` | Os dados de uma arma (asset), a arma com a munição dela, quem atira, o tiro em voo, a arma na mão e no chão, o baú, a caixa de munição e a munição na tela |
 | `Assets/Scripts/Combate` | Vida e dano (a mesma peça pra todo mundo) e o piscar branco |
 | `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, o boneco de treino |
 | `Assets/Scripts/Andar` | A caverna: cavar, construir as paredes, espalhar os inimigos, a saída e a troca de andar |
@@ -35,7 +38,8 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Shaders` | `Silhueta`: pinta o desenho de uma cor só (o branco do golpe) |
 | `Assets/Editor` | Montar a cena e o Play pela cena do jogo |
 | `Assets/Prefabs` | Jogador, Bruxo e Boneco de treino |
-| `Assets/Dados/Armas` | Os assets das armas (`ArcoDoArqueiro.asset`, `MagiaDoBruxo.asset`) |
+| `Assets/Dados/Armas` | Os assets das armas: as do personagem e do Bruxo (`ArcoDoArqueiro`, `MagiaDoBruxo`) e as achadas (`Pistola`, `Escopeta`, `Metralhadora`, `Rifle`, `Besta`) |
+| `Assets/Arte/Armas` | Os desenhos das armas achadas, das balas delas e da caixa de munição (feitos por `Ferramentas/Armas/desenhar.py`) |
 | `Assets/Arte/Gerada` | Imagens feitas pelo montador: a mira do cursor, a sombra, a bala inimiga e o boneco de treino |
 | `Assets/Arte/OldPrison` | A arte da caverna, do pacote Old Prison: chão, paredes, abismo, sangue e enfeites (32 × 32 por ladrilho) |
 | `Assets/Arte/Resources` | A arte dos outros pacotes (provisória) |
@@ -51,7 +55,10 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `MovimentoDoJogador` | Anda com aceleração e freio; a esquiva é uma arrancada curta na direção do andar, sem tomar dano no começo (`Invulneravel`), com recarga curta |
 | `AnimacaoDoJogador` | Parado, andando, atirando e rolando na esquiva. O arco puxa e solta a cada tiro, parado ou andando (andando, o corpo dá um pulinho de 1 pixel a cada passo, porque o desenho do pacote não tem "andar atirando"). O corpo sempre olha pro lado da mira |
 | `RastroDaEsquiva` | As cópias azuladas que ficam pra trás na esquiva |
-| `ArmaDoJogador` | Atira com a arma (`DadosDaArma`) pra onde mira, no ritmo dela; não atira no meio da esquiva |
+| `ArmaDoJogador` | As duas armas: a do personagem (o arco, infinito, nunca sai da mão) e a achada. Troca entre elas, atira pra onde mira no ritmo da arma, gasta o pente, recarrega (sozinha com o pente vazio, ou com `R`); sem munição, só o clique. Não atira no meio da esquiva |
+| `ArmaNaMao` | Desenha a arma achada na mão, girando pra mira, com o coice do tiro (com o arco não aparece nada: ele já está no desenho do Arqueiro) |
+| `InteracaoDoJogador` | Acha a coisa usável mais perto (arma no chão, baú), mostra a dica em cima ("E: pegar Escopeta") e usa no `E` |
+| `HudDaArma` | No canto de baixo: a arma, a munição (pente / reserva), a recarga e a outra arma. Provisório até a etapa 7 |
 | `CursorDaMira` | Troca o cursor por uma mira enquanto o mouse mira; com o controle, o cursor some |
 | `Vida` | 6 de vida; depois de um golpe, 1 segundo sem tomar outro. A esquiva também protege (o `MovimentoDoJogador` é um `IInvulneravel`) |
 | `PiscarAoTomarDano` | Fica branco no golpe e pisca durante o segundo sem dano |
@@ -75,6 +82,7 @@ objeto **Andar** da cena (`GeradorDoAndar`), com os números no Inspector.
 | `DadosDoOldPrison` | As tabelas de cantos e as regras do pacote, já convertidas (gerado pela ferramenta; não editar à mão) |
 | `GeradorDoAndar` | Monta o andar, espalha os inimigos em grupos longe do começo, conta quantos faltam, abre a saída quando o último morre e troca de andar. Na tela: o nome do andar, o contador e, quando sobram 3 ou menos, uma seta na beirada apontando pro mais perto |
 | `Saida` | O vórtice: abre onde morreu o último inimigo e, pisado, leva pro próximo andar |
+| `MapaDeCaminhos` | O caminho de qualquer ponto da caverna até o jogador, contornando paredes, buracos e baús (os inimigos usam quando não dá pra ir reto) |
 
 Cada célula da caverna tem 1 unidade e a célula (x, y) fica no ponto (x, y) do mundo; o jogador começa
 no (0, 0). O primeiro andar tem umas 1500 células de chão (umas 7 telas cheias de chão) e 24 inimigos; cada andar
@@ -140,8 +148,13 @@ para, prepara o tiro (a animação do ataque é o aviso) e solta uma bala lenta 
 O corpo é um Rigidbody2D Dynamic, como o do jogador: inimigo não atravessa o jogador nem outro inimigo.
 
 O Bruxo começa **dormindo**: parado até ver o jogador (a 10 de distância, sem parede no meio) ou levar
-um tiro. Acordado, não esquece mais; vai reto na direção do jogador (ainda não sabe contornar parede) e
-só atira com o caminho livre.
+um tiro. Acordado, não esquece mais e só atira com o caminho livre. Com o caminho livre, vai reto na
+direção do jogador; com parede, buraco ou baú no meio, segue o `MapaDeCaminhos`.
+
+O `MapaDeCaminhos` é um mapa de distâncias: partindo da célula do jogador, cada célula de chão recebe
+quantos passos está dele (uma busca que espalha como água, até 40 passos). Pra chegar no jogador, o
+inimigo vai pra vizinha com menos passos; na diagonal, só se as duas vizinhas retas forem chão (senão
+raspa na quina). O mapa só é refeito quando o jogador muda de célula.
 
 O **Boneco de treino** (`Assets/Prefabs/BonecoDeTreino.prefab`), na clareira onde o jogador começa, serve
 pra testar as armas: a vida dele é imortal, ele pisca e balança na estaca pro lado do golpe
@@ -175,3 +188,33 @@ tiro sai). Cada folha é uma tira com os quadros lado a lado, todos do mesmo tam
 Inspector (desenho do tiro, ritmo, velocidade, alcance, dano, quantos tiros por disparo, abertura,
 dispersão, tremor, som) e arrastar o asset na `ArmaDoJogador`. Dá pra mexer nos números com o jogo
 rodando.
+
+Pra ela aparecer na caverna: dar um **desenho na mão** (sem ele a arma não cai em baú nem no chão), a
+**munição** (pente, máximo, tempo de recarga, ou `infinita`) e o **peso no baú** (quanto maior, mais
+sai; 0 = nunca), e pôr o asset na lista **Armas** do objeto Andar.
+
+## Armas, baús e munição
+
+O jogador carrega **duas armas**: a do personagem (o arco do Arqueiro, infinito, nunca sai da mão) e
+uma achada. Pegar outra troca a achada: a velha cai no chão com a munição que tinha.
+
+Cada arma achada tem **pente e reserva** (como no Gungeon): atirar gasta o pente; vazio, recarrega
+sozinha da reserva. Os números ficam no asset (`DadosDaArma`); o pente e a reserva de cada arma ficam na
+`ArmaCarregada`, que vai junto quando a arma cai no chão.
+
+| Script | O que faz |
+|---|---|
+| `ArmaCarregada` | Uma arma de verdade: os dados (o asset) mais o pente e a reserva dela |
+| `Interativo` | O que o jogador usa chegando perto e apertando `E` (a base da arma no chão e do baú) |
+| `ArmaNoChao` | Arma caída, flutuando; `E` pega (e larga a que estava na mão no lugar) |
+| `Bau` | Fechado na caverna; `E` abre e solta uma arma sorteada pelo peso, diferente das que o jogador tem, e às vezes uma caixa de munição. Conta como parede: segura tiro, e os inimigos contornam |
+| `CaixaDeMunicao` | Encostou, enche metade da munição da arma achada (se ela não estiver cheia) |
+
+No objeto Andar: **3 baús** e **1 arma no chão** por andar, longe do começo e longe uns dos outros, e no
+primeiro andar mais um baú do lado do começo. Cada inimigo morto tem **12%** de chance de largar uma
+caixa de munição.
+
+As armas achadas: **Pistola** (tiro a tiro, pente de 10), **Escopeta** (6 balas abertas, pente de 6),
+**Metralhadora** (segura o gatilho, pente de 30), **Rifle** (lento e forte, longe, pente de 5) e
+**Besta** (um virote forte por vez, recarga rápida). Os desenhos saem do `Ferramentas/Armas/desenhar.py`
+(pixel por pixel, em letras, com o contorno feito sozinho).

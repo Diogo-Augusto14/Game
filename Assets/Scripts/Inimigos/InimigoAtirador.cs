@@ -6,6 +6,8 @@ using UnityEngine;
 ///
 /// Comeca parado, sem saber do jogador. So acorda quando ve o jogador (perto e sem parede no meio)
 /// ou quando leva um tiro; acordado, nao esquece mais. So atira com o caminho livre ate o jogador.
+/// Pra chegar nele, vai reto quando da (sem parede nem buraco no caminho); quando nao da, segue o
+/// <see cref="MapaDeCaminhos"/>, que contorna paredes e buracos.
 ///
 /// O corpo e um Rigidbody2D Dynamic, como o do jogador: nao atravessa o jogador nem os outros
 /// inimigos, e o empurrao dos golpes funciona sozinho (o andar freia de volta).
@@ -56,6 +58,7 @@ public class InimigoAtirador : MonoBehaviour
     private float proximoAtaque;
     private float proximaOlhada;
     private bool caminhoLivre;
+    private bool andaReto;
 
     /// <summary>Ja viu o jogador (ou levou tiro) e esta atras dele.</summary>
     public bool Acordado { get; private set; }
@@ -143,6 +146,7 @@ public class InimigoAtirador : MonoBehaviour
         {
             proximaOlhada = Time.time + 0.2f;
             caminhoLivre = distancia <= Mathf.Max(distanciaDeVisao, alcanceDoTiro) && !ParedeNoMeio(alvo.position);
+            andaReto = caminhoLivre && !BarradoNoCaminho(ateOAlvo, distancia);
 
             if (caminhoLivre && distancia <= distanciaDeVisao)
                 Acordar();
@@ -174,8 +178,8 @@ public class InimigoAtirador : MonoBehaviour
             return;
         }
 
-        if (distancia > distanciaParaParar)
-            querAndar = OlhandoPara;
+        if (distancia > distanciaParaParar || !caminhoLivre)
+            querAndar = andaReto || MapaDeCaminhos.Atual == null ? OlhandoPara : MapaDeCaminhos.Atual.Rumo(transform.position);
     }
 
     private void FixedUpdate()
@@ -188,6 +192,17 @@ public class InimigoAtirador : MonoBehaviour
 
     private bool ParedeNoMeio(Vector2 ate) =>
         Physics2D.Linecast(transform.position, ate, 1 << Pedreiro.CamadaDaParede).collider != null;
+
+    // O corpo inteiro passa reto ate o jogador? (o tiro voa por cima do buraco; o corpo nao)
+    private bool BarradoNoCaminho(Vector2 ateOAlvo, float distancia)
+    {
+        int camadas = 1 << Pedreiro.CamadaDaParede;
+
+        if (Pedreiro.CamadaDoBuraco >= 0)
+            camadas |= 1 << Pedreiro.CamadaDoBuraco;
+
+        return Physics2D.CircleCast(transform.position, 0.35f, ateOAlvo, distancia, camadas).collider != null;
+    }
 
     private void Atirar()
     {

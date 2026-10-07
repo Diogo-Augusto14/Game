@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: MagiaDoBruxo
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
   nome: Magia do Bruxo
+  infinita: 1
+  pesoNoBau: 0
   desenhoDoTiro: {fileID: 21300000, guid: 189e6bbd630342af92943bc737487129, type: 3}
   apontarODesenho: 0
   cor: {r: 1, g: 1, b: 1, a: 1}

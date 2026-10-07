@@ -109,7 +109,8 @@ public class AnimacaoDoJogador : MonoBehaviour
     {
         // Parado ou andando, o arco puxa e solta a cada tiro. O desenho do pacote nao tem "andar atirando"
         // (o arco do tiro cobre as pernas), entao andando o corpo so da um pulinho a cada passo.
-        if (quadrosDoTiro.Length == 0)
+        // Com outra arma na mao (pistola, escopeta...), o corpo nao puxa o arco: quem mexe e a arma.
+        if (quadrosDoTiro.Length == 0 || (arma != null && arma.Arma != null && arma.Arma.desenhoNaMao != null))
             return;
 
         float duracao = Mathf.Min(0.35f, intervalo);

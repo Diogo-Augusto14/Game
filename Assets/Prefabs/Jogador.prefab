@@ -203,6 +203,9 @@ GameObject:
   - component: {fileID: 903683620814002643}
   - component: {fileID: 255396439541338221}
   - component: {fileID: 438313023371658352}
+  - component: {fileID: 5113420987766120401}
+  - component: {fileID: 5113420987766120402}
+  - component: {fileID: 5113420987766120403}
   m_Layer: 0
   m_Name: Jogador
   m_TagString: Player
@@ -433,8 +436,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArmaDoJogador
   arma: {fileID: 11400000, guid: 1524651d912f6d640962c830ffd51c95, type: 2}
+  segundaNoComeco: {fileID: 0}
   distanciaDaSaida: 0.45
   alturaDaSaida: 0
+  somSemMunicao: {fileID: 8300000, guid: 2b608fe53d144b1b8c2d1130e804587c, type: 3}
+  somDaTroca: {fileID: 8300000, guid: 3a26a8e2334b46ebad6724d9afbfb604, type: 3}
+  volume: 0.5
 --- !u!114 &6837437472707651655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -545,3 +552,41 @@ MonoBehaviour:
   duracaoDaCamaraLenta: 0.8
   escurecer: 1.2
   esperaNoEscuro: 0.8
+--- !u!114 &5113420987766120401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8326051028863995579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c388dfb9ab9b44bf9bc77b757b8ed145, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArmaNaMao
+  alturaDaMao: -0.1
+  voltaDoCoice: 0.08
+--- !u!114 &5113420987766120402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8326051028863995579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d46c437e0fd425b92ad60e8ab43db6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteracaoDoJogador
+--- !u!114 &5113420987766120403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8326051028863995579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb2303969b5041ec81a4a0a1277b61b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HudDaArma

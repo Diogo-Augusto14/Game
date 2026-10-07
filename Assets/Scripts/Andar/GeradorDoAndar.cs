@@ -50,8 +50,34 @@ public class GeradorDoAndar : MonoBehaviour
     [Tooltip("Nenhum inimigo fica mais perto do comeco que isto, em unidades")]
     [SerializeField, Min(0f)] private float longeDoComeco = 14f;
 
+    [Tooltip("Ate quantos passos do jogador os inimigos acham caminho contornando paredes")]
+    [SerializeField, Min(1)] private int distanciaDosCaminhos = 40;
+
     [Tooltip("Com esta quantidade de inimigos ou menos, uma seta aponta pro mais perto")]
     [SerializeField, Min(0)] private int setaQuandoFaltarem = 3;
+
+    [Header("Armas")]
+    [Tooltip("As armas que saem dos baus e aparecem no chao (sorteadas pelo peso de cada uma)")]
+    [SerializeField] private DadosDaArma[] armas;
+
+    [SerializeField, Min(0)] private int bausPorAndar = 3;
+
+    [Tooltip("Armas largadas no chao da caverna, por andar")]
+    [SerializeField, Min(0)] private int armasNoChaoPorAndar = 1;
+
+    [Tooltip("No primeiro andar, um bau ja na clareira do comeco")]
+    [SerializeField] private bool bauNoComeco = true;
+
+    [Tooltip("Chance de um inimigo soltar uma caixa de municao ao morrer")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeMunicao = 0.12f;
+
+    [Tooltip("Folha do bau (quadros lado a lado: fechado ate aberto)")]
+    [SerializeField] private Texture2D bau;
+    [SerializeField] private Vector2Int quadroDoBau = new Vector2Int(128, 160);
+
+    [SerializeField] private Sprite caixaDeMunicao;
+    [SerializeField] private AudioClip somDoBau;
+    [SerializeField] private AudioClip somDaMunicao;
 
     [Header("Buracos e enfeites")]
     [Tooltip("Buracos de abismo no primeiro andar (ninguem passa; o tiro passa por cima)")]
@@ -93,6 +119,7 @@ public class GeradorDoAndar : MonoBehaviour
     private readonly List<Vida> vivos = new List<Vida>();
     private Pedreiro pedreiro;
     private Sprite[] quadrosDoVortice;
+    private Sprite[] quadrosDoBau;
     private AudioSource audioSource;
     private Rigidbody2D corpoDoJogador;
     private Vida vidaDoJogador;
@@ -122,6 +149,7 @@ public class GeradorDoAndar : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         pedreiro = new Pedreiro(chao, paredes, abismo, sangue, enfeites, chanceDeEnfeite);
         quadrosDoVortice = FolhaDeSprites.Cortar(vortice, quadroDoVortice, pixelsPorUnidade);
+        quadrosDoBau = FolhaDeSprites.Cortar(bau, quadroDoBau, DadosDoOldPrison.Lado);
     }
 
     private void Start()
@@ -140,6 +168,9 @@ public class GeradorDoAndar : MonoBehaviour
 
     private void Update()
     {
+        if (MapaDeCaminhos.Atual != null && Jogador != null)
+            MapaDeCaminhos.Atual.Atualizar(Jogador.position);
+
         if (raiz == null || saida != null || chaoDoAndar == null)
             return;
 
@@ -152,7 +183,12 @@ public class GeradorDoAndar : MonoBehaviour
                 continue;
 
             if (vida != null)
+            {
                 ondeMorreuOUltimo = vida.transform.position;
+
+                if (caixaDeMunicao != null && Random.value < chanceDeMunicao)
+                    CaixaDeMunicao.Criar(caixaDeMunicao, ondeMorreuOUltimo, raiz.transform, somDaMunicao);
+            }
 
             vivos.RemoveAt(i);
         }
@@ -244,6 +280,7 @@ public class GeradorDoAndar : MonoBehaviour
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
         chaoDoAndar = null;
+        MapaDeCaminhos.Atual = null;
         vivos.Clear();
 
         if (raiz != null)
@@ -261,6 +298,9 @@ public class GeradorDoAndar : MonoBehaviour
         // Daqui pra frente so interessa onde da pra pisar.
         HashSet<Vector2Int> chaoDaCaverna = new HashSet<Vector2Int>(planta);
         chaoDaCaverna.ExceptWith(buracos);
+        MapaDeCaminhos.Atual = new MapaDeCaminhos(chaoDaCaverna, distanciaDosCaminhos);
+        // Os baus primeiro: as celulas deles saem do chao, e ninguem nasce dentro de um.
+        EspalharArmas(chaoDaCaverna, andar);
         EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (andar - 1) * inimigosAMaisPorAndar);
 
         // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no
@@ -340,6 +380,64 @@ public class GeradorDoAndar : MonoBehaviour
 
                 if (novo.TryGetComponent(out Vida vida))
                     vivos.Add(vida);
+            }
+        }
+    }
+
+    // Baus e armas no chao, longe do comeco e longe uns dos outros. No primeiro andar, um bau ja na clareira.
+    private void EspalharArmas(HashSet<Vector2Int> chaoDaCaverna, int andar)
+    {
+        if (armas == null || armas.Length == 0)
+            return;
+
+        Transform pai = new GameObject("Armas e baus").transform;
+        pai.SetParent(raiz.transform, false);
+        List<Vector2Int> lugares = new List<Vector2Int>();
+
+        foreach (Vector2Int c in chaoDaCaverna)
+        {
+            if (((Vector2)c).magnitude >= 10f && CercadaDeChao(chaoDaCaverna, c))
+                lugares.Add(c);
+        }
+
+        List<Vector2> usados = new List<Vector2>();
+
+        if (andar == 1 && bauNoComeco)
+        {
+            Vector2 comeco = new Vector2(-3f, 1f);
+            Bau.Criar(quadrosDoBau, comeco, pai, armas, caixaDeMunicao, somDoBau, somDaMunicao);
+            chaoDaCaverna.Remove(MapaDeCaminhos.Celula(comeco));
+            usados.Add(comeco);
+        }
+
+        for (int i = 0; i < bausPorAndar + armasNoChaoPorAndar && lugares.Count > 0; i++)
+        {
+            Vector2 lugar = Vector2.zero;
+            bool achou = false;
+
+            for (int tentativa = 0; tentativa < 40 && !achou; tentativa++)
+            {
+                lugar = lugares[Random.Range(0, lugares.Count)];
+                achou = usados.TrueForAll(u => Vector2.Distance(u, lugar) >= 8f);
+            }
+
+            if (!achou)
+                continue;
+
+            usados.Add(lugar);
+
+            if (i < bausPorAndar)
+            {
+                // A celula do bau sai do mapa de caminhos (e o mesmo conjunto): os inimigos contornam.
+                Bau.Criar(quadrosDoBau, lugar, pai, armas, caixaDeMunicao, somDoBau, somDaMunicao);
+                chaoDaCaverna.Remove(MapaDeCaminhos.Celula(lugar));
+            }
+            else
+            {
+                DadosDaArma sorteada = armas[Random.Range(0, armas.Length)];
+
+                if (sorteada != null && sorteada.desenhoNaMao != null)
+                    ArmaNoChao.Criar(new ArmaCarregada(sorteada), lugar, pai);
             }
         }
     }

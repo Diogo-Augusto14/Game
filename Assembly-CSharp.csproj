@@ -78,6 +78,15 @@
     <Compile Include="Assets\Scripts\Andar\Pedreiro.cs" />
     <Compile Include="Assets\Scripts\Andar\GeradorDoAndar.cs" />
     <Compile Include="Assets\Scripts\Andar\Saida.cs" />
+    <Compile Include="Assets\Scripts\Andar\MapaDeCaminhos.cs" />
+    <Compile Include="Assets\Scripts\Armas\ArmaCarregada.cs" />
+    <Compile Include="Assets\Scripts\Armas\ArmaNaMao.cs" />
+    <Compile Include="Assets\Scripts\Armas\Interativo.cs" />
+    <Compile Include="Assets\Scripts\Armas\ArmaNoChao.cs" />
+    <Compile Include="Assets\Scripts\Armas\CaixaDeMunicao.cs" />
+    <Compile Include="Assets\Scripts\Armas\Bau.cs" />
+    <Compile Include="Assets\Scripts\Armas\HudDaArma.cs" />
+    <Compile Include="Assets\Scripts\Jogador\InteracaoDoJogador.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StreamingAssets\CREDITOS-AUDIO.txt" />

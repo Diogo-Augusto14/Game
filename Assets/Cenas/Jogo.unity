@@ -585,7 +585,23 @@ MonoBehaviour:
   inimigosAMaisPorAndar: 8
   tamanhoDoGrupo: {x: 2, y: 4}
   longeDoComeco: 14
+  distanciaDosCaminhos: 40
   setaQuandoFaltarem: 3
+  armas:
+  - {fileID: 11400000, guid: b77bbb851ffe4703b65f225e4f0af6ca, type: 2}
+  - {fileID: 11400000, guid: 34f21b9ee6754b8e84fa9f0c6bcec937, type: 2}
+  - {fileID: 11400000, guid: 650fcca89551407daf7e23d070802562, type: 2}
+  - {fileID: 11400000, guid: f055442f340b4a24a2b269cf1e8772db, type: 2}
+  - {fileID: 11400000, guid: ca7dc619370c460ba499dbf8adeede2e, type: 2}
+  bausPorAndar: 3
+  armasNoChaoPorAndar: 1
+  bauNoComeco: 1
+  chanceDeMunicao: 0.12
+  bau: {fileID: 2800000, guid: 85f6cf80baa24426b8c0af3f884f65d2, type: 3}
+  quadroDoBau: {x: 128, y: 160}
+  caixaDeMunicao: {fileID: 21300000, guid: 78a2c86479b84fae9091de50b6494e1c, type: 3}
+  somDoBau: {fileID: 8300000, guid: e7c3b79028de4b17ad478276105f3e35, type: 3}
+  somDaMunicao: {fileID: 8300000, guid: 9c9cf1a2f6914988bd23c18cf20f1f60, type: 3}
   buracosNoPrimeiroAndar: 8
   buracosAMaisPorAndar: 3
   pocasPorAndar: 10

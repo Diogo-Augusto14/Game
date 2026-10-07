@@ -13,6 +13,35 @@ public class DadosDaArma : ScriptableObject
 {
     public string nome = "Arma";
 
+    [Header("Na mao")]
+    [Tooltip("O desenho da arma, olhando pra direita (tambem e o que aparece no chao). Vazio = a arma e do " +
+             "proprio personagem e ja esta no desenho dele, como o arco do Arqueiro")]
+    public Sprite desenhoNaMao;
+
+    [Tooltip("Distancia do centro do corpo ate a arma, na direcao da mira")]
+    [Min(0f)] public float distanciaDaMao = 0.4f;
+
+    [Tooltip("Quanto a arma recua a cada tiro, em unidades")]
+    [Min(0f)] public float coice = 0.08f;
+
+    [Header("Municao")]
+    [Tooltip("Nunca acaba (a arma do personagem)")]
+    public bool infinita;
+
+    [Tooltip("Tiros no pente; acabou, recarrega")]
+    [Min(1)] public int pente = 12;
+
+    [Tooltip("Municao total que a arma carrega (pente + reserva)")]
+    [Min(1)] public int municaoMaxima = 120;
+
+    [Tooltip("Segundos recarregando")]
+    [Min(0f)] public float recarga = 1f;
+
+    public AudioClip somDaRecarga;
+
+    [Tooltip("Chance de sair num bau, comparada com as outras armas (0 = nunca)")]
+    [Min(0f)] public float pesoNoBau = 1f;
+
     [Header("O tiro")]
     [Tooltip("O desenho do tiro (flecha, bala...)")]
     public Sprite desenhoDoTiro;

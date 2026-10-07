@@ -10,24 +10,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
-  m_Name: ArcoDoArqueiro
+  m_Name: Metralhadora
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
-  nome: Arco do Arqueiro
-  infinita: 1
-  pesoNoBau: 0
-  desenhoDoTiro: {fileID: 21300000, guid: 1a38ca205dc240cf8e9201d909e56392, type: 3}
-  apontarODesenho: 1
+  nome: Metralhadora
+  desenhoNaMao: {fileID: 21300000, guid: ce734a1331df491396e44a07525d9e29, type: 3}
+  distanciaDaMao: 0.4
+  coice: 0.05
+  infinita: 0
+  pente: 30
+  municaoMaxima: 300
+  recarga: 1.3
+  somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
+  pesoNoBau: 1
+  desenhoDoTiro: {fileID: 21300000, guid: 88d0700ad7ab49f8adb4b73da8300f7d, type: 3}
+  apontarODesenho: 0
   cor: {r: 1, g: 1, b: 1, a: 1}
-  raio: 0.12
+  raio: 0.1
   automatica: 1
-  tirosPorSegundo: 6
-  velocidade: 15
-  alcance: 11
-  dano: 3
-  empurrao: 3
+  tirosPorSegundo: 11
+  velocidade: 17
+  alcance: 10
+  dano: 2
+  empurrao: 1.5
   tirosPorDisparo: 1
   abertura: 10
-  dispersao: 2.5
+  dispersao: 7
   tremor: 0.02
   som: {fileID: 8300000, guid: 41f8aa4278604c359cafd24c9360c6de, type: 3}
-  volume: 0.4
+  volume: 0.25

@@ -9,6 +9,9 @@ using UnityEngine.InputSystem;
 ///   mirar     mouse                  | analogico direito (solto: mira pra onde anda)
 ///   atirar    botao esquerdo         | RT ou RB
 ///   esquiva   espaco, shift ou botao direito | LT, LB ou A
+///   trocar    Q ou a roda do mouse   | Y
+///   recarregar R                     | X
+///   interagir E (pegar arma, abrir bau) | B
 ///
 /// Usa o Input System (o pacote novo da Unity), com as acoes montadas aqui no codigo.
 /// </summary>
@@ -26,6 +29,9 @@ public class ControlesDoJogador : MonoBehaviour
     private InputAction atirar;
     private InputAction esquivar;
     private InputAction ponteiro;
+    private InputAction trocar;
+    private InputAction recarregar;
+    private InputAction interagir;
 
     private float esquivaPedidaEm = -10f;
     private Vector2 ultimoMouse;
@@ -45,6 +51,15 @@ public class ControlesDoJogador : MonoBehaviour
 
     /// <summary>O ponto do mundo debaixo do cursor.</summary>
     public Vector2 PontoDoMouse { get; private set; }
+
+    /// <summary>Apertou pra trocar de arma neste quadro (Q, roda do mouse ou Y).</summary>
+    public bool Trocou { get; private set; }
+
+    /// <summary>Apertou pra recarregar neste quadro.</summary>
+    public bool Recarregou { get; private set; }
+
+    /// <summary>Apertou pra interagir neste quadro (pegar arma, abrir bau).</summary>
+    public bool Interagiu { get; private set; }
 
     private void Awake()
     {
@@ -72,6 +87,15 @@ public class ControlesDoJogador : MonoBehaviour
         esquivar.AddBinding("<Gamepad>/buttonSouth");
 
         ponteiro = new InputAction("Ponteiro", InputActionType.Value, "<Mouse>/position");
+
+        trocar = new InputAction("Trocar", InputActionType.Button, "<Keyboard>/q");
+        trocar.AddBinding("<Gamepad>/buttonNorth");
+
+        recarregar = new InputAction("Recarregar", InputActionType.Button, "<Keyboard>/r");
+        recarregar.AddBinding("<Gamepad>/buttonWest");
+
+        interagir = new InputAction("Interagir", InputActionType.Button, "<Keyboard>/e");
+        interagir.AddBinding("<Gamepad>/buttonEast");
     }
 
     private void OnEnable()
@@ -81,6 +105,9 @@ public class ControlesDoJogador : MonoBehaviour
         atirar.Enable();
         esquivar.Enable();
         ponteiro.Enable();
+        trocar.Enable();
+        recarregar.Enable();
+        interagir.Enable();
     }
 
     private void OnDisable()
@@ -90,6 +117,10 @@ public class ControlesDoJogador : MonoBehaviour
         atirar.Disable();
         esquivar.Disable();
         ponteiro.Disable();
+        trocar.Disable();
+        recarregar.Disable();
+        interagir.Disable();
+        Trocou = Recarregou = Interagiu = false;
     }
 
     private void OnDestroy()
@@ -99,6 +130,9 @@ public class ControlesDoJogador : MonoBehaviour
         atirar.Dispose();
         esquivar.Dispose();
         ponteiro.Dispose();
+        trocar.Dispose();
+        recarregar.Dispose();
+        interagir.Dispose();
     }
 
     private void Update()
@@ -111,6 +145,11 @@ public class ControlesDoJogador : MonoBehaviour
 
         if (jogando && esquivar.WasPressedThisFrame())
             esquivaPedidaEm = Time.time;
+
+        float roda = Mouse.current != null ? Mouse.current.scroll.ReadValue().y : 0f;
+        Trocou = jogando && (trocar.WasPressedThisFrame() || Mathf.Abs(roda) > 0.01f);
+        Recarregou = jogando && recarregar.WasPressedThisFrame();
+        Interagiu = jogando && interagir.WasPressedThisFrame();
 
         LerMira();
     }
