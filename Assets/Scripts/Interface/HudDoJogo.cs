@@ -127,7 +127,7 @@ public class HudDoJogo
         }
         else
         {
-            municao = $"{atual.NoPente} / {atual.Reserva}";
+            municao = atual.SemPente ? $"{atual.NoPente}" : $"{atual.NoPente} / {atual.Reserva}";
             cor = atual.NoPente == 0 ? Desenho.Vermelho : Desenho.Claro;
         }
 

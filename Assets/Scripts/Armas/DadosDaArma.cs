@@ -28,6 +28,9 @@ public class DadosDaArma : ScriptableObject
     [Tooltip("Nunca acaba (a arma do personagem)")]
     public bool infinita;
 
+    [Tooltip("Sem pente nem recarga: atira direto da municao toda (os machados: e so pegar o proximo)")]
+    public bool semPente;
+
     [Tooltip("Tiros no pente; acabou, recarrega")]
     [Min(1)] public int pente = 12;
 

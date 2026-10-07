@@ -17,6 +17,7 @@ MonoBehaviour:
   distanciaDaMao: 0.4
   coice: 0.1
   infinita: 0
+  semPente: 1
   pente: 1
   municaoMaxima: 40
   recarga: 0.6

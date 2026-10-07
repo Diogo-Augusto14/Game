@@ -16,8 +16,9 @@ public class ArmaCarregada
     public ArmaCarregada(DadosDaArma dados)
     {
         Dados = dados;
-        NoPente = dados.pente;
-        Reserva = UnityEngine.Mathf.Max(0, dados.municaoMaxima - dados.pente);
+        // Sem pente, tudo fica "no pente": atira ate acabar, sem recarregar.
+        NoPente = dados.semPente ? dados.municaoMaxima : dados.pente;
+        Reserva = dados.semPente ? 0 : UnityEngine.Mathf.Max(0, dados.municaoMaxima - dados.pente);
     }
 
     public bool Infinita => Dados.infinita;
@@ -25,7 +26,10 @@ public class ArmaCarregada
     public bool TemNoPente => Infinita || NoPente > 0;
 
     /// <summary>Da pra recarregar: o pente nao esta cheio e tem reserva.</summary>
-    public bool PodeRecarregar => !Infinita && NoPente < Dados.pente && Reserva > 0;
+    public bool PodeRecarregar => !Infinita && !SemPente && NoPente < Dados.pente && Reserva > 0;
+
+    /// <summary>Atira direto da municao toda, sem recarga (o contador mostra so o total).</summary>
+    public bool SemPente => Dados.semPente;
 
     /// <summary>Sem nada no pente e nada pra recarregar.</summary>
     public bool Vazia => !Infinita && NoPente == 0 && Reserva == 0;
@@ -42,7 +46,10 @@ public class ArmaCarregada
     /// <summary>Passa da reserva pro pente o que couber.</summary>
     public void Recarregar()
     {
-        int passa = UnityEngine.Mathf.Min(Dados.pente - NoPente, Reserva);
+        if (SemPente)
+            return;
+
+        int passa = UnityEngine.Mathf.Max(0, UnityEngine.Mathf.Min(Dados.pente - NoPente, Reserva));
         NoPente += passa;
         Reserva -= passa;
     }
@@ -51,7 +58,10 @@ public class ArmaCarregada
     public int Ganhar(int quanto)
     {
         int entra = UnityEngine.Mathf.Min(quanto, Falta);
-        Reserva += entra;
+        if (SemPente)
+            NoPente += entra;
+        else
+            Reserva += entra;
         return entra;
     }
 }

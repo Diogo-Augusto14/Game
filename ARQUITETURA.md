@@ -280,7 +280,7 @@ dispersão, tremor, som) e arrastar o asset na `ArmaDoJogador`. Dá pra mexer no
 rodando.
 
 Pra ela aparecer na caverna: dar um **desenho na mão** (sem ele a arma não cai em baú nem no chão), a
-**munição** (pente, máximo, tempo de recarga, ou `infinita`) e o **peso no baú** (quanto maior, mais
+**munição** (pente, máximo, tempo de recarga, ou `infinita`, ou `semPente` pra atirar direto do total) e o **peso no baú** (quanto maior, mais
 sai; 0 = nunca), e pôr o asset na lista **Armas** do objeto Andar.
 
 ## Armas, baús e munição
@@ -312,6 +312,6 @@ As armas achadas são de fantasia (não precisam existir, precisam encaixar no m
 | **Tomo das Brasas** | 6 brasas abertas que vão freando (de perto); pente de 6 |
 | **Besta de Repetição** | Segura o gatilho: virotes sem parar; pente de 30 |
 | **Cajado do Trovão** | Um raio lento de sair, forte e de longe; pente de 5 |
-| **Machado de Arremesso** | Um machado girando por vez, pesado e com empurrão; recarga rápida |
+| **Machado de Arremesso** | Um machado girando por vez, pesado e com empurrão; sem pente nem recarga (`semPente`): arremessa até os machados acabarem |
  Os desenhos saem do `Ferramentas/Armas/desenhar.py`
 (pixel por pixel, em letras, com o contorno feito sozinho).
