@@ -20,7 +20,7 @@ using UnityEngine;
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D), typeof(Vida))]
-public class InimigoAtirador : MonoBehaviour
+public class InimigoAtirador : MonoBehaviour, IAnimavel
 {
     [Header("Ver o jogador")]
     [Tooltip("Acorda quando o jogador chega a esta distancia, sem parede no meio")]
@@ -103,8 +103,8 @@ public class InimigoAtirador : MonoBehaviour
 
     public Vector2 Velocidade => corpo.linearVelocity;
 
-    /// <summary>Comecou a preparar um tiro (a animacao do ataque escuta).</summary>
-    public event System.Action AoPreparar;
+    /// <summary>Comecou a preparar o ataque (a animacao do ataque escuta): sempre a animacao 0.</summary>
+    public event System.Action<int, float> AoAtacar;
 
     private void Awake()
     {
@@ -217,7 +217,7 @@ public class InimigoAtirador : MonoBehaviour
         if ((arma != null || (investida && andaReto)) && caminhoLivre && distancia <= alcanceDoTiro && Time.time >= proximoAtaque)
         {
             atiraEm = Time.time + preparo;
-            AoPreparar?.Invoke();
+            AoAtacar?.Invoke(0, preparo);
             return;
         }
 

@@ -5,13 +5,14 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Monta e troca os andares: cada andar e uma caverna gigante e aberta, sem salas nem portas, como
-/// no Nuclear Throne.
+/// no Nuclear Throne, ou a arena de um chefe (<see cref="andares"/> diz a ordem).
 ///
 /// A caverna e cavada na hora (<see cref="Caverna"/>) e construida pelo <see cref="Pedreiro"/> com a
 /// arte do pacote Old Prison (paredes de tijolo, buracos de abismo, pocas de sangue, ossos), com
 /// o jogador numa clareira no centro do mundo. Os inimigos ficam espalhados em grupos, longe do
 /// comeco, parados ate verem o jogador. Quando o ultimo morre, o vortice da saida abre ali mesmo;
-/// pisar nele escurece a tela e monta o proximo andar, maior e com mais inimigos. Depois do ultimo
+/// pisar nele escurece a tela e monta o proximo andar, maior e com mais inimigos. O andar do chefe e
+/// um salao so dele (<see cref="Arena"/>): matou o chefe, o portal abre e cai um bau. Depois do ultimo
 /// andar, a partida acaba em vitoria e recomeca.
 ///
 /// Na tela: o nome do andar ao chegar, quantos inimigos faltam e, quando sobram poucos, uma seta
@@ -21,14 +22,15 @@ using UnityEngine.SceneManagement;
 public class GeradorDoAndar : MonoBehaviour
 {
     [Header("Andares")]
-    [Tooltip("Quantos andares ate vencer a partida")]
-    [SerializeField, Min(1)] private int quantidadeDeAndares = 3;
+    [Tooltip("Os andares da partida, na ordem. Sem chefe: uma caverna. Com chefe: a arena so dele. " +
+             "Depois do ultimo, vitoria")]
+    [SerializeField] private AndarDaPartida[] andares;
 
-    [Tooltip("Tamanho da caverna do primeiro andar, em celulas de chao (1 celula = 1 unidade)")]
+    [Tooltip("Tamanho da primeira caverna, em celulas de chao (1 celula = 1 unidade)")]
     [SerializeField, Min(50)] private int celulasNoPrimeiroAndar = 1500;
 
-    [Tooltip("Celulas a mais em cada andar seguinte")]
-    [SerializeField, Min(0)] private int celulasAMaisPorAndar = 500;
+    [Tooltip("Celulas a mais em cada caverna seguinte")]
+    [SerializeField, Min(0)] private int celulasAMaisPorAndar = 400;
 
     [Tooltip("A caverna nao passa desta distancia do comeco, em celulas")]
     [SerializeField, Min(10)] private int raioMaximo = 60;
@@ -40,9 +42,12 @@ public class GeradorDoAndar : MonoBehaviour
     [Tooltip("Os inimigos que aparecem: cada um a partir de um andar, sorteado pelo peso")]
     [SerializeField] private InimigoDoAndar[] inimigos;
 
+    [Tooltip("Inimigos na primeira caverna")]
     [SerializeField, Min(0)] private int inimigosNoPrimeiroAndar = 24;
 
-    [SerializeField, Min(0)] private int inimigosAMaisPorAndar = 8;
+    [Tooltip("Inimigos a mais em cada caverna seguinte")]
+
+    [SerializeField, Min(0)] private int inimigosAMaisPorAndar = 6;
 
     [Tooltip("Os inimigos ficam em grupos deste tamanho")]
     [SerializeField] private Vector2Int tamanhoDoGrupo = new Vector2Int(2, 4);
@@ -78,6 +83,13 @@ public class GeradorDoAndar : MonoBehaviour
     [SerializeField] private Sprite caixaDeMunicao;
     [SerializeField] private AudioClip somDoBau;
     [SerializeField] private AudioClip somDaMunicao;
+
+    [Header("Chefe")]
+    [Tooltip("Metade da largura e da altura do salao do chefe, em celulas")]
+    [SerializeField] private Vector2Int raioDaArena = new Vector2Int(12, 9);
+
+    [Tooltip("Matou o chefe, cai um bau no meio do salao")]
+    [SerializeField] private bool bauDepoisDoChefe = true;
 
     [Header("Buracos e enfeites")]
     [Tooltip("Buracos de abismo no primeiro andar (ninguem passa; o tiro passa por cima)")]
@@ -129,6 +141,7 @@ public class GeradorDoAndar : MonoBehaviour
     private HashSet<Vector2Int> chaoDoAndar;
     private Vector2 ondeMorreuOUltimo;
     private bool trocando;
+    private Chefe chefe;
     private float escuro;
     private string nome;
     private float nomeAte;
@@ -138,6 +151,12 @@ public class GeradorDoAndar : MonoBehaviour
 
     /// <summary>O andar atual (o primeiro e 1).</summary>
     public int Andar { get; private set; }
+
+    /// <summary>Quantos andares a partida tem.</summary>
+    public int Andares => andares != null && andares.Length > 0 ? andares.Length : 3;
+
+    /// <summary>O andar atual e o de um chefe.</summary>
+    public bool AndarDoChefe => chefe != null;
 
     public Transform Jogador { get; private set; }
 
@@ -194,7 +213,20 @@ public class GeradorDoAndar : MonoBehaviour
         }
 
         if (vivos.Count == 0)
+        {
             AbrirSaida(ondeMorreuOUltimo);
+
+            // O premio do chefe: um bau no meio do salao (um pouco abaixo de onde o portal costuma abrir).
+            if (chefe != null && bauDepoisDoChefe && quadrosDoBau.Length > 0)
+            {
+                Vector2 meio = Arena.OndeOChefeFica(raioDaArena) - new Vector2Int(0, 4);
+
+                if (Vector2.Distance(meio, ondeMorreuOUltimo) < 2f)
+                    meio += Vector2.left * 3f;
+
+                Bau.Criar(quadrosDoBau, meio, raiz.transform, armas, caixaDeMunicao, somDoBau, somDaMunicao);
+            }
+        }
     }
 
     private void AbrirSaida(Vector2 onde)
@@ -218,7 +250,7 @@ public class GeradorDoAndar : MonoBehaviour
         trocando = true;
         yield return Escurecer(0f, 1f);
 
-        if (Andar >= quantidadeDeAndares)
+        if (Andar >= Andares)
         {
             nome = "Voce venceu!";
             nomeAte = Time.unscaledTime + tempoDoNome;
@@ -275,10 +307,12 @@ public class GeradorDoAndar : MonoBehaviour
 
     private void Gerar(int andar)
     {
+        AndarDaPartida esse = andares != null && andar <= andares.Length ? andares[andar - 1] : null;
         Andar = andar;
-        nome = $"Andar {andar} de {quantidadeDeAndares}";
+        nome = esse != null && !string.IsNullOrEmpty(esse.nome) ? $"Andar {andar} de {Andares}: {esse.nome}" : $"Andar {andar} de {Andares}";
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
+        chefe = null;
         chaoDoAndar = null;
         MapaDeCaminhos.Atual = null;
         vivos.Clear();
@@ -289,9 +323,53 @@ public class GeradorDoAndar : MonoBehaviour
         raiz = new GameObject($"Andar {andar}");
         raiz.transform.SetParent(transform, false);
 
-        HashSet<Vector2Int> planta = Caverna.Cavar(celulasNoPrimeiroAndar + (andar - 1) * celulasAMaisPorAndar, raioMaximo, clareira);
+        if (esse != null && esse.chefe != null)
+            GerarArena(esse.chefe);
+        else
+            GerarCaverna(andar, CavernasAte(andar));
+    }
+
+    // Quantas cavernas ate este andar, contando ele (o tamanho e os inimigos crescem por caverna).
+    private int CavernasAte(int andar)
+    {
+        if (andares == null || andares.Length == 0)
+            return andar;
+
+        int cavernas = 0;
+
+        for (int i = 0; i < andar && i < andares.Length; i++)
+        {
+            if (andares[i] == null || andares[i].chefe == null)
+                cavernas++;
+        }
+
+        return Mathf.Max(1, cavernas);
+    }
+
+    private void GerarArena(GameObject prefabDoChefe)
+    {
+        HashSet<Vector2Int> planta = Arena.Montar(raioDaArena);
+        HashSet<Vector2Int> semBuracos = new HashSet<Vector2Int>();
+        HashSet<Vector2Int> pocas = Caverna.EspalharPocas(planta, semBuracos, pocasPorAndar / 2);
+        pedreiro.Construir(raiz.transform, planta, semBuracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+        MapaDeCaminhos.Atual = new MapaDeCaminhos(planta, distanciaDosCaminhos);
+
+        GameObject novo = Instantiate(prefabDoChefe, (Vector2)Arena.OndeOChefeFica(raioDaArena), Quaternion.identity, raiz.transform);
+        chefe = novo.GetComponent<Chefe>();
+
+        if (novo.TryGetComponent(out Vida vida))
+            vivos.Add(vida);
+        else
+            AbrirSaida(Arena.OndeOChefeFica(raioDaArena));
+
+        chaoDoAndar = planta;
+    }
+
+    private void GerarCaverna(int andar, int caverna)
+    {
+        HashSet<Vector2Int> planta = Caverna.Cavar(celulasNoPrimeiroAndar + (caverna - 1) * celulasAMaisPorAndar, raioMaximo, clareira);
         Caverna.Ajeitar(planta);
-        HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, buracosNoPrimeiroAndar + (andar - 1) * buracosAMaisPorAndar, longeDoComeco * 0.7f);
+        HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, buracosNoPrimeiroAndar + (caverna - 1) * buracosAMaisPorAndar, longeDoComeco * 0.7f);
         HashSet<Vector2Int> pocas = Caverna.EspalharPocas(planta, buracos, pocasPorAndar);
         pedreiro.Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
 
@@ -301,7 +379,7 @@ public class GeradorDoAndar : MonoBehaviour
         MapaDeCaminhos.Atual = new MapaDeCaminhos(chaoDaCaverna, distanciaDosCaminhos);
         // Os baus primeiro: as celulas deles saem do chao, e ninguem nasce dentro de um.
         EspalharArmas(chaoDaCaverna, andar);
-        EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (andar - 1) * inimigosAMaisPorAndar, andar);
+        EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (caverna - 1) * inimigosAMaisPorAndar, andar);
 
         // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no
         // ponto mais longe do comeco: nunca embaixo do jogador.
@@ -484,9 +562,12 @@ public class GeradorDoAndar : MonoBehaviour
         if (raiz != null && escuro < 1f)
         {
             GUI.color = Color.white;
-            string texto = saida != null ? "O portal abriu!" : $"Inimigos: {vivos.Count}";
+            // No andar do chefe, a barra dele ja diz tudo.
+            string texto = saida != null ? "O portal abriu!" : chefe != null ? "" : $"Inimigos: {vivos.Count}";
             GUI.Label(new Rect(16f, 12f, Screen.width * 0.5f, 60f), texto, estiloDoContador);
-            DesenharSeta();
+
+            if (chefe == null)
+                DesenharSeta();
         }
 
         if (escuro > 0f)
@@ -590,4 +671,15 @@ public class InimigoDoAndar
 
     [Tooltip("Quanto sai, comparado com os outros (0 = nunca)")]
     [Min(0f)] public float peso = 1f;
+}
+
+/// <summary>Um andar da partida: uma caverna (sem chefe) ou a arena de um chefe.</summary>
+[System.Serializable]
+public class AndarDaPartida
+{
+    [Tooltip("O nome que aparece ao chegar (opcional), ex.: Covil do Minotauro")]
+    public string nome;
+
+    [Tooltip("Vazio = caverna. Com o prefab de um chefe = o andar e a arena dele")]
+    public GameObject chefe;
 }

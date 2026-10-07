@@ -580,7 +580,7 @@ public static class MontarJogo
             (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Gosma.prefab"), 1, 2f),
             (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/EsqueletoArqueiro.prefab"), 1, 2f),
             (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Necromante.prefab"), 2, 1.5f),
-            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Olho.prefab"), 3, 1.5f),
+            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Olho.prefab"), 4, 1.5f),
         };
         Mexer(gerador, "inimigos", p =>
         {
@@ -592,6 +592,26 @@ public static class MontarJogo
                 item.FindPropertyRelative("prefab").objectReferenceValue = inimigos[i].prefab;
                 item.FindPropertyRelative("primeiroAndar").intValue = inimigos[i].andar;
                 item.FindPropertyRelative("peso").floatValue = inimigos[i].peso;
+            }
+        });
+
+        // A ordem dos andares: duas cavernas e o Minotauro, duas cavernas e o Golem.
+        GameObject minotauro = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Minotauro.prefab");
+        GameObject golem = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Golem.prefab");
+        var andares = new (string nome, GameObject chefe)[]
+        {
+            ("", null), ("", null), ("Covil do Minotauro", minotauro),
+            ("", null), ("", null), ("Coracao da Prisao", golem),
+        };
+        Mexer(gerador, "andares", p =>
+        {
+            p.arraySize = andares.Length;
+
+            for (int i = 0; i < andares.Length; i++)
+            {
+                SerializedProperty item = p.GetArrayElementAtIndex(i);
+                item.FindPropertyRelative("nome").stringValue = andares[i].nome;
+                item.FindPropertyRelative("chefe").objectReferenceValue = andares[i].chefe;
             }
         });
         foreach (string folha in new[] { "Chao", "Paredes", "Abismo", "Sangue", "Enfeites" })

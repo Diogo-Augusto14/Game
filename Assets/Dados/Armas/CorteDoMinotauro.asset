@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
+  m_Name: CorteDoMinotauro
+  m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
+  nome: Corte do Minotauro
+  desenhoNaMao: {fileID: 0}
+  distanciaDaMao: 0.4
+  coice: 0.08
+  infinita: 1
+  pente: 12
+  municaoMaxima: 120
+  recarga: 1
+  somDaRecarga: {fileID: 0}
+  pesoNoBau: 0
+  desenhoDoTiro: {fileID: 21300000, guid: 099ba22bcccd45bdb95dbb79220fe11f, type: 3}
+  apontarODesenho: 0
+  cor: {r: 1, g: 1, b: 1, a: 1}
+  raio: 0.2
+  automatica: 0
+  tirosPorSegundo: 1
+  velocidade: 7
+  alcance: 14
+  dano: 1
+  empurrao: 4
+  aceleracao: 0
+  curva: 0
+  giroDoDesenho: 0
+  tirosPorDisparo: 7
+  abertura: 12
+  anel: 0
+  dispersao: 0
+  rajada: 3
+  intervaloDaRajada: 0.3
+  giroNaRajada: 0
+  tremor: 0.05
+  som: {fileID: 8300000, guid: b2e6dbe2f04e4c559b2babb8d650b17d, type: 3}
+  volume: 0.45

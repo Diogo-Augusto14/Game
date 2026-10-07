@@ -5,8 +5,9 @@ using UnityEngine;
 /// jogador (espelhado). Como no jogador, cada animacao e uma folha (ver <see cref="FolhaDeSprites"/>):
 /// pra trocar o bicho, e so arrastar as folhas novas e acertar o tamanho do quadro.
 ///
-/// O ataque toca no ritmo do preparo do <see cref="InimigoAtirador"/>: o quadro do disparo chega
-/// bem na hora em que a bala sai.
+/// O ataque toca no ritmo do preparo (do <see cref="InimigoAtirador"/> ou do <see cref="Chefe"/>): o
+/// quadro do disparo chega bem na hora em que a bala sai. Quem tem mais de um ataque (os chefes) poe
+/// as outras folhas em <see cref="outrosAtaques"/>.
 /// </summary>
 [DisallowMultipleComponent]
 public class AnimacaoDoInimigo : MonoBehaviour
@@ -38,6 +39,9 @@ public class AnimacaoDoInimigo : MonoBehaviour
     [Tooltip("Quadro do ataque em que a bala sai (o primeiro e 0)")]
     [SerializeField, Min(0)] private int quadroDoDisparo = 5;
 
+    [Tooltip("Mais ataques (os chefes): o 1 e o primeiro daqui, o 2 o segundo...")]
+    [SerializeField] private OutroAtaque[] outrosAtaques;
+
     [Tooltip("Abaixo desta velocidade conta como parado")]
     [SerializeField, Min(0f)] private float velocidadeParaAndar = 0.3f;
 
@@ -46,7 +50,8 @@ public class AnimacaoDoInimigo : MonoBehaviour
     private Sprite[] quadrosAtaque;
     private Sprite[] quadrosMorte;
 
-    private InimigoAtirador inimigo;
+    private IAnimavel inimigo;
+    private Sprite[][] quadrosDosOutros;
     private Vida vida;
 
     private Sprite[] tocando;
@@ -57,13 +62,19 @@ public class AnimacaoDoInimigo : MonoBehaviour
 
     private void Awake()
     {
-        inimigo = GetComponent<InimigoAtirador>();
+        inimigo = GetComponent<IAnimavel>();
         vida = GetComponent<Vida>();
 
         quadrosParado = FolhaDeSprites.Cortar(parado, tamanhoDoQuadro, pixelsPorUnidade);
         quadrosAndando = FolhaDeSprites.Cortar(andando, tamanhoDoQuadro, pixelsPorUnidade);
         quadrosAtaque = FolhaDeSprites.Cortar(ataque, tamanhoDoQuadro, pixelsPorUnidade);
         quadrosMorte = FolhaDeSprites.Cortar(morte, tamanhoDoQuadro, pixelsPorUnidade);
+
+        int outros = outrosAtaques != null ? outrosAtaques.Length : 0;
+        quadrosDosOutros = new Sprite[outros][];
+
+        for (int i = 0; i < outros; i++)
+            quadrosDosOutros[i] = FolhaDeSprites.Cortar(outrosAtaques[i].folha, tamanhoDoQuadro, pixelsPorUnidade);
 
         if (quadrosAndando.Length == 0)
             quadrosAndando = quadrosParado;
@@ -74,25 +85,34 @@ public class AnimacaoDoInimigo : MonoBehaviour
     private void OnEnable()
     {
         if (inimigo != null)
-            inimigo.AoPreparar += Preparou;
+            inimigo.AoAtacar += Atacou;
     }
 
     private void OnDisable()
     {
         if (inimigo != null)
-            inimigo.AoPreparar -= Preparou;
+            inimigo.AoAtacar -= Atacou;
     }
 
-    private void Preparou()
+    private void Atacou(int qual, float ateOGolpe)
     {
-        if (quadrosAtaque.Length == 0)
+        Sprite[] quadros = quadrosAtaque;
+        int golpe = quadroDoDisparo;
+
+        if (qual > 0 && qual <= quadrosDosOutros.Length && quadrosDosOutros[qual - 1].Length > 0)
+        {
+            quadros = quadrosDosOutros[qual - 1];
+            golpe = outrosAtaques[qual - 1].quadroDoGolpe;
+        }
+
+        if (quadros.Length == 0)
             return;
 
-        // Do comeco ao quadro do disparo cabe no preparo; o resto do ataque segue no mesmo ritmo.
-        int ateODisparo = Mathf.Clamp(quadroDoDisparo, 1, quadrosAtaque.Length);
-        float ritmo = ateODisparo / Mathf.Max(0.05f, inimigo.Preparo);
-        Tocar(quadrosAtaque, ritmo, true);
-        atacandoAte = Time.time + quadrosAtaque.Length / ritmo;
+        // Do comeco ao quadro do golpe cabe no preparo; o resto do ataque segue no mesmo ritmo.
+        int ateOGolpeEmQuadros = Mathf.Clamp(golpe, 1, quadros.Length);
+        float ritmo = ateOGolpeEmQuadros / Mathf.Max(0.05f, ateOGolpe);
+        Tocar(quadros, ritmo, true);
+        atacandoAte = Time.time + quadros.Length / ritmo;
     }
 
     private void LateUpdate()
@@ -140,4 +160,14 @@ public class AnimacaoDoInimigo : MonoBehaviour
         soUmaVez = umaVez;
         comecou = Time.time;
     }
+}
+
+/// <summary>Mais uma animacao de ataque: a folha e o quadro em que o golpe acontece.</summary>
+[System.Serializable]
+public class OutroAtaque
+{
+    public Texture2D folha;
+
+    [Tooltip("Quadro em que o golpe acontece (o primeiro e 0)")]
+    [Min(0)] public int quadroDoGolpe = 5;
 }

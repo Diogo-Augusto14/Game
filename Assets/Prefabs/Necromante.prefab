@@ -454,7 +454,7 @@ MonoBehaviour:
   quadrosPorSegundoParado: 8
   quadrosPorSegundoAndando: 10
   quadrosPorSegundoNaMorte: 12
-  quadroDoDisparo: 6
+  quadroDoDisparo: 5
   velocidadeParaAndar: 0.3
 --- !u!114 &1117801830063836640
 MonoBehaviour:

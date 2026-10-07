@@ -574,9 +574,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6b2a99270a343fbbbc891c250c405c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GeradorDoAndar
-  quantidadeDeAndares: 3
+  andares:
+  - nome: 
+    chefe: {fileID: 0}
+  - nome: 
+    chefe: {fileID: 0}
+  - nome: Covil do Minotauro
+    chefe: {fileID: 808324852962721341, guid: b58a64db69ac49c5ae0fffde9be84ac8, type: 3}
+  - nome: 
+    chefe: {fileID: 0}
+  - nome: 
+    chefe: {fileID: 0}
+  - nome: Coracao da Prisao
+    chefe: {fileID: 1128459457916472339, guid: 16bb5b6e5b2342d58b0b86100609ab40, type: 3}
   celulasNoPrimeiroAndar: 1500
-  celulasAMaisPorAndar: 500
+  celulasAMaisPorAndar: 400
   raioMaximo: 60
   clareira: {x: 5, y: 4}
   inimigos:
@@ -596,10 +608,10 @@ MonoBehaviour:
     primeiroAndar: 2
     peso: 1.5
   - prefab: {fileID: 410441793863870405, guid: ff4b2ca93a414d8881c1cf68e39aa361, type: 3}
-    primeiroAndar: 3
+    primeiroAndar: 4
     peso: 1.5
   inimigosNoPrimeiroAndar: 24
-  inimigosAMaisPorAndar: 8
+  inimigosAMaisPorAndar: 6
   tamanhoDoGrupo: {x: 2, y: 4}
   longeDoComeco: 14
   distanciaDosCaminhos: 40
@@ -619,6 +631,8 @@ MonoBehaviour:
   caixaDeMunicao: {fileID: 21300000, guid: 78a2c86479b84fae9091de50b6494e1c, type: 3}
   somDoBau: {fileID: 8300000, guid: e7c3b79028de4b17ad478276105f3e35, type: 3}
   somDaMunicao: {fileID: 8300000, guid: 9c9cf1a2f6914988bd23c18cf20f1f60, type: 3}
+  raioDaArena: {x: 12, y: 9}
+  bauDepoisDoChefe: 1
   buracosNoPrimeiroAndar: 8
   buracosAMaisPorAndar: 3
   pocasPorAndar: 10

@@ -82,11 +82,21 @@ objeto **Andar** da cena (`GeradorDoAndar`), com os números no Inspector.
 | `DadosDoOldPrison` | As tabelas de cantos e as regras do pacote, já convertidas (gerado pela ferramenta; não editar à mão) |
 | `GeradorDoAndar` | Monta o andar, espalha os inimigos em grupos longe do começo, conta quantos faltam, abre a saída quando o último morre e troca de andar. Na tela: o nome do andar, o contador e, quando sobram 3 ou menos, uma seta na beirada apontando pro mais perto |
 | `Saida` | O vórtice: abre onde morreu o último inimigo e, pisado, leva pro próximo andar |
+| `Arena` | A planta do andar do chefe: um salão oval com quatro pilares, no mesmo formato da caverna (o `Pedreiro` constrói igual) |
 | `MapaDeCaminhos` | O caminho de qualquer ponto da caverna até o jogador, contornando paredes, buracos e baús (os inimigos usam quando não dá pra ir reto) |
 
 Cada célula da caverna tem 1 unidade e a célula (x, y) fica no ponto (x, y) do mundo; o jogador começa
-no (0, 0). O primeiro andar tem umas 1500 células de chão (umas 7 telas cheias de chão) e 24 inimigos; cada andar
-seguinte tem 500 células e 8 inimigos a mais. São 3 andares: depois do último, a partida acaba em
+no (0, 0). A lista **Andares** do objeto Andar diz a ordem da partida; hoje são 6:
+
+| Andar | O que é |
+|---|---|
+| 1 e 2 | Cavernas |
+| 3 | **Covil do Minotauro** (o chefe) |
+| 4 e 5 | Cavernas |
+| 6 | **Coração da Prisão** (o Golem, o chefe final) |
+
+A primeira caverna tem umas 1500 células de chão (umas 7 telas cheias de chão) e 24 inimigos; cada
+caverna seguinte tem 400 células e 6 inimigos a mais. Depois do último andar, a partida acaba em
 vitória e recomeça.
 
 ### A arte do Old Prison e as regras do Tiled
@@ -186,6 +196,32 @@ raspa na quina). O mapa só é refeito quando o jogador muda de célula.
 O **Boneco de treino** (`Assets/Prefabs/BonecoDeTreino.prefab`), na clareira onde o jogador começa, serve
 pra testar as armas: a vida dele é imortal, ele pisca e balança na estaca pro lado do golpe
 (`BonecoDeTreino`), e nunca sai do lugar.
+
+## Chefes
+
+Cada chefe tem um **andar só dele**: um salão (a `Arena`) sem caverna e sem inimigos comuns, com quatro
+pilares pra se esconder dos tiros. O jogador entra por baixo, o chefe espera no meio de cima. Depois
+de uma apresentação de 2 segundos (o nome e a barra de vida aparecem no alto da tela), ele alterna os
+ataques sem repetir o mesmo duas vezes seguidas, andando um pouco entre eles. Com metade da vida entra
+em **fúria**: fica avermelhado, mais rápido, e ganha um ataque a mais. Morto, o portal abre e cai um
+baú no meio do salão.
+
+| Chefe | Andar | Ataques |
+|---|---|---|
+| **Minotauro** (320 de vida) | 3 | 3 investidas seguidas; pisão (3 anéis de pedras); corte (leques de 7 em rajada). Na fúria: investidas que soltam um anel de pedras no fim de cada uma |
+| **Golem de Brasa** (480 de vida) | 6 | Espiral de fogo de 4 braços; leques de pedra em rajada; anéis que começam devagar e aceleram. Na fúria: anéis de fogo que fazem curva |
+
+| Script | O que faz |
+|---|---|
+| `Chefe` | A luta: apresentação, escolha dos ataques, investidas, rajadas, fúria e a barra de vida (provisória até a etapa 7). Cada ataque (`AtaqueDoChefe`) diz a arma (o padrão), quantas investidas, o preparo, qual animação toca e se é só da fúria |
+| `IAnimavel` | O que a `AnimacaoDoInimigo` precisa saber (pra onde olha, se anda, quando ataca): serve pro inimigo comum e pro chefe |
+| `AnimacaoDoInimigo` | Ganhou `outrosAtaques`: mais folhas de ataque, cada uma com o quadro do golpe (o chefe escolhe qual toca) |
+
+Os chefes são os desenhos do Minotauro e do Golem no dobro do tamanho, pesados (o jogador não empurra)
+e sem empurrão dos golpes. Encostar neles machuca (`DanoAoEncostar`).
+
+Pra criar outro chefe: duplicar o prefab de um, trocar as folhas e a lista de ataques (cada um com uma
+arma de padrão), e pôr o prefab num andar da lista **Andares**.
 
 ## Criar um inimigo que atira
 

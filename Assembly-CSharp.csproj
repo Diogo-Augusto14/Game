@@ -90,6 +90,9 @@
     <Compile Include="Assets\Scripts\Armas\Rajada.cs" />
     <Compile Include="Assets\Scripts\Inimigos\DanoAoEncostar.cs" />
     <Compile Include="Assets\Scripts\Inimigos\TiroAoMorrer.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\IAnimavel.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\Chefe.cs" />
+    <Compile Include="Assets\Scripts\Andar\Arena.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StreamingAssets\CREDITOS-AUDIO.txt" />

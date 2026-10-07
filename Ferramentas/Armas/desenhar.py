@@ -136,6 +136,29 @@ DESENHOS = {
         "rRWRr",
         ".rRr.",
     ],
+    # ---------- os tiros dos chefes (maiores) ----------
+    'OrbeLaranja': [
+        "...rrr...",
+        "..rOOOr..",
+        ".rOYYYOr.",
+        "rOYWWWYOr",
+        "rOYWWWYOr",
+        "rOYWWWYOr",
+        ".rOYYYOr.",
+        "..rOOOr..",
+        "...rrr...",
+    ],
+    'Pedra': [
+        "...DDD...",
+        "..DGGGD..",
+        ".DGgggGD.",
+        "DGgWgggGD",
+        "DGggggOGD",
+        "DGgggOOGD",
+        ".DGgOOGD.",
+        "..DGGGD..",
+        "...DDD...",
+    ],
     # ---------- a bolsa de municao ----------
     'CaixaDeMunicao': [
         "...bbbb....",
