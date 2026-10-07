@@ -384,11 +384,12 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
         // Na investida a velocidade e cheia na hora (sem acelerar); parede e gente seguram pela fisica.
         if (Investindo)
         {
-            corpo.linearVelocity = rumoDaInvestida * velocidadeDaInvestida * Ritmo;
+            corpo.linearVelocity = rumoDaInvestida * velocidadeDaInvestida * Ritmo * CondicaoDoInimigo.Fator(this);
             return;
         }
 
-        corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade * Ritmo, aceleracao * Time.fixedDeltaTime);
+        // Gelo e o tempo lento (Espiral do Tempo) deixam devagar.
+        corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade * Ritmo * CondicaoDoInimigo.Fator(this), aceleracao * Time.fixedDeltaTime);
     }
 
     private bool ParedeNoMeio(Vector2 ate) =>

@@ -55,6 +55,15 @@ public class Vida : MonoBehaviour
 
     public float Atual { get; private set; }
 
+    /// <summary>
+    /// Perguntado quando o golpe mataria: true = nao morre (a Pena da Fenix poe a vida de volta antes
+    /// de responder). Quem nao tem item nenhum, morre.
+    /// </summary>
+    public System.Func<bool> SegundaChance;
+
+    /// <summary>Segundos a mais sem tomar dano depois de um golpe (o Elixir de Nevoa).</summary>
+    public float TempoSemDanoExtra { get; set; }
+
     public float Maxima => vidaMaxima;
 
     /// <summary>De 0 a 1 (pra uma barra de vida, no futuro).</summary>
@@ -81,6 +90,29 @@ public class Vida : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         TryGetComponent(out protecao);
         TryGetComponent(out bloqueio);
+    }
+
+    /// <summary>Monta uma vida feita no codigo (mesa, barril): o lado e quanto aguenta.</summary>
+    public void Configurar(Lado qual, float maxima, float peso = 0f)
+    {
+        lado = qual;
+        vidaMaxima = Mathf.Max(1f, maxima);
+        Atual = vidaMaxima;
+        pesoDoEmpurrao = peso;
+    }
+
+    /// <summary>Muda a vida maxima sem encher (o Coracao de Leao soma, o Pacto de Sangue tira).</summary>
+    public void MudarMaxima(float quanto)
+    {
+        vidaMaxima = Mathf.Max(1f, vidaMaxima + quanto);
+        Atual = Mathf.Clamp(Atual + Mathf.Max(0f, quanto), 0.5f, vidaMaxima);
+    }
+
+    /// <summary>Tira vida sem golpe (o preco do altar), sem matar.</summary>
+    public void Pagar(float quanto)
+    {
+        if (!Morto)
+            Atual = Mathf.Max(0.5f, Atual - quanto);
     }
 
     /// <summary>Recupera vida (o Padre), ate o maximo. Morto nao cura.</summary>
@@ -115,7 +147,11 @@ public class Vida : MonoBehaviour
         if (Protegido || dano.quantidade <= 0f)
             return false;
 
-        // Escudo (o cavaleiro do escudo, de frente): segura o golpe inteiro.
+        // Escudo (o cavaleiro do escudo, de frente; o Escudo Sagrado do jogador): segura o golpe inteiro.
+        // A peca pode chegar depois do Awake (os itens entram no jogador no meio da partida).
+        if (bloqueio == null && lado == Lado.Jogador)
+            TryGetComponent(out bloqueio);
+
         if (bloqueio != null && bloqueio.Bloqueia(dano))
         {
             Bloqueou = true;
@@ -124,7 +160,7 @@ public class Vida : MonoBehaviour
 
         float quanto = dano.quantidade * (1f - armadura);
         Atual = Mathf.Max(0f, Atual - quanto);
-        semDanoAte = Time.time + tempoSemDano;
+        semDanoAte = Time.time + tempoSemDano + (tempoSemDano > 0f ? TempoSemDanoExtra : 0f);
 
         if (imortal && Atual <= 0f)
             Atual = vidaMaxima;
@@ -134,6 +170,9 @@ public class Vida : MonoBehaviour
             corpo.linearVelocity += dano.direcao.normalized * dano.empurrao * pesoDoEmpurrao;
 
         bool morreu = Atual <= 0f;
+
+        if (morreu && SegundaChance != null && SegundaChance())
+            morreu = false;
 
         if (morreu)
             Morto = true;

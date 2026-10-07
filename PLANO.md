@@ -45,9 +45,13 @@ de novo.
   habilidade e uma arma inicial diferente (etapa 8).
 - **A sua arte.** Talvez não tenha etapa só pra ela; quando o seu boneco ficar pronto, entra no lugar de
   um personagem (é só trocar as folhas de animação).
-- **Tamanho dos andares e quantos andares.** Desde a etapa 8: 12 andares em 4 mundos (duas cavernas e um
-  chefe; o último é o Olho do Abismo). A primeira caverna tem umas 1500 células de chão e 24 inimigos,
-  crescendo 220 células e 4 inimigos a cada caverna. Ajustar jogando.
+- **Tamanho dos andares e quantos andares.** 12 andares em 4 mundos (duas cavernas e um chefe; o último é
+  o Olho do Abismo). Depois da 1.10.0, achou grande e estreito: a primeira caverna tem umas 1100 células
+  e 20 inimigos (mais 120 células e 3 inimigos a cada caverna), com corredores de 3 a 4 de largura.
+- **O que precisava adaptar do jogo antigo** (feito depois da etapa 8): moedas, chaves e bombas, loja,
+  itens passivos e ativos com sinergias, as salas especiais virando pedaços da caverna (emboscada,
+  desafio, altar, baús especiais, área escura), armadilhas e cenário vivo, temas dos mundos e as flechas
+  especiais virando arcos achados.
 - **Onde ficam os chefes.** Decidido na etapa 6: num andar só deles (uma arena), não no fim da caverna.
 - **Personagens do Old Prison.** O pacote tem um esqueleto, um esqueleto mago que atira e um inimigo tipo
   assassino, com animações. Na etapa 5 os inimigos novos vieram do mesmo pacote do Arqueiro e do Bruxo

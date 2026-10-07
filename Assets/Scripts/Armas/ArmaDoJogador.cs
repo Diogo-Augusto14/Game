@@ -198,7 +198,10 @@ public class ArmaDoJogador : MonoBehaviour
     private void Atirar(Vector2 rumo)
     {
         DadosDaArma dados = Atual.Dados;
-        float intervalo = 1f / dados.tirosPorSegundo;
+
+        // Os itens de ritmo (Elixir da Pressa, Hidromel...) encurtam o intervalo.
+        float ritmo = TryGetComponent(out EstatisticasDoJogador itens) ? Mathf.Max(0.3f, itens.CadenciaVezes) : 1f;
+        float intervalo = 1f / (dados.tirosPorSegundo * ritmo);
         proximoTiro = Time.time + intervalo;
         Atual.Gastar();
         rajada.Comecar(dados);
@@ -218,6 +221,19 @@ public class ArmaDoJogador : MonoBehaviour
 
         if (!rajada.Atualizar(origem, rumo, gameObject, Lado.Jogador))
             return;
+
+        // Os itens que somam tiros: as runas (mais tiros em leque) e o Elmo de Duas Faces (um pra tras).
+        if (TryGetComponent(out EstatisticasDoJogador itens))
+        {
+            for (int i = 1; i <= itens.TirosExtras; i++)
+            {
+                float giro = 11f * ((i + 1) / 2) * (i % 2 == 1 ? 1f : -1f);
+                dados.Disparar(origem, Quaternion.Euler(0f, 0f, giro) * rumo, gameObject, Lado.Jogador);
+            }
+
+            if (itens.TiroPraTras)
+                dados.Disparar((Vector2)transform.position + Vector2.up * alturaDaSaida - rumo * saida, -rumo, gameObject, Lado.Jogador);
+        }
 
         CameraDoJogo.Tremer(dados.tremor, 0.06f);
         Tocar(dados.som, dados.volume, true);

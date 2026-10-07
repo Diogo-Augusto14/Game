@@ -614,9 +614,9 @@ MonoBehaviour:
   - nome: 
     chefe: {fileID: 1098764678197149752, guid: ae4508e983274a49948ae071f410f44c, type: 3}
     ouEntao: []
-  celulasNoPrimeiroAndar: 1500
-  celulasAMaisPorAndar: 220
-  raioMaximo: 60
+  celulasNoPrimeiroAndar: 1100
+  celulasAMaisPorAndar: 120
+  raioMaximo: 40
   clareira: {x: 5, y: 4}
   inimigos:
   - prefab: {fileID: 7624800600701863497, guid: 6d06fbfc74634d308c00558a827e02d5, type: 3}
@@ -739,10 +739,10 @@ MonoBehaviour:
     primeiroAndar: 8
     ultimoAndar: 0
     peso: 0.6
-  inimigosNoPrimeiroAndar: 24
-  inimigosAMaisPorAndar: 4
+  inimigosNoPrimeiroAndar: 20
+  inimigosAMaisPorAndar: 3
   tamanhoDoGrupo: {x: 2, y: 4}
-  longeDoComeco: 14
+  longeDoComeco: 12
   distanciaDosCaminhos: 40
   setaQuandoFaltarem: 3
   armas:
@@ -751,6 +751,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 650fcca89551407daf7e23d070802562, type: 2}
   - {fileID: 11400000, guid: f055442f340b4a24a2b269cf1e8772db, type: 2}
   - {fileID: 11400000, guid: ca7dc619370c460ba499dbf8adeede2e, type: 2}
+  - {fileID: 11400000, guid: 0cad076bedac49418954c165851905b1, type: 2}
+  - {fileID: 11400000, guid: fd1052285e434c99bd2e86686c1f10c9, type: 2}
+  - {fileID: 11400000, guid: f2401f0fb21f4ac1af320f90d278b882, type: 2}
+  - {fileID: 11400000, guid: 6e94cbb0741b493f877a42065f4d767f, type: 2}
   bausPorAndar: 3
   armasNoChaoPorAndar: 1
   bauNoComeco: 0

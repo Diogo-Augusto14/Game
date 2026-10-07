@@ -184,12 +184,12 @@ public class TelaDeInicio : MonoBehaviour
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(pai, "Controles", -408f,
-            "[W][A][S][D] andar | mouse mira e atira | [Espaco] esquiva | [Q] troca a arma | [E] pega e abre | [F] habilidade | [Esc] pausar || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] mirar | [Pad RT] atirar | [Pad A] esquiva | [Pad Y] troca | [Pad B] pega | [Pad X] habilidade | [Pad Start] pausar",
-            24, corDasDicas);
+            "[W][A][S][D] andar | mouse mira e atira | [Espaco] esquiva | [Q] troca | [E] pega | [F] habilidade | [G] bomba | [R] item | [Esc] pausa || " +
+            "[Pad AnalogicoEsquerdo] andar (clique: bomba) | [Pad AnalogicoDireito] mira (clique: item) | [Pad RT] atira | [Pad A] esquiva | [Pad Y] troca | [Pad B] pega | [Pad X] habilidade",
+            21, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
-            "[M] música | [N] efeitos | Baú dá arma. Mate todos do andar pra abrir o portal. || " +
-            "[Pad LB] música | [Pad RB] efeitos | Baú dá arma. Mate todos do andar pra abrir o portal.", 22, new Color(0.8f, 0.85f, 0.95f));
+            "[M] música | [N] efeitos | Moeda compra na loja, chave abre baú trancado, bomba quebra pedra rachada. || " +
+            "[Pad LB] música | [Pad RB] efeitos | Moeda compra na loja, chave abre baú trancado, bomba quebra pedra rachada.", 21, new Color(0.8f, 0.85f, 0.95f));
 
         TelaSimples.Texto(pai, "Creditos", 16, new Color(0.5f, 0.47f, 0.5f), -514f,
             "Sons de interface: Nathan Gibson (CC BY 4.0)    Efeitos: Freedoom (BSD)    Interface: Tiny RPG Dragon Regalia GUI    " +

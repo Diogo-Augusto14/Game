@@ -92,6 +92,9 @@ public class DadosDaArma : ScriptableObject
     [Tooltip("Atravessa os inimigos (a onda de corte das espadas): acerta cada um uma vez so e segue")]
     public bool atravessa;
 
+    [Tooltip("O efeito da flecha especial: explode, gela, envenena ou quica nas paredes")]
+    public EfeitoDoTiro efeito;
+
     [Tooltip("Graus por segundo que o desenho gira em voo (o machado rodando; 0 = nao gira)")]
     public float giroDoDesenho;
 
@@ -144,4 +147,22 @@ public class DadosDaArma : ScriptableObject
             Projetil.Disparar(origem, new Vector2(Mathf.Cos(a), Mathf.Sin(a)), this, dono, lado);
         }
     }
+}
+
+/// <summary>O que o tiro faz alem do dano (as flechas especiais do jogo antigo, agora arcos achados).</summary>
+public enum EfeitoDoTiro
+{
+    Nenhum,
+
+    /// <summary>Explode ao acertar ou bater na parede (fere em volta).</summary>
+    Explode,
+
+    /// <summary>O inimigo fica lento e azulado por uns segundos.</summary>
+    Gela,
+
+    /// <summary>O inimigo perde vida aos poucos por uns segundos.</summary>
+    Envenena,
+
+    /// <summary>Quica nas paredes (ate 3 vezes) em vez de sumir.</summary>
+    Quica,
 }

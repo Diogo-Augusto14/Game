@@ -44,17 +44,16 @@ public static class Caverna
             {
                 Andarilho a = andarilhos[i];
 
-                // Quase sempre um corredor de 2, as vezes uma galeria de 5. Nunca 1: a face de tijolo das
-                // paredes tem 2 de altura e fecharia uma passagem tao estreita.
-                int largura = Random.value < 0.02f ? 5 : 2;
+                // Corredor de 3 ou 4 (2 ficava apertado demais pra desviar de tiro), as vezes uma galeria de 6.
+                int largura = Random.value < 0.03f ? 6 : Random.value < 0.5f ? 3 : 4;
                 Cavar(chao, a.onde, largura);
 
                 // Vira de vez em quando (pouco: assim sai corredor comprido, e nao um bolo no comeco).
                 float sorte = Random.value;
 
-                if (sorte < 0.14f)
+                if (sorte < 0.12f)
                     a.rumo = Girar(a.rumo, Random.value < 0.5f ? 1 : 3);
-                else if (sorte < 0.16f)
+                else if (sorte < 0.14f)
                     a.rumo = -a.rumo;
 
                 // Se divide ou some (nunca fica sem nenhum, nem com muitos).

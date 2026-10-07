@@ -5,6 +5,9 @@ public enum Lado
 {
     Jogador,
     Inimigos,
+
+    /// <summary>Nem de um nem de outro (mesa, barril, pedra rachada): qualquer tiro acerta.</summary>
+    Neutro,
 }
 
 /// <summary>

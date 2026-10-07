@@ -31,6 +31,9 @@ public class TelaDoJogo : MonoBehaviour
     private ArmaDoJogador armasDoJogador;
     private InteracaoDoJogador interacao;
     private HabilidadeDoHeroi habilidade;
+    private Bolsa bolsaDoJogador;
+    private ItemAtivoDoJogador ativo;
+    private EstatisticasDoJogador itens;
 
     /// <summary>Algum menu (ou a transicao escura entre eles) na tela: o HUD e a seta do andar somem.</summary>
     public static bool MenuAberto =>
@@ -58,8 +61,20 @@ public class TelaDoJogo : MonoBehaviour
     private void Update()
     {
         // A habilidade entra no jogador depois (o heroi e aplicado no Start do andar).
-        if (habilidade == null && vidaDoJogador != null)
-            habilidade = vidaDoJogador.GetComponent<HabilidadeDoHeroi>();
+        if (vidaDoJogador != null)
+        {
+            if (habilidade == null)
+                habilidade = vidaDoJogador.GetComponent<HabilidadeDoHeroi>();
+
+            if (bolsaDoJogador == null)
+                bolsaDoJogador = vidaDoJogador.GetComponent<Bolsa>();
+
+            if (ativo == null)
+                ativo = vidaDoJogador.GetComponent<ItemAtivoDoJogador>();
+
+            if (itens == null)
+                itens = vidaDoJogador.GetComponent<EstatisticasDoJogador>();
+        }
     }
 
     private void OnGUI()
@@ -69,7 +84,7 @@ public class TelaDoJogo : MonoBehaviour
 
         // Por cima do que os outros desenham no OnGUI (a seta do andar).
         GUI.depth = -10;
-        hud.Desenhar(gerador, vidaDoJogador, armasDoJogador, interacao, habilidade);
+        hud.Desenhar(gerador, vidaDoJogador, armasDoJogador, interacao, habilidade, bolsaDoJogador, ativo, itens);
 
         // O escuro da troca de andar.
         if (gerador != null && gerador.Escuro > 0f)

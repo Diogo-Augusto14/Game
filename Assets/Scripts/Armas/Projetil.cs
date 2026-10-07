@@ -34,6 +34,10 @@ public class Projetil : MonoBehaviour
     private float percorrido;
     private float multiplicadorDeDano = 1f;
     private System.Collections.Generic.List<Vida> acertados;
+    private bool atravessa;
+    private bool persegue;
+    private bool explode;
+    private int quiques;
 
     /// <summary>Multiplica o dano deste tiro (a furia do Machadeiro dobra).</summary>
     public float MultiplicadorDeDano { get => multiplicadorDeDano; set => multiplicadorDeDano = value; }
@@ -85,9 +89,28 @@ public class Projetil : MonoBehaviour
         projetil.apontar = arma.apontarODesenho;
         rb.linearVelocity = rumo * arma.velocidade;
 
+        projetil.atravessa = arma.atravessa;
+        projetil.explode = arma.efeito == EfeitoDoTiro.Explode;
+        projetil.quiques = arma.efeito == EfeitoDoTiro.Quica ? 3 : 0;
+
         // A furia do Machadeiro: os tiros dele batem em dobro enquanto dura.
         if (lado == Lado.Jogador && dono != null && dono.TryGetComponent(out HabilidadeDoHeroi habilidade))
             projetil.multiplicadorDeDano = habilidade.MultiplicadorDeDano;
+
+        // Os itens do jogador: dano, alcance, velocidade, tamanho, atravessar, perseguir, explodir.
+        if (lado == Lado.Jogador && dono != null && dono.TryGetComponent(out EstatisticasDoJogador itens))
+        {
+            projetil.multiplicadorDeDano *= itens.MultiplicadorDoDano(arma.dano);
+            projetil.alcance *= itens.AlcanceVezes;
+            projetil.velocidade *= itens.VelocidadeDoTiroVezes;
+            projetil.raio *= itens.TamanhoVezes;
+            colisor.radius = projetil.raio;
+            obj.transform.localScale = Vector3.one * itens.TamanhoVezes;
+            projetil.atravessa |= itens.Atravessa;
+            projetil.persegue = itens.Persegue;
+            projetil.explode |= itens.ExplodeAoAcertar;
+            rb.linearVelocity = rumo * projetil.velocidade;
+        }
 
         return projetil;
     }
@@ -129,8 +152,12 @@ public class Projetil : MonoBehaviour
             rumo = ate.normalized;
         }
 
+        // A Bussola Maldita: vira aos poucos pro inimigo vivo mais perto.
+        if (persegue && !voltando)
+            Perseguir();
+
         // Freia ou acelera (sem parar de vez: tiro parado no ar so confunde) e faz a curva.
-        if (aceleracao != 0f || curva != 0f || voltando)
+        if (aceleracao != 0f || curva != 0f || voltando || persegue)
         {
             velocidade = Mathf.Max(0.8f, velocidade + aceleracao * Time.fixedDeltaTime);
             float a = Mathf.Atan2(rumo.y, rumo.x) + curva * Mathf.Deg2Rad * Time.fixedDeltaTime;
@@ -146,8 +173,24 @@ public class Projetil : MonoBehaviour
 
         float passo = velocidade * Time.fixedDeltaTime;
 
-        if (Physics2D.CircleCast(corpo.position, raio, rumo, passo, 1 << Pedreiro.CamadaDaParede))
+        RaycastHit2D parede = Physics2D.CircleCast(corpo.position, raio, rumo, passo, 1 << Pedreiro.CamadaDaParede);
+
+        if (parede.collider != null)
         {
+            // A flecha que quica: reflete na parede e segue.
+            if (quiques > 0 && parede.normal.sqrMagnitude > 0.01f)
+            {
+                quiques--;
+                rumo = Vector2.Reflect(rumo, parede.normal).normalized;
+                corpo.linearVelocity = rumo * velocidade;
+
+                if (apontar)
+                    corpo.MoveRotation(Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg);
+
+                return;
+            }
+
+            Explodir();
             Sumir();
             return;
         }
@@ -177,14 +220,16 @@ public class Projetil : MonoBehaviour
                 return;
 
             // A onda que atravessa acerta cada um uma vez so.
-            if (arma.atravessa && acertados != null && acertados.Contains(vida))
+            if (atravessa && acertados != null && acertados.Contains(vida))
                 return;
 
             // Protegido (esquiva, tempinho depois do golpe): tambem passa reto. Bateu num escudo: some.
             if (!vida.ReceberDano(new Dano(arma.dano * multiplicadorDeDano, rumo, arma.empurrao, dono)) && !vida.Bloqueou)
                 return;
 
-            if (arma.atravessa && !vida.Bloqueou)
+            Efeito(vida);
+
+            if (atravessa && !vida.Bloqueou)
             {
                 if (acertados == null)
                     acertados = new System.Collections.Generic.List<Vida>();
@@ -193,7 +238,59 @@ public class Projetil : MonoBehaviour
             }
         }
 
+        Explodir();
         Sumir();
+    }
+
+    // Gelo e veneno das flechas especiais (so em inimigo).
+    private void Efeito(Vida vida)
+    {
+        if (vida.Lado != Lado.Inimigos)
+            return;
+
+        if (arma.efeito == EfeitoDoTiro.Gela)
+            CondicaoDoInimigo.Gelar(vida.gameObject, 2.5f);
+        else if (arma.efeito == EfeitoDoTiro.Envenena)
+            CondicaoDoInimigo.Envenenar(vida.gameObject, 3f, Mathf.Max(2f, arma.dano * 0.6f));
+    }
+
+    // A flecha explosiva (e a Polvora em Chamas): uma explosao pequena onde parou, sem ferir o jogador.
+    private void Explodir()
+    {
+        if (!explode || acabou)
+            return;
+
+        explode = false;
+        Explosao.Criar(corpo.position, 1.3f, arma.dano * multiplicadorDeDano * 0.8f, lado, dono);
+    }
+
+    private void Perseguir()
+    {
+        Vida alvo = null;
+        float melhor = 6f * 6f;
+
+        foreach (Vida v in GeradorDoAndar.Vivos)
+        {
+            if (v == null || v.Morto)
+                continue;
+
+            float d = ((Vector2)v.transform.position - corpo.position).sqrMagnitude;
+
+            if (d < melhor)
+            {
+                melhor = d;
+                alvo = v;
+            }
+        }
+
+        if (alvo == null)
+            return;
+
+        Vector2 quer = ((Vector2)alvo.transform.position - corpo.position).normalized;
+        float atual = Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg;
+        float desejado = Mathf.Atan2(quer.y, quer.x) * Mathf.Rad2Deg;
+        float novo = Mathf.MoveTowardsAngle(atual, desejado, 220f * Time.fixedDeltaTime) * Mathf.Deg2Rad;
+        rumo = new Vector2(Mathf.Cos(novo), Mathf.Sin(novo));
     }
 
     /// <summary>Para, encolhe um instante e some.</summary>

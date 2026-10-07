@@ -215,6 +215,19 @@ public static class Herois
         if (arma != null && jogador.TryGetComponent(out ArmaDoJogador armas))
             armas.ComecarCom(arma);
 
+        // A bolsa (moedas, chaves, bombas), os itens e o item ativo ficam a partida inteira.
+        if (!jogador.TryGetComponent(out Bolsa bolsa))
+            jogador.AddComponent<Bolsa>();
+
+        if (!jogador.TryGetComponent(out EstatisticasDoJogador itens))
+            itens = jogador.AddComponent<EstatisticasDoJogador>();
+
+        if (!jogador.TryGetComponent(out ItemAtivoDoJogador ativo))
+            jogador.AddComponent<ItemAtivoDoJogador>();
+
+        // Os itens de velocidade continuam valendo com o heroi novo.
+        itens.Atualizar();
+
         if (!jogador.TryGetComponent(out HabilidadeDoHeroi habilidade))
             habilidade = jogador.AddComponent<HabilidadeDoHeroi>();
 

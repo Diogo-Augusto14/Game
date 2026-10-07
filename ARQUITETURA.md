@@ -33,6 +33,8 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Armas` | Os dados de uma arma (asset), a arma com a munição dela, quem atira, o tiro em voo, a arma na mão e no chão, o baú, a caixa de munição e a munição na tela |
 | `Assets/Scripts/Combate` | Vida e dano (a mesma peça pra todo mundo), o piscar branco e o impacto (hitstop e números de dano) |
 | `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, os jeitos extras (sumir, escudo, dividir, invocar), o contorno claro, os chefes e o boneco de treino |
+| `Assets/Scripts/Itens` | Moedas, chaves e bombas (a bolsa), os coletáveis, a bomba e a explosão, os itens passivos e ativos, as sinergias, o pedestal (também da loja e do altar) e o orbe guardião |
+| `Assets/Scripts/Cenario` | O que enche a caverna: loja, altar de sangue, emboscada e desafio, área escura, serra no trilho, tronco rolante, espinhos, mesas e barris que quebram, baratas e velas |
 | `Assets/Scripts/Progresso` | Heróis liberados, estatísticas, conquistas, bestiário, a tela de progresso e a partida salva |
 | `Assets/Scripts/Andar` | A caverna: cavar, construir as paredes, espalhar os inimigos, a saída e a troca de andar |
 | `Assets/Scripts/Mundo` | A câmera |
@@ -294,6 +296,26 @@ unidade, e a flecha, o chão e o resto ficam na mesma proporção. Desenho novo 
 
 Quem está mais embaixo na tela é desenhado na frente (o `Renderer2D` ordena pelo eixo Y), então o
 jogador passa na frente ou atrás do boneco e dos inimigos conforme a altura.
+
+## Itens, moedas e o recheio da caverna
+
+Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/Cenario`):
+
+- **Bolsa**: moedas (compram na loja), chaves (abrem o baú trancado) e bombas (**G**: explodem
+  inimigos, mesas, barris e as pedras rachadas, que só bomba quebra). Caem dos inimigos (`Coletavel`).
+- **Itens**: os 27 passivos do jogo antigo (`CatalogoDeItens`) mudam os números do jogador
+  (`EstatisticasDoJogador`: dano, ritmo, tiros a mais, atravessar, perseguir, fênix, escudo, orbes...);
+  13 **sinergias** (dois itens juntos dão um bônus). Os 6 **ativos** ficam no **R** e recarregam
+  derrotando inimigos. Saem em pedestais: baú trancado e amaldiçoado, desafio, altar de sangue (paga com
+  vida), loja (paga com moedas), tesouro e o prêmio do chefe.
+- **Recheio** (`RecheioDaCaverna`): cada caverna sorteia loja, altar, desafio, emboscada, baús
+  especiais, pedra rachada com prêmio e área escura, e as armadilhas: serra no trilho, tronco rolante e
+  espinhos (ferem o jogador e os inimigos). Mesas (viram de lado no primeiro tiro), barris, caixotes,
+  baratas e velas. O que ocupa lugar sai do mapa de caminhos.
+- **Temas dos mundos**: Porão (marrom), Catacumbas (o azul do Old Prison), Cripta (verde) e Abismo
+  (vermelho), com o chão e as paredes recoloridos (`Resources/Temas`) e a música de cada um.
+- **Arcos especiais** (nos baús): explosivo, de gelo (deixa lento), venenoso e ricochete (quica nas
+  paredes) — o `efeito` da arma (`EfeitoDoTiro`); a `CondicaoDoInimigo` cuida do gelo e do veneno.
 
 ## Heróis
 

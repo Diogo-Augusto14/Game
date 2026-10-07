@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
+  m_Name: ArcoRicochete
+  m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
+  nome: Arco Ricochete
+  desenhoNaMao: {fileID: 21300000, guid: 6478d051dde54231b053e023f3f8c028, type: 3}
+  distanciaDaMao: 0.4
+  coice: 0.05
+  infinita: 0
+  semPente: 1
+  pente: 1
+  municaoMaxima: 110
+  recarga: 0.5
+  somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
+  pesoNoBau: 0.6
+  desenhoDoTiro: {fileID: 21300000, guid: 7363f88ef14347b386595b18de46e90b, type: 3}
+  apontarODesenho: 1
+  cor: {r: 1, g: 1, b: 1, a: 1}
+  raio: 0.12
+  automatica: 1
+  tirosPorSegundo: 4.5
+  velocidade: 16
+  alcance: 18
+  dano: 3
+  empurrao: 2
+  aceleracao: 0
+  curva: 0
+  efeito: 4
+  giroDoDesenho: 0
+  tirosPorDisparo: 1
+  abertura: 10
+  anel: 0
+  dispersao: 0
+  rajada: 1
+  intervaloDaRajada: 0.1
+  giroNaRajada: 0
+  tremor: 0
+  som: {fileID: 8300000, guid: 41f8aa4278604c359cafd24c9360c6de, type: 3}
+  volume: 0.35

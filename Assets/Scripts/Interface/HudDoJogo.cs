@@ -4,7 +4,8 @@ using UnityEngine;
 /// O que fica na tela durante o jogo, desenhado com a arte de interface (pixel art, em multiplos
 /// inteiros: ver <see cref="Desenho"/>):
 /// - em cima a esquerda, a vida em coracoes (cada coracao vale 2; meio coracao vale 1) e, embaixo
-///   deles, a habilidade do heroi (F) com a barra da recarga;
+///   deles, a habilidade do heroi (F) com a barra da recarga, as moedas, chaves e bombas, o item
+///   ativo (R) com a carga e, embaixo a esquerda, os icones dos itens que pegou;
 /// - em cima a direita, o andar e quantos inimigos faltam (ou "portal aberto");
 /// - embaixo a direita, a arma na mao na moldura, o nome, a municao, a recarga e a outra arma;
 /// - no alto, o nome e a barra de vida do chefe, no andar dele;
@@ -21,7 +22,8 @@ public class HudDoJogo
         this.tela = tela;
     }
 
-    public void Desenhar(GeradorDoAndar gerador, Vida vida, ArmaDoJogador armas, InteracaoDoJogador interacao, HabilidadeDoHeroi habilidade)
+    public void Desenhar(GeradorDoAndar gerador, Vida vida, ArmaDoJogador armas, InteracaoDoJogador interacao, HabilidadeDoHeroi habilidade,
+                         Bolsa bolsa, ItemAtivoDoJogador ativo, EstatisticasDoJogador itens)
     {
         int u = Desenho.U;
 
@@ -31,6 +33,12 @@ public class HudDoJogo
 
             if (habilidade != null)
                 Habilidade(habilidade, u);
+
+            if (bolsa != null)
+                Bolsa(bolsa, ativo, u);
+
+            if (itens != null)
+                Itens(itens, u);
 
             if (armas != null)
                 Arma(armas, u);
@@ -89,6 +97,55 @@ public class HudDoJogo
 
         Rect barra = new Rect(m, y + 22 * u, 80 * u, 13 * u);
         Barra(barra, habilidade.Carga, pronta ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
+    }
+
+    // Moedas, chaves e bombas, uma do lado da outra, e o item ativo do lado.
+    private void Bolsa(Bolsa bolsa, ItemAtivoDoJogador ativo, int u)
+    {
+        float m = 8 * u;
+        float y = m + (tela.coracao != null ? tela.coracao.height : 16) * u + 44 * u;
+        GUIStyle estilo = Desenho.Estilo(tela.fonteTexto, 18 * u, TextAnchor.MiddleLeft);
+        float x = m;
+        float lado = 16 * u;
+
+        x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Moeda), bolsa.Moedas);
+        x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Chave), bolsa.Chaves);
+        x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Bomba), bolsa.Bombas);
+
+        // O item ativo: o icone, a barra de carga e o R.
+        if (ativo != null && ativo.Item != null)
+        {
+            Rect icone = new Rect(x + 4 * u, y - 6 * u, 26 * u, 26 * u);
+            Desenho.Sprite(icone, ativo.Item.Desenho, ativo.Pronto ? Color.white : new Color(0.55f, 0.55f, 0.6f));
+            Barra(new Rect(icone.xMax + 4 * u, y + 2 * u, 50 * u, 11 * u), ativo.Fracao, ativo.Pronto ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
+            GUIStyle tecla = Desenho.Estilo(tela.fonteTexto, 14 * u, TextAnchor.MiddleLeft);
+            Desenho.Texto(new Rect(icone.xMax + 58 * u, y - 2 * u, 30 * u, 20 * u), "R", tecla, ativo.Pronto ? Desenho.Dourado : Desenho.Apagado);
+        }
+    }
+
+    private static float Contador(float x, float y, float lado, int u, GUIStyle estilo, Sprite icone, int quanto)
+    {
+        if (icone != null)
+            Desenho.Sprite(new Rect(x, y, lado, lado), icone, Color.white);
+
+        Desenho.Texto(new Rect(x + lado + 3 * u, y - 2 * u, 40 * u, lado + 4 * u), quanto.ToString(), estilo, Desenho.Claro);
+        return x + lado + 34 * u;
+    }
+
+    // Os itens que pegou, em fila no canto de baixo a esquerda (os mais novos no fim).
+    private void Itens(EstatisticasDoJogador itens, int u)
+    {
+        float m = 8 * u;
+        float lado = 18 * u;
+        int cabem = Mathf.Max(1, Mathf.FloorToInt((Screen.width * 0.45f) / (lado + 3 * u)));
+        int comeco = Mathf.Max(0, itens.Itens.Count - cabem);
+
+        for (int i = comeco; i < itens.Itens.Count; i++)
+        {
+            ItemPassivo item = itens.Itens[i];
+            Rect onde = new Rect(m + (i - comeco) * (lado + 3 * u), Screen.height - m - lado, lado, lado);
+            Desenho.Sprite(onde, item.Desenho, Color.white);
+        }
     }
 
     private void Arma(ArmaDoJogador armas, int u)

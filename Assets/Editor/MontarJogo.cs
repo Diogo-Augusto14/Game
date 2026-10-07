@@ -659,7 +659,7 @@ public static class MontarJogo
 
         // As armas que caem dos baus e do chao (feitas por Ferramentas/Armas; os .asset ja vem no projeto).
         PreencherLista(gerador, "armas", System.Array.ConvertAll(
-            new[] { "Varinha", "Tomo", "BestaDeRepeticao", "Cajado", "Machado" },
+            new[] { "Varinha", "Tomo", "BestaDeRepeticao", "Cajado", "Machado", "ArcoExplosivo", "ArcoDeGelo", "ArcoVenenoso", "ArcoRicochete" },
             nome => (Object)AssetDatabase.LoadAssetAtPath<DadosDaArma>(PastaDasArmas + nome + ".asset")));
         Preencher(gerador, "bau", AssetDatabase.LoadAssetAtPath<Texture2D>(FolhaDoBau));
         Preencher(gerador, "caixaDeMunicao", AssetDatabase.LoadAssetAtPath<Sprite>(DesenhoDaCaixa));

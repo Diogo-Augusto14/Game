@@ -47,6 +47,33 @@ public static class Salvamento
             PlayerPrefs.SetInt(Prefixo + "naMao", armas.NaMao);
         }
 
+        // A bolsa, os itens (pelo nome) e o item ativo com a carga.
+        if (jogador.TryGetComponent(out Bolsa bolsa))
+        {
+            PlayerPrefs.SetInt(Prefixo + "moedas", bolsa.Moedas);
+            PlayerPrefs.SetInt(Prefixo + "chaves", bolsa.Chaves);
+            PlayerPrefs.SetInt(Prefixo + "bombas", bolsa.Bombas);
+        }
+
+        if (jogador.TryGetComponent(out EstatisticasDoJogador itens))
+        {
+            System.Collections.Generic.List<string> nomes = new System.Collections.Generic.List<string>();
+
+            foreach (ItemPassivo item in itens.Itens)
+            {
+                if (!item.EhSinergia)
+                    nomes.Add(item.Nome);
+            }
+
+            PlayerPrefs.SetString(Prefixo + "itens", string.Join("|", nomes));
+        }
+
+        if (jogador.TryGetComponent(out ItemAtivoDoJogador ativo))
+        {
+            PlayerPrefs.SetString(Prefixo + "ativo", ativo.Item != null ? ativo.Item.Nome : "");
+            PlayerPrefs.SetInt(Prefixo + "carga", ativo.Carga);
+        }
+
         PlayerPrefs.Save();
     }
 
@@ -73,6 +100,24 @@ public static class Salvamento
                 armas.Restaurar(primeira ?? segunda, primeira != null ? segunda : null, PlayerPrefs.GetInt(Prefixo + "naMao", 0));
         }
 
+        if (jogador.TryGetComponent(out Bolsa bolsa))
+            bolsa.Definir(PlayerPrefs.GetInt(Prefixo + "moedas", 0), PlayerPrefs.GetInt(Prefixo + "chaves", 0), PlayerPrefs.GetInt(Prefixo + "bombas", 1));
+
+        // Os itens voltam calados (sem aviso), com as sinergias; depois a vida (que eles podem mudar).
+        if (jogador.TryGetComponent(out EstatisticasDoJogador itens))
+        {
+            foreach (string nome in PlayerPrefs.GetString(Prefixo + "itens", "").Split('|'))
+            {
+                ItemPassivo item = CatalogoDeItens.PeloNome(nome);
+
+                if (item != null)
+                    itens.Pegar(item, false);
+            }
+        }
+
+        if (jogador.TryGetComponent(out ItemAtivoDoJogador ativo))
+            ativo.Equipar(CatalogoDeItens.PeloNome(PlayerPrefs.GetString(Prefixo + "ativo", "")), PlayerPrefs.GetInt(Prefixo + "carga", 0));
+
         if (jogador.TryGetComponent(out Vida vida))
             vida.DefinirAtual(PlayerPrefs.GetFloat(Prefixo + "vida", vida.Maxima));
 
@@ -97,7 +142,8 @@ public static class Salvamento
     public static void Apagar()
     {
         foreach (string chave in new[] { "existe", "heroi", "andar", "vida", "inimigos", "chefes", "tempo", "naMao",
-                                         "arma0", "arma1", "pente0", "pente1", "reserva0", "reserva1" })
+                                         "arma0", "arma1", "pente0", "pente1", "reserva0", "reserva1",
+                                         "moedas", "chaves", "bombas", "itens", "ativo", "carga" })
             PlayerPrefs.DeleteKey(Prefixo + chave);
 
         PlayerPrefs.Save();

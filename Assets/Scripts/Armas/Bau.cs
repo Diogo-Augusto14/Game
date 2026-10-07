@@ -5,7 +5,17 @@ using UnityEngine;
 /// Um bau fechado na caverna. Interagir abre (a animacao do bau do Old Prison) e ele solta uma arma
 /// sorteada, diferente das que o jogador tem na mao, e as vezes uma bolsa de municao. Aberto, fica
 /// ali vazio. Monte com <see cref="Criar"/>.
+///
+/// Dois baus especiais (do jogo antigo) dao um item num pedestal em vez de arma: o trancado (dourado,
+/// gasta uma chave) e o amaldicoado (roxo, custa meio coracao pra abrir).
 /// </summary>
+public enum TipoDeBau
+{
+    Comum,
+    Trancado,
+    Amaldicoado,
+}
+
 [DisallowMultipleComponent]
 public class Bau : Interativo
 {
@@ -18,10 +28,24 @@ public class Bau : Interativo
     private AudioClip somAbrindo;
     private AudioClip somDaMunicao;
     private bool aberto;
+    private TipoDeBau tipo;
+
+    /// <summary>Vira bau trancado ou amaldicoado (logo depois do <see cref="Criar"/>).</summary>
+    public Bau ComoTipo(TipoDeBau qual)
+    {
+        tipo = qual;
+        desenho.color = qual == TipoDeBau.Trancado ? new Color(1f, 0.85f, 0.4f)
+                      : qual == TipoDeBau.Amaldicoado ? new Color(0.75f, 0.45f, 1f)
+                      : Color.white;
+        return this;
+    }
 
     public override bool Disponivel => !aberto;
 
-    public override string Dica => "abrir o bau";
+    public override string Dica =>
+        tipo == TipoDeBau.Trancado ? "abrir o baú trancado (1 chave)"
+        : tipo == TipoDeBau.Amaldicoado ? "abrir o baú amaldiçoado (meio coração)"
+        : "abrir o baú";
 
     public static Bau Criar(Sprite[] quadros, Vector2 onde, Transform pai, DadosDaArma[] armas,
                             Sprite caixaDeMunicao, AudioClip somAbrindo, AudioClip somDaMunicao)
@@ -60,6 +84,23 @@ public class Bau : Interativo
         if (aberto)
             return;
 
+        if (tipo == TipoDeBau.Trancado && (!jogador.TryGetComponent(out Bolsa bolsa) || !bolsa.Gastar(0, 1)))
+        {
+            Sons.Tocar(Som.Negado, 0.7f, 0f);
+            TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.2f, "Precisa de uma chave", new Color(1f, 0.6f, 0.55f), 1f);
+            return;
+        }
+
+        if (tipo == TipoDeBau.Amaldicoado && jogador.TryGetComponent(out Vida vida))
+        {
+            vida.Pagar(1f);
+            Sons.Tocar(Som.DanoJogador, 0.8f, 0f);
+            CameraDoJogo.Tremer(0.15f, 0.2f);
+        }
+
+        if (tipo == TipoDeBau.Trancado)
+            Sons.Tocar(Som.Destranca, 0.8f, 0f);
+
         aberto = true;
 
         if (somAbrindo != null && jogador.TryGetComponent(out AudioSource audioSource))
@@ -77,6 +118,22 @@ public class Bau : Interativo
         }
 
         Vector2 frente = (Vector2)transform.position + Vector2.down * 0.9f;
+
+        // Os especiais dao um item num pedestal (e o trancado, umas moedas).
+        if (tipo != TipoDeBau.Comum)
+        {
+            EstatisticasDoJogador estatisticas = doJogador != null ? doJogador.GetComponent<EstatisticasDoJogador>() : null;
+            Pedestal.Criar(frente + Vector2.down * 0.4f, transform.parent, CatalogoDeItens.Sortear(estatisticas));
+
+            if (tipo == TipoDeBau.Trancado)
+            {
+                for (int i = 0; i < 3; i++)
+                    Coletavel.Criar(TipoDeColetavel.Moeda, frente + Vector2.right * 1.2f);
+            }
+
+            yield break;
+        }
+
         DadosDaArma sorteada = Sortear(doJogador);
 
         if (sorteada != null)

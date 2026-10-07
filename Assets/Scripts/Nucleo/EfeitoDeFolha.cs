@@ -33,6 +33,25 @@ public class EfeitoDeFolha : MonoBehaviour
         return efeito;
     }
 
+    /// <summary>O mesmo, com os quadros ja recortados (a arte do jogo antigo, ver <see cref="ArteDoAntigo"/>).</summary>
+    public static EfeitoDeFolha Tocar(Sprite[] quadros, Vector2 onde, float quadrosPorSegundo, int ordem = 15)
+    {
+        if (quadros == null || quadros.Length == 0)
+            return null;
+
+        GameObject obj = new GameObject("Efeito");
+        obj.transform.position = onde;
+
+        EfeitoDeFolha efeito = obj.AddComponent<EfeitoDeFolha>();
+        efeito.desenho = obj.AddComponent<SpriteRenderer>();
+        efeito.desenho.sortingOrder = ordem;
+        efeito.desenho.sprite = quadros[0];
+        efeito.quadros = quadros;
+        efeito.quadrosPorSegundo = quadrosPorSegundo;
+        efeito.comecou = Time.time;
+        return efeito;
+    }
+
     private void Update()
     {
         int quadro = Mathf.FloorToInt((Time.time - comecou) * quadrosPorSegundo);

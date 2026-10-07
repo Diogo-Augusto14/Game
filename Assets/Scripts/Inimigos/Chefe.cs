@@ -208,11 +208,11 @@ public class Chefe : MonoBehaviour, IAnimavel, IInvulneravel
 
         if (Investindo)
         {
-            corpo.linearVelocity = rumoDaInvestida * velocidadeDaInvestida;
+            corpo.linearVelocity = rumoDaInvestida * velocidadeDaInvestida * CondicaoDoInimigo.Fator(this);
             return;
         }
 
-        corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade * Ritmo, aceleracao * Time.fixedDeltaTime);
+        corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade * Ritmo * CondicaoDoInimigo.Fator(this), aceleracao * Time.fixedDeltaTime);
     }
 
     private IEnumerator Lutar()

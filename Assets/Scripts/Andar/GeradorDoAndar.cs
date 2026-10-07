@@ -28,13 +28,13 @@ public class GeradorDoAndar : MonoBehaviour
     [SerializeField] private AndarDaPartida[] andares;
 
     [Tooltip("Tamanho da primeira caverna, em celulas de chao (1 celula = 1 unidade)")]
-    [SerializeField, Min(50)] private int celulasNoPrimeiroAndar = 1500;
+    [SerializeField, Min(50)] private int celulasNoPrimeiroAndar = 1100;
 
     [Tooltip("Celulas a mais em cada caverna seguinte")]
-    [SerializeField, Min(0)] private int celulasAMaisPorAndar = 220;
+    [SerializeField, Min(0)] private int celulasAMaisPorAndar = 120;
 
     [Tooltip("A caverna nao passa desta distancia do comeco, em celulas")]
-    [SerializeField, Min(10)] private int raioMaximo = 60;
+    [SerializeField, Min(10)] private int raioMaximo = 40;
 
     [Tooltip("Metade da largura e da altura da clareira do comeco, em celulas")]
     [SerializeField] private Vector2Int clareira = new Vector2Int(5, 4);
@@ -44,11 +44,11 @@ public class GeradorDoAndar : MonoBehaviour
     [SerializeField] private InimigoDoAndar[] inimigos;
 
     [Tooltip("Inimigos na primeira caverna")]
-    [SerializeField, Min(0)] private int inimigosNoPrimeiroAndar = 24;
+    [SerializeField, Min(0)] private int inimigosNoPrimeiroAndar = 20;
 
     [Tooltip("Inimigos a mais em cada caverna seguinte")]
 
-    [SerializeField, Min(0)] private int inimigosAMaisPorAndar = 4;
+    [SerializeField, Min(0)] private int inimigosAMaisPorAndar = 3;
 
     [Tooltip("Os inimigos ficam em grupos deste tamanho")]
     [SerializeField] private Vector2Int tamanhoDoGrupo = new Vector2Int(2, 4);
@@ -255,7 +255,8 @@ public class GeradorDoAndar : MonoBehaviour
         if (MapaDeCaminhos.Atual != null && Jogador != null)
             MapaDeCaminhos.Atual.Atualizar(Jogador.position);
 
-        if (raiz == null || saida != null || chaoDoAndar == null)
+        // Continua contando depois do portal aberto: a emboscada pode trazer mais gente.
+        if (raiz == null || chaoDoAndar == null)
             return;
 
         // Guarda onde caiu quem acabou de morrer: o vortice abre onde morreu o ultimo.
@@ -272,6 +273,11 @@ public class GeradorDoAndar : MonoBehaviour
                 ResumoDaPartida.ContarInimigo();
                 bool eraOChefe = chefe != null && vida.gameObject == chefe.gameObject;
                 Registro.Derrotou(vida.gameObject, eraOChefe);
+                AoMatarInimigo?.Invoke(ondeMorreuOUltimo);
+
+                // Moeda, chave, bomba ou coracao (o Amuleto da Sorte ajuda).
+                float sorte = Jogador != null && Jogador.TryGetComponent(out EstatisticasDoJogador itens) ? itens.Sorte : 1f;
+                Coletavel.SoltarDoInimigo(ondeMorreuOUltimo, eraOChefe, sorte);
 
                 if (eraOChefe)
                 {
@@ -286,8 +292,14 @@ public class GeradorDoAndar : MonoBehaviour
             vivos.RemoveAt(i);
         }
 
-        if (vivos.Count == 0)
+        if (vivos.Count == 0 && saida == null)
         {
+            if (!avisouLimpo)
+            {
+                avisouLimpo = true;
+                AoLimparAndar?.Invoke();
+            }
+
             AbrirSaida(ondeMorreuOUltimo);
 
             // O premio do chefe: um bau no meio do salao (um pouco abaixo de onde o portal costuma abrir).
@@ -299,6 +311,10 @@ public class GeradorDoAndar : MonoBehaviour
                     meio += Vector2.left * 3f;
 
                 Bau.Criar(quadrosDoBau, meio, raiz.transform, armas, caixaDeMunicao, somDoBau, somDaMunicao);
+
+                // E um item de premio, num pedestal do lado do bau.
+                Pedestal.Criar(meio + Vector2.right * 2.5f, raiz.transform,
+                               CatalogoDeItens.Sortear(Jogador != null ? Jogador.GetComponent<EstatisticasDoJogador>() : null));
             }
         }
     }
@@ -336,6 +352,100 @@ public class GeradorDoAndar : MonoBehaviour
     public static Transform Raiz => atual != null && atual.raiz != null ? atual.raiz.transform : null;
 
     private static GeradorDoAndar atual;
+
+    /// <summary>Morreu um inimigo do andar (o vampiro e o item ativo contam), com o lugar.</summary>
+    public static event System.Action<Vector2> AoMatarInimigo;
+
+    /// <summary>O andar ficou sem inimigos (a Carne Assada cura).</summary>
+    public static event System.Action AoLimparAndar;
+
+    /// <summary>Um andar novo foi montado (o Escudo Sagrado volta).</summary>
+    public static event System.Action AoComecarAndar;
+
+    private static readonly List<Vida> nenhum = new List<Vida>();
+
+    /// <summary>Os inimigos vivos do andar (a Bussola Maldita persegue, os Cristais do Trovao acertam).</summary>
+    public static IReadOnlyList<Vida> Vivos => atual != null ? atual.vivos : nenhum;
+
+    /// <summary>As armas que saem dos baus (os baus do recheio e das emboscadas usam).</summary>
+    public DadosDaArma[] ArmasDoBau => armas;
+
+    private bool avisouLimpo;
+
+    // Os temas dos mundos (do jogo antigo): o chao e as paredes recoloridos e a musica de cada um.
+    private static readonly string[] NomesDosMundos = { "Porão", "Catacumbas", "Cripta", "Abismo" };
+    private static readonly string[] PastasDosMundos = { "Porao", null, "Cripta", "Abismo" };
+    private readonly Dictionary<int, Pedreiro> pedreiros = new Dictionary<int, Pedreiro>();
+
+    /// <summary>O nome do mundo do andar (Porao, Catacumbas, Cripta, Abismo).</summary>
+    public string NomeDoMundo => NomesDosMundos[Mathf.Clamp(Mundo - 1, 0, NomesDosMundos.Length - 1)];
+
+    // Quem constroi as paredes no tema do mundo (as Catacumbas sao a cor original do Old Prison).
+    private Pedreiro PedreiroDoMundo()
+    {
+        int i = Mathf.Clamp(Mundo - 1, 0, PastasDosMundos.Length - 1);
+
+        if (pedreiros.TryGetValue(i, out Pedreiro feito))
+            return feito;
+
+        Texture2D chaoDoTema = chao;
+        Texture2D paredesDoTema = paredes;
+
+        if (PastasDosMundos[i] != null)
+        {
+            Texture2D c = Resources.Load<Texture2D>("Temas/" + PastasDosMundos[i] + "/Chao");
+            Texture2D p = Resources.Load<Texture2D>("Temas/" + PastasDosMundos[i] + "/Paredes");
+
+            if (c != null && p != null)
+            {
+                chaoDoTema = c;
+                paredesDoTema = p;
+            }
+        }
+
+        Pedreiro novo = chaoDoTema == chao ? pedreiro : new Pedreiro(chaoDoTema, paredesDoTema, abismo, sangue, enfeites, chanceDeEnfeite);
+        pedreiros[i] = novo;
+        return novo;
+    }
+
+    /// <summary>
+    /// Um inimigo deste andar, sorteado da lista, que sai do chao ja acordado e conta pro andar (as
+    /// ondas da emboscada e do desafio).
+    /// </summary>
+    public Vida CriarInimigo(Vector2 onde)
+    {
+        List<InimigoDoAndar> possiveis = new List<InimigoDoAndar>();
+        float pesoTotal = 0f;
+
+        foreach (InimigoDoAndar inimigo in inimigos)
+        {
+            if (inimigo != null && inimigo.prefab != null && inimigo.peso > 0f && Andar >= inimigo.primeiroAndar
+                && (inimigo.ultimoAndar <= 0 || Andar <= inimigo.ultimoAndar))
+            {
+                possiveis.Add(inimigo);
+                pesoTotal += inimigo.peso;
+            }
+        }
+
+        if (possiveis.Count == 0 || raiz == null)
+            return null;
+
+        GameObject novo = Instantiate(Sortear(possiveis, pesoTotal), onde, Quaternion.identity, raiz.transform);
+
+        if (!novo.TryGetComponent(out Vida vida))
+            return null;
+
+        Registrar(vida);
+        avisouLimpo = false;
+
+        if (novo.TryGetComponent(out InimigoAtirador atirador))
+        {
+            atirador.Acordar();
+            novo.AddComponent<SaindoDoChao>().Comecar(0.5f);
+        }
+
+        return vida;
+    }
 
     /// <summary>A cor do contorno claro em volta dos inimigos (a mesma do jogo antigo).</summary>
     public static readonly Color CorDoContorno = new Color(1f, 0.95f, 0.85f, 0.6f);
@@ -465,6 +575,9 @@ public class GeradorDoAndar : MonoBehaviour
         if (string.IsNullOrEmpty(titulo) && chefeDoAndar != null && chefeDoAndar.TryGetComponent(out Chefe dono))
             titulo = dono.Lugar;
 
+        if (string.IsNullOrEmpty(titulo))
+            titulo = NomeDoMundo;
+
         nome = !string.IsNullOrEmpty(titulo) ? $"Andar {andar} de {Andares}: {titulo}" : $"Andar {andar} de {Andares}";
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
@@ -479,10 +592,14 @@ public class GeradorDoAndar : MonoBehaviour
         raiz = new GameObject($"Andar {andar}");
         raiz.transform.SetParent(transform, false);
 
+        avisouLimpo = false;
+
         if (chefeDoAndar != null)
             GerarArena(chefeDoAndar);
         else
             GerarCaverna(andar, CavernasAte(andar));
+
+        AoComecarAndar?.Invoke();
     }
 
     // Quantas cavernas ate este andar, contando ele (o tamanho e os inimigos crescem por caverna).
@@ -507,7 +624,7 @@ public class GeradorDoAndar : MonoBehaviour
         HashSet<Vector2Int> planta = Arena.Montar(raioDaArena);
         HashSet<Vector2Int> semBuracos = new HashSet<Vector2Int>();
         HashSet<Vector2Int> pocas = Caverna.EspalharPocas(planta, semBuracos, pocasPorAndar / 2);
-        pedreiro.Construir(raiz.transform, planta, semBuracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+        PedreiroDoMundo().Construir(raiz.transform, planta, semBuracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
         MapaDeCaminhos.Atual = new MapaDeCaminhos(planta, distanciaDosCaminhos);
 
         GameObject novo = Instantiate(prefabDoChefe, (Vector2)Arena.OndeOChefeFica(raioDaArena), Quaternion.identity, raiz.transform);
@@ -528,7 +645,7 @@ public class GeradorDoAndar : MonoBehaviour
         Caverna.Ajeitar(planta);
         HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, buracosNoPrimeiroAndar + (caverna - 1) * buracosAMaisPorAndar, longeDoComeco * 0.7f);
         HashSet<Vector2Int> pocas = Caverna.EspalharPocas(planta, buracos, pocasPorAndar);
-        pedreiro.Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+        PedreiroDoMundo().Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
 
         // Daqui pra frente so interessa onde da pra pisar.
         HashSet<Vector2Int> chaoDaCaverna = new HashSet<Vector2Int>(planta);
@@ -536,6 +653,7 @@ public class GeradorDoAndar : MonoBehaviour
         MapaDeCaminhos.Atual = new MapaDeCaminhos(chaoDaCaverna, distanciaDosCaminhos);
         // Os baus primeiro: as celulas deles saem do chao, e ninguem nasce dentro de um.
         EspalharArmas(chaoDaCaverna, andar);
+        RecheioDaCaverna.Espalhar(this, chaoDaCaverna, raiz.transform, andar, Mundo, quadrosDoBau);
         EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (caverna - 1) * inimigosAMaisPorAndar, andar);
 
         // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no

@@ -32,7 +32,8 @@ public class DanoAoEncostar : MonoBehaviour
 
         Vida dele = outro.GetComponentInParent<Vida>();
 
-        if (dele == null || dele.Lado == vida.Lado || dele.Protegido)
+        // Mesa, barril e pedra (lado Neutro) nao apanham de quem so encosta.
+        if (dele == null || dele.Lado == vida.Lado || dele.Lado == Lado.Neutro || dele.Protegido)
             return;
 
         Vector2 pralonge = (Vector2)dele.transform.position - (Vector2)transform.position;
