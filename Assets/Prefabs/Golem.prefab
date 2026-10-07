@@ -419,6 +419,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Chefe
   nome: Golem de Brasa
+  lugar: Coração da Prisão
   apresentacao: 2
   velocidade: 1.2
   aceleracao: 10
@@ -467,6 +468,14 @@ MonoBehaviour:
   vidaDaFuria: 0.5
   ritmoNaFuria: 1.35
   corDaFuria: {r: 1, g: 0.72, b: 0.72, a: 1}
+  fraseDaFuria: A prisão queima!
+  armaDoFim: {fileID: 0}
+  vidaDoFim: 0.25
+  intervaloDoFim: 0.5
+  giroDoFim: 12
+  marca: {fileID: 21300000, guid: afcb7f34a2f44291baa4edb718e4bfbd, type: 3}
+  alturaDoPulo: 2.5
+  maximoDeInvocados: 4
   corpoDesenhado: {fileID: 680048576387598113}
   somAoChegar: {fileID: 8300000, guid: 3432e9a6848f4859b1136d009dcae182, type: 3}
   somDaFuria: {fileID: 8300000, guid: 2969eb1f385241a5a8824da4371240bc, type: 3}

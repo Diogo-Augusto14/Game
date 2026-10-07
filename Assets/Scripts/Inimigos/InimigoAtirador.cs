@@ -8,7 +8,13 @@ using UnityEngine;
 /// - com <see cref="investida"/>: corre reto pra onde o jogador estava e descansa um pouco depois;
 /// - sem nenhum dos dois: so vai encostando (o dano vem do <see cref="DanoAoEncostar"/>).
 ///
+/// Com arma e investida juntas, corre e atira no fim da corrida (a Geleia cai espirrando gotas).
+/// A investida pode vir em sequencia (<see cref="investidasSeguidas"/>: o Demonio das laminas da tres).
+///
 /// Quem atira de longe pode recuar quando o jogador chega perto demais (<see cref="distanciaParaFugir"/>).
+/// O jeito de chegar muda de bicho pra bicho (<see cref="JeitoDeAndar"/>): reto, rodeando o jogador
+/// (lobisomem, morcego, demonia) ou aos trancos (morceguinho). Quem voa passa por cima dos buracos.
+/// Alguns entram em furia com pouca vida (<see cref="vidaDaFuria"/>): ficam vermelhos e mais rapidos.
 ///
 /// Comeca parado, sem saber do jogador. So acorda quando ve o jogador (perto e sem parede no meio)
 /// ou quando leva um tiro; acordado, nao esquece mais. So atira com o caminho livre ate o jogador.
@@ -39,6 +45,12 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
     [Tooltip("Com o jogador mais perto que isto, recua (0 = nunca recua)")]
     [SerializeField, Min(0f)] private float distanciaParaFugir;
 
+    [Tooltip("Reto ate o jogador, rodeando ele na distancia de parar, ou aos trancos")]
+    [SerializeField] private JeitoDeAndar jeito = JeitoDeAndar.Direto;
+
+    [Tooltip("Voa: passa por cima dos buracos do chao (morcegos, fogo-fatuo)")]
+    [SerializeField] private bool voa;
+
     [Header("Ataque")]
     [Tooltip("A arma: o padrao dos tiros. Vazio = nao atira")]
     [SerializeField] private DadosDaArma arma;
@@ -64,6 +76,20 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
     [Tooltip("Segundos parado depois de correr: a hora de bater nele")]
     [SerializeField, Min(0f)] private float descanso = 0.6f;
 
+    [Tooltip("Quantas investidas seguidas (com um preparo curtinho entre elas)")]
+    [SerializeField, Min(1)] private int investidasSeguidas = 1;
+
+    [SerializeField, Min(0f)] private float preparoEntreInvestidas = 0.3f;
+
+    [Header("Furia")]
+    [Tooltip("Entra em furia com esta fracao da vida ou menos (0 = nunca)")]
+    [SerializeField, Range(0f, 1f)] private float vidaDaFuria;
+
+    [Tooltip("Na furia anda, prepara e ataca mais rapido (1 = igual)")]
+    [SerializeField, Min(1f)] private float ritmoNaFuria = 1.5f;
+
+    [SerializeField] private Color corDaFuria = new Color(1f, 0.55f, 0.5f);
+
     [Tooltip("De onde a bala sai: distancia do centro do corpo, na direcao do jogador")]
     [SerializeField, Min(0f)] private float distanciaDaSaida = 0.4f;
 
@@ -85,6 +111,18 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
     private Vector2 rumoDaInvestida;
     private float investindoAte = -1f;
     private float descansaAte = -1f;
+    private bool investiu;
+    private int investidasFaltando;
+    private float sentido = 1f;
+    private float trocaSentidoEm;
+    private Vector2 tranco;
+    private float trocaTrancoEm;
+    private SpriteRenderer desenho;
+
+    /// <summary>Com pouca vida, mais rapido (so quem tem <see cref="vidaDaFuria"/>).</summary>
+    public bool NaFuria { get; private set; }
+
+    private float Ritmo => NaFuria ? ritmoNaFuria : 1f;
 
     /// <summary>Ja viu o jogador (ou levou tiro) e esta atras dele.</summary>
     public bool Acordado { get; private set; }
@@ -94,6 +132,12 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
 
     /// <summary>Correndo na investida.</summary>
     public bool Investindo => Time.time < investindoAte;
+
+    /// <summary>No meio de um ataque (preparando, correndo ou soltando a rajada): nao da pra sumir agora.</summary>
+    public bool Ocupado => Preparando || Investindo || investiu || rajada.Atirando;
+
+    /// <summary>A arma dele (o escudo do cavaleiro abre enquanto ataca).</summary>
+    public DadosDaArma Arma => arma;
 
     /// <summary>Segundos de preparo (a animacao do ataque cabe neles).</summary>
     public float Preparo => preparo;
@@ -117,6 +161,20 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
         corpo.freezeRotation = true;
         corpo.linearDamping = 0f;
         corpo.interpolation = RigidbodyInterpolation2D.Interpolate;
+
+        // O desenho do corpo: o de ordem mais alta (a sombra fica embaixo).
+        foreach (SpriteRenderer d in GetComponentsInChildren<SpriteRenderer>())
+        {
+            if (desenho == null || d.sortingOrder > desenho.sortingOrder)
+                desenho = d;
+        }
+
+        // Quem voa nao bate nos buracos (os tiros tambem passam por cima deles).
+        if (voa && Pedreiro.CamadaDoBuraco >= 0)
+        {
+            foreach (Collider2D c in GetComponents<Collider2D>())
+                c.excludeLayers |= 1 << Pedreiro.CamadaDoBuraco;
+        }
     }
 
     private void OnEnable()
@@ -155,6 +213,7 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
 
         proximoAtaque = Time.time + Random.Range(0.8f, intervalo);
         proximaOlhada = Time.time + Random.Range(0f, 0.2f);
+        sentido = Random.value < 0.5f ? -1f : 1f;
     }
 
     private void Update()
@@ -167,6 +226,9 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
             rajada.Parar();
             return;
         }
+
+        if (!NaFuria && vidaDaFuria > 0f && vida.Fracao <= vidaDaFuria)
+            EntrarEmFuria();
 
         Vector2 ateOAlvo = (Vector2)alvo.position - (Vector2)transform.position;
         float distancia = ateOAlvo.magnitude;
@@ -190,8 +252,11 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
             OlhandoPara = ateOAlvo / distancia;
 
         // Na investida e no descanso depois dela, nada de pensar.
-        if (Investindo || Time.time < descansaAte)
+        if (Investindo)
             return;
+
+        if (investiu)
+            AcabouAInvestida();
 
         // A rajada continua saindo, sempre pra onde o jogador esta; parado enquanto atira.
         if (rajada.Atirando)
@@ -208,23 +273,106 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
             {
                 Atacar();
                 atiraEm = -1f;
-                proximoAtaque = Time.time + intervalo * Random.Range(0.85f, 1.15f);
+                proximoAtaque = Time.time + intervalo / Ritmo * Random.Range(0.85f, 1.15f);
             }
 
             return;
         }
 
-        if ((arma != null || (investida && andaReto)) && caminhoLivre && distancia <= alcanceDoTiro && Time.time >= proximoAtaque)
+        if (Time.time < descansaAte)
+            return;
+
+        if ((investida ? andaReto : arma != null) && caminhoLivre && distancia <= alcanceDoTiro && Time.time >= proximoAtaque)
         {
-            atiraEm = Time.time + preparo;
-            AoAtacar?.Invoke(0, preparo);
+            investidasFaltando = 0;
+            atiraEm = Time.time + preparo / Ritmo;
+            AoAtacar?.Invoke(0, preparo / Ritmo);
             return;
         }
 
+        querAndar = Andar(distancia);
+    }
+
+    // Pra onde ir agora, fora do ataque: fugir, chegar (reto ou pelo mapa), rodear ou aos trancos.
+    private Vector2 Andar(float distancia)
+    {
         if (distanciaParaFugir > 0f && caminhoLivre && distancia < distanciaParaFugir)
-            querAndar = -OlhandoPara;
-        else if (distancia > distanciaParaParar || !caminhoLivre)
-            querAndar = andaReto || MapaDeCaminhos.Atual == null ? OlhandoPara : MapaDeCaminhos.Atual.Rumo(transform.position);
+            return -OlhandoPara;
+
+        if (!caminhoLivre || !andaReto)
+            return distancia > distanciaParaParar || !caminhoLivre
+                ? (andaReto || MapaDeCaminhos.Atual == null ? OlhandoPara : MapaDeCaminhos.Atual.Rumo(transform.position))
+                : Vector2.zero;
+
+        switch (jeito)
+        {
+            case JeitoDeAndar.Rodeando:
+            {
+                // Gira em volta do jogador, corrigindo a distancia; troca de lado de vez em quando.
+                if (Time.time >= trocaSentidoEm)
+                {
+                    trocaSentidoEm = Time.time + Random.Range(2f, 4f);
+
+                    if (Random.value < 0.4f)
+                        sentido = -sentido;
+                }
+
+                Vector2 deLado = new Vector2(-OlhandoPara.y, OlhandoPara.x) * sentido;
+                float falta = Mathf.Clamp((distancia - distanciaParaParar) * 0.6f, -1f, 1f);
+                return (deLado + OlhandoPara * falta).normalized;
+            }
+
+            case JeitoDeAndar.AosTrancos:
+            {
+                // Um rumo torto que muda varias vezes por segundo; perto do jogador fica so tremulando.
+                if (Time.time >= trocaTrancoEm)
+                {
+                    trocaTrancoEm = Time.time + Random.Range(0.2f, 0.45f);
+                    tranco = Random.insideUnitCircle.normalized;
+                }
+
+                Vector2 ir = distancia > distanciaParaParar ? OlhandoPara : Vector2.zero;
+                return (ir + tranco * 0.9f).normalized;
+            }
+
+            default:
+                return distancia > distanciaParaParar ? OlhandoPara : Vector2.zero;
+        }
+    }
+
+    private void EntrarEmFuria()
+    {
+        NaFuria = true;
+        CameraDoJogo.Tremer(0.12f, 0.2f);
+        TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.4f, "!", new Color(1f, 0.35f, 0.25f), 0.8f).Pular(1.4f);
+
+        if (desenho != null)
+            desenho.color = new Color(corDaFuria.r, corDaFuria.g, corDaFuria.b, desenho.color.a);
+    }
+
+    // Fim de uma corrida: atira (quem tem arma), e prepara a proxima da sequencia ou descansa.
+    private void AcabouAInvestida()
+    {
+        investiu = false;
+        corpo.linearVelocity = Vector2.zero;
+
+        if (arma != null)
+        {
+            rajada.Comecar(arma);
+
+            if (rajada.Atualizar(Saida(), OlhandoPara, gameObject, vida.Lado))
+                TocarOTiro();
+        }
+
+        if (investidasFaltando > 0)
+        {
+            atiraEm = Time.time + preparoEntreInvestidas / Ritmo;
+            AoAtacar?.Invoke(0, preparoEntreInvestidas / Ritmo);
+        }
+        else
+        {
+            descansaAte = Time.time + descanso / Ritmo;
+        }
     }
 
     private void FixedUpdate()
@@ -235,11 +383,11 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
         // Na investida a velocidade e cheia na hora (sem acelerar); parede e gente seguram pela fisica.
         if (Investindo)
         {
-            corpo.linearVelocity = rumoDaInvestida * velocidadeDaInvestida;
+            corpo.linearVelocity = rumoDaInvestida * velocidadeDaInvestida * Ritmo;
             return;
         }
 
-        corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade, aceleracao * Time.fixedDeltaTime);
+        corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade * Ritmo, aceleracao * Time.fixedDeltaTime);
     }
 
     private bool ParedeNoMeio(Vector2 ate) =>
@@ -250,7 +398,7 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
     {
         int camadas = 1 << Pedreiro.CamadaDaParede;
 
-        if (Pedreiro.CamadaDoBuraco >= 0)
+        if (!voa && Pedreiro.CamadaDoBuraco >= 0)
             camadas |= 1 << Pedreiro.CamadaDoBuraco;
 
         return Physics2D.CircleCast(transform.position, 0.35f, ateOAlvo, distancia, camadas).collider != null;
@@ -258,18 +406,23 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
 
     private void Atacar()
     {
-        if (arma != null)
+        if (investida)
+        {
+            // A primeira de uma sequencia conta quantas faltam; as outras so descontam.
+            if (investidasFaltando <= 0)
+                investidasFaltando = investidasSeguidas;
+
+            investidasFaltando--;
+            rumoDaInvestida = OlhandoPara;
+            investindoAte = Time.time + duracaoDaInvestida;
+            investiu = true;
+        }
+        else if (arma != null)
         {
             rajada.Comecar(arma);
 
             if (rajada.Atualizar(Saida(), OlhandoPara, gameObject, vida.Lado))
                 TocarOTiro();
-        }
-        else if (investida)
-        {
-            rumoDaInvestida = OlhandoPara;
-            investindoAte = Time.time + duracaoDaInvestida;
-            descansaAte = investindoAte + descanso;
         }
     }
 
@@ -283,4 +436,17 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
             audioSource.PlayOneShot(arma.som, arma.volume);
         }
     }
+}
+
+/// <summary>Como o inimigo chega no jogador quando nao esta atacando.</summary>
+public enum JeitoDeAndar
+{
+    /// <summary>Reto ate a distancia de parar.</summary>
+    Direto,
+
+    /// <summary>Gira em volta do jogador na distancia de parar (lobisomem, morcego, demonia).</summary>
+    Rodeando,
+
+    /// <summary>Aos trancos, mudando de rumo o tempo todo (morceguinho).</summary>
+    AosTrancos,
 }

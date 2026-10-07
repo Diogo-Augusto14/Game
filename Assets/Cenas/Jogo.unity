@@ -577,41 +577,170 @@ MonoBehaviour:
   andares:
   - nome: 
     chefe: {fileID: 0}
+    ouEntao: []
   - nome: 
     chefe: {fileID: 0}
-  - nome: Covil do Minotauro
+    ouEntao: []
+  - nome: 
     chefe: {fileID: 808324852962721341, guid: b58a64db69ac49c5ae0fffde9be84ac8, type: 3}
+    ouEntao:
+    - {fileID: 278882130510284128, guid: 2166bb1122e84968a9b8ca32457bcb89, type: 3}
   - nome: 
     chefe: {fileID: 0}
+    ouEntao: []
   - nome: 
     chefe: {fileID: 0}
-  - nome: Coracao da Prisao
-    chefe: {fileID: 1128459457916472339, guid: 16bb5b6e5b2342d58b0b86100609ab40, type: 3}
+    ouEntao: []
+  - nome: 
+    chefe: {fileID: 720099487748811322, guid: b332c1408aef4875b3e0592aa3db915e, type: 3}
+    ouEntao:
+    - {fileID: 758773181803773445, guid: 631362ed965745769cf775db323338bd, type: 3}
+  - nome: 
+    chefe: {fileID: 0}
+    ouEntao: []
+  - nome: 
+    chefe: {fileID: 0}
+    ouEntao: []
+  - nome: 
+    chefe: {fileID: 691171003227131195, guid: e48d190963114152bbe8ab1c18db01c6, type: 3}
+    ouEntao:
+    - {fileID: 1128459457916472339, guid: 16bb5b6e5b2342d58b0b86100609ab40, type: 3}
+  - nome: 
+    chefe: {fileID: 0}
+    ouEntao: []
+  - nome: 
+    chefe: {fileID: 0}
+    ouEntao: []
+  - nome: 
+    chefe: {fileID: 1098764678197149752, guid: ae4508e983274a49948ae071f410f44c, type: 3}
+    ouEntao: []
   celulasNoPrimeiroAndar: 1500
-  celulasAMaisPorAndar: 400
+  celulasAMaisPorAndar: 220
   raioMaximo: 60
   clareira: {x: 5, y: 4}
   inimigos:
   - prefab: {fileID: 7624800600701863497, guid: 6d06fbfc74634d308c00558a827e02d5, type: 3}
     primeiroAndar: 1
-    peso: 3
+    ultimoAndar: 8
+    peso: 2
   - prefab: {fileID: 1054914701463686697, guid: ab044fef951445a28dc394e33d8fb86e, type: 3}
     primeiroAndar: 1
+    ultimoAndar: 5
     peso: 3
   - prefab: {fileID: 1193923593394129659, guid: c867c9ca86f243849dbdcad8261fbbca, type: 3}
     primeiroAndar: 1
+    ultimoAndar: 2
     peso: 2
   - prefab: {fileID: 1229535317440206029, guid: f501e02e02aa4b16be2d8e6efee9fa19, type: 3}
     primeiroAndar: 1
+    ultimoAndar: 8
     peso: 2
-  - prefab: {fileID: 612800756158840454, guid: a9cf480c1fae427b9952dc9483ee2127, type: 3}
+  - prefab: {fileID: 1000365710574884746, guid: 262bd4fb51f64a0c9e6c0d7259108e8b, type: 3}
+    primeiroAndar: 1
+    ultimoAndar: 5
+    peso: 1.5
+  - prefab: {fileID: 579990409507974015, guid: 42eda934310b481ea891688186bd3b6e, type: 3}
+    primeiroAndar: 1
+    ultimoAndar: 8
+    peso: 1.5
+  - prefab: {fileID: 165097056215304119, guid: 3144a7a25ca7449d9635401a7311a0e8, type: 3}
+    primeiroAndar: 1
+    ultimoAndar: 5
+    peso: 2
+  - prefab: {fileID: 853914734404209361, guid: c966261966ab42f0862866ebf9cfb99c, type: 3}
     primeiroAndar: 2
-    peso: 1.5
-  - prefab: {fileID: 410441793863870405, guid: ff4b2ca93a414d8881c1cf68e39aa361, type: 3}
+    ultimoAndar: 5
+    peso: 1.2
+  - prefab: {fileID: 1232573744033006733, guid: b3d5a3bffc4446fb9c319dda718cafd2, type: 3}
+    primeiroAndar: 2
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 737408428254462915, guid: c2106b005bd4472cb8d4ec588f349de9, type: 3}
     primeiroAndar: 4
+    ultimoAndar: 0
     peso: 1.5
+  - prefab: {fileID: 897861946069436217, guid: bcd2ea9a01f048ab918f751639fb2ddf, type: 3}
+    primeiroAndar: 4
+    ultimoAndar: 0
+    peso: 1.5
+  - prefab: {fileID: 274084954481405448, guid: fe21de3484a34e7a8b9a47ad3741d304, type: 3}
+    primeiroAndar: 4
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 470710635075706069, guid: 615e2d3c9d344136abd418ce9dddd293, type: 3}
+    primeiroAndar: 4
+    ultimoAndar: 8
+    peso: 1.2
+  - prefab: {fileID: 612800756158840454, guid: a9cf480c1fae427b9952dc9483ee2127, type: 3}
+    primeiroAndar: 4
+    ultimoAndar: 0
+    peso: 1
+  - prefab: {fileID: 205376238528686882, guid: a7a0aa27f40f45e5802a174760b78e17, type: 3}
+    primeiroAndar: 4
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 932390029136262434, guid: c9ad055172f246fea8d6b27a980358d4, type: 3}
+    primeiroAndar: 5
+    ultimoAndar: 0
+    peso: 0.8
+  - prefab: {fileID: 523879034677886718, guid: c38616a264004dfba62ff069e3a7d668, type: 3}
+    primeiroAndar: 5
+    ultimoAndar: 0
+    peso: 0.8
+  - prefab: {fileID: 226647630814359519, guid: 4444f24f807d4bd0a9517413eaa15f19, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 2
+  - prefab: {fileID: 1004995156621384842, guid: c3bcd5277b9b40dba2753995dcc2c9c9, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1.5
+  - prefab: {fileID: 1241636838850033013, guid: 6a6bfebde9e442b6b5d32185d8ef3193, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1
+  - prefab: {fileID: 278749727108349511, guid: b3feb98ddda449ac83a0c75cfcafc7a4, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 806074568658044187, guid: 937cacb9a6ac42e8afa7ff4dc010f582, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1
+  - prefab: {fileID: 182317919206825673, guid: 96b0f1a6a4444bae8d565df6bab17249, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 253686251843262162, guid: 8bb5741355e84b64b135818da80f6049, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 410441793863870405, guid: ff4b2ca93a414d8881c1cf68e39aa361, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1
+  - prefab: {fileID: 936101365306429150, guid: c709557f09cc411fb461f7b44ebe654e, type: 3}
+    primeiroAndar: 8
+    ultimoAndar: 0
+    peso: 1
+  - prefab: {fileID: 455535338278284616, guid: 1394bdb09bf74252a2d46e4c3d298d75, type: 3}
+    primeiroAndar: 8
+    ultimoAndar: 0
+    peso: 0.8
+  - prefab: {fileID: 346627829014812109, guid: f1911f75cff8498ba8a1a44207d86cd3, type: 3}
+    primeiroAndar: 8
+    ultimoAndar: 0
+    peso: 0.8
+  - prefab: {fileID: 1212983412645711629, guid: b6f844ef6abc46e9be286e6badec7790, type: 3}
+    primeiroAndar: 8
+    ultimoAndar: 0
+    peso: 0.8
+  - prefab: {fileID: 968059448734391834, guid: 4b1b6d52fb444c22a920a46db31c9dab, type: 3}
+    primeiroAndar: 8
+    ultimoAndar: 0
+    peso: 0.6
   inimigosNoPrimeiroAndar: 24
-  inimigosAMaisPorAndar: 6
+  inimigosAMaisPorAndar: 4
   tamanhoDoGrupo: {x: 2, y: 4}
   longeDoComeco: 14
   distanciaDosCaminhos: 40
@@ -634,7 +763,7 @@ MonoBehaviour:
   raioDaArena: {x: 12, y: 9}
   bauDepoisDoChefe: 1
   buracosNoPrimeiroAndar: 8
-  buracosAMaisPorAndar: 3
+  buracosAMaisPorAndar: 2
   pocasPorAndar: 10
   chanceDeEnfeite: 0.05
   chao: {fileID: 2800000, guid: ff996ffe69064f7cbbdd835205456d5e, type: 3}

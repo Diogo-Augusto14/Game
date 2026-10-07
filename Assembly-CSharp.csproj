@@ -62,6 +62,17 @@
     <Compile Include="Assets\Scripts\Nucleo\FolhaDeSprites.cs" />
     <Compile Include="Assets\Scripts\Jogador\RastroDaEsquiva.cs" />
     <Compile Include="Assets\Scripts\Jogador\AnimacaoDoJogador.cs" />
+    <Compile Include="Assets\Scripts\Combate\Impacto.cs" />
+    <Compile Include="Assets\Scripts\Combate\TextoFlutuante.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\ContornoClaro.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\ViradaDeFase.cs" />
+    <Compile Include="Assets\Scripts\Interface\AvisoDoAndar.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\SomeEAparece.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\EscudoFrontal.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\DivideAoMorrer.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\Invocador.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\SaindoDoChao.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\MarcaPiscando.cs" />
     <Compile Include="Assets\Scripts\Combate\Dano.cs" />
     <Compile Include="Assets\Scripts\Combate\Vida.cs" />
     <Compile Include="Assets\Scripts\Combate\PiscarAoTomarDano.cs" />

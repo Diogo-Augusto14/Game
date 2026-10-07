@@ -74,6 +74,8 @@ public static class MontarJogo
     }
 
     // ---------------- imagens geradas ----------------
+    private static GameObject Prefab(string nome) => AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/" + nome + ".prefab");
+
     private static void GerarImagens()
     {
         // Mira: quatro tracos brancos com contorno escuro e um ponto no meio (cursor de 32 x 32).
@@ -576,15 +578,40 @@ public static class MontarJogo
         somDoAndar.playOnAwake = false;
         somDoAndar.spatialBlend = 0f;
         GeradorDoAndar gerador = andar.AddComponent<GeradorDoAndar>();
-        // O Bruxo e feito aqui; os outros inimigos (e as armas deles) ja vem prontos no projeto.
-        var inimigos = new (GameObject prefab, int andar, float peso)[]
+        // O Bruxo e feito aqui; os outros inimigos (e as armas deles) ja vem prontos no projeto. Cada
+        // mundo tem os seus bichos: (prefab, primeiro andar, ultimo andar (0 = ate o fim), peso).
+        var inimigos = new (GameObject prefab, int andar, int ate, float peso)[]
         {
-            (prefabDoBruxo, 1, 3f),
-            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Esqueleto.prefab"), 1, 3f),
-            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Gosma.prefab"), 1, 2f),
-            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/EsqueletoArqueiro.prefab"), 1, 2f),
-            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Necromante.prefab"), 2, 1.5f),
-            (AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Olho.prefab"), 4, 1.5f),
+            (prefabDoBruxo, 1, 8, 2f),
+            (Prefab("Esqueleto"), 1, 5, 3f),
+            (Prefab("Gosma"), 1, 2, 2f),
+            (Prefab("EsqueletoArqueiro"), 1, 8, 2f),
+            (Prefab("Geleia"), 1, 5, 1.5f),
+            (Prefab("Morceguinho"), 1, 8, 1.5f),
+            (Prefab("Orc"), 1, 5, 2f),
+            (Prefab("Bolha"), 2, 5, 1.2f),
+            (Prefab("CaoInfernal"), 2, 0, 1.2f),
+            (Prefab("Morcego"), 4, 0, 1.5f),
+            (Prefab("Lobisomem"), 4, 0, 1.5f),
+            (Prefab("OrcBlindado"), 4, 0, 1.2f),
+            (Prefab("EsqueletoBlindado"), 4, 8, 1.2f),
+            (Prefab("Necromante"), 4, 0, 1f),
+            (Prefab("CavaleiroLanca"), 4, 0, 1.2f),
+            (Prefab("Urso"), 5, 0, 0.8f),
+            (Prefab("OrcMontado"), 5, 0, 0.8f),
+            (Prefab("Demonio"), 7, 0, 2f),
+            (Prefab("Demonia"), 7, 0, 1.5f),
+            (Prefab("DemoniaFoice"), 7, 0, 1f),
+            (Prefab("FogoFatuo"), 7, 0, 1.2f),
+            (Prefab("MonstroDeSangue"), 7, 0, 1f),
+            (Prefab("DemonioTridente"), 7, 0, 1.2f),
+            (Prefab("DemonioArqueiro"), 7, 0, 1.2f),
+            (Prefab("Olho"), 7, 0, 1f),
+            (Prefab("DemonioLaminas"), 8, 0, 1f),
+            (Prefab("OrcElite"), 8, 0, 0.8f),
+            (Prefab("EsqueletoEspadao"), 8, 0, 0.8f),
+            (Prefab("CavaleiroEscudo"), 8, 0, 0.8f),
+            (Prefab("CavaleiroCanhao"), 8, 0, 0.6f),
         };
         Mexer(gerador, "inimigos", p =>
         {
@@ -595,17 +622,19 @@ public static class MontarJogo
                 SerializedProperty item = p.GetArrayElementAtIndex(i);
                 item.FindPropertyRelative("prefab").objectReferenceValue = inimigos[i].prefab;
                 item.FindPropertyRelative("primeiroAndar").intValue = inimigos[i].andar;
+                item.FindPropertyRelative("ultimoAndar").intValue = inimigos[i].ate;
                 item.FindPropertyRelative("peso").floatValue = inimigos[i].peso;
             }
         });
 
-        // A ordem dos andares: duas cavernas e o Minotauro, duas cavernas e o Golem.
-        GameObject minotauro = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Minotauro.prefab");
-        GameObject golem = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Golem.prefab");
-        var andares = new (string nome, GameObject chefe)[]
+        // A ordem dos andares: quatro mundos de duas cavernas e um chefe (sorteado entre dois); o
+        // ultimo e o Olho do Abismo. O nome do andar do chefe vem do proprio chefe (o "lugar").
+        var andares = new (GameObject chefe, GameObject ouEntao)[]
         {
-            ("", null), ("", null), ("Covil do Minotauro", minotauro),
-            ("", null), ("", null), ("Coracao da Prisao", golem),
+            (null, null), (null, null), (Prefab("Minotauro"), Prefab("LobisomemAlfa")),
+            (null, null), (null, null), (Prefab("SenhorDaGuerra"), Prefab("DemonioDoMartelo")),
+            (null, null), (null, null), (Prefab("ReiNecromante"), Prefab("Golem")),
+            (null, null), (null, null), (Prefab("OlhoDoAbismo"), null),
         };
         Mexer(gerador, "andares", p =>
         {
@@ -614,8 +643,13 @@ public static class MontarJogo
             for (int i = 0; i < andares.Length; i++)
             {
                 SerializedProperty item = p.GetArrayElementAtIndex(i);
-                item.FindPropertyRelative("nome").stringValue = andares[i].nome;
+                item.FindPropertyRelative("nome").stringValue = "";
                 item.FindPropertyRelative("chefe").objectReferenceValue = andares[i].chefe;
+                SerializedProperty outros = item.FindPropertyRelative("ouEntao");
+                outros.arraySize = andares[i].ouEntao != null ? 1 : 0;
+
+                if (andares[i].ouEntao != null)
+                    outros.GetArrayElementAtIndex(0).objectReferenceValue = andares[i].ouEntao;
             }
         });
         foreach (string folha in new[] { "Chao", "Paredes", "Abismo", "Sangue", "Enfeites" })

@@ -199,6 +199,7 @@ GameObject:
   - component: {fileID: 996571361292759123}
   - component: {fileID: 1117801830063836640}
   - component: {fileID: 1165045785595863388}
+  - component: {fileID: 293743601804316059}
   m_Layer: 0
   m_Name: Necromante
   m_TagString: Untagged
@@ -495,3 +496,21 @@ MonoBehaviour:
   pixelsPorUnidadeDoEfeito: 20
   quadrosPorSegundoDoEfeito: 20
   alturaDoEfeito: {x: 0, y: -0.2}
+--- !u!114 &293743601804316059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 612800756158840454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11a080b382ff48f3a0f6358bcd95e972, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Invocador
+  invocado: {fileID: 1054914701463686697, guid: ab044fef951445a28dc394e33d8fb86e, type: 3}
+  maximo: 2
+  intervalo: 8
+  erguer: 0.6
+  som: {fileID: 8300000, guid: 45b0dff1f5334279a031ba3d0d7c489d, type: 3}
+  volume: 0.45

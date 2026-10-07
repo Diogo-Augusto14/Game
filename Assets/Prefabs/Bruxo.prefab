@@ -199,6 +199,7 @@ GameObject:
   - component: {fileID: 152849757236000304}
   - component: {fileID: 1856645238846070919}
   - component: {fileID: 6764557716988099809}
+  - component: {fileID: 4419027700861532211}
   m_Layer: 0
   m_Name: Bruxo
   m_TagString: Untagged
@@ -489,3 +490,21 @@ MonoBehaviour:
   pixelsPorUnidadeDoEfeito: 20
   quadrosPorSegundoDoEfeito: 20
   alturaDoEfeito: {x: 0, y: -0.2}
+--- !u!114 &4419027700861532211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7624800600701863497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48c1559ba34a4050bed5332184291b07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SomeEAparece
+  intervalo: 5
+  desvanecer: 0.25
+  sumido: 0.35
+  distancia: {x: 3.5, y: 6}
+  som: {fileID: 8300000, guid: 1227c364919e43099fb3b059765b1c1b, type: 3}
+  volume: 0.35

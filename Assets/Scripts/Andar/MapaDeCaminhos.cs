@@ -40,6 +40,9 @@ public class MapaDeCaminhos
 
     public static Vector2Int Celula(Vector2 ponto) => new Vector2Int(Mathf.RoundToInt(ponto.x), Mathf.RoundToInt(ponto.y));
 
+    /// <summary>Tem chao de pisar neste ponto (dentro do andar e fora dos buracos)?</summary>
+    public bool TemChao(Vector2 ponto) => chao.Contains(Celula(ponto));
+
     /// <summary>Refaz o mapa se o jogador mudou de celula.</summary>
     public void Atualizar(Vector2 jogador)
     {

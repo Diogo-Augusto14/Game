@@ -86,6 +86,9 @@ public class DadosDaArma : ScriptableObject
     [Tooltip("Graus por segundo que o tiro vira em voo (faz curva; 0 = reto)")]
     public float curva;
 
+    [Tooltip("Bumerangue: depois de frear (aceleracao negativa) volta pra quem jogou")]
+    public bool volta;
+
     [Tooltip("Graus por segundo que o desenho gira em voo (o machado rodando; 0 = nao gira)")]
     public float giroDoDesenho;
 

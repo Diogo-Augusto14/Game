@@ -30,7 +30,12 @@ public class Projetil : MonoBehaviour
     private float curva;
     private float giroDoDesenho;
     private bool apontar;
+    private bool voltando;
     private float percorrido;
+    private float multiplicadorDeDano = 1f;
+
+    /// <summary>Multiplica o dano deste tiro (a furia do Machadeiro dobra).</summary>
+    public float MultiplicadorDeDano { get => multiplicadorDeDano; set => multiplicadorDeDano = value; }
     private bool acabou;
 
     public GameObject Dono => dono;
@@ -91,8 +96,35 @@ public class Projetil : MonoBehaviour
         if (acabou)
             return;
 
+        // Bumerangue: freou ate quase parar, vira e volta acelerando pra quem jogou.
+        if (arma.volta && !voltando && aceleracao < 0f && velocidade <= 0.85f)
+        {
+            voltando = true;
+            aceleracao = -aceleracao;
+            alcance = percorrido + 40f;
+        }
+
+        if (voltando)
+        {
+            if (dono == null)
+            {
+                Sumir();
+                return;
+            }
+
+            Vector2 ate = (Vector2)dono.transform.position - corpo.position;
+
+            if (ate.magnitude < 0.7f)
+            {
+                Sumir();
+                return;
+            }
+
+            rumo = ate.normalized;
+        }
+
         // Freia ou acelera (sem parar de vez: tiro parado no ar so confunde) e faz a curva.
-        if (aceleracao != 0f || curva != 0f)
+        if (aceleracao != 0f || curva != 0f || voltando)
         {
             velocidade = Mathf.Max(0.8f, velocidade + aceleracao * Time.fixedDeltaTime);
             float a = Mathf.Atan2(rumo.y, rumo.x) + curva * Mathf.Deg2Rad * Time.fixedDeltaTime;
@@ -138,8 +170,8 @@ public class Projetil : MonoBehaviour
             if (vida.Lado == lado)
                 return;
 
-            // Protegido (esquiva, tempinho depois do golpe): tambem passa reto.
-            if (!vida.ReceberDano(new Dano(arma.dano, rumo, arma.empurrao, dono)))
+            // Protegido (esquiva, tempinho depois do golpe): tambem passa reto. Bateu num escudo: some.
+            if (!vida.ReceberDano(new Dano(arma.dano * multiplicadorDeDano, rumo, arma.empurrao, dono)) && !vida.Bloqueou)
                 return;
         }
 

@@ -25,8 +25,8 @@ MonoBehaviour:
   alcance: 14
   dano: 1
   empurrao: 5
-  tirosPorDisparo: 1
-  abertura: 10
+  tirosPorDisparo: 3
+  abertura: 14
   dispersao: 0
   tremor: 0
   som: {fileID: 8300000, guid: c80e7b91304246158f40e9cc7b8d8d91, type: 3}

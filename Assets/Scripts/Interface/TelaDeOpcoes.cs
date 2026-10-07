@@ -4,8 +4,8 @@ using UnityEngine.UI;
 
 /// <summary>
 /// A tela de opcoes, aberta com O (X no controle) pelo menu inicial e pela pausa: volume da musica e dos
-/// efeitos, tela cheia, resolucao e tremor da tela. Tudo fica salvo entre partidas (ver <see cref="Opcoes"/>).
-/// Veio do jogo antigo (la tinha tambem os numeros de dano, que o jogo novo nao tem).
+/// efeitos, tela cheia, resolucao, tremor da tela e numeros de dano. Tudo fica salvo entre partidas (ver
+/// <see cref="Opcoes"/>). Veio do jogo antigo.
 ///
 ///   W/S ou Cima/Baixo  escolhe a linha      A/D ou Esquerda/Direita  muda o valor
 ///   Enter              alterna / volta      Esc ou O                 volta
@@ -18,10 +18,10 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class TelaDeOpcoes : MonoBehaviour
 {
-    private enum Linha { Musica, Efeitos, TelaCheia, Resolucao, Tremor, Voltar }
+    private enum Linha { Musica, Efeitos, TelaCheia, Resolucao, Tremor, Numeros, Voltar }
 
-    private static readonly string[] Nomes = { "Música", "Efeitos", "Tela cheia", "Resolução", "Tremor da tela", "Voltar" };
-    private static readonly float[] Alturas = { 185f, 120f, 55f, -10f, -75f, -200f };
+    private static readonly string[] Nomes = { "Música", "Efeitos", "Tela cheia", "Resolução", "Tremor da tela", "Números de dano", "Voltar" };
+    private static readonly float[] Alturas = { 185f, 120f, 55f, -10f, -75f, -140f, -232f };
 
     private const float XDoNome = -330f;
     private const float XDoValor = 190f;
@@ -175,6 +175,7 @@ public class TelaDeOpcoes : MonoBehaviour
             case Linha.TelaCheia: Opcoes.AlternarTelaCheia(); break;
             case Linha.Resolucao: Opcoes.MudarResolucao(passo); break;
             case Linha.Tremor: Opcoes.AlternarTremor(); break;
+            case Linha.Numeros: Opcoes.AlternarNumeros(); break;
             default: return;
         }
 
@@ -195,6 +196,7 @@ public class TelaDeOpcoes : MonoBehaviour
                 break;
             case Linha.TelaCheia:
             case Linha.Tremor:
+            case Linha.Numeros:
                 Mudar(1);
                 break;
             default:
@@ -227,6 +229,7 @@ public class TelaDeOpcoes : MonoBehaviour
         valores[(int)Linha.Efeitos].text = Porcento(Sons.Volume);
         valores[(int)Linha.TelaCheia].text = Opcoes.TelaCheia ? "Ligada" : "Desligada";
         valores[(int)Linha.Tremor].text = Opcoes.TremorLigado ? "Ligado" : "Desligado";
+        valores[(int)Linha.Numeros].text = Opcoes.NumerosDeDano ? "Ligados" : "Desligados";
 
         Vector2Int resolucao = Opcoes.Resolucao;
         valores[(int)Linha.Resolucao].text = $"{resolucao.x} x {resolucao.y}";

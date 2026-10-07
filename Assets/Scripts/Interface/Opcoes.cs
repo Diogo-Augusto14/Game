@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// As opcoes do jogo, salvas entre partidas: volume da musica e dos efeitos (ficam na
 /// <see cref="Musica"/> e nos <see cref="Sons"/>), tela cheia, resolucao e tremor da tela. A tela
-/// de mexer nelas e a <see cref="TelaDeOpcoes"/>. Veio do jogo antigo.
+/// de mexer nelas e a <see cref="TelaDeOpcoes"/>. Veio do jogo antigo, com os numeros de dano.
 ///
 /// Teclas que valem em qualquer tela: M liga/desliga a musica e N os efeitos (LB e RB no
 /// controle, so no menu e na pausa). Desligar
@@ -18,6 +18,7 @@ public static class Opcoes
     private const string ChaveDaLargura = "resolucao-largura";
     private const string ChaveDaAltura = "resolucao-altura";
     private const string ChaveDoTremor = "tremor-da-tela";
+    private const string ChaveDosNumeros = "numeros-de-dano";
 
     /// <summary>Quanto cada passo da barra de volume muda.</summary>
     public const float PassoDoVolume = 0.1f;
@@ -106,6 +107,15 @@ public static class Opcoes
     // ---------------- combate ----------------
     /// <summary>A tela treme nos tiros e golpes (ver <see cref="CameraDoJogo.Tremer"/>). Ligado de fabrica.</summary>
     public static bool TremorLigado => PlayerPrefs.GetInt(ChaveDoTremor, 1) == 1;
+
+    /// <summary>Numero do dano pulando do inimigo a cada acerto (ver <see cref="Impacto.Numero"/>). Ligado de fabrica.</summary>
+    public static bool NumerosDeDano => PlayerPrefs.GetInt(ChaveDosNumeros, 1) == 1;
+
+    public static void AlternarNumeros()
+    {
+        PlayerPrefs.SetInt(ChaveDosNumeros, NumerosDeDano ? 0 : 1);
+        PlayerPrefs.Save();
+    }
 
     public static void AlternarTremor()
     {

@@ -7,7 +7,8 @@ using UnityEngine;
 /// - em cima a direita, o andar e quantos inimigos faltam (ou "portal aberto");
 /// - embaixo a direita, a arma na mao na moldura, o nome, a municao, a recarga e a outra arma;
 /// - no alto, o nome e a barra de vida do chefe, no andar dele;
-/// - o nome do andar ao chegar, e a dica do que da pra usar perto ("E  abrir o bau").
+/// - a dica do que da pra usar perto ("E  abrir o bau"). O nome do andar ao chegar e o
+///   <see cref="AvisoDoAndar"/> (a placa azul do jogo antigo).
 /// Quem desenha e a <see cref="TelaDoJogo"/>, que guarda as imagens e as fontes.
 /// </summary>
 public class HudDoJogo
@@ -41,7 +42,6 @@ public class HudDoJogo
             if (gerador.ChefeAtual != null)
                 BarraDoChefe(gerador.ChefeAtual, u);
 
-            NomeDoAndar(gerador, u);
         }
     }
 
@@ -204,19 +204,6 @@ public class HudDoJogo
 
         if (barra != null)
             Desenho.Moldura(onde, barra, new Rect(0f, 0f, barra.width, barra.height), 4, Color.white, false);
-    }
-
-    private void NomeDoAndar(GeradorDoAndar gerador, int u)
-    {
-        float alfa = gerador.AlfaDoNome;
-
-        if (alfa <= 0f || string.IsNullOrEmpty(gerador.NomeNaTela))
-            return;
-
-        GUIStyle titulo = Desenho.Estilo(tela.fonteTitulo, 40 * u, TextAnchor.MiddleCenter);
-        Color cor = Desenho.Dourado;
-        cor.a = alfa;
-        Desenho.Texto(new Rect(0f, Screen.height * 0.16f, Screen.width, 60 * u), gerador.NomeNaTela, titulo, cor);
     }
 
     private void Dica(Interativo coisa, int u)

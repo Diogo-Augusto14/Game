@@ -28,6 +28,9 @@ public class Vida : MonoBehaviour
     [Tooltip("Quanto o empurrao dos golpes mexe neste corpo (0 = nada, 1 = inteiro). So mexe em Rigidbody2D Dynamic")]
     [SerializeField, Min(0f)] private float pesoDoEmpurrao = 1f;
 
+    [Tooltip("Fracao do dano que a armadura segura (0 = nada; os blindados, metade)")]
+    [SerializeField, Range(0f, 0.9f)] private float armadura;
+
     [Header("Sensacao")]
     [SerializeField] private AudioClip somDoDano;
 
@@ -45,6 +48,7 @@ public class Vida : MonoBehaviour
     private Rigidbody2D corpo;
     private AudioSource audioSource;
     private IInvulneravel protecao;
+    private IBloqueioDeDano bloqueio;
     private float semDanoAte = -10f;
 
     public Lado Lado => lado;
@@ -76,15 +80,50 @@ public class Vida : MonoBehaviour
         corpo = GetComponent<Rigidbody2D>();
         audioSource = GetComponent<AudioSource>();
         TryGetComponent(out protecao);
+        TryGetComponent(out bloqueio);
     }
 
-    /// <summary>Aplica o golpe. False se nao pegou (protegido): quem bateu segue em frente.</summary>
+    /// <summary>Recupera vida (o Padre), ate o maximo. Morto nao cura.</summary>
+    public void Curar(float quanto)
+    {
+        if (!Morto && quanto > 0f)
+            Atual = Mathf.Min(vidaMaxima, Atual + quanto);
+    }
+
+    /// <summary>Troca a vida maxima (cada heroi tem a sua) e enche.</summary>
+    public void DefinirMaxima(float maxima)
+    {
+        vidaMaxima = Mathf.Max(1f, maxima);
+        Atual = vidaMaxima;
+    }
+
+    /// <summary>Poe a vida num valor (o "Continuar" devolve a vida que o jogador tinha).</summary>
+    public void DefinirAtual(float quanto)
+    {
+        if (!Morto)
+            Atual = Mathf.Clamp(quanto, 0.5f, vidaMaxima);
+    }
+
+    /// <summary>O ultimo golpe foi segurado por um escudo (o tiro bate e some, em vez de atravessar).</summary>
+    public bool Bloqueou { get; private set; }
+
+    /// <summary>Aplica o golpe. False se nao pegou (protegido ou bloqueado): quem bateu segue em frente.</summary>
     public bool ReceberDano(Dano dano)
     {
+        Bloqueou = false;
+
         if (Protegido || dano.quantidade <= 0f)
             return false;
 
-        Atual = Mathf.Max(0f, Atual - dano.quantidade);
+        // Escudo (o cavaleiro do escudo, de frente): segura o golpe inteiro.
+        if (bloqueio != null && bloqueio.Bloqueia(dano))
+        {
+            Bloqueou = true;
+            return false;
+        }
+
+        float quanto = dano.quantidade * (1f - armadura);
+        Atual = Mathf.Max(0f, Atual - quanto);
         semDanoAte = Time.time + tempoSemDano;
 
         if (imortal && Atual <= 0f)
@@ -105,6 +144,23 @@ public class Vida : MonoBehaviour
             audioSource.PlayOneShot(som, volume);
 
         CameraDoJogo.Tremer(morreu ? Mathf.Max(tremorNaMorte, tremorNoDano) : tremorNoDano, morreu ? 0.25f : 0.15f);
+
+        // O peso do golpe (do jogo antigo): o numero do dano pula do inimigo, o jogo congela um
+        // instante nos golpes fortes, nas mortes e quando o jogador apanha.
+        if (lado == Lado.Jogador)
+        {
+            Impacto.Congelar(0.08f);
+        }
+        else
+        {
+            bool forte = quanto >= 8f;
+            Impacto.Numero((Vector2)transform.position + Vector2.up * 0.6f, quanto, forte);
+
+            if (morreu)
+                Impacto.Congelar(TryGetComponent(out Chefe _) ? 0.12f : 0.045f);
+            else if (forte)
+                Impacto.Congelar(0.03f);
+        }
 
         AoTomarDano?.Invoke(dano);
 

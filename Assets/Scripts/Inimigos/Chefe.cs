@@ -8,7 +8,14 @@ using UnityEngine;
 /// - atira o padrao da arma (um anel, uma espiral, leques em rajada...);
 /// - ou da investidas seguidas (com arma tambem, ela dispara no fim de cada investida).
 ///
-/// Com pouca vida entra em furia: fica mais rapido e ganha os ataques marcados "so na furia".
+/// Os ataques tambem podem (veio dos chefes do jogo antigo):
+/// - pular ate o jogador (<see cref="AtaqueDoChefe.salto"/>: no ar nao acerta nem e acertado; cai atirando);
+/// - sumir e reaparecer longe (<see cref="AtaqueDoChefe.sumir"/>);
+/// - levantar bichos do chao (<see cref="AtaqueDoChefe.invocar"/>);
+/// - marcar o chao em volta do jogador e, depois do preparo, atirar de cada marca (<see cref="AtaqueDoChefe.marcas"/>).
+///
+/// Com pouca vida entra em furia (a <see cref="ViradaDeFase"/>): fica mais rapido e ganha os ataques
+/// marcados "so na furia". Com menos ainda, se tiver <see cref="armaDoFim"/>, atira ela o tempo todo.
 /// No alto da tela, a <see cref="TelaDoJogo"/> mostra o nome e a barra de vida.
 ///
 /// Morrer e com a <see cref="Vida"/> e a <see cref="MorteDoInimigo"/>, como qualquer inimigo; o
@@ -16,9 +23,12 @@ using UnityEngine;
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D), typeof(Vida))]
-public class Chefe : MonoBehaviour, IAnimavel
+public class Chefe : MonoBehaviour, IAnimavel, IInvulneravel
 {
     [SerializeField] private string nome = "Chefe";
+
+    [Tooltip("O nome do andar dele (\"Covil do Minotauro\"), no aviso ao chegar")]
+    [SerializeField] private string lugar;
 
     [Tooltip("Segundos parado no comeco, antes de atacar (a apresentacao)")]
     [SerializeField, Min(0f)] private float apresentacao = 2f;
@@ -53,7 +63,30 @@ public class Chefe : MonoBehaviour, IAnimavel
     [Tooltip("Cor do corpo na furia")]
     [SerializeField] private Color corDaFuria = new Color(1f, 0.75f, 0.75f);
 
+    [Tooltip("A frase que aparece em cima dele quando entra em furia")]
+    [SerializeField] private string fraseDaFuria = "Chega de brincadeira!";
+
     [SerializeField] private SpriteRenderer corpoDesenhado;
+
+    [Header("Fim da luta")]
+    [Tooltip("Com pouca vida (abaixo de Vida do fim) atira esta arma o tempo todo, girando. Vazio = nada")]
+    [SerializeField] private DadosDaArma armaDoFim;
+
+    [SerializeField, Range(0f, 1f)] private float vidaDoFim = 0.25f;
+
+    [SerializeField, Min(0.1f)] private float intervaloDoFim = 0.6f;
+
+    [SerializeField] private float giroDoFim = 15f;
+
+    [Header("Pulo, sumico, marcas e invocacao")]
+    [Tooltip("A marca no chao (onde vai cair, onde vai explodir)")]
+    [SerializeField] private Sprite marca;
+
+    [Tooltip("Altura do pulo, em unidades")]
+    [SerializeField, Min(0f)] private float alturaDoPulo = 2.5f;
+
+    [Tooltip("Maximo de bichos levantados vivos ao mesmo tempo")]
+    [SerializeField, Min(1)] private int maximoDeInvocados = 4;
 
     [Header("Sons")]
     [SerializeField] private AudioClip somAoChegar;
@@ -72,8 +105,19 @@ public class Chefe : MonoBehaviour, IAnimavel
     private float velocidadeDaInvestida;
     private int ultimo = -1;
     private bool apresentou;
+    private bool noAr;
+    private bool sumido;
+    private float proximoDoFim;
+    private float giroAcumulado;
+    private Collider2D[] colisores;
+    private readonly System.Collections.Generic.List<Vida> invocados = new System.Collections.Generic.List<Vida>();
+
+    /// <summary>No ar (pulando) ou sumido: nada acerta.</summary>
+    public bool Invulneravel => noAr || sumido;
 
     public string Nome => nome;
+
+    public string Lugar => string.IsNullOrEmpty(lugar) ? nome : lugar;
 
     public Vida Vida => vida;
 
@@ -99,6 +143,7 @@ public class Chefe : MonoBehaviour, IAnimavel
         corpo = GetComponent<Rigidbody2D>();
         vida = GetComponent<Vida>();
         audioSource = GetComponent<AudioSource>();
+        colisores = GetComponents<Collider2D>();
 
         corpo.bodyType = RigidbodyType2D.Dynamic;
         corpo.gravityScale = 0f;
@@ -130,10 +175,19 @@ public class Chefe : MonoBehaviour, IAnimavel
         {
             NaFuria = true;
             Tocar(somDaFuria);
-            CameraDoJogo.Tremer(0.2f, 0.4f);
+            ViradaDeFase.Anunciar(this, fraseDaFuria, new Color(1f, 0.45f, 0.3f));
 
             if (corpoDesenhado != null)
-                corpoDesenhado.color = corDaFuria;
+                corpoDesenhado.color = new Color(corDaFuria.r, corDaFuria.g, corDaFuria.b, corpoDesenhado.color.a);
+        }
+
+        // O fim da luta: a arma do fim sai sozinha, girando um pouco a cada vez.
+        if (armaDoFim != null && apresentou && !Acabou && !sumido && vida.Fracao <= vidaDoFim && Time.time >= proximoDoFim)
+        {
+            proximoDoFim = Time.time + intervaloDoFim;
+            giroAcumulado += giroDoFim;
+            armaDoFim.Disparar((Vector2)transform.position + Vector2.up * alturaDaSaida, OlhandoPara, gameObject, vida.Lado, giroAcumulado);
+            Tocar(armaDoFim.som, armaDoFim.volume * 0.6f);
         }
 
         // Olha pro jogador, menos no meio da investida (ai olha pra onde corre).
@@ -200,10 +254,28 @@ public class Chefe : MonoBehaviour, IAnimavel
     {
         float preparo = ataque.preparo / Ritmo;
         AoAtacar?.Invoke(ataque.animacao, preparo);
+
+        // As marcas aparecem ja no preparo (o aviso de onde vai explodir).
+        GameObject[] marcas = ataque.marcas > 0 && ataque.arma != null ? Marcar(ataque) : null;
         yield return new WaitForSeconds(preparo);
 
         if (Acabou)
+        {
+            Apagar(marcas);
             yield break;
+        }
+
+        if (marcas != null)
+        {
+            DispararDasMarcas(ataque.arma, marcas);
+            yield break;
+        }
+
+        if (ataque.sumir)
+            yield return Sumir();
+
+        if (ataque.invocar != null && !Acabou)
+            Invocar(ataque.invocar, ataque.quantos);
 
         if (ataque.investidas <= 0)
         {
@@ -221,13 +293,20 @@ public class Chefe : MonoBehaviour, IAnimavel
                 yield return new WaitForSeconds(curto);
             }
 
-            rumoDaInvestida = OlhandoPara;
-            velocidadeDaInvestida = ataque.velocidadeDaInvestida * Ritmo;
-            investindoAte = Time.time + ataque.duracaoDaInvestida;
-            yield return new WaitForSeconds(ataque.duracaoDaInvestida);
+            if (ataque.salto)
+            {
+                yield return Pular(ataque.duracaoDaInvestida / Mathf.Sqrt(Ritmo));
+            }
+            else
+            {
+                rumoDaInvestida = OlhandoPara;
+                velocidadeDaInvestida = ataque.velocidadeDaInvestida * Ritmo;
+                investindoAte = Time.time + ataque.duracaoDaInvestida;
+                yield return new WaitForSeconds(ataque.duracaoDaInvestida);
+            }
 
             corpo.linearVelocity = Vector2.zero;
-            CameraDoJogo.Tremer(0.08f, 0.15f);
+            CameraDoJogo.Tremer(ataque.salto ? 0.3f : 0.08f, ataque.salto ? 0.25f : 0.15f);
 
             if (ataque.arma != null && !Acabou)
                 yield return Disparar(ataque.arma);
@@ -256,6 +335,196 @@ public class Chefe : MonoBehaviour, IAnimavel
         }
 
         rajada.Parar();
+    }
+
+    // Pula ate onde o jogador esta: a sombra corre no chao, o corpo sobe e desce em arco. Uma
+    // marca mostra onde vai cair. No ar, nada encosta nele (sem colisor) e nada acerta (Invulneravel).
+    private IEnumerator Pular(float duracao)
+    {
+        Vector2 de = corpo.position;
+        Vector2 para = alvo != null ? (Vector2)alvo.position : de;
+        GameObject aviso = CriarMarca(para, new Color(1f, 0.25f, 0.2f, 0.7f));
+        Transform desenho = corpoDesenhado != null ? corpoDesenhado.transform : null;
+        Vector3 baseDoDesenho = desenho != null ? desenho.localPosition : Vector3.zero;
+
+        noAr = true;
+        Colidir(false);
+
+        for (float t = 0f; t < 1f; t += Time.deltaTime / Mathf.Max(0.05f, duracao))
+        {
+            corpo.linearVelocity = Vector2.zero;
+            corpo.position = Vector2.Lerp(de, para, t);
+
+            if (desenho != null)
+                desenho.localPosition = baseDoDesenho + Vector3.up * Mathf.Sin(t * Mathf.PI) * alturaDoPulo / Mathf.Max(0.01f, transform.localScale.y);
+
+            yield return null;
+        }
+
+        corpo.position = para;
+
+        if (desenho != null)
+            desenho.localPosition = baseDoDesenho;
+
+        Colidir(true);
+        noAr = false;
+        Apagar(new[] { aviso });
+    }
+
+    // Some (desbota), aparece longe do jogador dentro da arena e volta a aparecer.
+    private IEnumerator Sumir()
+    {
+        yield return Desbotar(1f, 0f, 0.3f);
+        sumido = true;
+        Colidir(false);
+
+        Vector2 novo = corpo.position;
+
+        for (int i = 0; i < 20 && alvo != null; i++)
+        {
+            Vector2 ponto = (Vector2)alvo.position + Random.insideUnitCircle.normalized * Random.Range(5f, 8f);
+            int bloqueia = 1 << Pedreiro.CamadaDaParede;
+
+            if (Physics2D.OverlapCircle(ponto, 1f, bloqueia) == null
+                && (MapaDeCaminhos.Atual == null || MapaDeCaminhos.Atual.TemChao(ponto)))
+            {
+                novo = ponto;
+                break;
+            }
+        }
+
+        GameObject aviso = CriarMarca(novo, new Color(0.7f, 0.4f, 1f, 0.7f));
+        yield return new WaitForSeconds(0.35f);
+        corpo.position = novo;
+        transform.position = novo;
+        Apagar(new[] { aviso });
+
+        sumido = false;
+        Colidir(true);
+        yield return Desbotar(0f, 1f, 0.25f);
+    }
+
+    private IEnumerator Desbotar(float de, float ate, float segundos)
+    {
+        SpriteRenderer[] desenhos = GetComponentsInChildren<SpriteRenderer>();
+
+        for (float t = 0f; t <= 1f; t += Time.deltaTime / segundos)
+        {
+            foreach (SpriteRenderer d in desenhos)
+            {
+                if (d == null)
+                    continue;
+
+                Color c = d.color;
+                c.a = Mathf.Lerp(de, ate, t);
+                d.color = c;
+            }
+
+            yield return null;
+        }
+
+        foreach (SpriteRenderer d in desenhos)
+        {
+            if (d == null)
+                continue;
+
+            Color c = d.color;
+            c.a = ate;
+            d.color = c;
+        }
+    }
+
+    private void Colidir(bool sim)
+    {
+        foreach (Collider2D c in colisores)
+            c.enabled = sim;
+    }
+
+    // Levanta bichos em volta dele (ate o maximo de vivos), saindo do chao.
+    private void Invocar(GameObject prefab, int quantos)
+    {
+        invocados.RemoveAll(v => v == null || v.Morto);
+
+        for (int i = 0; i < quantos && invocados.Count < maximoDeInvocados; i++)
+        {
+            Vector2 onde = (Vector2)transform.position + Random.insideUnitCircle.normalized * Random.Range(1.8f, 2.6f);
+
+            if (Physics2D.OverlapCircle(onde, 0.45f, 1 << Pedreiro.CamadaDaParede) != null)
+                continue;
+
+            GameObject novo = Instantiate(prefab, onde, Quaternion.identity, GeradorDoAndar.Raiz);
+
+            if (novo.TryGetComponent(out Vida dele))
+            {
+                invocados.Add(dele);
+                GeradorDoAndar.Registrar(dele);
+            }
+
+            if (novo.TryGetComponent(out InimigoAtirador levantado))
+            {
+                levantado.Acordar();
+                novo.AddComponent<SaindoDoChao>().Comecar(0.6f);
+            }
+        }
+    }
+
+    // Marcas no chao em volta do jogador (e uma em cima dele): de cada uma sai a arma depois do preparo.
+    private GameObject[] Marcar(AtaqueDoChefe ataque)
+    {
+        GameObject[] marcas = new GameObject[ataque.marcas];
+        Vector2 centro = alvo != null ? (Vector2)alvo.position : (Vector2)transform.position;
+        float giro = Random.Range(0f, 360f);
+
+        for (int i = 0; i < marcas.Length; i++)
+        {
+            Vector2 onde = i == 0 ? centro : centro + (Vector2)(Quaternion.Euler(0f, 0f, giro + 360f * i / (marcas.Length - 1)) * Vector2.right) * ataque.raioDasMarcas;
+            marcas[i] = CriarMarca(onde, new Color(1f, 0.25f, 0.2f, 0.75f));
+        }
+
+        return marcas;
+    }
+
+    private void DispararDasMarcas(DadosDaArma arma, GameObject[] marcas)
+    {
+        foreach (GameObject m in marcas)
+        {
+            if (m == null)
+                continue;
+
+            arma.Disparar(m.transform.position, Vector2.right, gameObject, vida.Lado, Random.Range(0f, 45f));
+        }
+
+        Tocar(arma.som, arma.volume);
+        CameraDoJogo.Tremer(arma.tremor, 0.1f);
+        Apagar(marcas);
+    }
+
+    private GameObject CriarMarca(Vector2 onde, Color cor)
+    {
+        if (marca == null)
+            return null;
+
+        GameObject obj = new GameObject("Marca do chefe");
+        obj.transform.SetParent(GeradorDoAndar.Raiz, false);
+        obj.transform.position = onde;
+        SpriteRenderer desenho = obj.AddComponent<SpriteRenderer>();
+        desenho.sprite = marca;
+        desenho.color = cor;
+        desenho.sortingOrder = Pedreiro.OrdemDosEnfeites + 1;
+        obj.AddComponent<MarcaPiscando>();
+        return obj;
+    }
+
+    private static void Apagar(GameObject[] marcas)
+    {
+        if (marcas == null)
+            return;
+
+        foreach (GameObject m in marcas)
+        {
+            if (m != null)
+                Destroy(m);
+        }
     }
 
     // Sorteia um ataque que vale agora (fora os "so na furia" antes dela), sem repetir o ultimo.
@@ -305,7 +574,7 @@ public class Chefe : MonoBehaviour, IAnimavel
 
     private bool Vale(int i, bool semRepetir) =>
         ataques[i] != null && (!ataques[i].soNaFuria || NaFuria) && (!semRepetir || i != ultimo)
-        && (ataques[i].arma != null || ataques[i].investidas > 0);
+        && (ataques[i].arma != null || ataques[i].investidas > 0 || ataques[i].invocar != null || ataques[i].sumir);
 
     // Vai reto quando da; com pilar no meio, pelo mapa de caminhos da arena.
     private Vector2 Caminho()
@@ -359,4 +628,20 @@ public class AtaqueDoChefe
 
     [Tooltip("So aparece depois que o chefe entra em furia")]
     public bool soNaFuria;
+
+    [Tooltip("As investidas viram pulos ate onde o jogador esta (cai atirando a arma)")]
+    public bool salto;
+
+    [Tooltip("Some e reaparece longe do jogador antes de atirar")]
+    public bool sumir;
+
+    [Tooltip("Levanta estes bichos do chao")]
+    public GameObject invocar;
+
+    [Min(0)] public int quantos = 2;
+
+    [Tooltip("Marcas no chao em volta do jogador; depois do preparo cada uma atira a arma (0 = a arma sai do chefe)")]
+    [Min(0)] public int marcas;
+
+    [Min(0f)] public float raioDasMarcas = 3f;
 }

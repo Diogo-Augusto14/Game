@@ -31,7 +31,7 @@ public class GeradorDoAndar : MonoBehaviour
     [SerializeField, Min(50)] private int celulasNoPrimeiroAndar = 1500;
 
     [Tooltip("Celulas a mais em cada caverna seguinte")]
-    [SerializeField, Min(0)] private int celulasAMaisPorAndar = 400;
+    [SerializeField, Min(0)] private int celulasAMaisPorAndar = 220;
 
     [Tooltip("A caverna nao passa desta distancia do comeco, em celulas")]
     [SerializeField, Min(10)] private int raioMaximo = 60;
@@ -48,7 +48,7 @@ public class GeradorDoAndar : MonoBehaviour
 
     [Tooltip("Inimigos a mais em cada caverna seguinte")]
 
-    [SerializeField, Min(0)] private int inimigosAMaisPorAndar = 6;
+    [SerializeField, Min(0)] private int inimigosAMaisPorAndar = 4;
 
     [Tooltip("Os inimigos ficam em grupos deste tamanho")]
     [SerializeField] private Vector2Int tamanhoDoGrupo = new Vector2Int(2, 4);
@@ -96,7 +96,7 @@ public class GeradorDoAndar : MonoBehaviour
     [Tooltip("Buracos de abismo no primeiro andar (ninguem passa; o tiro passa por cima)")]
     [SerializeField, Min(0)] private int buracosNoPrimeiroAndar = 8;
 
-    [SerializeField, Min(0)] private int buracosAMaisPorAndar = 3;
+    [SerializeField, Min(0)] private int buracosAMaisPorAndar = 2;
 
     [Tooltip("Pocas de sangue por andar (so enfeite)")]
     [SerializeField, Min(0)] private int pocasPorAndar = 10;
@@ -182,6 +182,7 @@ public class GeradorDoAndar : MonoBehaviour
 
     private void Awake()
     {
+        atual = this;
         audioSource = GetComponent<AudioSource>();
 
         if (!TryGetComponent(out TelaDePausa _))
@@ -189,6 +190,12 @@ public class GeradorDoAndar : MonoBehaviour
         pedreiro = new Pedreiro(chao, paredes, abismo, sangue, enfeites, chanceDeEnfeite);
         quadrosDoVortice = FolhaDeSprites.Cortar(vortice, quadroDoVortice, pixelsPorUnidade);
         quadrosDoBau = FolhaDeSprites.Cortar(bau, quadroDoBau, DadosDoOldPrison.Lado);
+    }
+
+    private void OnDestroy()
+    {
+        if (atual == this)
+            atual = null;
     }
 
     private void Start()
@@ -208,12 +215,35 @@ public class GeradorDoAndar : MonoBehaviour
         if (!TelaDeInicio.JaPassou)
             TelaDeInicio.Mostrar(this);
         else
+        {
             Musica.Tocar(MusicaDoAndar);
+            AvisoDoAndar.Mostrar(nome);
+        }
     }
 
     /// <summary>A musica deste andar: a do chefe (a do final, no ultimo) ou a da caverna.</summary>
     public TemaMusical MusicaDoAndar =>
-        chefe != null ? (Andar >= Andares ? TemaMusical.ChefeFinal : TemaMusical.Chefe) : Musica.DaCaverna(CavernasAte(Andar));
+        chefe != null ? (Andar >= Andares ? TemaMusical.ChefeFinal : TemaMusical.Chefe) : Musica.DaCaverna(Mundo);
+
+    /// <summary>
+    /// Em que mundo o andar esta: cada chefe fecha um mundo (o Mundo 1 vai ate o primeiro chefe).
+    /// A musica das cavernas muda por mundo.
+    /// </summary>
+    public int Mundo
+    {
+        get
+        {
+            int mundo = 1;
+
+            for (int i = 0; andares != null && i < Andar - 1 && i < andares.Length; i++)
+            {
+                if (andares[i] != null && andares[i].chefe != null)
+                    mundo++;
+            }
+
+            return mundo;
+        }
+    }
 
     private void Update()
     {
@@ -273,7 +303,32 @@ public class GeradorDoAndar : MonoBehaviour
 
     // ---------------- trocar de andar ----------------
     /// <summary>Mostra o nome do andar de novo (ao sair do menu inicial, que escondia ele).</summary>
-    public void MostrarNome() => nomeAte = Time.unscaledTime + tempoDoNome;
+    public void MostrarNome()
+    {
+        nomeAte = Time.unscaledTime + tempoDoNome;
+        AvisoDoAndar.Mostrar(nome);
+    }
+
+    /// <summary>
+    /// Mais um inimigo que conta pro andar (os que nascem no meio: esqueleto levantado pelo
+    /// Necromante, bolinha da Bolha que estourou). Ganha o contorno claro.
+    /// </summary>
+    public static void Registrar(Vida inimigo)
+    {
+        if (atual == null || inimigo == null || atual.vivos.Contains(inimigo))
+            return;
+
+        atual.vivos.Add(inimigo);
+        ContornoClaro.Colocar(inimigo.gameObject, CorDoContorno);
+    }
+
+    /// <summary>Onde os inimigos que nascem no meio vao morar (somem junto com o andar).</summary>
+    public static Transform Raiz => atual != null && atual.raiz != null ? atual.raiz.transform : null;
+
+    private static GeradorDoAndar atual;
+
+    /// <summary>A cor do contorno claro em volta dos inimigos (a mesma do jogo antigo).</summary>
+    public static readonly Color CorDoContorno = new Color(1f, 0.95f, 0.85f, 0.6f);
 
     /// <summary>O jogador pisou na saida: vai pro proximo andar (ou vence, se era o ultimo).</summary>
     public void ProximoAndar()
@@ -297,6 +352,7 @@ public class GeradorDoAndar : MonoBehaviour
 
         GerarSemTravar(Andar + 1);
         Musica.Tocar(MusicaDoAndar);
+        AvisoDoAndar.Mostrar(nome);
 
         // De volta a clareira do comeco, que fica sempre no centro do mundo.
         if (Jogador != null)
@@ -345,8 +401,16 @@ public class GeradorDoAndar : MonoBehaviour
     private void Gerar(int andar)
     {
         AndarDaPartida esse = andares != null && andar <= andares.Length ? andares[andar - 1] : null;
+        GameObject chefeDoAndar = esse != null ? esse.Sortear() : null;
         Andar = andar;
-        nome = esse != null && !string.IsNullOrEmpty(esse.nome) ? $"Andar {andar} de {Andares}: {esse.nome}" : $"Andar {andar} de {Andares}";
+
+        // O nome: o do andar, ou o lugar do chefe sorteado ("Covil do Minotauro").
+        string titulo = esse != null ? esse.nome : null;
+
+        if (string.IsNullOrEmpty(titulo) && chefeDoAndar != null && chefeDoAndar.TryGetComponent(out Chefe dono))
+            titulo = dono.Lugar;
+
+        nome = !string.IsNullOrEmpty(titulo) ? $"Andar {andar} de {Andares}: {titulo}" : $"Andar {andar} de {Andares}";
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
         chefe = null;
@@ -360,8 +424,8 @@ public class GeradorDoAndar : MonoBehaviour
         raiz = new GameObject($"Andar {andar}");
         raiz.transform.SetParent(transform, false);
 
-        if (esse != null && esse.chefe != null)
-            GerarArena(esse.chefe);
+        if (chefeDoAndar != null)
+            GerarArena(chefeDoAndar);
         else
             GerarCaverna(andar, CavernasAte(andar));
     }
@@ -393,6 +457,7 @@ public class GeradorDoAndar : MonoBehaviour
 
         GameObject novo = Instantiate(prefabDoChefe, (Vector2)Arena.OndeOChefeFica(raioDaArena), Quaternion.identity, raiz.transform);
         chefe = novo.GetComponent<Chefe>();
+        ContornoClaro.Colocar(novo, CorDoContorno);
 
         if (novo.TryGetComponent(out Vida vida))
             vivos.Add(vida);
@@ -449,7 +514,8 @@ public class GeradorDoAndar : MonoBehaviour
         {
             foreach (InimigoDoAndar inimigo in inimigos)
             {
-                if (inimigo != null && inimigo.prefab != null && inimigo.peso > 0f && andar >= inimigo.primeiroAndar)
+                if (inimigo != null && inimigo.prefab != null && inimigo.peso > 0f && andar >= inimigo.primeiroAndar
+                    && (inimigo.ultimoAndar <= 0 || andar <= inimigo.ultimoAndar))
                 {
                     possiveis.Add(inimigo);
                     pesoTotal += inimigo.peso;
@@ -500,6 +566,8 @@ public class GeradorDoAndar : MonoBehaviour
 
                 if (novo.TryGetComponent(out Vida vida))
                     vivos.Add(vida);
+
+                ContornoClaro.Colocar(novo, CorDoContorno);
             }
         }
     }
@@ -681,6 +749,9 @@ public class InimigoDoAndar
     [Tooltip("Aparece deste andar em diante")]
     [Min(1)] public int primeiroAndar = 1;
 
+    [Tooltip("Ate este andar (0 = ate o fim): cada mundo tem os seus bichos")]
+    [Min(0)] public int ultimoAndar;
+
     [Tooltip("Quanto sai, comparado com os outros (0 = nunca)")]
     [Min(0f)] public float peso = 1f;
 }
@@ -694,4 +765,38 @@ public class AndarDaPartida
 
     [Tooltip("Vazio = caverna. Com o prefab de um chefe = o andar e a arena dele")]
     public GameObject chefe;
+
+    [Tooltip("Outros chefes que podem sair no lugar dele (sorteado a cada partida)")]
+    public GameObject[] ouEntao;
+
+    /// <summary>O chefe deste andar nesta partida (nulo = caverna).</summary>
+    public GameObject Sortear()
+    {
+        if (chefe == null)
+            return null;
+
+        int quantos = 1;
+
+        if (ouEntao != null)
+        {
+            foreach (GameObject outro in ouEntao)
+            {
+                if (outro != null)
+                    quantos++;
+            }
+        }
+
+        int sorteado = Random.Range(0, quantos);
+
+        if (sorteado == 0)
+            return chefe;
+
+        foreach (GameObject outro in ouEntao)
+        {
+            if (outro != null && --sorteado == 0)
+                return outro;
+        }
+
+        return chefe;
+    }
 }

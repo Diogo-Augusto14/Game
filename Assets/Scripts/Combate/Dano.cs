@@ -41,3 +41,12 @@ public interface IInvulneravel
 {
     bool Invulneravel { get; }
 }
+
+/// <summary>
+/// Um escudo: segura alguns golpes inteiros (o cavaleiro do escudo, de frente). Fica no mesmo
+/// objeto da <see cref="Vida"/>, que pergunta antes de cada golpe.
+/// </summary>
+public interface IBloqueioDeDano
+{
+    bool Bloqueia(Dano dano);
+}
