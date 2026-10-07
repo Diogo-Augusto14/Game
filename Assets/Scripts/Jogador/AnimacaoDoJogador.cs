@@ -77,6 +77,26 @@ public class AnimacaoDoJogador : MonoBehaviour
         arma = GetComponent<ArmaDoJogador>();
         vida = GetComponent<Vida>();
 
+        Cortar();
+    }
+
+    /// <summary>Troca o boneco (cada heroi tem as suas folhas e o quadro em que o tiro sai).</summary>
+    public void TrocarFolhas(Texture2D novoParado, Texture2D novoAndando, Texture2D novoAtaque, Texture2D novaMorte, int quadro)
+    {
+        if (novoParado == null)
+            return;
+
+        parado = novoParado;
+        andando = novoAndando != null ? novoAndando : novoParado;
+        ataque = novoAtaque;
+        morte = novaMorte;
+        quadroDoDisparo = quadro;
+        tocando = null;
+        Cortar();
+    }
+
+    private void Cortar()
+    {
         quadrosParado = FolhaDeSprites.Cortar(parado, tamanhoDoQuadro, pixelsPorUnidade);
         quadrosAndando = FolhaDeSprites.Cortar(andando, tamanhoDoQuadro, pixelsPorUnidade);
         quadrosMorte = FolhaDeSprites.Cortar(morte, tamanhoDoQuadro, pixelsPorUnidade);
@@ -158,7 +178,7 @@ public class AnimacaoDoJogador : MonoBehaviour
         // Na esquiva o corpo rola: uma volta inteira pro lado em que vai.
         float angulo = 0f;
 
-        if (esquivando)
+        if (esquivando && !movimento.Investindo)
         {
             float sentido = movimento.RumoDaEsquiva.x >= 0f ? -1f : 1f;
             angulo = 360f * voltasNaEsquiva * movimento.ProgressoDaEsquiva * sentido;

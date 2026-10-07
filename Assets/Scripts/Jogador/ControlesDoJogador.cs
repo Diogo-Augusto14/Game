@@ -32,6 +32,7 @@ public class ControlesDoJogador : MonoBehaviour
     private InputAction trocar;
     private InputAction recarregar;
     private InputAction interagir;
+    private InputAction habilidade;
 
     private float esquivaPedidaEm = -10f;
     private Vector2 ultimoMouse;
@@ -60,6 +61,9 @@ public class ControlesDoJogador : MonoBehaviour
 
     /// <summary>Apertou pra interagir neste quadro (pegar arma, abrir bau).</summary>
     public bool Interagiu { get; private set; }
+
+    /// <summary>Apertou a habilidade do heroi neste quadro (F ou o X do controle).</summary>
+    public bool UsouHabilidade { get; private set; }
 
     private bool esperandoSoltar;
 
@@ -94,10 +98,12 @@ public class ControlesDoJogador : MonoBehaviour
         trocar.AddBinding("<Gamepad>/buttonNorth");
 
         recarregar = new InputAction("Recarregar", InputActionType.Button, "<Keyboard>/r");
-        recarregar.AddBinding("<Gamepad>/buttonWest");
 
         interagir = new InputAction("Interagir", InputActionType.Button, "<Keyboard>/e");
         interagir.AddBinding("<Gamepad>/buttonEast");
+
+        habilidade = new InputAction("Habilidade", InputActionType.Button, "<Keyboard>/f");
+        habilidade.AddBinding("<Gamepad>/buttonWest");
     }
 
     private void OnEnable()
@@ -110,6 +116,7 @@ public class ControlesDoJogador : MonoBehaviour
         trocar.Enable();
         recarregar.Enable();
         interagir.Enable();
+        habilidade.Enable();
     }
 
     private void OnDisable()
@@ -122,7 +129,8 @@ public class ControlesDoJogador : MonoBehaviour
         trocar.Disable();
         recarregar.Disable();
         interagir.Disable();
-        Trocou = Recarregou = Interagiu = false;
+        habilidade.Disable();
+        Trocou = Recarregou = Interagiu = UsouHabilidade = false;
 
         // Desligado (um menu travou o jogador): solta tudo, e ao voltar os botoes so valem depois de soltos.
         Movimento = Vector2.zero;
@@ -140,6 +148,7 @@ public class ControlesDoJogador : MonoBehaviour
         trocar.Dispose();
         recarregar.Dispose();
         interagir.Dispose();
+        habilidade.Dispose();
     }
 
     private void Update()
@@ -165,6 +174,7 @@ public class ControlesDoJogador : MonoBehaviour
         Trocou = botoes && (trocar.WasPressedThisFrame() || Mathf.Abs(roda) > 0.01f);
         Recarregou = botoes && recarregar.WasPressedThisFrame();
         Interagiu = botoes && interagir.WasPressedThisFrame();
+        UsouHabilidade = botoes && habilidade.WasPressedThisFrame();
 
         LerMira();
     }

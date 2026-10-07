@@ -209,6 +209,10 @@ public class GeradorDoAndar : MonoBehaviour
             vidaDoJogador = jogador.GetComponent<Vida>();
         }
 
+        // O heroi escolhido (vida, velocidade, boneco, arma e habilidade): no "tentar de novo" ja e ele.
+        if (jogador != null)
+            Herois.Aplicar(jogador, Herois.Atual);
+
         GerarSemTravar(1);
 
         // Na primeira vez, o menu inicial por cima do andar 1; "tentar de novo" vem direto pro jogo.
@@ -218,6 +222,7 @@ public class GeradorDoAndar : MonoBehaviour
         {
             Musica.Tocar(MusicaDoAndar);
             AvisoDoAndar.Mostrar(nome);
+            Salvamento.Salvar(this, jogador);
         }
     }
 
@@ -265,9 +270,14 @@ public class GeradorDoAndar : MonoBehaviour
             {
                 ondeMorreuOUltimo = vida.transform.position;
                 ResumoDaPartida.ContarInimigo();
+                bool eraOChefe = chefe != null && vida.gameObject == chefe.gameObject;
+                Registro.Derrotou(vida.gameObject, eraOChefe);
 
-                if (chefe != null && vida.gameObject == chefe.gameObject)
+                if (eraOChefe)
+                {
                     ResumoDaPartida.ContarChefe();
+                    Progresso.VencerMundo(Mundo);
+                }
 
                 if (caixaDeMunicao != null && Random.value < chanceDeMunicao)
                     CaixaDeMunicao.Criar(caixaDeMunicao, ondeMorreuOUltimo, raiz.transform, somDaMunicao);
@@ -346,13 +356,57 @@ public class GeradorDoAndar : MonoBehaviour
         {
             // Venceu: a tela da vitoria escurece sozinha por cima do salao do chefe.
             escuro = 0f;
+            Registro.Venceu();
+            Progresso.Zerar(Herois.Atual.Nome);
+            Salvamento.Apagar();
             TelaDeFimDeJogo.MostrarVitoria(this);
             yield break;
         }
 
-        GerarSemTravar(Andar + 1);
+        yield return IrPara(Andar + 1);
+        trocando = false;
+    }
+
+    /// <summary>O "Continuar" do menu: escurece, monta o andar salvo e poe o jogador no comeco dele.</summary>
+    public void Continuar(int andar)
+    {
+        if (!trocando)
+            StartCoroutine(ContinuarEm(andar));
+    }
+
+    private IEnumerator ContinuarEm(int andar)
+    {
+        trocando = true;
+        escuro = 1f;
+        yield return IrPara(andar);
+        trocando = false;
+    }
+
+    /// <summary>A arma com este nome (de arquivo): uma das que caem no andar ou a de um heroi.</summary>
+    public DadosDaArma ArmaPeloNome(string nomeDoArquivo)
+    {
+        if (string.IsNullOrEmpty(nomeDoArquivo))
+            return null;
+
+        if (armas != null)
+        {
+            foreach (DadosDaArma arma in armas)
+            {
+                if (arma != null && arma.name == nomeDoArquivo)
+                    return arma;
+            }
+        }
+
+        return Resources.Load<DadosDaArma>("ArmasDosHerois/" + nomeDoArquivo);
+    }
+
+    // Monta o andar, toca a musica, mostra o nome, volta o jogador pro comeco, salva e clareia.
+    private IEnumerator IrPara(int andar)
+    {
+        GerarSemTravar(andar);
         Musica.Tocar(MusicaDoAndar);
         AvisoDoAndar.Mostrar(nome);
+        Registro.ChegouNoAndar(andar);
 
         // De volta a clareira do comeco, que fica sempre no centro do mundo.
         if (Jogador != null)
@@ -368,8 +422,9 @@ public class GeradorDoAndar : MonoBehaviour
             CameraDoJogo.Pular();
         }
 
+        // O comeco de cada andar fica salvo (o "Continuar" do menu volta pra ca).
+        Salvamento.Salvar(this, Jogador != null ? Jogador.gameObject : null);
         yield return Escurecer(1f, 0f);
-        trocando = false;
     }
 
     private IEnumerator Escurecer(float de, float ate)

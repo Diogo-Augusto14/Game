@@ -82,12 +82,37 @@ public class ArmaDoJogador : MonoBehaviour
             maos[1] = new ArmaCarregada(segundaNoComeco);
     }
 
+    /// <summary>A arma do heroi no comeco da partida: so ela, na mao (a outra mao fica vazia).</summary>
+    public void ComecarCom(DadosDaArma inicial)
+    {
+        arma = inicial;
+        Restaurar(inicial != null ? new ArmaCarregada(inicial) : null, null, 0);
+    }
+
+    /// <summary>As duas maos (a 0 e a 1) e qual esta em uso: o que o salvamento guarda.</summary>
+    public ArmaCarregada Mao(int qual) => maos[qual];
+
+    public int NaMao => naMao;
+
+    /// <summary>Poe as duas armas de volta (o "Continuar").</summary>
+    public void Restaurar(ArmaCarregada primeira, ArmaCarregada segunda, int qualNaMao)
+    {
+        maos[0] = primeira;
+        maos[1] = segunda;
+        naMao = maos[Mathf.Clamp(qualNaMao, 0, 1)] != null ? Mathf.Clamp(qualNaMao, 0, 1) : 0;
+        recarregaAte = -1f;
+        rajada.Parar();
+        AoTrocar?.Invoke();
+    }
+
     /// <summary>
     /// Pega uma arma e ja poe na mao: ocupa o lugar vazio, se tiver; senao troca a que esta na mao
     /// (qualquer uma, o arco tambem). Devolve a que saiu (pra cair no chao), ou nulo.
     /// </summary>
     public ArmaCarregada Pegar(ArmaCarregada nova)
     {
+        Registro.PegouArma();
+
         for (int i = 0; i < maos.Length; i++)
         {
             if (maos[i] == null)

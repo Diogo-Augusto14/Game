@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
+  m_Name: CajadoDoMago
+  m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
+  nome: Cajado de Fogo
+  desenhoNaMao: {fileID: 0}
+  desenhoNoChao: {fileID: 21300000, guid: f727fd7b2e3246cda39342d19836d96c, type: 3}
+  distanciaDaMao: 0.4
+  coice: 0.04
+  infinita: 1
+  pente: 12
+  municaoMaxima: 120
+  recarga: 1
+  somDaRecarga: {fileID: 0}
+  pesoNoBau: 0
+  desenhoDoTiro: {fileID: 21300000, guid: d4bf7e916e5f4fb4a9b93ea7867bc3ea, type: 3}
+  apontarODesenho: 1
+  cor: {r: 1, g: 1, b: 1, a: 1}
+  raio: 0.2
+  automatica: 1
+  tirosPorSegundo: 2
+  velocidade: 9
+  alcance: 9
+  dano: 7
+  empurrao: 5
+  aceleracao: 0
+  curva: 0
+  giroDoDesenho: 0
+  tirosPorDisparo: 1
+  abertura: 10
+  anel: 0
+  dispersao: 0
+  rajada: 1
+  intervaloDaRajada: 0.1
+  giroNaRajada: 0
+  tremor: 0.04
+  som: {fileID: 8300000, guid: 0fe30ac92cdb485fab2d0bf83ec57005, type: 3}
+  volume: 0.4

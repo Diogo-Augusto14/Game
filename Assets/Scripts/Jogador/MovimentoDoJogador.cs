@@ -40,15 +40,51 @@ public class MovimentoDoJogador : MonoBehaviour, IInvulneravel
     private float proximaEsquiva;
     private Vector2 rumoDaEsquiva = Vector2.right;
     private Vector2 ultimaDirecao = Vector2.right;
+    private float velocidadeDaVez;
+    private float duracaoDaVez = 0.24f;
+    private float protegidoAte = -10f;
 
     /// <summary>No meio da esquiva.</summary>
     public bool Esquivando => Time.time < esquivaAcaba;
 
-    /// <summary>Nada machuca agora (o comeco da esquiva): a <see cref="Vida"/> pergunta, e o tiro atravessa.</summary>
-    public bool Invulneravel => Time.time < invulneravelAte;
+    /// <summary>
+    /// Nada machuca agora (o comeco da esquiva, a investida do Lanceiro, o escudo do Cavaleiro): a
+    /// <see cref="Vida"/> pergunta, e o tiro atravessa.
+    /// </summary>
+    public bool Invulneravel => Time.time < invulneravelAte || Time.time < protegidoAte;
+
+    /// <summary>Protegido por uma habilidade (o escudo do Cavaleiro), alem da esquiva.</summary>
+    public bool Protegido => Time.time < protegidoAte;
+
+    /// <summary>A esquiva e uma investida reta (o Lanceiro a cavalo), sem rolar.</summary>
+    public bool Investindo { get; private set; }
 
     /// <summary>0 no comeco da esquiva, 1 no fim.</summary>
-    public float ProgressoDaEsquiva => Esquivando ? Mathf.Clamp01((Time.time - esquivaComecou) / duracaoDaEsquiva) : 1f;
+    public float ProgressoDaEsquiva => Esquivando ? Mathf.Clamp01((Time.time - esquivaComecou) / duracaoDaVez) : 1f;
+
+    /// <summary>A velocidade de andar (cada heroi tem a sua).</summary>
+    public float VelocidadeDeAndar
+    {
+        get => velocidade;
+        set => velocidade = Mathf.Max(0f, value);
+    }
+
+    /// <summary>Nada machuca por uns segundos (o escudo do Cavaleiro).</summary>
+    public void Proteger(float segundos) => protegidoAte = Mathf.Max(protegidoAte, Time.time + segundos);
+
+    /// <summary>Uma investida reta e rapida pra onde mira (o Lanceiro): invulneravel ate o fim dela.</summary>
+    public void Investir(Vector2 rumo, float rapidez, float duracao)
+    {
+        rumoDaEsquiva = rumo.sqrMagnitude > 0.0001f ? rumo.normalized : ultimaDirecao;
+        esquivaComecou = Time.time;
+        duracaoDaVez = duracao;
+        velocidadeDaVez = rapidez;
+        esquivaAcaba = Time.time + duracao;
+        invulneravelAte = esquivaAcaba;
+        proximaEsquiva = esquivaAcaba + recargaDaEsquiva;
+        Investindo = true;
+        corpo.linearVelocity = rumoDaEsquiva * rapidez;
+    }
 
     public Vector2 RumoDaEsquiva => rumoDaEsquiva;
 
@@ -84,10 +120,12 @@ public class MovimentoDoJogador : MonoBehaviour, IInvulneravel
         if (Esquivando)
         {
             // Arranca forte e perde um pouco de forca no fim: le como um rolamento, nao um teleporte.
-            float freiando = Mathf.Lerp(1f, 0.55f, ProgressoDaEsquiva);
-            corpo.linearVelocity = rumoDaEsquiva * velocidadeDaEsquiva * freiando;
+            float freiando = Investindo ? 1f : Mathf.Lerp(1f, 0.55f, ProgressoDaEsquiva);
+            corpo.linearVelocity = rumoDaEsquiva * velocidadeDaVez * freiando;
             return;
         }
+
+        Investindo = false;
 
         Vector2 pedido = controles != null ? controles.Movimento : Vector2.zero;
 
@@ -105,6 +143,9 @@ public class MovimentoDoJogador : MonoBehaviour, IInvulneravel
         rumoDaEsquiva = pedido.sqrMagnitude > 0.01f ? pedido.normalized : ultimaDirecao;
 
         esquivaComecou = Time.time;
+        duracaoDaVez = duracaoDaEsquiva;
+        velocidadeDaVez = velocidadeDaEsquiva;
+        Investindo = false;
         esquivaAcaba = Time.time + duracaoDaEsquiva;
         invulneravelAte = Time.time + duracaoDaEsquiva * fracaoInvulneravel;
         proximaEsquiva = esquivaAcaba + recargaDaEsquiva;

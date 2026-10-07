@@ -18,7 +18,19 @@ public static class ResumoDaPartida
     /// Segundos de jogo desde que a cena abriu. E tempo do jogo (escalado): menu, pausa e
     /// telas com o jogo congelado nao contam.
     /// </summary>
-    public static float Tempo => Time.timeSinceLevelLoad;
+    public static float Tempo => tempoAntes + Time.timeSinceLevelLoad - inicio;
+
+    private static float tempoAntes;
+    private static float inicio;
+
+    /// <summary>Os numeros de uma partida salva (o "Continuar" do menu).</summary>
+    public static void Restaurar(int inimigos, int chefes, float tempo)
+    {
+        InimigosDerrotados = inimigos;
+        ChefesDerrotados = chefes;
+        tempoAntes = tempo;
+        inicio = Time.timeSinceLevelLoad;
+    }
 
     public static void ContarInimigo() => InimigosDerrotados++;
 
@@ -52,5 +64,7 @@ public static class ResumoDaPartida
     {
         InimigosDerrotados = 0;
         ChefesDerrotados = 0;
+        tempoAntes = 0f;
+        inicio = 0f;
     }
 }

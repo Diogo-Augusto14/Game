@@ -21,7 +21,7 @@ public static class MontarJogo
     private const string PrefabDoJogador = "Assets/Prefabs/Jogador.prefab";
     private const string PrefabDoBruxo = "Assets/Prefabs/Bruxo.prefab";
     private const string PrefabDoBoneco = "Assets/Prefabs/BonecoDeTreino.prefab";
-    private const string ArmaDoArqueiro = "Assets/Dados/Armas/ArcoDoArqueiro.asset";
+    private const string ArmaDoArqueiro = "Assets/Dados/Resources/ArmasDosHerois/ArcoDoArqueiro.asset";
     private const string ArmaDoBruxo = "Assets/Dados/Armas/MagiaDoBruxo.asset";
     private const string PastaDasArmas = "Assets/Dados/Armas/";
     private const string FolhaDoBau = "Assets/Arte/Resources/Masmorra/Prisao/BauDeMadeira.png";

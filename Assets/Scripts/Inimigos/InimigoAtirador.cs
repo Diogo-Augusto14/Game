@@ -196,6 +196,7 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
             return;
 
         Acordado = true;
+        Registro.Viu(gameObject);
 
         // Quem acabou de acordar demora um pouco pra atirar.
         proximoAtaque = Mathf.Max(proximoAtaque, Time.time + Random.Range(0.5f, 1f));

@@ -29,17 +29,19 @@ mudado à mão na cena e no prefab se perde.
 
 | Pasta | O que tem |
 |---|---|
-| `Assets/Scripts/Jogador` | Controles, movimento e esquiva, animação, rastro da esquiva, cursor de mira, morte |
+| `Assets/Scripts/Jogador` | Controles, movimento e esquiva, animação, rastro da esquiva, cursor de mira, morte, os heróis e a habilidade deles |
 | `Assets/Scripts/Armas` | Os dados de uma arma (asset), a arma com a munição dela, quem atira, o tiro em voo, a arma na mão e no chão, o baú, a caixa de munição e a munição na tela |
-| `Assets/Scripts/Combate` | Vida e dano (a mesma peça pra todo mundo) e o piscar branco |
-| `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, o boneco de treino |
+| `Assets/Scripts/Combate` | Vida e dano (a mesma peça pra todo mundo), o piscar branco e o impacto (hitstop e números de dano) |
+| `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, os jeitos extras (sumir, escudo, dividir, invocar), o contorno claro, os chefes e o boneco de treino |
+| `Assets/Scripts/Progresso` | Heróis liberados, estatísticas, conquistas, bestiário, a tela de progresso e a partida salva |
 | `Assets/Scripts/Andar` | A caverna: cavar, construir as paredes, espalhar os inimigos, a saída e a troca de andar |
 | `Assets/Scripts/Mundo` | A câmera |
 | `Assets/Scripts/Interface` | O HUD, o menu inicial, a pausa, os controles e o fim da partida |
 | `Assets/Scripts/Nucleo` | Peças pequenas usadas por todo lado (cortar folha de animação, efeito que toca uma vez) |
 | `Assets/Shaders` | `Silhueta`: pinta o desenho de uma cor só (o branco do golpe) |
 | `Assets/Editor` | Montar a cena e o Play pela cena do jogo |
-| `Assets/Prefabs` | Jogador, os inimigos (Bruxo, Esqueleto, Esqueleto Arqueiro, Gosma, Necromante, Olho) e Boneco de treino |
+| `Assets/Prefabs` | Jogador, os 31 inimigos, os 7 chefes e o Boneco de treino |
+| `Assets/Dados/Resources/ArmasDosHerois` | A arma do começo de cada herói (o arco do Arqueiro, a espada do Cavaleiro...) |
 | `Assets/Dados/Armas` | Os assets das armas: as do personagem e do Bruxo (`ArcoDoArqueiro`, `MagiaDoBruxo`) as achadas (`Varinha`, `Tomo`, `BestaDeRepeticao`, `Cajado`, `Machado`) e as dos inimigos (`FlechaDoEsqueleto`, `AnelDoNecromante`, `EspiralDoOlho`, `GotasDaGosma`) |
 | `Assets/Arte/Armas` | Os desenhos das armas achadas, dos tiros (do jogador e dos inimigos) e da bolsa de munição (feitos por `Ferramentas/Armas/desenhar.py`) |
 | `Assets/Arte/Gerada` | Imagens feitas pelo montador: a mira do cursor, a sombra, a bala inimiga e o boneco de treino |
@@ -64,6 +66,7 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `Vida` | 6 de vida; depois de um golpe, 1 segundo sem tomar outro. A esquiva também protege (o `MovimentoDoJogador` é um `IInvulneravel`) |
 | `PiscarAoTomarDano` | Fica branco no golpe e pisca durante o segundo sem dano |
 | `MorteDoJogador` | Vida acabou: desliga os controles, o corpo cai e abre a `TelaDeFimDeJogo` (câmera lenta, escurece, resumo) |
+| `HabilidadeDoHeroi` | A habilidade do herói (F ou o X do controle) e a recarga dela; posta pelo `Herois.Aplicar` |
 
 Fora do jogador: `Projetil` (o tiro em voo: vai até o alcance e some, ou some ao bater em algo sólido;
 parede ele procura olhando o caminho da frente a cada passo, então não atravessa parede nenhuma) e
@@ -180,29 +183,37 @@ jogador, a do inimigo, a animação de morte).
 
 ## Inimigos
 
-Cada inimigo tem um jeito; todos usam as mesmas peças, com números diferentes:
+São 31, quase todos vindos do jogo antigo (a arte é a do Tiny RPG), separados por mundo: cada um diz na
+lista **Inimigos** do objeto Andar o primeiro e o último andar em que aparece e o **peso** do sorteio.
 
-| Inimigo | Aparece | Jeito |
-|---|---|---|
-| **Bruxo** | andar 1 | Anda até uns 4 de você, prepara e solta uma bala lenta |
-| **Esqueleto** | andar 1 | Vem correndo e, perto, dá uma **investida**: corre reto pra onde você estava e descansa um pouco depois (a hora de bater nele). Encostar nele machuca |
-| **Gosma** | andar 1 | Lenta, dá um pulinho em você; encostar machuca. Ao morrer **estoura num anel de gotas** que começam devagar e aceleram |
-| **Esqueleto Arqueiro** | andar 1 | Fica a uns 6 de você e **recua** se você chega perto; atira um **leque de 3 flechas** |
-| **Necromante** | andar 2 em diante | Também recua; solta **dois anéis** de 12 orbes verdes, o segundo girado (os buracos de um ficam no meio do outro) |
-| **Olho** | andar 3 | Para e solta uma **espiral** de orbes roxos por uns 2 segundos |
+| Mundo | Inimigos |
+|---|---|
+| 1 (andares 1 e 2) | Esqueleto (investida), Gosma (estoura em gotas), Bruxo (some e reaparece, leque de 3), Esqueleto Arqueiro, Geleia (pula e espirra gotas), Morceguinho (voa aos trancos), Orc (machadadas), Bolha (divide em duas), Cão Infernal (bote) |
+| 2 (4 e 5) | Morcego (rodeia e mergulha), Lobisomem (rodeia, duas disparadas), Orc e Esqueleto Blindados (armadura: metade do dano), Necromante (anéis, levanta esqueletos), Cavaleiro da Lança (investida longa), Urso (não é empurrado, anel de pedras), Orc Montado (galope duplo) |
+| 3 (7 e 8) | Demônio (corte à frente), Demônia (rodeia, leque), Demônia da Foice (anel de cortes), Fogo-Fátuo (voa, some, chamas em cruz), Monstro de Sangue (anel de sangue), Demônio do Tridente (arremesso), Demônio Arqueiro (flechas de fogo), Olho (espiral), Demônio das Lâminas (3 arrancadas), Orc de Elite (fúria), Esqueleto do Espadão (onda de corte), Cavaleiro do Escudo (bloqueia de frente), Cavaleiro Canhão (parado, rajada) |
 
-Os inimigos de cada andar saem sorteados pelo **peso** da lista **Inimigos** do objeto Andar (cada um diz
-a partir de que andar aparece). Os grupos são misturados.
+Os do mundo 2 e 3 continuam aparecendo no 4. Todo inimigo ganha um **contorno claro** de 1 pixel
+(`ContornoClaro`), pra não sumir no chão escuro.
 
 | Script | O que faz |
 |---|---|
-| `InimigoAtirador` | O jeito de todos: anda até o jogador (ou recua, se ele chega perto demais), prepara o ataque e ataca. O ataque é a arma (o padrão dela) ou a investida |
-| `DanoAoEncostar` | Machuca e empurra quem é do outro lado e encosta (Esqueleto, Gosma) |
+| `InimigoAtirador` | O jeito de todos: anda até o jogador (ou recua, se ele chega perto demais), prepara o ataque e ataca. O ataque é a arma (o padrão dela), a investida ou os dois (corre e atira no fim). Ainda: `jeito` (reto, rodeando ou aos trancos), `voa` (passa por cima dos buracos), investidas seguidas e fúria com pouca vida |
+| `DanoAoEncostar` | Machuca e empurra quem é do outro lado e encosta |
 | `TiroAoMorrer` | Ao morrer, solta um disparo da arma dele (as gotas da Gosma) |
+| `SomeEAparece` | De vez em quando desbota e aparece em outro lugar perto do jogador (Bruxo, Fogo-Fátuo) |
+| `EscudoFrontal` | Segura o golpe que vem de frente (abre quando ele ataca); é um `IBloqueioDeDano` da `Vida` |
+| `DivideAoMorrer` | Ao morrer vira pedaços menores (a Bolha vira duas Bolinhas) |
+| `Invocador` | Levanta ajudantes do chão (o Necromante, até 2 esqueletos vivos); eles saem crescendo (`SaindoDoChao`) |
+| `ContornoClaro` | O contorno claro (quatro máscaras deslocadas 1 pixel recortam um retângulo claro atrás do desenho) |
 | `AnimacaoDoInimigo` | Parado, andando, atacando e morrendo, olhando pro jogador. O quadro do disparo chega bem quando o ataque sai |
-| `Vida` | Lado `Inimigos`; a vida muda de um pra outro (Gosma 9, Bruxo 15, Necromante 26...) |
+| `Vida` | Lado `Inimigos`; a vida muda de um pra outro, e a `armadura` segura uma parte do dano |
 | `PiscarAoTomarDano` | Fica branco a cada golpe |
 | `MorteDoInimigo` | Para, deixa de bater nas coisas, toca a morte e some numa nuvem de poeira |
+
+Quem nasce no meio do andar (bolinhas, esqueletos levantados) entra na conta pelo
+`GeradorDoAndar.Registrar`. O golpe tem peso (`Impacto`): o número do dano pula do inimigo
+(`TextoFlutuante`, desliga nas configurações) e o jogo congela uns centésimos nos golpes fortes, nas
+mortes e quando o jogador apanha.
 
 ### Padrões de bala
 
@@ -242,14 +253,23 @@ ataques sem repetir o mesmo duas vezes seguidas, andando um pouco entre eles. Co
 em **fúria**: fica avermelhado, mais rápido, e ganha um ataque a mais. Morto, o portal abre e cai um
 baú no meio do salão.
 
-| Chefe | Andar | Ataques |
+A partida tem **12 andares em 4 mundos**: duas cavernas e o chefe, três vezes, e no fim duas cavernas e
+o Olho do Abismo. O chefe de cada mundo é sorteado entre dois (`chefe` e `ouEntao` na lista **Andares**);
+o nome do andar dele vem do próprio chefe (`lugar`).
+
+| Mundo | Chefes | Ataques |
 |---|---|---|
-| **Minotauro** (320 de vida) | 3 | 3 investidas seguidas; pisão (3 anéis de pedras); corte (leques de 7 em rajada). Na fúria: investidas que soltam um anel de pedras no fim de cada uma |
-| **Golem de Brasa** (480 de vida) | 6 | Espiral de fogo de 4 braços; leques de pedra em rajada; anéis que começam devagar e aceleram. Na fúria: anéis de fogo que fazem curva |
+| 1 | **Minotauro** (320) ou **Lobisomem Alfa** (300) | Minotauro: investidas, pisão, cortes. Lobisomem: botes seguidos, garras em dois leques, uivo que chama cães; na fúria, botes com garras |
+| 2 | **Senhor da Guerra** (380) ou **Demônio do Martelo** (360) | Senhor da Guerra: machadada (onda de choque), machados bumerangue (vão e voltam), investida, grito que chama orcs. Demônio: pula em você e cai soltando um anel, espiral, cuspe de fogo (marcas no chão que explodem) |
+| 3 | **Rei Necromante** (400) ou **Golem de Brasa** (480) | Rei: some e reaparece longe com um anel, ossos que saem das marcas em volta de você, muralha de tiros, levanta esqueletos |
+| final | **Olho do Abismo** (650) | Não anda. Anel, rajada, espiral, chama olhos; com 60% da vida: dois anéis, leques e o raio; com 25%: tiros em cruz girando o tempo todo |
+
+Na **virada de fase** (a fúria, `ViradaDeFase`), igual pra todos: ruge, a tela treme, o jogo congela um
+instante, os tiros inimigos no ar somem e uma frase aparece em cima dele.
 
 | Script | O que faz |
 |---|---|
-| `Chefe` | A luta: apresentação, escolha dos ataques, investidas, rajadas e fúria (a barra de vida é da interface). Cada ataque (`AtaqueDoChefe`) diz a arma (o padrão), quantas investidas, o preparo, qual animação toca e se é só da fúria |
+| `Chefe` | A luta: apresentação, escolha dos ataques, investidas, rajadas e fúria (a barra de vida é da interface). Cada ataque (`AtaqueDoChefe`) diz a arma (o padrão), quantas investidas, o preparo, qual animação toca e se é só da fúria; e ainda se as investidas são pulos (`salto`), se some antes (`sumir`), quem levanta do chão (`invocar`) e quantas marcas no chão atiram (`marcas`). A `armaDoFim` atira sozinha com pouca vida |
 | `IAnimavel` | O que a `AnimacaoDoInimigo` precisa saber (pra onde olha, se anda, quando ataca): serve pro inimigo comum e pro chefe |
 | `AnimacaoDoInimigo` | Ganhou `outrosAtaques`: mais folhas de ataque, cada uma com o quadro do golpe (o chefe escolhe qual toca) |
 
@@ -275,12 +295,40 @@ unidade, e a flecha, o chão e o resto ficam na mesma proporção. Desenho novo 
 Quem está mais embaixo na tela é desenhado na frente (o `Renderer2D` ordena pelo eixo Y), então o
 jogador passa na frente ou atrás do boneco e dos inimigos conforme a altura.
 
-## Trocar o boneco
+## Heróis
 
-Na `AnimacaoDoJogador` do Jogador: arrastar as folhas novas (`parado`, `andando`, `ataque`), acertar o
-**tamanho do quadro** (os do pacote são 100 × 100) e o **quadro do disparo** (o quadro do ataque em que o
-tiro sai). Cada folha é uma tira com os quadros lado a lado, todos do mesmo tamanho, com o boneco no meio
-(`Nucleo/FolhaDeSprites.cs` corta na hora; não precisa fatiar no Sprite Editor).
+Nove, os do Tiny RPG (vieram do jogo antigo), na lista de `Jogador/Herois.cs`: vida, velocidade, as
+folhas, a arma do começo (em `Dados/Resources/ArmasDosHerois`, infinita e trocável como qualquer arma) e a
+habilidade (F ou o X do controle; a barra fica embaixo dos corações).
+
+| Herói | Vida | Arma | Habilidade | Libera |
+|---|---|---|---|---|
+| Arqueiro | 3 | Arco (flechas rápidas) | Chuva de flechas (3 anéis) | livre |
+| Soldado | 4 | Arco do Soldado (mais forte) | Rajada de flechas (4 leques) | vencer o chefe do mundo 1 |
+| Lanceiro | 4 | Lança (atravessa) | Investida a cavalo | chefe do mundo 2 |
+| Cavaleiro | 5 | Espada (onda de corte curta) | Escudo (3 s sem dano, desmancha tiros) | chefe do mundo 3 |
+| Mago | 2,5 | Cajado de Fogo | Meteoro (cai onde mira) | zerar o jogo |
+| Espadachim | 3 | Sabre (cortes rápidos) | Redemoinho | zerar com o Cavaleiro |
+| Machadeiro | 4 | Machado (o golpe mais forte) | Fúria (dano em dobro por 6 s) | zerar com o Arqueiro |
+| Padre | 3 | Cetro (estrelas) | Reza (cura um coração) | zerar com o Mago |
+| Templário | 6 | Espada Sagrada | Anel sagrado (dois anéis de cortes) | zerar 3 vezes |
+
+`Herois.Aplicar` põe o herói no jogador (no começo do andar 1 e ao trocar no menu). As armas de espada
+e lança **atravessam** (`atravessa`: acertam cada inimigo uma vez e seguem). Com a arma de um herói na
+mão, o corpo faz a animação de ataque dele a cada tiro (o quadro do disparo é do herói).
+
+## Progresso e partida salva
+
+Tudo no PlayerPrefs (`Assets/Scripts/Progresso`), como no jogo antigo:
+
+| Script | O que faz |
+|---|---|
+| `Progresso` | Mundos vencidos, vitórias e com quem zerou: o que libera os heróis (e avisa quando libera) |
+| `Registro` | Estatísticas de todas as partidas e o bestiário (visto, derrotados, quem mais te matou) |
+| `Conquistas` | 17 conquistas; ganhar mostra o `AvisoDeConquista` no canto |
+| `Bestiario` | Nome e "como luta" de cada inimigo e chefe |
+| `TelaDeProgresso` | O botão **Progresso** do menu: abas de estatísticas, conquistas e bestiário |
+| `Salvamento` | A partida salva: no começo de cada andar e no **Salvar e sair** da pausa (herói, andar, vida, armas, números). **Continuar** no menu volta pro começo do andar salvo. Morrer, vencer ou jogar de novo apaga |
 
 ## Criar uma arma
 

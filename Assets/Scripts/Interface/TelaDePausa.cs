@@ -12,8 +12,9 @@ using UnityEngine.UI;
 /// No controle: cruz escolhe, A aperta; Start (ou B) continua, Select reinicia, X
 /// configuracoes, Y menu, LB e RB o som.
 ///
+/// Salvar e sair guarda a partida (o "Continuar" do menu volta pro comeco deste andar) e vai pro menu.
 /// Reiniciar comeca uma partida nova do andar 1 com o mesmo heroi. Menu principal volta pro menu
-/// inicial (no jogo antigo era "Salvar e sair": o jogo novo ainda nao salva a partida).
+/// inicial sem salvar (o comeco de cada andar ja fica salvo sozinho).
 ///
 /// Fica no mesmo objeto do <see cref="GeradorDoAndar"/> (ele poe sozinho). Nao abre por cima do
 /// menu inicial, da tela de fim de jogo, da troca de andar nem com o jogador morto. M e N tambem
@@ -138,14 +139,15 @@ public class TelaDePausa : MonoBehaviour
         itens = TelaSimples.Texto(pai, "Itens", 24, Color.white, 218f, "");
         itens.rectTransform.sizeDelta = new Vector2(880f, 64f);
 
-        menu = new MenuDeBotoes(pai, 0f, new Vector2(520f, 76f), 34) { IntervaloDaEntrada = 0.03f };
-        menu.Adicionar("Continuar", 140f, Continuar, "[Esc] || [Pad Start]");
-        menu.Adicionar("Reiniciar partida", 52f, Reiniciar, "[R] || [Pad Select]");
-        menu.Adicionar("Configurações", -36f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
-        menu.Adicionar("Menu principal", -124f, IrAoMenu, "[Q] || [Pad Y]");
-        menu.Adicionar("Sair do jogo", -212f, TelaDeInicio.SairDoJogo, null, IconeDoBotao.Sair, perigo: true);
+        menu = new MenuDeBotoes(pai, 0f, new Vector2(520f, 66f), 32) { IntervaloDaEntrada = 0.03f };
+        menu.Adicionar("Continuar", 150f, Continuar, "[Esc] || [Pad Start]");
+        menu.Adicionar("Salvar e sair", 76f, SalvarESair);
+        menu.Adicionar("Reiniciar partida", 2f, Reiniciar, "[R] || [Pad Select]");
+        menu.Adicionar("Configurações", -72f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
+        menu.Adicionar("Menu principal", -146f, IrAoMenu, "[Q] || [Pad Y]");
+        menu.Adicionar("Sair do jogo", -220f, TelaDeInicio.SairDoJogo, null, IconeDoBotao.Sair, perigo: true);
 
-        opcoes = TelaSimples.LinhaDeTeclas(pai, "Som", -300f, "", 26, new Color(1f, 0.85f, 0.4f));
+        opcoes = TelaSimples.LinhaDeTeclas(pai, "Som", -310f, "", 26, new Color(1f, 0.85f, 0.4f));
         TelaSimples.LinhaDeTeclas(tela.transform, "Navegar", -470f,
             "[W][S] escolher | [Enter] confirmar | mouse também funciona || [Pad CruzCima][Pad CruzBaixo] escolher | [Pad A] confirmar",
             24, new Color(0.85f, 0.85f, 0.9f));
@@ -185,7 +187,15 @@ public class TelaDePausa : MonoBehaviour
 
     private void AbrirOpcoes() => TelaDeOpcoes.Abrir(Atualizar);
 
-    /// <summary>Volta pro menu inicial (a partida se perde: o jogo novo ainda nao salva).</summary>
+    /// <summary>Salva a partida (o andar recomeca do comeco no "Continuar") e volta pro menu inicial.</summary>
+    private void SalvarESair()
+    {
+        Salvamento.Salvar(andar, andar.Jogador != null ? andar.Jogador.gameObject : null);
+        AvisoDeConquista.Mostrar("Partida salva", "No menu, \"Continuar\" volta pro começo deste andar.");
+        IrAoMenu();
+    }
+
+    /// <summary>Volta pro menu inicial (sem salvar: a partida volta do ultimo andar salvo).</summary>
     private static void IrAoMenu()
     {
         Sons.Tocar(Som.MenuFechar, 1f, 0f);

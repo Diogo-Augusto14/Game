@@ -12,6 +12,7 @@ using UnityEngine.SceneManagement;
 public class MorteDoJogador : MonoBehaviour
 {
     private Vida vida;
+    private GameObject quemBateu;
 
     private void Awake()
     {
@@ -21,15 +22,23 @@ public class MorteDoJogador : MonoBehaviour
     private void OnEnable()
     {
         vida.AoMorrer += Morreu;
+        vida.AoTomarDano += Apanhou;
     }
 
     private void OnDisable()
     {
         vida.AoMorrer -= Morreu;
+        vida.AoTomarDano -= Apanhou;
     }
+
+    private void Apanhou(Dano dano) => quemBateu = dano.fonte;
 
     private void Morreu()
     {
+        // Fica no bestiario quem matou; a partida salva se perde.
+        Registro.Morreu(quemBateu);
+        Salvamento.Apagar();
+
         // Nada de andar, atirar ou esquivar; o corpo para e deixa de bater nas coisas.
         DesligarSeTiver<ControlesDoJogador>();
         DesligarSeTiver<MovimentoDoJogador>();

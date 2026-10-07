@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
+  m_Name: EspadaDoCavaleiro
+  m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
+  nome: Espada do Cavaleiro
+  desenhoNaMao: {fileID: 0}
+  desenhoNoChao: {fileID: 21300000, guid: ae6c96bce4b54e10b72dd3d4320ab0f6, type: 3}
+  distanciaDaMao: 0.4
+  coice: 0.04
+  infinita: 1
+  pente: 12
+  municaoMaxima: 120
+  recarga: 1
+  somDaRecarga: {fileID: 0}
+  pesoNoBau: 0
+  desenhoDoTiro: {fileID: 21300000, guid: 4caa2cdfc4e343a98fc30509da27cbb3, type: 3}
+  apontarODesenho: 1
+  cor: {r: 1, g: 1, b: 1, a: 1}
+  raio: 0.45
+  automatica: 1
+  tirosPorSegundo: 2
+  velocidade: 9
+  alcance: 4
+  dano: 8
+  empurrao: 6
+  aceleracao: 0
+  curva: 0
+  atravessa: 1
+  giroDoDesenho: 0
+  tirosPorDisparo: 1
+  abertura: 10
+  anel: 0
+  dispersao: 0
+  rajada: 1
+  intervaloDaRajada: 0.1
+  giroNaRajada: 0
+  tremor: 0.05
+  som: {fileID: 8300000, guid: b2e6dbe2f04e4c559b2babb8d650b17d, type: 3}
+  volume: 0.45

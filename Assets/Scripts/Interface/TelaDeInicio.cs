@@ -40,6 +40,7 @@ public class TelaDeInicio : MonoBehaviour
     private MenuDeBotoes menu;
     private int botaoJogar;
     private int botaoSair;
+    private bool continuando;
     private Image setaEsquerda;
     private Image setaDireita;
     private int ladoAceso;
@@ -137,14 +138,21 @@ public class TelaDeInicio : MonoBehaviour
         painelDoHeroi = TelaSimples.Camada(transform, "Heroi");
         MontarEscolhaDoHeroi(painelDoHeroi.transform, 105f);
 
-        const float y = -130f;
-        const float passo = 80f;
-        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, 66f), 34)
+        // Com partida salva aparece o "Continuar"; a coluna sobe um pouco pra caber.
+        bool temSalvo = Salvamento.Existe;
+        float y = temSalvo ? -92f : -110f;
+        const float passo = 62f;
+        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, 54f), 30)
             { AtrasoDaEntrada = 0.3f, IntervaloDaEntrada = 0.06f };
 
         botaoJogar = menu.Adicionar("Jogar", y, Jogar, "[Enter] || [Pad A]");
-        menu.Adicionar("Configurações", y - passo, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
-        botaoSair = menu.Adicionar("Sair do jogo", y - passo * 2f, SairDoJogo, "[Esc] || [Pad Select]", IconeDoBotao.Sair, perigo: true);
+
+        if (temSalvo)
+            menu.Adicionar("Continuar", y -= passo, ContinuarPartida, "[C] || [Pad Y]");
+
+        menu.Adicionar("Progresso", y -= passo, AbrirProgresso, "[P] || [Pad B]");
+        menu.Adicionar("Configurações", y -= passo, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
+        botaoSair = menu.Adicionar("Sair do jogo", y - passo, SairDoJogo, "[Esc] || [Pad Select]", IconeDoBotao.Sair, perigo: true);
 
         MontarRodape();
         MostrarHeroi();
@@ -176,8 +184,8 @@ public class TelaDeInicio : MonoBehaviour
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(pai, "Controles", -408f,
-            "[W][A][S][D] andar | mouse mira e atira | [Espaco] esquiva | [Q] troca a arma | [E] pega e abre | [Esc] pausar || " +
-            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] mirar | [Pad RT] atirar | [Pad A] esquiva | [Pad Y] troca | [Pad B] pega | [Pad Start] pausar",
+            "[W][A][S][D] andar | mouse mira e atira | [Espaco] esquiva | [Q] troca a arma | [E] pega e abre | [F] habilidade | [Esc] pausar || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] mirar | [Pad RT] atirar | [Pad A] esquiva | [Pad Y] troca | [Pad B] pega | [Pad X] habilidade | [Pad Start] pausar",
             24, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
             "[M] música | [N] efeitos | Baú dá arma. Mate todos do andar pra abrir o portal. || " +
@@ -216,7 +224,7 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         // Com as opcoes por cima, as teclas sao delas (o Esc de la nao pode sair do jogo).
-        menu.Ligado = !TelaDeOpcoes.Ocupada && !TelaDeNovidades.Ocupada && t - abriu >= 0.4f;
+        menu.Ligado = !TelaDeOpcoes.Ocupada && !TelaDeNovidades.Ocupada && !TelaDeProgresso.Ocupada && t - abriu >= 0.4f;
 
         if (menu.Ligado && !TransicaoDeTela.Ocupada)
             LerAtalhos();
@@ -240,6 +248,14 @@ public class TelaDeInicio : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
         {
             AbrirOpcoes();
+        }
+        else if (Input.GetKeyDown(KeyCode.P) || Controle.Apertou(BotaoDoControle.B))
+        {
+            AbrirProgresso();
+        }
+        else if (Salvamento.Existe && (Input.GetKeyDown(KeyCode.C) || Controle.Apertou(BotaoDoControle.Y)))
+        {
+            ContinuarPartida();
         }
         else if (Controle.Apertou(BotaoDoControle.Start))
         {
@@ -272,11 +288,26 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
+        continuando = false;
+        menu.Ligado = false;
+        saindoDesde = Time.unscaledTime;
+    }
+
+    /// <summary>Volta a partida salva (o heroi dela, no comeco do andar em que salvou).</summary>
+    private void ContinuarPartida()
+    {
+        if (!Salvamento.Existe)
+            return;
+
+        Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
+        continuando = true;
         menu.Ligado = false;
         saindoDesde = Time.unscaledTime;
     }
 
     private static void AbrirOpcoes() => TelaDeOpcoes.Abrir();
+
+    private static void AbrirProgresso() => TelaDeProgresso.Abrir();
 
     /// <summary>O menu some crescendo de leve; no fim, o jogo comeca.</summary>
     private void Sair(float agora)
@@ -295,13 +326,27 @@ public class TelaDeInicio : MonoBehaviour
         JaPassou = true;
         Time.timeScale = 1f;
 
-        // Por enquanto todo heroi e o Arqueiro (os outros chegam na etapa 8).
         TelaSimples.TravarJogador(jogador, false);
+
+        // Continuar: o salvo poe o heroi, as armas e a vida e leva pro andar dele.
+        if (continuando && andar != null && jogador != null && Salvamento.Continuar(andar, jogador.gameObject))
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        // Partida nova: o heroi escolhido (com a arma dele) no andar 1, e o salvo antigo deixa de valer.
+        if (jogador != null)
+            Herois.Aplicar(jogador.gameObject, Herois.Atual);
+
+        Salvamento.Apagar();
+        Registro.ComecouPartida();
 
         if (andar != null)
         {
             Musica.Tocar(andar.MusicaDoAndar);
             andar.MostrarNome();
+            Salvamento.Salvar(andar, jogador != null ? jogador.gameObject : null);
         }
 
         Destroy(gameObject);
@@ -371,6 +416,10 @@ public class TelaDeInicio : MonoBehaviour
         Herois.Escolher(Herois.Escolhido + passo);
         Sons.Tocar(Som.Menu, 0.6f);
         MostrarHeroi();
+
+        // O boneco atras do menu ja vira o heroi escolhido.
+        if (jogador != null && Herois.Liberado(Herois.Atual))
+            Herois.Aplicar(jogador.gameObject, Herois.Atual);
     }
 
     private void MostrarHeroi()
@@ -380,7 +429,7 @@ public class TelaDeInicio : MonoBehaviour
 
         textoDoHeroi.text = liberado ? heroi.Nome : $"{heroi.Nome}  (bloqueado)";
         descricaoDoHeroi.text = heroi.Descricao;
-        numerosDoHeroi.text = liberado ? heroi.Numeros : "? ? ?";
+        numerosDoHeroi.text = liberado ? heroi.Numeros : "Para liberar: " + heroi.Requisito;
 
         if (Herois.Todos.Length > 1)
         {

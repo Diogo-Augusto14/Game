@@ -3,7 +3,8 @@ using UnityEngine;
 /// <summary>
 /// O que fica na tela durante o jogo, desenhado com a arte de interface (pixel art, em multiplos
 /// inteiros: ver <see cref="Desenho"/>):
-/// - em cima a esquerda, a vida em coracoes (cada coracao vale 2; meio coracao vale 1);
+/// - em cima a esquerda, a vida em coracoes (cada coracao vale 2; meio coracao vale 1) e, embaixo
+///   deles, a habilidade do heroi (F) com a barra da recarga;
 /// - em cima a direita, o andar e quantos inimigos faltam (ou "portal aberto");
 /// - embaixo a direita, a arma na mao na moldura, o nome, a municao, a recarga e a outra arma;
 /// - no alto, o nome e a barra de vida do chefe, no andar dele;
@@ -20,13 +21,16 @@ public class HudDoJogo
         this.tela = tela;
     }
 
-    public void Desenhar(GeradorDoAndar gerador, Vida vida, ArmaDoJogador armas, InteracaoDoJogador interacao)
+    public void Desenhar(GeradorDoAndar gerador, Vida vida, ArmaDoJogador armas, InteracaoDoJogador interacao, HabilidadeDoHeroi habilidade)
     {
         int u = Desenho.U;
 
         if (vida != null && !vida.Morto)
         {
             Coracoes(vida, u);
+
+            if (habilidade != null)
+                Habilidade(habilidade, u);
 
             if (armas != null)
                 Arma(armas, u);
@@ -72,6 +76,19 @@ public class HudDoJogo
                 Desenho.Parte(new Rect(onde.x, onde.y, onde.width * 0.5f, onde.height), coracao,
                               new Rect(0f, 0f, coracao.width * 0.5f, coracao.height), Color.white);
         }
+    }
+
+    // Embaixo dos coracoes: "F  Chuva de flechas" e a barra enchendo ate ficar pronta.
+    private void Habilidade(HabilidadeDoHeroi habilidade, int u)
+    {
+        float m = 8 * u;
+        float y = m + (tela.coracao != null ? tela.coracao.height : 16) * u + 4 * u;
+        GUIStyle estilo = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.UpperLeft);
+        bool pronta = habilidade.Pronta;
+        Desenho.Texto(new Rect(m, y, 300 * u, 22 * u), "F  " + habilidade.Nome, estilo, pronta ? Desenho.Dourado : Desenho.Apagado);
+
+        Rect barra = new Rect(m, y + 22 * u, 80 * u, 13 * u);
+        Barra(barra, habilidade.Carga, pronta ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
     }
 
     private void Arma(ArmaDoJogador armas, int u)

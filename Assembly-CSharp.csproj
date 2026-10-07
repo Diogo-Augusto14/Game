@@ -73,6 +73,14 @@
     <Compile Include="Assets\Scripts\Inimigos\Invocador.cs" />
     <Compile Include="Assets\Scripts\Inimigos\SaindoDoChao.cs" />
     <Compile Include="Assets\Scripts\Inimigos\MarcaPiscando.cs" />
+    <Compile Include="Assets\Scripts\Jogador\HabilidadeDoHeroi.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Progresso.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Registro.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Conquistas.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Bestiario.cs" />
+    <Compile Include="Assets\Scripts\Progresso\AvisoDeConquista.cs" />
+    <Compile Include="Assets\Scripts\Progresso\TelaDeProgresso.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Salvamento.cs" />
     <Compile Include="Assets\Scripts\Combate\Dano.cs" />
     <Compile Include="Assets\Scripts\Combate\Vida.cs" />
     <Compile Include="Assets\Scripts\Combate\PiscarAoTomarDano.cs" />

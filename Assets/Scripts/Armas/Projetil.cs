@@ -33,6 +33,7 @@ public class Projetil : MonoBehaviour
     private bool voltando;
     private float percorrido;
     private float multiplicadorDeDano = 1f;
+    private System.Collections.Generic.List<Vida> acertados;
 
     /// <summary>Multiplica o dano deste tiro (a furia do Machadeiro dobra).</summary>
     public float MultiplicadorDeDano { get => multiplicadorDeDano; set => multiplicadorDeDano = value; }
@@ -83,6 +84,11 @@ public class Projetil : MonoBehaviour
         projetil.giroDoDesenho = arma.giroDoDesenho;
         projetil.apontar = arma.apontarODesenho;
         rb.linearVelocity = rumo * arma.velocidade;
+
+        // A furia do Machadeiro: os tiros dele batem em dobro enquanto dura.
+        if (lado == Lado.Jogador && dono != null && dono.TryGetComponent(out HabilidadeDoHeroi habilidade))
+            projetil.multiplicadorDeDano = habilidade.MultiplicadorDeDano;
+
         return projetil;
     }
 
@@ -170,9 +176,21 @@ public class Projetil : MonoBehaviour
             if (vida.Lado == lado)
                 return;
 
+            // A onda que atravessa acerta cada um uma vez so.
+            if (arma.atravessa && acertados != null && acertados.Contains(vida))
+                return;
+
             // Protegido (esquiva, tempinho depois do golpe): tambem passa reto. Bateu num escudo: some.
             if (!vida.ReceberDano(new Dano(arma.dano * multiplicadorDeDano, rumo, arma.empurrao, dono)) && !vida.Bloqueou)
                 return;
+
+            if (arma.atravessa && !vida.Bloqueou)
+            {
+                if (acertados == null)
+                    acertados = new System.Collections.Generic.List<Vida>();
+                acertados.Add(vida);
+                return;
+            }
         }
 
         Sumir();

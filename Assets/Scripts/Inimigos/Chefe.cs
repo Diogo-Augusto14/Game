@@ -163,6 +163,7 @@ public class Chefe : MonoBehaviour, IAnimavel, IInvulneravel
         }
 
         Tocar(somAoChegar);
+        Registro.Viu(gameObject);
         StartCoroutine(Lutar());
     }
 

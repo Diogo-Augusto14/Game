@@ -55,6 +55,16 @@ public class ArmaCarregada
     }
 
     /// <summary>Ganha municao (caixa), ate o maximo. Devolve quanto entrou.</summary>
+    /// <summary>Poe a municao num valor (o "Continuar" devolve a que a arma tinha).</summary>
+    public void Definir(int noPente, int reserva)
+    {
+        if (Infinita)
+            return;
+
+        NoPente = UnityEngine.Mathf.Clamp(noPente, 0, SemPente ? Dados.municaoMaxima : Dados.pente);
+        Reserva = UnityEngine.Mathf.Max(0, reserva);
+    }
+
     public int Ganhar(int quanto)
     {
         int entra = UnityEngine.Mathf.Min(quanto, Falta);
