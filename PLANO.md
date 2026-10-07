@@ -27,23 +27,27 @@ de novo.
 | 3 | **Andares gigantes** (feita) | Cada andar é uma caverna enorme e aberta, sem salas nem portas (como no Nuclear Throne); matar todos os inimigos abre o portal pro próximo andar. Com a arte do Old Prison (paredes, buracos de abismo, poças, enfeites), montada pelas regras do Tiled do pacote |
 | 4 | **Armas** (feita) | Achar arma no chão e no baú, carregar duas (a do personagem e uma achada) e trocar, munição por arma com pente e recarga, bolsas de munição. Armas de fantasia (varinha, tomo, besta, cajado, machado). Os inimigos contornam parede pra chegar em você |
 | 5 | **Inimigos e padrões** (feita, falta jogar) | Esqueleto (investida), Gosma (estoura em gotas), Esqueleto Arqueiro (leque, recua), Necromante (anéis), Olho (espiral), além do Bruxo; os mais difíceis só nos andares 2 e 3. Padrões de bala na arma: leque, anel, rajada, espiral, tiro que freia ou acelera |
-| 6 | Chefe | O chefe do fim do andar |
-| 7 | Interface | Vida, energia ou munição na tela, menu, pausa, fim de jogo |
-| 8 | A sua arte | O seu boneco no lugar do Arqueiro, e o que mais você desenhar |
+| 6 | Chefes | Os chefes, cada um no andar dele |
+| 7 | Interface | Vida, munição e a arma desenhadas na tela de verdade (hoje é texto provisório), menu inicial, pausa e tela de fim de jogo (morreu ou venceu) |
+| 8 | Personagens | Vários personagens, cada um com uma habilidade e começando com uma arma diferente. A arma do começo também pode ser trocada (senão o primeiro arco fica inútil no fim do jogo) |
 
 ## Decisões que ficam pra hora certa
 
 - **Armas de fantasia.** Decidido depois da etapa 4: o mundo é medieval de fantasia, então as armas não
   precisam existir, precisam encaixar (nada de pistola e metralhadora).
 - **Energia ou munição?** Decidido na etapa 4: **munição por arma**, como no Gungeon (pente, reserva,
-  recarga, bolsas de munição); a arma do personagem é infinita. E **duas armas** de uma vez: a do
-  personagem, fixa, e uma achada.
-- **Vários personagens com habilidade própria** (como no Soul Knight) ou um só? Decidir depois da etapa 3.
+  recarga, bolsas de munição); a arma do personagem é infinita. E **duas armas** de uma vez: por
+  enquanto a do personagem, fixa, e uma achada. Na etapa 8 a do personagem também passa a poder ser
+  trocada.
+- **Vários personagens.** Decidido depois da etapa 5: vários, como no Soul Knight, cada um com uma
+  habilidade e uma arma inicial diferente (etapa 8).
+- **A sua arte.** Talvez não tenha etapa só pra ela; quando o seu boneco ficar pronto, entra no lugar de
+  um personagem (é só trocar as folhas de animação).
 - **Tamanho dos andares e quantos andares.** Por enquanto 3 andares, o primeiro com umas 1500 células de
   chão e 24 inimigos, crescendo a cada andar. Ajustar jogando.
 - **Personagens do Old Prison.** O pacote tem um esqueleto, um esqueleto mago que atira e um inimigo tipo
   assassino, com animações. Na etapa 5 os inimigos novos vieram do mesmo pacote do Arqueiro e do Bruxo
   (Tiny RPG), pra ficarem do mesmo tamanho; os do Old Prison ficam de reserva. Os pixels do Tiny RPG são
-  maiores que os do cenário do Old Prison; resolver quando entrar o seu boneco (etapa 8).
+  maiores que os do cenário do Old Prison; resolver quando entrar o seu boneco.
 - **Inimigo contornando parede.** Feito na etapa 4 (os Bruxos ficavam presos na parede): com o caminho
   livre vão reto, senão seguem um mapa de caminhos pela caverna.
