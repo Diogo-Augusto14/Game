@@ -31,6 +31,7 @@ public class Coletavel : MonoBehaviour
         obj.transform.position = onde;
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
         sr.sortingOrder = -98;
+        Iluminacao.Brilhar(sr);
         sr.sprite = Desenho(tipo, quanto);
 
         Coletavel c = obj.AddComponent<Coletavel>();

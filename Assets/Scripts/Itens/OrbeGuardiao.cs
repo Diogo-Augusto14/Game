@@ -19,6 +19,7 @@ public class OrbeGuardiao : MonoBehaviour
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
         sr.sprite = ArteDoAntigo.Icone(335, 48f);
         sr.sortingOrder = 15;
+        Iluminacao.Brilhar(sr);
         OrbeGuardiao orbe = obj.AddComponent<OrbeGuardiao>();
         orbe.dono = dono;
         orbe.numero = numero;

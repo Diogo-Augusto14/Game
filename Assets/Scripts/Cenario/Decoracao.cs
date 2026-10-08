@@ -11,6 +11,8 @@ using UnityEngine;
 ///   nas Profundezas, rochas, pilares e estatuas saindo do vazio em volta das salas;
 ///   e, nas salas de luta da Cripta, o lancador de fogo na parede (<see cref="LancadorDeFogo"/>).
 ///
+/// As tochas, os candelabros e os cristais tem luz (<see cref="Iluminacao"/>): o resto do andar e escuro.
+///
 /// Nada fica nos corredores nem na frente das portas; o que segura gente sai do mapa de caminhos.
 /// </summary>
 public static class Decoracao
@@ -72,7 +74,8 @@ public static class Decoracao
 
                     string qual = cripta ? Sortear("Cripta/Caixao", "Cripta/Estatua", "Cripta/Cruz", "Cripta/Candelabro")
                                          : Sortear("Profundezas/Estatua", "Profundezas/Cristal", "Profundezas/Cristal", "Profundezas/Candelabro");
-                    Grande(Um(qual), c, grupo);
+                    GameObject peca = Grande(Um(qual), c, grupo);
+                    Acender(peca, qual);
                     chao.Remove(c);
                     livre.Remove(c);
                 }
@@ -213,11 +216,31 @@ public static class Decoracao
         return true;
     }
 
+    // Candelabros acendem; os cristais brilham na cor deles (os primeiros roxos, os outros verdes).
+    private static void Acender(GameObject peca, string grupo)
+    {
+        if (peca == null)
+            return;
+
+        SpriteRenderer sr = peca.GetComponent<SpriteRenderer>();
+        float altura = sr.sprite != null ? sr.sprite.bounds.size.y : 1f;
+
+        if (grupo.EndsWith("Candelabro"))
+            Iluminacao.Luz(peca.transform, new Vector2(0f, altura * 0.85f), Iluminacao.Vela, 4f, 0.95f, 0.15f);
+        else if (grupo.EndsWith("Cristal"))
+        {
+            int numero;
+            bool roxo = int.TryParse(sr.sprite.name, out numero) && numero < 9;
+            Color cor = roxo ? new Color(0.65f, 0.45f, 1f) : new Color(0.4f, 1f, 0.6f);
+            Iluminacao.Luz(peca.transform, new Vector2(0f, altura * 0.5f), cor, 3.6f, 0.9f, 0.03f);
+        }
+    }
+
     // Uma peca grande, de pe na celula: segura gente e tiro (camada das paredes).
-    private static void Grande(Sprite desenho, Vector2Int c, Transform pai)
+    private static GameObject Grande(Sprite desenho, Vector2Int c, Transform pai)
     {
         if (desenho == null)
-            return;
+            return null;
 
         GameObject obj = Pequena(desenho, (Vector2)c + Vector2.down * 0.4f, pai, 10);
         obj.layer = Pedreiro.CamadaDaParede;
@@ -225,6 +248,7 @@ public static class Decoracao
         float largura = Mathf.Clamp(desenho.bounds.size.x * 0.8f, 0.5f, 1.6f);
         colisor.size = new Vector2(largura, 0.6f);
         colisor.offset = new Vector2(0f, 0.3f);
+        return obj;
     }
 
     private static GameObject Pequena(Sprite desenho, Vector2 onde, Transform pai, int ordem)
@@ -249,6 +273,26 @@ public static class Decoracao
         sr.sprite = quadros[0];
         sr.sortingOrder = ordem;
         obj.AddComponent<EnfeiteAnimado>().Comecar(quadros, qps);
+        Iluminacao.Luz(obj.transform, new Vector2(0f, 0.25f), Iluminacao.Fogo, 6.5f, 1.15f, 0.18f);
+    }
+
+    /// <summary>Tochas na parede de cima do salao do chefe (a cada 4 celulas).</summary>
+    public static void TochasDaArena(HashSet<Vector2Int> planta, Transform pai)
+    {
+        if (tocha == null)
+            tocha = FolhaDeSprites.Cortar(Resources.Load<Texture2D>("Decoracao/Tocha"), new Vector2Int(64, 64), 32f);
+
+        if (tocha.Length == 0)
+            return;
+
+        Transform grupo = new GameObject("Tochas").transform;
+        grupo.SetParent(pai, false);
+
+        foreach (Vector2Int c in planta)
+        {
+            if (!planta.Contains(c + Vector2Int.up) && !planta.Contains(c + Vector2Int.up * 2) && ((c.x % 4) + 4) % 4 == 0)
+                Animada(tocha, (Vector2)c + new Vector2(0f, 1.15f), grupo, Pedreiro.OrdemDasParedes + 1, 10f);
+        }
     }
 
     // Nas Profundezas: rochas, pilares e estatuas saindo do vazio, de 2 a 6 celulas das salas.

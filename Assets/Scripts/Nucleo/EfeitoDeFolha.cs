@@ -26,6 +26,7 @@ public class EfeitoDeFolha : MonoBehaviour
         EfeitoDeFolha efeito = obj.AddComponent<EfeitoDeFolha>();
         efeito.desenho = obj.AddComponent<SpriteRenderer>();
         efeito.desenho.sortingOrder = ordem;
+        Iluminacao.Brilhar(efeito.desenho);
         efeito.desenho.sprite = quadros[0];
         efeito.quadros = quadros;
         efeito.quadrosPorSegundo = quadrosPorSegundo;
@@ -45,6 +46,7 @@ public class EfeitoDeFolha : MonoBehaviour
         EfeitoDeFolha efeito = obj.AddComponent<EfeitoDeFolha>();
         efeito.desenho = obj.AddComponent<SpriteRenderer>();
         efeito.desenho.sortingOrder = ordem;
+        Iluminacao.Brilhar(efeito.desenho);
         efeito.desenho.sprite = quadros[0];
         efeito.quadros = quadros;
         efeito.quadrosPorSegundo = quadrosPorSegundo;

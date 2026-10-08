@@ -19,6 +19,7 @@ public class Bomba : MonoBehaviour
         obj.transform.position = onde;
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
         sr.sortingOrder = 12;
+        Iluminacao.Brilhar(sr);
         Bomba bomba = obj.AddComponent<Bomba>();
         bomba.raio = raio;
         bomba.dano = dano;

@@ -54,6 +54,8 @@ public class Pedestal : Interativo
         Pedestal pedestal = obj.AddComponent<Pedestal>();
         pedestal.icone = desenho.AddComponent<SpriteRenderer>();
         pedestal.icone.sortingOrder = 11;
+        Iluminacao.Brilhar(pedestal.icone);
+        Iluminacao.Luz(obj.transform, new Vector2(0f, 0.6f), new Color(1f, 0.9f, 0.6f), 2.6f, 0.7f, 0.05f);
         pedestal.baseDoIcone = desenho.transform.localPosition;
         pedestal.item = item;
         pedestal.produto = produto;

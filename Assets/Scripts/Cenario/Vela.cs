@@ -27,6 +27,7 @@ public class Vela : MonoBehaviour
         v.chama.sortingOrder = Pedreiro.OrdemDosEnfeites + 3;
         v.quadros = ArteDoAntigo.ChamaMagica;
         v.fase = Random.value * 10f;
+        Iluminacao.Luz(obj.transform, new Vector2(0f, 0.3f), Iluminacao.Vela, 2.8f, 0.75f, 0.15f);
         return v;
     }
 

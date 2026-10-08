@@ -31,6 +31,7 @@ public class ArmaNoChao : Interativo
         SpriteRenderer sprite = filho.AddComponent<SpriteRenderer>();
         sprite.sprite = arma.Dados.Desenho;
         sprite.sortingOrder = -99;
+        Iluminacao.Brilhar(sprite);
 
         ArmaNoChao noChao = obj.AddComponent<ArmaNoChao>();
         noChao.arma = arma;

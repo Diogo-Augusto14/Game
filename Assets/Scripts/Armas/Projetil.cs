@@ -64,6 +64,7 @@ public class Projetil : MonoBehaviour
         desenho.sprite = arma.desenhoDoTiro;
         desenho.color = arma.cor;
         desenho.sortingOrder = 20;
+        Iluminacao.Brilhar(desenho);
 
         // Cinematico + gatilho: voa pela velocidade e so avisa quando encosta (nao empurra nada).
         Rigidbody2D rb = obj.AddComponent<Rigidbody2D>();

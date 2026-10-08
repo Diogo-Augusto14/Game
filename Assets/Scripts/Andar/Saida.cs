@@ -34,6 +34,8 @@ public class Saida : MonoBehaviour
         saida.abriu = Time.time;
         saida.desenho = obj.AddComponent<SpriteRenderer>();
         saida.desenho.sortingOrder = Pedreiro.OrdemDosEnfeites + 1;
+        Iluminacao.Brilhar(saida.desenho);
+        Iluminacao.Luz(obj.transform, Vector2.zero, new Color(0.75f, 0.5f, 1f), 5f, 1.3f, 0.08f);
 
         if (quadros.Length > 0)
             saida.desenho.sprite = quadros[0];

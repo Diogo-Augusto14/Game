@@ -112,6 +112,8 @@
     <Compile Include="Assets\Scripts\Cenario\Decoracao.cs" />
     <Compile Include="Assets\Scripts\Cenario\EnfeiteAnimado.cs" />
     <Compile Include="Assets\Scripts\Cenario\LancadorDeFogo.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\Iluminacao.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\LuzTremula.cs" />
     <Compile Include="Assets\Scripts\Combate\Dano.cs" />
     <Compile Include="Assets\Scripts\Combate\Vida.cs" />
     <Compile Include="Assets\Scripts\Combate\PiscarAoTomarDano.cs" />

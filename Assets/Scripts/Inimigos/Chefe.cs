@@ -512,6 +512,7 @@ public class Chefe : MonoBehaviour, IAnimavel, IInvulneravel
         desenho.sprite = marca;
         desenho.color = cor;
         desenho.sortingOrder = Pedreiro.OrdemDosEnfeites + 1;
+        Iluminacao.Brilhar(desenho);
         obj.AddComponent<MarcaPiscando>();
         return obj;
     }

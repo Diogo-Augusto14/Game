@@ -331,6 +331,12 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   Mountain: sem paredes, as salas flutuam sobre o vazio, com estátuas douradas, cristais, ouro, potes que
   quebram e rochas saindo do vazio). Tochas acesas nas paredes de todos os mundos com parede; as portas
   das salas são as portas de metal do Crypt; os espinhos são os do Crypt.
+- **Iluminação** (1.15.0, `Iluminacao`): o andar é escuro. A "Luz global" da cena fica bem fraca, num tom
+  de cada mundo (um pouco mais clara no salão do chefe), e só ilumina quem tem luz: o herói (fraca, em
+  volta dele), tochas (nas paredes de todos os mundos com parede, e no salão do chefe), velas,
+  candelabros, cristais, o portal, a estátua de fogo e os itens no pedestal. Tiros, moedas, efeitos,
+  armas no chão, bombas e as marcas dos chefes ficam na camada de desenho "Brilho", que a "Luz do brilho"
+  deixa sempre acesa. O fundo da câmera escurece junto.
 - **Inimigos dos pacotes**: Catacumbas: esqueleto, escudeiro, mago e assassino (Old Prison). Cripta:
   esqueletos, aranhas e minhocões que somem na terra (Crypt). Profundezas: goblins, goblin assassino,
   pote mímico e os demônios (Depths). O **Rei Esqueleto** (Depths) é sorteado como chefe da Cripta.

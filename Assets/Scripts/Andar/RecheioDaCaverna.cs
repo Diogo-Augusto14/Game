@@ -5,7 +5,7 @@ using UnityEngine;
 /// O que vai no andar alem dos inimigos e das armas (as salas especiais e o cenario vivo do jogo
 /// antigo). Nas salas especiais (<see cref="EncherEspecial"/>): a loja, o altar de sangue, o desafio e o
 /// tesouro (item no pedestal ou bau trancado). Espalhado nas salas de luta (<see cref="Espalhar"/>): bau
-/// amaldicoado, pedra rachada com premio, area escura e as armadilhas (serra no trilho, tronco
+/// amaldicoado, pedra rachada com premio e as armadilhas (serra no trilho, tronco
 /// rolante, espinhos), alem de mesas, barris, baratas e velas.
 ///
 /// Cada coisa sai sorteada por andar; as que ocupam lugar saem do chao do mapa de caminhos (os
@@ -43,9 +43,6 @@ public static class RecheioDaCaverna
             Quebravel.PedraRachada(pedra, pai, onde => Premio(onde, pai, gerador, quadrosDoBau, itens));
             Ocupar(chao, pedra, 1, 0);
         }
-
-        if (Random.value < 0.35f && Achar(chao, usados, 1, 1, 16f, out Vector2 escuro))
-            AreaEscura.Criar(escuro, 7f, pai);
 
         // ---------------- armadilhas ----------------
         int serras = Random.Range(0, 3);

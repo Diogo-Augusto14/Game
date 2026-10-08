@@ -219,8 +219,12 @@ public class GeradorDoAndar : MonoBehaviour
         }
 
         // O heroi escolhido (vida, velocidade, boneco, arma e habilidade): no "tentar de novo" ja e ele.
+        // E a luz dele: fraca, so o bastante pra ver em volta no andar escuro.
         if (jogador != null)
+        {
             Herois.Aplicar(jogador, Herois.Atual);
+            Iluminacao.Luz(jogador.transform, new Vector2(0f, 0.2f), Iluminacao.Heroi, 5.5f, 0.8f, 0.03f);
+        }
 
         GerarSemTravar(1);
 
@@ -396,6 +400,13 @@ public class GeradorDoAndar : MonoBehaviour
     // Os mundos: o Porao (o Old Prison recolorido, com a musica do jogo antigo), as Catacumbas (o Old
     // Prison original), a Cripta (pacote Crypt) e as Profundezas (pacote The Depths of the Mountain).
     private static readonly string[] NomesDosMundos = { "Porão", "Catacumbas", "Cripta", "Profundezas" };
+
+    // A luz ambiente de cada mundo (o resto vem das tochas, das velas e do heroi) e o tom dela.
+    private static readonly float[] LuzDosMundos = { 0.2f, 0.17f, 0.15f, 0.14f };
+    private static readonly Color[] CorDosMundos =
+    {
+        new Color(1f, 0.85f, 0.7f), new Color(0.75f, 0.85f, 1f), new Color(0.7f, 0.95f, 1f), new Color(0.75f, 1f, 0.85f),
+    };
     private readonly Dictionary<int, Pedreiro> pedreiros = new Dictionary<int, Pedreiro>();
     private Color? fundoDaCena;
 
@@ -437,7 +448,8 @@ public class GeradorDoAndar : MonoBehaviour
             if (fundoDaCena == null)
                 fundoDaCena = cam.backgroundColor;
 
-            cam.backgroundColor = feito.Estilo.corDoFundo ?? fundoDaCena.Value;
+            // Escurecido como o resto do andar (o fundo da camera nao recebe luz).
+            cam.backgroundColor = Color.Lerp(Color.black, feito.Estilo.corDoFundo ?? fundoDaCena.Value, 0.2f);
         }
 
         return feito;
@@ -634,6 +646,10 @@ public class GeradorDoAndar : MonoBehaviour
         else
             GerarCaverna(andar, CavernasAte(andar));
 
+        // O escuro do mundo (no salao do chefe, um pouco menos).
+        int m = Mathf.Clamp(Mundo - 1, 0, LuzDosMundos.Length - 1);
+        Iluminacao.Ambiente(LuzDosMundos[m] + (chefeDoAndar != null ? 0.08f : 0f), CorDosMundos[m]);
+
         AoComecarAndar?.Invoke();
     }
 
@@ -661,6 +677,9 @@ public class GeradorDoAndar : MonoBehaviour
         Pedreiro construtor = PedreiroDoMundo();
         HashSet<Vector2Int> pocas = construtor.Estilo.temSangue ? Caverna.EspalharPocas(planta, semBuracos, pocasPorAndar / 2) : semBuracos;
         construtor.Construir(raiz.transform, planta, semBuracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+
+        if (!construtor.Estilo.flutuante)
+            Decoracao.TochasDaArena(planta, raiz.transform);
         MapaDeCaminhos.Atual = new MapaDeCaminhos(planta, distanciaDosCaminhos);
 
         GameObject novo = Instantiate(prefabDoChefe, (Vector2)Arena.OndeOChefeFica(raioDaArena), Quaternion.identity, raiz.transform);

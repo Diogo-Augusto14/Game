@@ -22,6 +22,7 @@ public class LancadorDeFogo : MonoBehaviour
     private float comecou = -1f;
     private bool disparou;
     private float intervalo;
+    private LuzTremula brilho;
 
     public static LancadorDeFogo Criar(Vector2 onde, Transform pai, SalaDaPlanta sala)
     {
@@ -45,6 +46,7 @@ public class LancadorDeFogo : MonoBehaviour
         l.sala = sala;
         l.intervalo = Random.Range(2.6f, 3.6f);
         l.proximo = Time.time + Random.Range(1f, l.intervalo);
+        l.brilho = Iluminacao.Luz(obj.transform, Vector2.down * 0.3f, Iluminacao.Fogo, 3.5f, 0.35f, 0.2f).GetComponent<LuzTremula>();
         return l;
     }
 
@@ -58,6 +60,10 @@ public class LancadorDeFogo : MonoBehaviour
             if (jogador == null)
                 return;
         }
+
+        // A boca acende ao disparar e vai apagando.
+        if (brilho != null)
+            brilho.Intensidade = Mathf.MoveTowards(brilho.Intensidade, 0.35f, Time.deltaTime * 2f);
 
         // Tocando: o fogo sai no quadro do disparo.
         if (comecou >= 0f)
@@ -76,6 +82,9 @@ public class LancadorDeFogo : MonoBehaviour
             if (q >= QuadroDoDisparo && !disparou)
             {
                 disparou = true;
+
+                if (brilho != null)
+                    brilho.Intensidade = 1.8f;
                 fogo.Disparar((Vector2)transform.position + Vector2.down * DoChao, Vector2.down, gameObject, Lado.Inimigos);
             }
 
