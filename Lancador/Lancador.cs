@@ -1,5 +1,6 @@
 // Lançador do The Prettie: mostra as versões publicadas, deixa escolher qual jogar, baixa a que
-// faltar e guarda o save de cada versão separado. Veja LEIAME.md.
+// faltar e guarda dois saves: um do jogo antigo (antes da 1.2.0) e um do jogo novo, que todas as
+// versões do jogo novo usam juntas (atualizar não perde nada). Veja LEIAME.md.
 // Compila com o csc.exe que já vem no Windows (veja compilar.bat). Sem dependências extras.
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,7 @@ static class Lancador
     const string PastaDosSaves = "saves";
     const string SaveEmUso = "em-uso.txt";
     const string SaveAntigo = "antigo.txt";
+    const string SaveNovo = "novo.txt";
 
     // Onde a Unity guarda o save (PlayerPrefs) do jogo no Windows: Software\<Company Name>\<Product Name>.
     const string ChaveDoSave = @"Software\DefaultCompany\The Prettie";
@@ -210,7 +212,7 @@ static class Lancador
                 janela.Show();
                 janela.Activate();
             });
-            Pronto("Save da versão " + v.Numero + " guardado.", true);
+            Pronto("Save guardado (vale pra todas as versões do " + (Comparar(v.Numero, PrimeiraDoJogoNovo.ToString()) < 0 ? "jogo antigo" : "jogo novo") + ").", true);
         }
         catch (Exception ex)
         {
@@ -470,9 +472,50 @@ static class Lancador
         File.Delete(marca);
     }
 
+    // Um save pro jogo antigo e um pro jogo novo: as versões de cada um dividem o mesmo.
     static string ArquivoDoSave(string numero)
     {
-        return Path.Combine(Saves, numero + ".txt");
+        bool antigo = Comparar(numero, PrimeiraDoJogoNovo.ToString()) < 0;
+        string arquivo = Path.Combine(Saves, antigo ? SaveAntigo : SaveNovo);
+
+        if (!antigo && !File.Exists(arquivo))
+            JuntarSavesDoJogoNovo(arquivo);
+
+        return arquivo;
+    }
+
+    // Antes cada versão tinha o seu save (<versão>.txt): o save do jogo novo começa com o maior deles
+    // (o que guardou mais coisa: herois liberados, conquistas, configurações), pra ninguém perder o que
+    // já tinha. Empate: o mais recente.
+    static void JuntarSavesDoJogoNovo(string destino)
+    {
+        if (!Directory.Exists(Saves))
+            return;
+
+        string melhor = null;
+        long maior = -1;
+        DateTime quando = DateTime.MinValue;
+
+        foreach (string arquivo in Directory.GetFiles(Saves, "*.txt"))
+        {
+            Version v;
+
+            if (!Version.TryParse(Path.GetFileNameWithoutExtension(arquivo), out v) || v < PrimeiraDoJogoNovo)
+                continue;
+
+            long tamanho = new FileInfo(arquivo).Length;
+            DateTime mexido = File.GetLastWriteTimeUtc(arquivo);
+
+            if (tamanho > maior || (tamanho == maior && mexido > quando))
+            {
+                maior = tamanho;
+                quando = mexido;
+                melhor = arquivo;
+            }
+        }
+
+        if (melhor != null)
+            File.Copy(melhor, destino, true);
     }
 
     static void GuardarSave(string numero)
@@ -480,14 +523,10 @@ static class Lancador
         EscreverSave(ArquivoDoSave(numero), LerRegistro());
     }
 
-    // Põe no registro o save da versão. Nunca jogada: começa vazia (as do jogo antigo, com o "antigo").
+    // Põe no registro o save do jogo da versão (o antigo ou o novo). Nunca jogado: começa vazio.
     static void TrocarSave(string numero)
     {
         string arquivo = ArquivoDoSave(numero);
-
-        if (!File.Exists(arquivo) && Comparar(numero, PrimeiraDoJogoNovo.ToString()) < 0)
-            arquivo = Path.Combine(Saves, SaveAntigo);
-
         var valores = File.Exists(arquivo) ? LerSave(arquivo) : new List<Valor>();
 
         using (var chave = Registry.CurrentUser.CreateSubKey(ChaveDoSave))

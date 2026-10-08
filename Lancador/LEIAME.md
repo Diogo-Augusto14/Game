@@ -1,4 +1,4 @@
-# Lançador: escolher a versão, cada uma com o seu save
+# Lançador: escolher a versão, um save pro jogo antigo e outro pro novo
 
 O `ThePrettie-Lancador.exe` mostra todas as versões publicadas no repositório público
 `Diogo-Augusto14/ThePrettie-Releases`, com as novidades de cada uma. Você escolhe qual jogar (a de cima é
@@ -6,24 +6,30 @@ a mais nova) e aperta **Jogar** (ou dá dois cliques):
 
 1. Se a versão ainda não está instalada, ele baixa o zip dela e instala em `versoes\<versão>\`, ao lado
    do lançador. Cada versão tem a sua pasta; nenhuma apaga a outra.
-2. Põe no lugar o **save dessa versão** e abre o jogo. Enquanto o jogo roda, o lançador fica escondido.
-3. Quando o jogo fecha, guarda o save em `saves\<versão>.txt` e volta a aparecer, pra jogar de novo
-   ou escolher outra.
+2. Põe no lugar o **save do jogo** dessa versão e abre o jogo. Enquanto o jogo roda, o lançador fica
+   escondido.
+3. Quando o jogo fecha, guarda o save (`saves\antigo.txt` ou `saves\novo.txt`) e volta a aparecer, pra
+   jogar de novo ou escolher outra.
 
 Sem internet, ele mostra só as versões já instaladas. Com o jogo já aberto, ele não deixa abrir outra.
 
-## Como o save de cada versão fica separado
+## Como o save do jogo antigo e o do novo ficam separados
 
 A Unity guarda o save do jogo (o PlayerPrefs) no registro do Windows, numa chave só
 (`HKEY_CURRENT_USER\Software\DefaultCompany\The Prettie`), a mesma pra todas as versões. Por isso o
 lançador troca o conteúdo dessa chave: antes de abrir uma versão, põe o save dela; quando o jogo fecha,
 guarda de volta. O jogo não precisa saber de nada disso.
 
-- Versão nunca jogada começa **sem save**. A exceção são as do jogo antigo (antes da 1.2.0): essas
-  começam com o save **antigo**, o que estava no registro quando o lançador novo abriu pela primeira vez.
+- São só dois saves: `saves\antigo.txt` pras versões do jogo antigo (antes da 1.2.0) e `saves\novo.txt`
+  pras do jogo novo (1.2.0 em diante). Atualizar o jogo **não** perde heróis liberados, progresso nem
+  configurações: a versão nova usa o mesmo save da anterior.
+- O `antigo.txt` é o save que estava no registro quando o lançador novo abriu pela primeira vez.
+- Antes, cada versão tinha o seu save (`saves\<versão>.txt`). Na primeira vez que precisa do
+  `novo.txt`, o lançador começa ele com o maior desses saves do jogo novo (no empate, o mais recente).
+  Os arquivos por versão ficam lá, sem uso.
 - Se o lançador for fechado à força com o jogo aberto, na próxima vez ele guarda o save que ficou
   pendente (`saves\em-uso.txt` diz de qual versão era) antes de qualquer coisa.
-- Pra começar uma versão do zero, é só apagar o `saves\<versão>.txt` dela com o lançador fechado.
+- Pra começar do zero, é só apagar o `saves\novo.txt` (ou o `antigo.txt`) com o lançador fechado.
 
 ## A primeira vez do lançador novo
 
