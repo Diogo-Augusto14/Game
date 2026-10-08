@@ -10,7 +10,7 @@ repositorio privado ThePrettie-Pacotes) a arte dos mundos que nao sao o Old Pris
     Assets/Arte/Resources/Temas/Profundezas/Chao.png    a plataforma de pedra marrom (Tileset 2)
     Assets/Arte/Resources/Temas/Profundezas/Abismo.png  o vazio escuro (o fundo do mapa de exemplo)
 
-a decoracao (Assets/Arte/Resources/Decoracao: caixoes, estatuas, cristais, tochas, as portas de metal e o
+a decoracao (Assets/Arte/Resources/Decoracao: caixoes, estatuas, cristais, tochas, a porta grande de madeira e o
 lancador de fogo) e escreve Assets/Scripts/Andar/DadosDosTemas.cs com as tabelas de cantos e as regras de variacao de
 cada um. As regras que poem as faces sao as mesmas do Old Prison em todos (a ferramenta confere), e as
 paredes do Crypt tem ate as mesmas variacoes.
@@ -71,9 +71,51 @@ PECAS = {
 ANIMADAS = {
     'Tocha': 'Crypt V1.6/Props/animated/torch_burning.png',
     'LancadorDeFogo': 'Crypt V1.6/Props/animated/face statue-fire projectile launcher-firing.png',
-    'PortaDeFrente': 'Crypt V1.6/Props/animated/doors-2-metal doors-horizontal-closing.png',
-    'PortaDeLado': 'Crypt V1.6/Props/animated/doors-2-metal doors-vertical-closing.png',
 }
+
+
+def portas(base):
+    """A porta grande de madeira das salas: tirada do mockup 'mockup new doors' do Crypt (a porta da
+    animacao), com 3 celulas de largura; e a de lado, uma tabua em pe. Cada folha tem 8 quadros, do
+    fechado (0) a quase toda afundada no chao."""
+    from PIL import ImageEnhance
+    g = Image.open(os.path.join(PACOTES, 'Crypt V1.6', 'Mockups', 'mockup new doors.gif'))
+    g.seek(0)
+    cru = g.convert('RGBA').crop((364, 102, 467, 232))
+    px = cru.load()
+    for y in range(cru.height):
+        for x in range(cru.width):
+            r, gg, b, a = px[x, y]
+            if gg - r > 25:           # o fundo (chao e parede verde-agua) fica transparente
+                px[x, y] = (0, 0, 0, 0)
+    cru = cru.crop((3, 2, 99, 128))   # 96 x 126
+    porta = Image.new('RGBA', (96, 90), (0, 0, 0, 0))
+    porta.paste(cru.crop((0, 0, 96, 34)), (0, 0))      # a ponta de cima...
+    porta.paste(cru.crop((0, 70, 96, 126)), (0, 34))   # ...e a de baixo, com a trava (mais baixa que a do mockup)
+    porta = ImageEnhance.Brightness(porta).enhance(1.3)
+    w, h = 16, 136
+    lado = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    faixa = porta.crop((40, 6, 56, 90))
+    for y in range(0, h, faixa.height):
+        lado.paste(faixa, (0, y))
+    for y in range(h):
+        for x in range(w):
+            r, gg, b, a = lado.getpixel((x, y))
+            if a:
+                k = 0.7 if x < 3 else (1.15 if x > w - 4 else 1.0)
+                lado.putpixel((x, y), (min(255, int(r * k)), min(255, int(gg * k)), min(255, int(b * k)), a))
+    lado.paste(porta.crop((40, 0, 56, 8)), (0, 0))
+
+    def afundar(im, n=8):
+        W, H = im.size
+        folha = Image.new('RGBA', (W * n, H), (0, 0, 0, 0))
+        for i in range(n):
+            d = int(round(i * H / n))
+            folha.paste(im.crop((0, 0, W, H - d)), (i * W, d))
+        return folha
+
+    afundar(porta).save(os.path.join(base, 'PortaGrande.png'))
+    afundar(lado).save(os.path.join(base, 'PortaGrandeDeLado.png'))
 
 
 def pecas():
@@ -98,6 +140,7 @@ def pecas():
         total += n
     for nome, origem in ANIMADAS.items():
         Image.open(os.path.join(PACOTES, origem)).convert('RGBA').save(os.path.join(base, nome + '.png'))
+    portas(base)
     return total
 
 

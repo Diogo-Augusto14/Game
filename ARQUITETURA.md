@@ -50,7 +50,7 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Arte/OldPrison` | A arte da caverna, do pacote Old Prison: chão, paredes, abismo, sangue e enfeites (32 × 32 por ladrilho) |
 | `Assets/Arte/Resources` | A arte dos outros pacotes (provisória) |
 | `Ferramentas/OldPrison` | `importar.py`: tira do pacote Old Prison as folhas e as regras do Tiled que a caverna usa |
-| `Ferramentas/Temas` | `importar.py`: tira dos pacotes Crypt e The Depths of the Mountain a arte da Cripta e das Profundezas (`DadosDosTemas.cs`) e a decoração (`Resources/Decoracao`: caixões, estátuas, cristais, tochas, portas de metal, o lançador de fogo) |
+| `Ferramentas/Temas` | `importar.py`: tira dos pacotes Crypt e The Depths of the Mountain a arte da Cripta e das Profundezas (`DadosDosTemas.cs`) e a decoração (`Resources/Decoracao`: caixões, estátuas, cristais, tochas, a porta grande de madeira, o lançador de fogo) |
 | `Ferramentas/Personagens` | `importar.py`: recorta dos pacotes as folhas dos inimigos e do Rei Esqueleto (em volta do boneco, 32 pixels por unidade) e grava `quadros.json` |
 | `Pacotes/` | Os pacotes comprados, descompactados (fora do Git deste repositório público; ficam no privado `ThePrettie-Pacotes`, ver `CLAUDE.md`) |
 
@@ -330,7 +330,7 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   cruzes, estandartes e o lançador de fogo na parede) e **Profundezas** (pacote The Depths of the
   Mountain: sem paredes, as salas flutuam sobre o vazio, com estátuas douradas, cristais, ouro, potes que
   quebram e rochas saindo do vazio). Tochas acesas nas paredes de todos os mundos com parede; as portas
-  das salas são as portas de metal do Crypt; os espinhos são os do Crypt.
+  das salas são a porta grande de madeira do Crypt (sobe do chão ao fechar); os espinhos são os do Crypt.
 - **Iluminação** (1.15.0, `Iluminacao`): o andar é escuro. A "Luz global" da cena fica bem fraca, num tom
   de cada mundo (um pouco mais clara no salão do chefe), e só ilumina quem tem luz: o herói (fraca, em
   volta dele), tochas (nas paredes de todos os mundos com parede, e no salão do chefe), velas,

@@ -3,37 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// A porta de uma sala de luta: as portas de metal do pacote Crypt, na ponta do corredor encostada na
-/// sala. Aberta, ficam encostadas na parede do corredor; fechada, e parede (camada "Wall"): ninguem
-/// passa, nem tiro, e os inimigos de fora nao veem quem esta dentro.
+/// A porta de uma sala de luta: a porta grande de madeira do pacote Crypt, na ponta do corredor
+/// encostada na sala. Aberta, fica afundada no chao (nao aparece); ao fechar, sobe do chao e e parede
+/// (camada "Wall"): ninguem passa, nem tiro, e os inimigos de fora nao veem quem esta dentro.
 ///
-/// Atravessando um corredor que sobe, sao duas folhas de frente (uma de cada lado, se encontrando no
-/// meio); num corredor deitado, uma folha de lado, que so aparece fechando e fechada. Sem a arte, uma
-/// grade de ferro desenhada.
+/// Num corredor que sobe ela aparece de frente, da largura do corredor; num corredor deitado, de lado
+/// (uma tabua em pe). Sem a arte, uma grade de ferro desenhada.
 /// </summary>
 public class PortaDaSala : MonoBehaviour
 {
-    private const float QuadrosPorSegundo = 22f;
+    private const float QuadrosPorSegundo = 24f;
     private const float Pixels = 32f;
-
-    // As folhas do Crypt: quadros de 96 x 128, do aberto (0) ao fechado (o ultimo). A dobradica e o pe da
-    // porta em pixels (do canto de cima-esquerdo do quadro), pra girar e assentar no lugar certo.
-    private static readonly Vector2 DobradicaDeFrente = new Vector2(20f, 114f);
-    private static readonly Vector2 DobradicaDeLado = new Vector2(57f, 128f);
 
     private static Sprite[] deFrente, deLado;
     private static Sprite grade, gradeDeLado, gradeDeLadoTopo;
     private static bool carregou;
 
-    private readonly List<SpriteRenderer> folhas = new List<SpriteRenderer>();
+    private SpriteRenderer folha;
     private Sprite[] quadros;
     private readonly List<Transform> barras = new List<Transform>();
     private BoxCollider2D colisor;
     private Coroutine mexendo;
-    private int quadro;
-
-    // A de lado aberta ficaria de frente, no meio do corredor: aberta, nao aparece.
-    private bool someAberta;
 
     /// <summary>A porta esta fechada.</summary>
     public bool Fechada { get; private set; }
@@ -43,16 +33,16 @@ public class PortaDaSala : MonoBehaviour
         Carregar();
 
         Vector2 soma = Vector2.zero;
-        int menor = int.MaxValue, maior = int.MinValue;
+        int menor = int.MaxValue;
 
         foreach (Vector2Int c in planta.celulas)
         {
             soma += c;
             menor = Mathf.Min(menor, planta.DeFrente ? c.x : c.y);
-            maior = Mathf.Max(maior, planta.DeFrente ? c.x : c.y);
         }
 
-        Vector2 meio = soma / Mathf.Max(1, planta.celulas.Count);
+        int quantas = Mathf.Max(1, planta.celulas.Count);
+        Vector2 meio = soma / quantas;
         GameObject obj = new GameObject("Porta");
         obj.transform.SetParent(pai, false);
         obj.transform.position = meio;
@@ -60,25 +50,18 @@ public class PortaDaSala : MonoBehaviour
 
         PortaDaSala porta = obj.AddComponent<PortaDaSala>();
         porta.colisor = obj.AddComponent<BoxCollider2D>();
-        porta.colisor.size = planta.DeFrente ? new Vector2(planta.celulas.Count, 1f) : new Vector2(1f, planta.celulas.Count);
+        porta.colisor.size = planta.DeFrente ? new Vector2(quantas, 1f) : new Vector2(1f, quantas);
         porta.colisor.enabled = false;
 
-        if (planta.DeFrente && deFrente != null && deFrente.Length > 0)
+        Sprite[] desenhos = planta.DeFrente ? deFrente : deLado;
+
+        if (desenhos != null && desenhos.Length > 0)
         {
-            // Duas folhas: a da esquerda com a dobradica na beirada esquerda, a da direita espelhada.
-            float y = meio.y - 0.5f;
-            porta.Folha(obj.transform, new Vector2(menor - 0.5f, y), 1f, deFrente);
-            porta.Folha(obj.transform, new Vector2(maior + 0.5f, y), -1f, deFrente);
-            porta.quadros = deFrente;
-        }
-        else if (!planta.DeFrente && deLado != null && deLado.Length > 0)
-        {
-            // Uma folha de lado, em pe na celula de baixo; abre pro lado do corredor (longe da sala).
-            float espelho = planta.paraDentro.x > 0 ? 1f : -1f;
-            porta.Folha(obj.transform, new Vector2(meio.x, menor - 0.5f), espelho, deLado);
-            porta.quadros = deLado;
-            porta.someAberta = true;
-            porta.Mostrar(false);
+            // De frente: o pe na beirada de baixo da linha da porta, da largura do corredor (a arte tem 3).
+            // De lado: o pe na celula de baixo; a tabua cobre o corredor e sobe um pouco.
+            Vector2 pe = planta.DeFrente ? new Vector2(meio.x, meio.y - 0.5f) : new Vector2(meio.x, menor - 0.5f);
+            float largura = planta.DeFrente ? quantas / 3f : 1f;
+            porta.Folha(obj.transform, pe, largura, desenhos);
         }
         else
         {
@@ -88,17 +71,18 @@ public class PortaDaSala : MonoBehaviour
         return porta;
     }
 
-    private void Folha(Transform pai, Vector2 onde, float espelho, Sprite[] desenhos)
+    private void Folha(Transform pai, Vector2 pe, float largura, Sprite[] desenhos)
     {
-        GameObject obj = new GameObject("Folha");
+        GameObject obj = new GameObject("Porta de madeira");
         obj.transform.SetParent(pai, false);
-        obj.transform.position = onde;
-        obj.transform.localScale = new Vector3(espelho, 1f, 1f);
-        SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = desenhos[0];
-        sr.sortingOrder = 10;
-        sr.spriteSortPoint = SpriteSortPoint.Pivot;
-        folhas.Add(sr);
+        obj.transform.position = pe;
+        obj.transform.localScale = new Vector3(largura, 1f, 1f);
+        folha = obj.AddComponent<SpriteRenderer>();
+        folha.sprite = desenhos[desenhos.Length - 1];
+        folha.sortingOrder = 10;
+        folha.spriteSortPoint = SpriteSortPoint.Pivot;
+        folha.enabled = false;
+        quadros = desenhos;
     }
 
     private static void Carregar()
@@ -107,27 +91,25 @@ public class PortaDaSala : MonoBehaviour
             return;
 
         carregou = true;
-        deFrente = Cortar(Resources.Load<Texture2D>("Decoracao/PortaDeFrente"), DobradicaDeFrente);
-        deLado = Cortar(Resources.Load<Texture2D>("Decoracao/PortaDeLado"), DobradicaDeLado);
+        deFrente = Cortar(Resources.Load<Texture2D>("Decoracao/PortaGrande"), 96);
+        deLado = Cortar(Resources.Load<Texture2D>("Decoracao/PortaGrandeDeLado"), 16);
         grade = Resources.Load<Sprite>("Itens/Grade");
         gradeDeLado = Resources.Load<Sprite>("Itens/GradeDeLado");
         gradeDeLadoTopo = Resources.Load<Sprite>("Itens/GradeDeLadoTopo");
     }
 
-    // Quadros de 96 x 128, com o pivo na dobradica (o pe da porta).
-    private static Sprite[] Cortar(Texture2D folha, Vector2 dobradica)
+    // Quadros lado a lado, com o pivo no pe (embaixo, no meio).
+    private static Sprite[] Cortar(Texture2D textura, int largura)
     {
-        if (folha == null)
+        if (textura == null)
             return null;
 
-        const int w = 96, h = 128;
-        Sprite[] quadros = new Sprite[folha.width / w];
-        Vector2 pivo = new Vector2(dobradica.x / w, 1f - dobradica.y / h);
+        Sprite[] lista = new Sprite[textura.width / largura];
 
-        for (int i = 0; i < quadros.Length; i++)
-            quadros[i] = Sprite.Create(folha, new Rect(i * w, 0, w, h), pivo, Pixels, 0, SpriteMeshType.FullRect);
+        for (int i = 0; i < lista.Length; i++)
+            lista[i] = Sprite.Create(textura, new Rect(i * largura, 0, largura, textura.height), new Vector2(0.5f, 0f), Pixels, 0, SpriteMeshType.FullRect);
 
-        return quadros;
+        return lista;
     }
 
     // Sem a arte do Crypt: a grade de ferro que sobe do chao.
@@ -179,37 +161,27 @@ public class PortaDaSala : MonoBehaviour
         if (mexendo != null)
             StopCoroutine(mexendo);
 
-        mexendo = StartCoroutine(quadros != null ? Girar(fechar) : Subir(fechar ? 1f : 0f));
+        mexendo = StartCoroutine(folha != null ? Subir(fechar) : SubirGrade(fechar ? 1f : 0f));
     }
 
-    private void Mostrar(bool sim)
+    // Os quadros vao do fechado (0) ao quase todo afundado (o ultimo): fechar toca de tras pra frente.
+    private IEnumerator Subir(bool fechar)
     {
-        foreach (SpriteRenderer sr in folhas)
-            sr.enabled = sim;
-    }
+        folha.enabled = true;
 
-    private IEnumerator Girar(bool fechar)
-    {
-        int ate = fechar ? quadros.Length - 1 : 0;
-        Mostrar(true);
-
-        while (quadro != ate)
+        for (int i = 0; i < quadros.Length; i++)
         {
-            quadro += fechar ? 1 : -1;
-
-            foreach (SpriteRenderer sr in folhas)
-                sr.sprite = quadros[quadro];
-
+            folha.sprite = quadros[fechar ? quadros.Length - 1 - i : i];
             yield return new WaitForSeconds(1f / QuadrosPorSegundo);
         }
 
-        if (!fechar && someAberta)
-            Mostrar(false);
-
+        // Aberta, afunda de vez.
+        folha.sprite = quadros[0];
+        folha.enabled = fechar;
         mexendo = null;
     }
 
-    private IEnumerator Subir(float ate)
+    private IEnumerator SubirGrade(float ate)
     {
         foreach (Transform barra in barras)
             barra.gameObject.SetActive(true);
