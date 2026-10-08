@@ -5,3 +5,7 @@ Library/
 Logs/
 UserSettings/
 Builds/
+
+# Pacotes de arte comprados (descompactados): a licenca proibe redistribuir e este repositorio e publico.
+# Ficam no repositorio privado ThePrettie-Pacotes.
+/Pacotes/
