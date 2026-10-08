@@ -21,14 +21,21 @@ public class SerraNoTrilho : MonoBehaviour
         int pedacos = Mathf.RoundToInt(Vector2.Distance(de, ate)) + 1;
         bool deitado = Mathf.Abs(ate.x - de.x) >= Mathf.Abs(ate.y - de.y);
 
-        for (int i = 0; i < pedacos && trilhos.Length > 0; i++)
+        // A folha tem as pecas deitadas (0 o meio, 2 e 3 as pontas) e em pe (1 o meio, 4 e 5 as pontas):
+        // uma por celula, sem girar, fechando nas pontas.
+        Vector2 eixo = ate - de;
+
+        for (int i = 0; i < pedacos && trilhos.Length >= 6; i++)
         {
+            int peca = i == 0 ? (deitado ? (eixo.x > 0f ? 2 : 3) : (eixo.y > 0f ? 5 : 4))
+                     : i == pedacos - 1 ? (deitado ? (eixo.x > 0f ? 3 : 2) : (eixo.y > 0f ? 4 : 5))
+                     : (deitado ? 0 : 1);
+
             GameObject t = new GameObject("Trilho");
             t.transform.SetParent(obj.transform, false);
             t.transform.position = Vector2.Lerp(de, ate, pedacos <= 1 ? 0f : (float)i / (pedacos - 1));
-            t.transform.rotation = Quaternion.Euler(0f, 0f, deitado ? 0f : 90f);
             SpriteRenderer sr = t.AddComponent<SpriteRenderer>();
-            sr.sprite = trilhos[i == 0 ? 0 : i == pedacos - 1 ? Mathf.Min(2, trilhos.Length - 1) : Mathf.Min(1, trilhos.Length - 1)];
+            sr.sprite = trilhos[peca];
             sr.sortingOrder = Pedreiro.OrdemDosEnfeites + 1;
         }
 

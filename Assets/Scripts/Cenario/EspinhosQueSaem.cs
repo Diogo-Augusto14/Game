@@ -5,6 +5,9 @@ using UnityEngine;
 public class EspinhosQueSaem : MonoBehaviour
 {
     private SpriteRenderer desenho;
+    private static Sprite baixos;
+    private static Sprite aviso;
+    private static Sprite emPe;
     private float fase;
     private readonly Dictionary<Vida, float> atingidos = new Dictionary<Vida, float>();
 
@@ -19,7 +22,14 @@ public class EspinhosQueSaem : MonoBehaviour
         obj.transform.position = onde;
         EspinhosQueSaem e = obj.AddComponent<EspinhosQueSaem>();
         e.desenho = obj.AddComponent<SpriteRenderer>();
-        e.desenho.sprite = ArteDoAntigo.Espinhos;
+        if (baixos == null)
+        {
+            baixos = Resources.Load<Sprite>("Itens/EspinhosBaixos");
+            aviso = Resources.Load<Sprite>("Itens/EspinhosAviso");
+            emPe = Resources.Load<Sprite>("Itens/EspinhosEmPe");
+        }
+
+        e.desenho.sprite = baixos;
         e.desenho.sortingOrder = Pedreiro.OrdemDosEnfeites + 1;
         e.fase = fase;
         return e;
@@ -30,20 +40,18 @@ public class EspinhosQueSaem : MonoBehaviour
         float ciclo = Escondido + Aviso + EmPe;
         float t = (Time.time + fase) % ciclo;
 
+        // Uma placa de metal com furos: as pontas aparecem um pouco (o aviso) e depois sobem inteiras.
         if (t < Escondido)
         {
-            desenho.color = new Color(1f, 1f, 1f, 0.25f);
-            transform.localScale = new Vector3(1f, 0.4f, 1f);
+            desenho.sprite = baixos;
         }
         else if (t < Escondido + Aviso)
         {
-            desenho.color = new Color(1f, 0.7f, 0.65f, 0.7f);
-            transform.localScale = new Vector3(1f, 0.6f, 1f);
+            desenho.sprite = aviso;
         }
         else
         {
-            desenho.color = Color.white;
-            transform.localScale = Vector3.one;
+            desenho.sprite = emPe;
             GolpeDeArmadilha.Ferir(transform.position, 0.45f, gameObject, 5f, atingidos);
         }
     }

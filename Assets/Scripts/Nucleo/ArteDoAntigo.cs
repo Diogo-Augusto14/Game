@@ -130,5 +130,4 @@ public static class ArteDoAntigo
 
     public static Sprite Caixote => Linha("Masmorra/Prisao/Caixote", 32, 1, new RectInt(0, 0, 32, 32), new Vector2(16f, 30f), PixelsDaPrisao)[0];
 
-    public static Sprite Espinhos => Inteira("Masmorra/Prisao/Espinhos", PixelsDaPrisao);
 }

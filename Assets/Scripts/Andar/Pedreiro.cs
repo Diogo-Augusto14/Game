@@ -14,6 +14,8 @@ using UnityEngine.Tilemaps;
 ///   sangue     as pocas (so enfeite)
 ///   enfeites   ossos, pedrinhas e papeis soltos
 ///   paredes    as paredes altas: o topo e a face de tijolo de 2 de altura (atras de quem anda)
+///   frente     a beirada de cima das paredes que ficam ao sul do chao: por cima de quem anda, pra
+///              quem encosta nela parecer atras da parede (e nao em pe em cima dela)
 ///
 /// e os colisores: as paredes na camada "Wall" (seguram gente e tiro) e os buracos na camada "Buraco"
 /// (seguram gente; o tiro passa por cima).
@@ -30,6 +32,9 @@ public class Pedreiro
 
     /// <summary>As paredes ficam atras de quem anda (a face de tijolo se ve de frente).</summary>
     public const int OrdemDasParedes = 5;
+
+    /// <summary>A beirada das paredes que ficam na frente de quem anda (ao sul): por cima dos bonecos.</summary>
+    public const int OrdemDaFrente = 15;
 
     /// <summary>Celulas de parede desenhadas em volta da caverna (alem disso, so o fundo da camera).</summary>
     private const int Margem = 5;
@@ -94,6 +99,27 @@ public class Pedreiro
         Automapa.Aplicar(paredesDaGrade, DadosDoOldPrison.RegrasQuePoem, false, sorte);
         Automapa.Aplicar(paredesDaGrade, DadosDoOldPrison.RegrasDeVariacao, true, sorte);
 
+        // A beirada de cima das paredes que ficam ao sul do chao (os dois cantos de baixo do ladrilho sao
+        // parede e algum de cima e chao) vai pra uma camada por cima dos bonecos: quem chega nela fica com
+        // os pes atras da parede, como numa visao de cima inclinada.
+        int[,] frenteDaGrade = grade.Vazia();
+
+        for (int coluna = 0; coluna < grade.Largura; coluna++)
+        {
+            for (int linha = 0; linha < grade.Altura; linha++)
+            {
+                Vector2Int canto = grade.Canto(coluna, linha);
+                bool baixoParede = !celulasDeChao.Contains(canto) && !celulasDeChao.Contains(canto + Vector2Int.right);
+                bool cimaChao = celulasDeChao.Contains(canto + Vector2Int.up) || celulasDeChao.Contains(canto + Vector2Int.one);
+
+                if (baixoParede && cimaChao && paredesDaGrade[coluna, linha] >= 0)
+                {
+                    frenteDaGrade[coluna, linha] = paredesDaGrade[coluna, linha];
+                    paredesDaGrade[coluna, linha] = -1;
+                }
+            }
+        }
+
         // Chao: a plataforma e tudo que nao e buraco (embaixo das paredes ela fica escondida).
         int[,] chaoDaGrade = grade.PorCantos(c => !buracos.Contains(c), DadosDoOldPrison.CantosDoChao, Sorteio.Chao, sorte);
         Automapa.Aplicar(chaoDaGrade, DadosDoOldPrison.RegrasQuePoem, false, sorte);
@@ -127,6 +153,7 @@ public class Pedreiro
         grade.Pintar(ladrilhos, "Sangue", sangueDaGrade, sangue, OrdemDoSangue);
         grade.Pintar(ladrilhos, "Enfeites", enfeitesDaGrade, enfeites, OrdemDosEnfeites);
         grade.Pintar(ladrilhos, "Paredes", paredesDaGrade, paredes, OrdemDasParedes);
+        grade.Pintar(ladrilhos, "Paredes da frente", frenteDaGrade, paredes, OrdemDaFrente);
 
         // Colisores so onde encosta em quem anda: o resto ninguem alcanca.
         HashSet<Vector2Int> paredesSolidas = new HashSet<Vector2Int>();

@@ -30,9 +30,10 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
     {
         Sprite[] pedras = ArteDoAntigo.Pedras;
         Sprite uma = pedras.Length > 0 ? pedras[Random.Range(0, pedras.Length)] : null;
-        Quebravel q = Criar("Pedra rachada", onde, pai, new[] { uma }, 1f, new Vector2(1.6f, 1.4f), true);
+        // O colisor e medido antes da escala (que tambem cresce ele): fica do tamanho do monte.
+        Quebravel q = Criar("Pedra rachada", onde, pai, new[] { uma }, 1f, new Vector2(0.75f, 0.55f), true);
         q.premio = premio;
-        q.transform.localScale = Vector3.one * 1.8f;
+        q.transform.localScale = Vector3.one * 1.4f;
 
         // Rachaduras: duas pedras a mais por cima, tortas.
         for (int i = 0; i < 2 && pedras.Length > 0; i++)
