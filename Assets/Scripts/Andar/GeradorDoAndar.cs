@@ -9,10 +9,11 @@ using UnityEngine;
 /// A planta sai na hora (<see cref="PlantaDeSalas"/>) e e construida pelo <see cref="Pedreiro"/> com
 /// a arte do pacote Old Prison (paredes de tijolo, buracos de abismo, pocas de sangue, ossos), com o
 /// jogador na sala do comeco, no centro do mundo. Cada sala de luta (<see cref="SalaDeLuta"/>) guarda
-/// os inimigos dela dormindo; entrou, as grades fecham, e so abrem com todos mortos (as vezes depois
-/// de uma segunda onda), com um premio. As salas do lado tem loja, tesouro, altar ou desafio. Quando o
-/// ultimo inimigo do andar morre, o vortice da saida abre ali mesmo; pisar nele escurece a tela e monta
-/// o proximo andar, com mais salas e mais inimigos. O andar do chefe e um salao so dele
+/// os inimigos dela dormindo, em grupos (cada grupo com um bicho principal); entrou, as grades fecham,
+/// todos acordam juntos, e so abrem com todos mortos (as vezes depois de mais ondas), com um premio. As salas do lado tem loja, tesouro, altar ou desafio. Quando o
+/// sala do fim fica limpa (ou o ultimo inimigo do andar morre), o vortice da saida abre; as salas do lado
+/// ficam opcionais, pelos premios. Pisar no vortice escurece a tela e monta o proximo andar, com mais
+/// salas e mais inimigos. O andar do chefe e um salao so dele
 /// (<see cref="Arena"/>): matou o chefe, o portal abre e cai um bau. Depois do ultimo andar, a partida
 /// acaba em vitoria e recomeca.
 ///
@@ -300,14 +301,15 @@ public class GeradorDoAndar : MonoBehaviour
             vivos.RemoveAt(i);
         }
 
+        // Andar limpo (todas as salas, inclusive as do lado, que sao opcionais): a Carne Assada cura.
+        if (vivos.Count == 0 && !avisouLimpo)
+        {
+            avisouLimpo = true;
+            AoLimparAndar?.Invoke();
+        }
+
         if (vivos.Count == 0 && saida == null)
         {
-            if (!avisouLimpo)
-            {
-                avisouLimpo = true;
-                AoLimparAndar?.Invoke();
-            }
-
             AbrirSaida(ondeMorreuOUltimo);
 
             // O premio do chefe: um bau no meio do salao (um pouco abaixo de onde o portal costuma abrir).
@@ -333,6 +335,16 @@ public class GeradorDoAndar : MonoBehaviour
 
         if (audioSource != null && portalAbrindo != null)
             audioSource.PlayOneShot(portalAbrindo, volume);
+    }
+
+    /// <summary>
+    /// Uma sala de luta acabou de ficar limpa. A do fim ja abre o portal, mesmo com salas do lado
+    /// faltando: quem quiser volta e limpa elas pelos premios.
+    /// </summary>
+    public void SalaLimpa(SalaDeLuta sala, bool doFim)
+    {
+        if (doFim && saida == null && raiz != null && !trocando && sala != null)
+            AbrirSaida(sala.LugarDoPortal());
     }
 
     // ---------------- trocar de andar ----------------
@@ -764,16 +776,18 @@ public class GeradorDoAndar : MonoBehaviour
 
             bool fim = sala.tipo == TipoDeSala.Fim;
             int quantos = Random.Range(inimigosPorSala.x, Mathf.Max(inimigosPorSala.x, inimigosPorSala.y) + 1) + aMais + (fim ? 2 : 0);
-            bool onda = fim || Random.value < chanceDeOnda + (caverna - 1) * chanceDeOndaAMaisPorAndar;
             int porOnda = Random.Range(inimigosPorOnda.x, Mathf.Max(inimigosPorOnda.x, inimigosPorOnda.y) + 1) + aMais / 2;
+
+            // Ondas a mais: as vezes uma; a sala do fim sempre uma, e duas do quarto andar de salas em diante.
+            int ondas = fim ? (caverna >= 4 ? 2 : 1) : (Random.value < chanceDeOnda + (caverna - 1) * chanceDeOndaAMaisPorAndar ? 1 : 0);
 
             if (possiveis.Count == 0)
             {
                 quantos = 0;
-                onda = false;
+                ondas = 0;
             }
 
-            SalaDeLuta luta = SalaDeLuta.Criar(sala, pai, this, chaoDaCaverna, onda ? 1 : 0, porOnda, quadrosDoBau);
+            SalaDeLuta luta = SalaDeLuta.Criar(sala, pai, this, chaoDaCaverna, ondas, porOnda, quadrosDoBau);
 
             // Lugares dentro da sala, longe das portas, com chao em volta e um pouco separados.
             List<Vector2Int> lugares = new List<Vector2Int>();
@@ -784,17 +798,43 @@ public class GeradorDoAndar : MonoBehaviour
                     lugares.Add(c);
             }
 
-            List<Vector2Int> usados = new List<Vector2Int>();
+            if (quantos <= 0 || lugares.Count == 0)
+                continue;
 
-            for (int tentativa = 0; usados.Count < quantos && tentativa < quantos * 30 && lugares.Count > 0; tentativa++)
+            // Em grupos (um nas salas pequenas, dois nas cheias), longe um do outro. Cada grupo tem um
+            // bicho principal e, as vezes, um ou outro diferente no meio: da pra ler a luta de longe.
+            int grupos = quantos >= 6 && lugares.Count >= 40 ? 2 : 1;
+            List<Vector2Int> centros = new List<Vector2Int>();
+            List<GameObject> principais = new List<GameObject>();
+
+            for (int tentativa = 0; centros.Count < grupos && tentativa < 60; tentativa++)
             {
                 Vector2Int c = lugares[Random.Range(0, lugares.Count)];
 
-                if (!usados.TrueForAll(u => (u - c).sqrMagnitude >= 3))
+                if (centros.TrueForAll(u => (u - c).sqrMagnitude >= 36))
+                {
+                    centros.Add(c);
+                    principais.Add(Sortear(possiveis, pesoTotal));
+                }
+            }
+
+            List<Vector2Int> usados = new List<Vector2Int>();
+
+            for (int tentativa = 0; usados.Count < quantos && tentativa < quantos * 40; tentativa++)
+            {
+                int grupo = usados.Count % centros.Count;
+                Vector2Int c = lugares[Random.Range(0, lugares.Count)];
+
+                // Perto do centro do grupo (as ultimas tentativas aceitam qualquer lugar da sala).
+                if (tentativa < quantos * 30 && (c - centros[grupo]).sqrMagnitude > 9)
+                    continue;
+
+                if (!usados.TrueForAll(u => (u - c).sqrMagnitude >= 2))
                     continue;
 
                 usados.Add(c);
-                GameObject novo = Instantiate(Sortear(possiveis, pesoTotal), (Vector2)c, Quaternion.identity, luta.transform);
+                GameObject qual = Random.value < 0.3f ? Sortear(possiveis, pesoTotal) : principais[grupo];
+                GameObject novo = Instantiate(qual, (Vector2)c, Quaternion.identity, luta.transform);
 
                 if (novo.TryGetComponent(out Vida vida))
                 {

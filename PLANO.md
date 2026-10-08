@@ -50,7 +50,9 @@ de novo.
   e 20 inimigos (mais 120 células e 3 inimigos a cada caverna), com corredores de 3 a 4 de largura.
   Depois da 1.11.x, achou chato (caçar os últimos inimigos num mapa grande, pouco prêmio, sem tensão):
   na 1.12.0 o andar virou salas que fecham ao entrar, com prêmio por sala, e ficou menor e mais cheio
-  (4 salas de luta no primeiro andar, 4 a 6 inimigos em cada, às vezes uma segunda onda).
+  (4 salas de luta no primeiro andar, 4 a 6 inimigos em cada, às vezes uma segunda onda). Na 1.13.0, o
+  portal abre ao limpar a sala do fim (as do lado ficam opcionais) e os inimigos vêm em grupos, com mais
+  ondas na sala do fim.
 - **O que precisava adaptar do jogo antigo** (feito depois da etapa 8): moedas, chaves e bombas, loja,
   itens passivos e ativos com sinergias, as salas especiais virando pedaços da caverna (emboscada,
   desafio, altar, baús especiais, área escura), armadilhas e cenário vivo, temas dos mundos e as flechas

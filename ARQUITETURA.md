@@ -79,20 +79,22 @@ parede ele procura olhando o caminho da frente a cada passo, então não atraves
 
 Cada andar é um punhado de salas ligadas por corredores curtos, como no Enter the Gungeon (desde a
 1.12.0; antes era uma caverna grande e aberta, e ficava chato caçar os últimos inimigos). Entrou numa
-sala de luta, as grades fecham; só abrem com todos mortos, e cai um prêmio. Tudo fica no objeto
+sala de luta, as grades fecham; só abrem com todos mortos, e cai um prêmio. Limpou a sala do fim, o
+portal abre (as salas de luta do lado ficam opcionais, pelos prêmios; limpar o andar inteiro ainda vale
+a cura da Carne Assada). Tudo fica no objeto
 **Andar** da cena (`GeradorDoAndar`), com os números no Inspector.
 
 | Script | O que faz |
 |---|---|
 | `PlantaDeSalas` | Monta a planta: a sala do começo no centro, um caminho de salas de luta até a do fim (maior), salas do lado (mais lutas e as especiais: loja, tesouro, altar, desafio) e às vezes um atalho entre duas lutas vizinhas. As salas ficam numa grade (19 × 17 de um meio ao outro); cada uma é um retângulo com cantos cortados, nichos e, nas grandes, pilares. Corredores de 3, e a ponta encostada em cada sala de luta é a porta dela |
-| `SalaDeLuta` | Uma sala de luta: os inimigos dormem até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem uma segunda onda saindo do chão (a sala do fim sempre tem). Limpou: abre e solta moedas, às vezes chave, bomba, coração ou um baú (a do fim sempre dá baú) |
+| `SalaDeLuta` | Uma sala de luta: os inimigos dormem em grupos (um bicho principal por grupo, às vezes outro no meio) até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem mais uma onda saindo do chão (a sala do fim sempre tem uma, e duas do 4º andar de salas em diante). Limpou: abre e solta moedas, às vezes chave, bomba, coração ou um baú (a do fim sempre dá baú e abre o portal) |
 | `PortaDaSala` | A grade de ferro da porta: aberta, só o trilho no chão; fechada, é parede (camada `Wall`): segura gente e tiro |
 | `Caverna` | As ferramentas da planta: ajeita pras paredes do Old Prison e escolhe os buracos e as poças (o cavar com "andarilhos", da caverna antiga, ficou aí sem uso) |
 | `Pedreiro` | Transforma a planta em mundo com a arte do Old Prison, em Tilemaps: abismo, chão, sangue, enfeites e paredes, mais os colisores das paredes (camada `Wall`) e dos buracos (camada `Buraco`), só onde encostam no chão |
 | `Automapa` | As regras de encaixe do Tiled ("automapping"): pega os ladrilhos escolhidos pelos cantos e põe as faces de tijolo, os encontros e as variações, igual o Tiled faz |
 | `DadosDoOldPrison` | As tabelas de cantos e as regras do pacote, já convertidas (gerado pela ferramenta; não editar à mão) |
-| `GeradorDoAndar` | Monta o andar, põe os inimigos em cada sala de luta, conta quantos faltam, abre a saída quando o último morre e troca de andar. Na tela: o nome do andar, o contador e, quando faltam 2 salas ou menos (fora de luta), uma seta na beirada apontando pra mais perto |
-| `Saida` | O vórtice: abre onde morreu o último inimigo e, pisado, leva pro próximo andar |
+| `GeradorDoAndar` | Monta o andar, põe os inimigos em cada sala de luta, conta quantos faltam, abre a saída quando a sala do fim fica limpa (ou o último morre) e troca de andar. Na tela: o nome do andar, o contador e, quando faltam 2 salas ou menos (fora de luta), uma seta na beirada apontando pra mais perto |
+| `Saida` | O vórtice: abre na sala do fim quando ela fica limpa (no chefe, onde ele morreu) e, pisado, leva pro próximo andar |
 | `Arena` | A planta do andar do chefe: um salão oval com quatro pilares, no mesmo formato da caverna (o `Pedreiro` constrói igual) |
 | `MapaDeCaminhos` | O caminho de qualquer ponto da caverna até o jogador, contornando paredes, buracos e baús (os inimigos usam quando não dá pra ir reto) |
 

@@ -195,6 +195,33 @@ public class SalaDeLuta : MonoBehaviour
             Sons.Tocar(Som.PortaAbre);
 
         Premio();
+
+        if (gerador != null)
+            gerador.SalaLimpa(this, planta.tipo == TipoDeSala.Fim);
+    }
+
+    /// <summary>Onde o portal abre na sala do fim: embaixo do meio, longe do premio e do jogador (nunca leva sem querer).</summary>
+    public Vector2 LugarDoPortal()
+    {
+        Vector2 alvo = planta.Meio + Vector2.down * 3f;
+        Vector2 melhor = planta.Meio;
+        float menor = float.MaxValue;
+
+        foreach (Vector2Int c in lugares)
+        {
+            float d = Vector2.Distance(c, alvo);
+
+            if (jogador != null && Vector2.Distance(c, jogador.position) < 2.5f)
+                d += 100f;
+
+            if (d < menor)
+            {
+                menor = d;
+                melhor = c;
+            }
+        }
+
+        return melhor;
     }
 
     // O premio da sala, no meio dela (ou do lado, se o jogador estiver em cima).
