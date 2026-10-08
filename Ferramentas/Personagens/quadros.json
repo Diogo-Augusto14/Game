@@ -222,5 +222,23 @@
    "Death": 24
   },
   "espelhado": false
+ },
+ "ReiEsqueleto": {
+  "quadro": [
+   262,
+   134
+  ],
+  "pes": 44.0,
+  "golpe": 10,
+  "altura": 93,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 10,
+   "Attack01": 16,
+   "Attack02": 19,
+   "Attack03": 24,
+   "Death": 10
+  },
+  "espelhado": false
  }
 }

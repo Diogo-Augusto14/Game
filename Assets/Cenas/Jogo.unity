@@ -605,6 +605,7 @@ MonoBehaviour:
     chefe: {fileID: 691171003227131195, guid: e48d190963114152bbe8ab1c18db01c6, type: 3}
     ouEntao:
     - {fileID: 1128459457916472339, guid: 16bb5b6e5b2342d58b0b86100609ab40, type: 3}
+    - {fileID: 872858431333873652, guid: 865215408f8940e58f23d3c429f5d3fd, type: 3}
   - nome: 
     chefe: {fileID: 0}
     ouEntao: []

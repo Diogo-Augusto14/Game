@@ -54,6 +54,10 @@ INIMIGOS = {
                                    'Attack01': OP + 'Mage Skeleton/Mage Skeleton no shield/Mage Skeleton - animations-atk2.png', 'Death': OP + 'Mage Skeleton/Mage Skeleton no shield/Mage Skeleton - animations-death.png'}),
     'Assassino': ((110, 96), {'Idle': OP + 'Assassin like enemy/Assassin like enemy - animations-idle.png', 'Walk': OP + 'Assassin like enemy/Assassin like enemy - animations-run.png',
                               'Attack01': OP + 'Assassin like enemy/Assassin like enemy - animations-atk1.png', 'Death': OP + 'Assassin like enemy/Assassin like enemy - animations-death.png'}),
+    # Chefe: o Rei Esqueleto (o chefe do pacote The Depths of the Mountain)
+    'ReiEsqueleto': ((351, 207), {'Idle': DP + 'Boss/boss anims-idle.png', 'Walk': DP + 'Boss/boss anims-walk.png',
+                                  'Attack01': DP + 'Boss/boss anims-atk1.png', 'Attack02': DP + 'Boss/boss anims-atk2.png',
+                                  'Attack03': DP + 'Boss/boss anims-atk3.png', 'Death': DP + 'Boss/boss anims-death.png'}),
 }
 
 
