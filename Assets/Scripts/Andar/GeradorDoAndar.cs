@@ -393,40 +393,54 @@ public class GeradorDoAndar : MonoBehaviour
 
     private bool avisouLimpo;
 
-    // Os temas dos mundos (do jogo antigo): o chao e as paredes recoloridos e a musica de cada um.
-    private static readonly string[] NomesDosMundos = { "Porão", "Catacumbas", "Cripta", "Abismo" };
-    private static readonly string[] PastasDosMundos = { "Porao", null, "Cripta", "Abismo" };
+    // Os mundos: o Porao (o Old Prison recolorido, com a musica do jogo antigo), as Catacumbas (o Old
+    // Prison original), a Cripta (pacote Crypt) e as Profundezas (pacote The Depths of the Mountain).
+    private static readonly string[] NomesDosMundos = { "Porão", "Catacumbas", "Cripta", "Profundezas" };
     private readonly Dictionary<int, Pedreiro> pedreiros = new Dictionary<int, Pedreiro>();
+    private Color? fundoDaCena;
 
-    /// <summary>O nome do mundo do andar (Porao, Catacumbas, Cripta, Abismo).</summary>
+    /// <summary>O nome do mundo do andar (Porao, Catacumbas, Cripta, Profundezas).</summary>
     public string NomeDoMundo => NomesDosMundos[Mathf.Clamp(Mundo - 1, 0, NomesDosMundos.Length - 1)];
 
-    // Quem constroi as paredes no tema do mundo (as Catacumbas sao a cor original do Old Prison).
+    // Quem constroi o andar no jeito do mundo (sem a arte do mundo, o Old Prison original).
     private Pedreiro PedreiroDoMundo()
     {
-        int i = Mathf.Clamp(Mundo - 1, 0, PastasDosMundos.Length - 1);
+        int i = Mathf.Clamp(Mundo - 1, 0, NomesDosMundos.Length - 1);
 
-        if (pedreiros.TryGetValue(i, out Pedreiro feito))
-            return feito;
-
-        Texture2D chaoDoTema = chao;
-        Texture2D paredesDoTema = paredes;
-
-        if (PastasDosMundos[i] != null)
+        if (!pedreiros.TryGetValue(i, out Pedreiro feito))
         {
-            Texture2D c = Resources.Load<Texture2D>("Temas/" + PastasDosMundos[i] + "/Chao");
-            Texture2D p = Resources.Load<Texture2D>("Temas/" + PastasDosMundos[i] + "/Paredes");
+            EstiloDeLadrilhos estilo = null;
 
-            if (c != null && p != null)
+            if (i == 0)
             {
-                chaoDoTema = c;
-                paredesDoTema = p;
+                Texture2D c = Resources.Load<Texture2D>("Temas/Porao/Chao");
+                Texture2D p = Resources.Load<Texture2D>("Temas/Porao/Paredes");
+
+                if (c != null && p != null)
+                    estilo = EstiloDeLadrilhos.OldPrison(c, p);
             }
+            else if (i == 2)
+                estilo = EstiloDeLadrilhos.Cripta();
+            else if (i == 3)
+                estilo = EstiloDeLadrilhos.Profundezas();
+
+            feito = estilo != null ? new Pedreiro(estilo, abismo, sangue, enfeites, chanceDeEnfeite) : pedreiro;
+            pedreiros[i] = feito;
         }
 
-        Pedreiro novo = chaoDoTema == chao ? pedreiro : new Pedreiro(chaoDoTema, paredesDoTema, abismo, sangue, enfeites, chanceDeEnfeite);
-        pedreiros[i] = novo;
-        return novo;
+        // O fundo da camera acompanha o mundo (o vazio das Profundezas nao tem emenda).
+        if (cam == null)
+            cam = Camera.main;
+
+        if (cam != null)
+        {
+            if (fundoDaCena == null)
+                fundoDaCena = cam.backgroundColor;
+
+            cam.backgroundColor = feito.Estilo.corDoFundo ?? fundoDaCena.Value;
+        }
+
+        return feito;
     }
 
     /// <summary>
@@ -644,8 +658,9 @@ public class GeradorDoAndar : MonoBehaviour
     {
         HashSet<Vector2Int> planta = Arena.Montar(raioDaArena);
         HashSet<Vector2Int> semBuracos = new HashSet<Vector2Int>();
-        HashSet<Vector2Int> pocas = Caverna.EspalharPocas(planta, semBuracos, pocasPorAndar / 2);
-        PedreiroDoMundo().Construir(raiz.transform, planta, semBuracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+        Pedreiro construtor = PedreiroDoMundo();
+        HashSet<Vector2Int> pocas = construtor.Estilo.temSangue ? Caverna.EspalharPocas(planta, semBuracos, pocasPorAndar / 2) : semBuracos;
+        construtor.Construir(raiz.transform, planta, semBuracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
         MapaDeCaminhos.Atual = new MapaDeCaminhos(planta, distanciaDosCaminhos);
 
         GameObject novo = Instantiate(prefabDoChefe, (Vector2)Arena.OndeOChefeFica(raioDaArena), Quaternion.identity, raiz.transform);
@@ -680,10 +695,13 @@ public class GeradorDoAndar : MonoBehaviour
                 proibido.UnionWith(sala.celulas);
         }
 
-        HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, buracosNoPrimeiroAndar + (caverna - 1) * buracosAMaisPorAndar,
-                                                           longeDoComeco * 0.7f, proibido);
-        HashSet<Vector2Int> pocas = Caverna.EspalharPocas(planta, buracos, pocasPorAndar);
-        PedreiroDoMundo().Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+        Pedreiro construtor = PedreiroDoMundo();
+        int quantosBuracos = construtor.Estilo.temBuracos ? buracosNoPrimeiroAndar + (caverna - 1) * buracosAMaisPorAndar : 0;
+        HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, quantosBuracos, longeDoComeco * 0.7f, proibido);
+        HashSet<Vector2Int> pocas = construtor.Estilo.temSangue
+            ? Caverna.EspalharPocas(planta, buracos, pocasPorAndar)
+            : new HashSet<Vector2Int>();
+        construtor.Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
 
         // Daqui pra frente so interessa onde da pra pisar.
         HashSet<Vector2Int> chaoDaCaverna = new HashSet<Vector2Int>(planta);

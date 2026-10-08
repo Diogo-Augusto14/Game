@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 /// <summary>
-/// Transforma a planta da <see cref="Caverna"/> em mundo, com a arte do pacote Old Prison, do jeito
-/// que o Tiled Map Editor do pacote monta: cada ladrilho e escolhido pelos seus 4 cantos (a tabela de
+/// Transforma a planta do andar em mundo, com a arte do mundo (<see cref="EstiloDeLadrilhos"/>: o Old
+/// Prison, a Cripta ou as Profundezas), do jeito que o Tiled Map Editor dos pacotes monta: cada ladrilho e escolhido pelos seus 4 cantos (a tabela de
 /// cantos) e depois as regras de encaixe poem as faces de tijolo e as variacoes (<see cref="Automapa"/>).
 ///
 /// As camadas, de baixo pra cima (cada uma um Tilemap):
@@ -19,6 +19,9 @@ using UnityEngine.Tilemaps;
 ///
 /// e os colisores: as paredes na camada "Wall" (seguram gente e tiro) e os buracos na camada "Buraco"
 /// (seguram gente; o tiro passa por cima).
+///
+/// No estilo flutuante (as Profundezas) nao tem paredes: o abismo cobre tudo que nao e chao, o chao
+/// acaba em penhascos, e em volta do chao o colisor e de buraco.
 ///
 /// O ladrilho fica entre as celulas: os 4 cantos do ladrilho com canto de baixo-esquerdo em (x, y)
 /// sao os centros das celulas (x, y), (x + 1, y), (x, y + 1) e (x + 1, y + 1). 1 ladrilho = 1 unidade.
@@ -39,12 +42,17 @@ public class Pedreiro
     /// <summary>Celulas de parede desenhadas em volta da caverna (alem disso, so o fundo da camera).</summary>
     private const int Margem = 5;
 
+    /// <summary>No estilo flutuante, o vazio vai mais longe (a camera nao ve a beirada).</summary>
+    private const int MargemDoVazio = 14;
+
     private static int camadaDaParede = -1;
     private static int camadaDoBuraco = -2;
 
+    private readonly EstiloDeLadrilhos estilo;
     private readonly Folha chao;
     private readonly Folha paredes;
     private readonly Folha abismo;
+    private readonly int ladrilhosDoAbismo;
     private readonly Folha sangue;
     private readonly Folha enfeites;
     private readonly float chanceDeEnfeite;
@@ -74,14 +82,27 @@ public class Pedreiro
     }
 
     public Pedreiro(Texture2D chao, Texture2D paredes, Texture2D abismo, Texture2D sangue, Texture2D enfeites, float chanceDeEnfeite)
+        : this(EstiloDeLadrilhos.OldPrison(chao, paredes), abismo, sangue, enfeites, chanceDeEnfeite)
     {
-        this.chao = new Folha(chao);
-        this.paredes = new Folha(paredes);
-        this.abismo = new Folha(abismo);
+    }
+
+    /// <param name="abismo">O abismo roxo do Old Prison (vale quando o estilo nao traz o seu).</param>
+    public Pedreiro(EstiloDeLadrilhos estilo, Texture2D abismo, Texture2D sangue, Texture2D enfeites, float chanceDeEnfeite)
+    {
+        this.estilo = estilo;
+        chao = new Folha(estilo.chao);
+        paredes = new Folha(estilo.paredes);
+        this.abismo = new Folha(estilo.abismo != null ? estilo.abismo : abismo);
+        ladrilhosDoAbismo = estilo.abismo != null
+            ? Mathf.Max(1, (estilo.abismo.width / DadosDoOldPrison.Lado) * (estilo.abismo.height / DadosDoOldPrison.Lado))
+            : DadosDoOldPrison.LadrilhosDoAbismo;
         this.sangue = new Folha(sangue);
         this.enfeites = new Folha(enfeites);
         this.chanceDeEnfeite = chanceDeEnfeite;
     }
+
+    /// <summary>O jeito deste mundo (buracos, sangue, fundo).</summary>
+    public EstiloDeLadrilhos Estilo => estilo;
 
     /// <summary>
     /// Monta a caverna como filhos de <paramref name="pai"/>. A planta (<paramref name="celulasDeChao"/>)
@@ -91,13 +112,21 @@ public class Pedreiro
                           HashSet<Vector2Int> pocas, System.Random sorte)
     {
         RectInt planta = Caverna.Limites(celulasDeChao);
-        RectInt limites = new RectInt(planta.xMin - Margem, planta.yMin - Margem, planta.width + Margem * 2, planta.height + Margem * 2);
+        int margem = estilo.flutuante ? MargemDoVazio : Margem;
+        RectInt limites = new RectInt(planta.xMin - margem, planta.yMin - margem, planta.width + margem * 2, planta.height + margem * 2);
         Grade grade = new Grade(limites);
 
         // Paredes: o topo e escolhido pelos cantos; as regras poem as faces embaixo dele.
-        int[,] paredesDaGrade = grade.PorCantos(c => Caverna.Topo(celulasDeChao, c.x, c.y), DadosDoOldPrison.CantosDasParedes, null, sorte);
-        Automapa.Aplicar(paredesDaGrade, DadosDoOldPrison.RegrasQuePoem, false, sorte);
-        Automapa.Aplicar(paredesDaGrade, DadosDoOldPrison.RegrasDeVariacao, true, sorte);
+        int[,] paredesDaGrade;
+
+        if (estilo.flutuante)
+            paredesDaGrade = grade.Vazia();
+        else
+        {
+            paredesDaGrade = grade.PorCantos(c => Caverna.Topo(celulasDeChao, c.x, c.y), estilo.cantosDasParedes, null, sorte);
+            Automapa.Aplicar(paredesDaGrade, DadosDoOldPrison.RegrasQuePoem, false, sorte);
+            Automapa.Aplicar(paredesDaGrade, estilo.variacaoDasParedes, true, sorte);
+        }
 
         // A beirada de cima das paredes que ficam ao sul do chao (os dois cantos de baixo do ladrilho sao
         // parede e algum de cima e chao) vai pra uma camada por cima dos bonecos: quem chega nela fica com
@@ -128,10 +157,18 @@ public class Pedreiro
             }
         }
 
-        // Chao: a plataforma e tudo que nao e buraco (embaixo das paredes ela fica escondida).
-        int[,] chaoDaGrade = grade.PorCantos(c => !buracos.Contains(c), DadosDoOldPrison.CantosDoChao, Sorteio.Chao, sorte);
-        Automapa.Aplicar(chaoDaGrade, DadosDoOldPrison.RegrasQuePoem, false, sorte);
-        Automapa.Aplicar(chaoDaGrade, DadosDoOldPrison.RegrasDeVariacao, true, sorte);
+        // Chao: a plataforma e tudo que nao e buraco (embaixo das paredes ela fica escondida). No
+        // flutuante, so onde da pra pisar: em volta, a beirada cai no vazio.
+        System.Func<Vector2Int, bool> temChao = estilo.flutuante
+            ? (System.Func<Vector2Int, bool>)(c => Andavel(celulasDeChao, buracos, c))
+            : (c => !buracos.Contains(c));
+        int[,] chaoDaGrade = grade.PorCantos(temChao, estilo.cantosDoChao, SortearChao, sorte);
+
+        if (estilo.regrasNoChao)
+        {
+            Automapa.Aplicar(chaoDaGrade, DadosDoOldPrison.RegrasQuePoem, false, sorte);
+            Automapa.Aplicar(chaoDaGrade, estilo.variacaoDoChao, true, sorte);
+        }
 
         // Abismo: embaixo de todo ladrilho que encosta num buraco.
         int[,] abismoDaGrade = grade.Vazia();
@@ -144,8 +181,12 @@ public class Pedreiro
             {
                 Vector2Int canto = grade.Canto(coluna, linha);
 
-                if (grade.AlgumCanto(canto, c => buracos.Contains(c)))
-                    abismoDaGrade[coluna, linha] = sorte.Next(DadosDoOldPrison.LadrilhosDoAbismo);
+                bool vazio = estilo.flutuante
+                    ? !grade.TodosOsCantos(canto, c => Andavel(celulasDeChao, buracos, c))
+                    : grade.AlgumCanto(canto, c => buracos.Contains(c));
+
+                if (vazio)
+                    abismoDaGrade[coluna, linha] = sorte.Next(ladrilhosDoAbismo);
                 else if (sangueDaGrade[coluna, linha] < 0 && grade.TodosOsCantos(canto, c => Andavel(celulasDeChao, buracos, c))
                          && sorte.NextDouble() < chanceDeEnfeite)
                     enfeitesDaGrade[coluna, linha] = sorte.Next(DadosDoOldPrison.Enfeites);
@@ -176,9 +217,9 @@ public class Pedreiro
                 if (!EncostaEmQuemAnda(celulasDeChao, buracos, c))
                     continue;
 
-                if (!celulasDeChao.Contains(c))
+                if (!celulasDeChao.Contains(c) && !estilo.flutuante)
                     paredesSolidas.Add(c);
-                else if (buracos.Contains(c))
+                else
                     buracosSolidos.Add(c);
             }
         }
@@ -225,28 +266,28 @@ public class Pedreiro
     }
 
     // ---------------------------------------------------------------- sorteios dos ladrilhos cheios
-    private static class Sorteio
+    private int SortearChao(System.Random sorte)
     {
-        public static int Chao(System.Random sorte)
+        float total = 0f;
+
+        foreach (float peso in estilo.pesoDoChaoInteiro)
+            total += peso;
+
+        double ponto = sorte.NextDouble() * total;
+
+        for (int i = 0; i < estilo.chaoInteiro.Length; i++)
         {
-            float total = 0f;
+            ponto -= estilo.pesoDoChaoInteiro[i];
 
-            foreach (float peso in DadosDoOldPrison.PesoDoChaoInteiro)
-                total += peso;
-
-            double ponto = sorte.NextDouble() * total;
-
-            for (int i = 0; i < DadosDoOldPrison.ChaoInteiro.Length; i++)
-            {
-                ponto -= DadosDoOldPrison.PesoDoChaoInteiro[i];
-
-                if (ponto <= 0)
-                    return DadosDoOldPrison.ChaoInteiro[i];
-            }
-
-            return DadosDoOldPrison.ChaoInteiro[0];
+            if (ponto <= 0)
+                return estilo.chaoInteiro[i];
         }
 
+        return estilo.chaoInteiro[0];
+    }
+
+    private static class Sorteio
+    {
         public static int Sangue(System.Random sorte) =>
             DadosDoOldPrison.SangueInteiro[sorte.Next(DadosDoOldPrison.SangueInteiro.Length)];
     }
