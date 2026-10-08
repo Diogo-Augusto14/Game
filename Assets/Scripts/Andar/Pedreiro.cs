@@ -175,8 +175,10 @@ public class Pedreiro
             }
         }
 
-        Colisores(pai, "Colisores das paredes", paredesSolidas, CamadaDaParede);
-        Colisores(pai, "Colisores dos buracos", buracosSolidos, Mathf.Max(0, CamadaDoBuraco));
+        // A beirada das paredes de lado e desenhada um pouco pra dentro do chao: o colisor das paredes
+        // cresce pros lados ate ela (senao meio boneco entra na parede).
+        Colisores(pai, "Colisores das paredes", paredesSolidas, CamadaDaParede, SobraDeLado);
+        Colisores(pai, "Colisores dos buracos", buracosSolidos, Mathf.Max(0, CamadaDoBuraco), 0f);
     }
 
     /// <summary>Onde da pra pisar: chao que nao e buraco.</summary>
@@ -196,7 +198,10 @@ public class Pedreiro
         return false;
     }
 
-    private static void Colisores(Transform pai, string nome, HashSet<Vector2Int> celulas, int camada)
+    /// <summary>Quanto o colisor das paredes passa da celula pra cada lado (ate a beirada desenhada).</summary>
+    private const float SobraDeLado = 0.3f;
+
+    private static void Colisores(Transform pai, string nome, HashSet<Vector2Int> celulas, int camada, float sobra)
     {
         Transform grupo = new GameObject(nome).transform;
         grupo.SetParent(pai, false);
@@ -207,7 +212,7 @@ public class Pedreiro
             obj.transform.SetParent(grupo, false);
             obj.transform.position = new Vector3(r.xMin - 0.5f + r.width * 0.5f, r.yMin - 0.5f + r.height * 0.5f, 0f);
             obj.layer = camada;
-            obj.AddComponent<BoxCollider2D>().size = new Vector2(r.width, r.height);
+            obj.AddComponent<BoxCollider2D>().size = new Vector2(r.width + sobra * 2f, r.height);
         }
     }
 
