@@ -119,7 +119,8 @@ public static class RecheioDaCaverna
         switch (sala.tipo)
         {
             case TipoDeSala.Loja:
-                Loja.Criar(meio, pai, itens);
+                // Sem o balcao do jogo antigo: a mesa e o mercador vem da Decoracao.
+                Loja.Criar(meio, pai, itens, false);
                 Ocupar(chao, meio + Vector2.up * 1.5f, 3, 1);
                 Ocupar(chao, meio + Vector2.down * 0.3f, 2, 0);
                 break;

@@ -28,7 +28,7 @@ public static class Salvamento
 
         PlayerPrefs.SetInt(Prefixo + "existe", 1);
         PlayerPrefs.SetString(Prefixo + "heroi", Herois.Atual.Nome);
-        PlayerPrefs.SetInt(Prefixo + "andar", andar.Andar);
+        PlayerPrefs.SetInt(Prefixo + "andar", andar.AndarParaSalvar);
         PlayerPrefs.SetFloat(Prefixo + "vida", vida != null ? vida.Atual : 0f);
         PlayerPrefs.SetInt(Prefixo + "inimigos", ResumoDaPartida.InimigosDerrotados);
         PlayerPrefs.SetInt(Prefixo + "chefes", ResumoDaPartida.ChefesDerrotados);

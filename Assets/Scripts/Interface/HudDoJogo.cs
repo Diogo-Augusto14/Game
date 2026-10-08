@@ -243,11 +243,13 @@ public class HudDoJogo
         GUIStyle medio = Desenho.Estilo(tela.fonteTexto, 22 * u, TextAnchor.UpperRight);
         Rect onde = new Rect(Screen.width - m - largura, m, largura, 24 * u);
 
-        Desenho.Texto(onde, $"Andar {gerador.Andar} de {gerador.Andares}", pequeno, Desenho.Apagado);
+        Desenho.Texto(onde, gerador.Descansando ? "Área segura" : $"Andar {gerador.Andar} de {gerador.Andares}", pequeno, Desenho.Apagado);
         onde.y += 22 * u;
         onde.height = 32 * u;
 
-        if (gerador.PortalAberto)
+        if (gerador.Descansando)
+            Desenho.Texto(onde, gerador.PortalAberto ? "O portal abriu!" : "Descanse; o portal é no altar", medio, gerador.PortalAberto ? Desenho.Dourado : Desenho.Claro);
+        else if (gerador.PortalAberto)
             Desenho.Texto(onde, "O portal abriu!", medio, Desenho.Dourado);
         else if (gerador.ChefeAtual == null)
             Desenho.Texto(onde, $"Inimigos: {gerador.Faltam}", medio, Desenho.Claro);

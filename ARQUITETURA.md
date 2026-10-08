@@ -50,6 +50,7 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Arte/OldPrison` | A arte da caverna, do pacote Old Prison: chão, paredes, abismo, sangue e enfeites (32 × 32 por ladrilho) |
 | `Assets/Arte/Resources` | A arte dos outros pacotes (provisória) |
 | `Ferramentas/OldPrison` | `importar.py`: tira do pacote Old Prison as folhas e as regras do Tiled que a caverna usa |
+| `Ferramentas/Areas` | `importar.py`: tira das demos Grass Land e Ancient Ruins a arte das áreas seguras (`Resources/Areas`: grama, piso, árvores, arbustos, capim, pedras, ruínas, a fonte, o altar, o cálice, o mercador e a criatura da sorte) e do Village (interiors) a mobília (`Resources/Decoracao/Vila`: armários, estantes, prateleiras, barris, caixotes, mesas, tapetes, castiçais, armaduras, quadros, potes que quebram, o baú) |
 | `Ferramentas/Temas` | `importar.py`: tira dos pacotes Old Prison, Crypt e The Depths of the Mountain a arte da Cripta e das Profundezas (`DadosDosTemas.cs`) e a decoração (`Resources/Decoracao`: as peças do Old Prison em `Prisao/`, caixões, estátuas, cristais, tochas, velas, a chama mágica, a porta grande de madeira, o lançador de fogo) |
 | `Ferramentas/Personagens` | `importar.py`: recorta dos pacotes as folhas dos inimigos e do Rei Esqueleto (em volta do boneco, 32 pixels por unidade) e grava `quadros.json` |
 | `Pacotes/` | Os pacotes comprados, descompactados (fora do Git deste repositório público; ficam no privado `ThePrettie-Pacotes`, ver `CLAUDE.md`) |
@@ -338,6 +339,21 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   luzes tinge um pouco o véu (o fogo deixa a volta quente). Tiros, moedas, efeitos, números de dano,
   preços da loja, armas no chão, bombas e as marcas dos chefes ficam na camada de desenho "Brilho", que é
   desenhada por cima do véu. O fundo da câmera escurece junto.
+- **Área segura** (1.17.0, `AreaSegura`): depois de cada chefe (menos o último), antes do próximo mundo, um
+  lugar aberto e claro, sem inimigos, cercado de árvores: a Clareira (Grass Land) depois do mundo 1 e as
+  Ruínas Antigas (Ancient Ruins) depois dos outros (ao entardecer depois do mundo 3). Tem o mercador
+  (`Mercador`, acena quando o jogador chega) com a barraca e três coisas à venda (`Loja` sem o balcão),
+  a fonte que cura tudo uma vez (`FonteDaCura`), o cálice dos espíritos (`CaliceDosEspiritos`: coração e
+  moedas, uma vez), a criatura da sorte (`CriaturaDaSorte`: passeia, um carinho solta moedas e ela foge),
+  um baú de graça (o do Village) e potes que quebram. O portal: na clareira, num círculo de pedras; nas
+  ruínas, o altar acende quando o jogador chega perto e abre o portal em cima dele (`AltarDoPortal`).
+  Não conta como andar; o "Continuar" salvo ali já volta no próximo mundo (`AndarParaSalvar`).
+- **Salas especiais mobiliadas** (1.17.0, `Decoracao.Mobiliar`, pacote Village): a loja da caverna tem o
+  mercador atrás de uma mesa, armários de poções, prateleiras na parede, expositor, barris, caixotes e
+  sacos; o tesouro, armaduras, cabides de armas, baús e escudos; o altar, estantes de livros,
+  escrivaninha, globo, quadros e troféus; o desafio, armas e armaduras. Tapete no meio e candelabros
+  acesos. Os potes do Village quebram com os cacos da cor deles (`Quebravel.Pote`), também nos
+  depósitos do Old Prison; teias nos cantos de cima das salas.
 - **Decoração das salas** (1.16.0, `Decoracao`): cada sala ganha cenas montadas nos cantos, com as peças
   dos pacotes. No Old Prison (Porão e Catacumbas): depósito (tonéis, barris e caixotes que quebram, sacos,
   baldes), tortura (dama de ferro, guilhotina, tronco, correntes, bolas de espinhos), cela (esqueleto

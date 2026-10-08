@@ -115,6 +115,12 @@
     <Compile Include="Assets\Scripts\Nucleo\LuzTremula.cs" />
     <Compile Include="Assets\Scripts\Nucleo\Escuridao.cs" />
     <Compile Include="Assets\Scripts\Nucleo\FonteDeLuz.cs" />
+    <Compile Include="Assets\Scripts\Andar\AreaSegura.cs" />
+    <Compile Include="Assets\Scripts\Cenario\Mercador.cs" />
+    <Compile Include="Assets\Scripts\Cenario\FonteDaCura.cs" />
+    <Compile Include="Assets\Scripts\Cenario\CaliceDosEspiritos.cs" />
+    <Compile Include="Assets\Scripts\Cenario\CriaturaDaSorte.cs" />
+    <Compile Include="Assets\Scripts\Cenario\AltarDoPortal.cs" />
     <Compile Include="Assets\Scripts\Combate\Dano.cs" />
     <Compile Include="Assets\Scripts\Combate\Vida.cs" />
     <Compile Include="Assets\Scripts\Combate\PiscarAoTomarDano.cs" />

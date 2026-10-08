@@ -15,6 +15,7 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
     private bool soBomba;
     private System.Action<Vector2> premio;
     private bool virou;
+    private Sprite[] cacos;
 
     public static Quebravel Mesa(Vector2 onde, Transform pai) =>
         Criar("Mesa", onde, pai, ArteDoAntigo.Mesa, 14f, new Vector2(1.3f, 0.7f), false);
@@ -28,6 +29,25 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
         Quebravel q = Criar("Vaso", onde, pai, new[] { desenho }, 3f, new Vector2(0.55f, 0.4f), false);
         q.GetComponent<BoxCollider2D>().offset = new Vector2(0f, 0.2f);
         q.desenho.spriteSortPoint = SpriteSortPoint.Pivot;
+        return q;
+    }
+
+    /// <summary>
+    /// Um pote do pacote Village (sorteado entre as 6 cores e os 6 formatos): quebra facil e se espatifa
+    /// nos cacos da cor dele.
+    /// </summary>
+    public static Quebravel Pote(Vector2 onde, Transform pai)
+    {
+        Sprite[] potes = Resources.LoadAll<Sprite>("Decoracao/Vila/Pote");
+
+        if (potes.Length == 0)
+            return null;
+
+        Sprite pote = potes[Random.Range(0, potes.Length)];
+        Quebravel q = Vaso(onde, pai, pote);
+        // O nome do desenho comeca com a cor (1 a 6).
+        int cor = pote.name.Length > 0 && char.IsDigit(pote.name[0]) ? pote.name[0] - '0' : 1;
+        q.cacos = FolhaDeSprites.Cortar(Resources.Load<Texture2D>("Decoracao/Vila/Cacos" + cor), new Vector2Int(96, 96), 32f);
         return q;
     }
 
@@ -120,6 +140,14 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
 
     private IEnumerator Sumir()
     {
+        // O pote do Village se espatifa nos cacos dele.
+        if (cacos != null && cacos.Length > 0)
+        {
+            EfeitoDeFolha.Tocar(cacos, (Vector2)transform.position + Vector2.up * 0.35f, 22f, 9);
+            Destroy(gameObject);
+            yield break;
+        }
+
         // A mesa toca os quadros de quebrar (7 a 9); o resto so desbota.
         if (quadros.Length >= 10)
             yield return Tocar(7, 9, 14f);

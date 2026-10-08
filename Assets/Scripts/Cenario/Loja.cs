@@ -6,19 +6,23 @@ using UnityEngine;
 /// </summary>
 public static class Loja
 {
-    public static void Criar(Vector2 onde, Transform pai, EstatisticasDoJogador jogador)
+    /// <param name="balcao">Com o balcao do jogo antigo (a loja da caverna); a do mercador da area segura nao tem.</param>
+    public static void Criar(Vector2 onde, Transform pai, EstatisticasDoJogador jogador, bool balcao = true)
     {
         GameObject loja = new GameObject("Loja");
         loja.transform.SetParent(pai, false);
         loja.transform.position = onde;
 
-        Enfeite(loja.transform, ArteDoAntigo.Peca("Balcao"), new Vector2(0f, 1.6f), 9);
-        Enfeite(loja.transform, ArteDoAntigo.Barril, new Vector2(-2.6f, 1.4f), 9);
-        Enfeite(loja.transform, ArteDoAntigo.Caixote, new Vector2(2.6f, 1.3f), 9);
+        if (balcao)
+        {
+            Enfeite(loja.transform, ArteDoAntigo.Peca("Balcao"), new Vector2(0f, 1.6f), 9);
+            Enfeite(loja.transform, ArteDoAntigo.Barril, new Vector2(-2.6f, 1.4f), 9);
+            Enfeite(loja.transform, ArteDoAntigo.Caixote, new Vector2(2.6f, 1.3f), 9);
+        }
 
         TextMesh placa = new GameObject("Placa").AddComponent<TextMesh>();
         placa.transform.SetParent(loja.transform, false);
-        placa.transform.localPosition = new Vector3(0f, 3.3f, 0f);
+        placa.transform.localPosition = new Vector3(0f, balcao ? 3.3f : 4.3f, 0f);
         placa.text = "Loja";
         placa.font = FonteDoJogo.Texto;
         placa.fontSize = 64;

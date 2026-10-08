@@ -157,8 +157,16 @@ public class GeradorDoAndar : MonoBehaviour
     private float nomeAte;
     private Texture2D seta;
 
-    /// <summary>O andar atual (o primeiro e 1).</summary>
+    /// <summary>O andar atual (o primeiro e 1). Na area segura, o do chefe que acabou de cair.</summary>
     public int Andar { get; private set; }
+
+    /// <summary>Na area segura entre os mundos (depois do chefe, antes do proximo mundo).</summary>
+    public bool Descansando => descansando;
+
+    /// <summary>O andar que o "Continuar" do menu monta (da area segura, ja o do proximo mundo).</summary>
+    public int AndarParaSalvar => descansando ? Mathf.Min(Andar + 1, Andares) : Andar;
+
+    private bool descansando;
 
     /// <summary>Quantos andares a partida tem.</summary>
     public int Andares => andares != null && andares.Length > 0 ? andares.Length : 3;
@@ -241,7 +249,7 @@ public class GeradorDoAndar : MonoBehaviour
 
     /// <summary>A musica deste andar: a do chefe (a do final, no ultimo) ou a da caverna.</summary>
     public TemaMusical MusicaDoAndar =>
-        chefe != null ? (Andar >= Andares ? TemaMusical.ChefeFinal : TemaMusical.Chefe) : Musica.DaCaverna(Mundo);
+        descansando ? TemaMusical.Loja : chefe != null ? (Andar >= Andares ? TemaMusical.ChefeFinal : TemaMusical.Chefe) : Musica.DaCaverna(Mundo);
 
     /// <summary>
     /// Em que mundo o andar esta: cada chefe fecha um mundo (o Mundo 1 vai ate o primeiro chefe).
@@ -305,6 +313,10 @@ public class GeradorDoAndar : MonoBehaviour
             vivos.RemoveAt(i);
         }
 
+        // Na area segura o portal abre sozinho (ou pelo altar): nada de abrir onde morreu o ultimo.
+        if (descansando)
+            return;
+
         // Andar limpo (todas as salas, inclusive as do lado, que sao opcionais): a Carne Assada cura.
         if (vivos.Count == 0 && !avisouLimpo)
         {
@@ -331,6 +343,13 @@ public class GeradorDoAndar : MonoBehaviour
                                CatalogoDeItens.Sortear(Jogador != null ? Jogador.GetComponent<EstatisticasDoJogador>() : null));
             }
         }
+    }
+
+    /// <summary>Abre o portal da area segura (na clareira ja nasce aberto; nas ruinas, o altar abre).</summary>
+    public void AbrirPortalDoDescanso(Vector2 onde)
+    {
+        if (saida == null && raiz != null)
+            AbrirSaida(onde);
     }
 
     private void AbrirSaida(Vector2 onde)
@@ -516,8 +535,83 @@ public class GeradorDoAndar : MonoBehaviour
             yield break;
         }
 
-        yield return IrPara(Andar + 1);
+        // Venceu um chefe (e nao era o ultimo): primeiro a area segura, depois o proximo mundo.
+        if (!descansando && chefe != null)
+            yield return IrParaODescanso();
+        else
+            yield return IrPara(Andar + 1);
+
         trocando = false;
+    }
+
+    private IEnumerator IrParaODescanso()
+    {
+        try
+        {
+            GerarDescanso();
+        }
+        catch (System.Exception erro)
+        {
+            Debug.LogException(erro, this);
+        }
+
+        Musica.Tocar(MusicaDoAndar);
+        AvisoDoAndar.Mostrar(nome);
+        PorNoComeco();
+        Salvamento.Salvar(this, Jogador != null ? Jogador.gameObject : null);
+        yield return Escurecer(1f, 0f);
+    }
+
+    // A area segura (AreaSegura): aberta, clara e sem inimigos.
+    private void GerarDescanso()
+    {
+        int mundo = Mundo;
+        descansando = true;
+        nome = AreaSegura.Nome(mundo);
+        nomeAte = Time.unscaledTime + tempoDoNome;
+        saida = null;
+        chefe = null;
+        chaoDoAndar = null;
+        MapaDeCaminhos.Atual = null;
+        vivos.Clear();
+        avisouLimpo = true;
+
+        if (raiz != null)
+            Destroy(raiz);
+
+        raiz = new GameObject("Area segura");
+        raiz.transform.SetParent(transform, false);
+
+        HashSet<Vector2Int> chaoDoDescanso = AreaSegura.Montar(mundo, raiz.transform, this);
+        MapaDeCaminhos.Atual = new MapaDeCaminhos(chaoDoDescanso, distanciaDosCaminhos);
+        chaoDoAndar = chaoDoDescanso;
+
+        Iluminacao.Ambiente(AreaSegura.Luz(mundo), AreaSegura.Tom(mundo));
+
+        if (cam == null)
+            cam = Camera.main;
+
+        if (cam != null)
+            cam.backgroundColor = AreaSegura.Fundo(mundo);
+
+        AoComecarAndar?.Invoke();
+    }
+
+    // De volta ao comeco do lugar, que fica sempre no centro do mundo.
+    private void PorNoComeco()
+    {
+        if (Jogador == null)
+            return;
+
+        Jogador.position = Vector3.zero;
+
+        if (corpoDoJogador != null)
+        {
+            corpoDoJogador.position = Vector2.zero;
+            corpoDoJogador.linearVelocity = Vector2.zero;
+        }
+
+        CameraDoJogo.Pular();
     }
 
     /// <summary>O "Continuar" do menu: escurece, monta o andar salvo e poe o jogador no comeco dele.</summary>
@@ -562,18 +656,7 @@ public class GeradorDoAndar : MonoBehaviour
         Registro.ChegouNoAndar(andar);
 
         // De volta a clareira do comeco, que fica sempre no centro do mundo.
-        if (Jogador != null)
-        {
-            Jogador.position = Vector3.zero;
-
-            if (corpoDoJogador != null)
-            {
-                corpoDoJogador.position = Vector2.zero;
-                corpoDoJogador.linearVelocity = Vector2.zero;
-            }
-
-            CameraDoJogo.Pular();
-        }
+        PorNoComeco();
 
         // O comeco de cada andar fica salvo (o "Continuar" do menu volta pra ca).
         Salvamento.Salvar(this, Jogador != null ? Jogador.gameObject : null);
@@ -611,6 +694,7 @@ public class GeradorDoAndar : MonoBehaviour
         AndarDaPartida esse = andares != null && andar <= andares.Length ? andares[andar - 1] : null;
         GameObject chefeDoAndar = esse != null ? esse.Sortear() : null;
         Andar = andar;
+        descansando = false;
 
         // O nome: o do andar, ou o lugar do chefe sorteado ("Covil do Minotauro").
         string titulo = esse != null ? esse.nome : null;
@@ -977,7 +1061,7 @@ public class GeradorDoAndar : MonoBehaviour
     // na beirada, apontando pra ela. Nunca no meio de uma luta.
     private void DesenharSeta()
     {
-        if (saida != null || Jogador == null || SalaDeLuta.Fechada != null)
+        if (saida != null || descansando || Jogador == null || SalaDeLuta.Fechada != null)
             return;
 
         if (cam == null)

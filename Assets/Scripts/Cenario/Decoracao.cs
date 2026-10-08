@@ -13,6 +13,10 @@ using UnityEngine;
 ///   gaiolas penduradas e correntes caindo do teto;
 ///   na Cripta, caixoes, estatuas, cruzes, candelabros, bancos, livros e montes de velas; nas Profundezas,
 ///   estatuas douradas, cristais, candelabros, ouro, potes que quebram e a espada fincada no chao;
+///   as salas especiais mobiliadas com o pacote Village (<see cref="Mobiliar"/>): a loja com o mercador atras
+///   da mesa, armarios de pocoes, prateleiras e barris; o tesouro com armaduras, cabides de armas, baus e
+///   escudos; o altar com estantes de livros, escrivaninha, globo, quadros e trofeus; o desafio com armas;
+///   potes que quebram (com os cacos do Village) e teias nos cantos de cima;
 ///   miudezas pelo chao (ossos, pedras, papel, correntes), mais perto das paredes;
 ///   nas Profundezas, rochas, pilares e estatuas saindo do vazio em volta das salas;
 ///   e, nas salas de luta da Cripta, o lancador de fogo na parede (<see cref="LancadorDeFogo"/>).
@@ -163,12 +167,16 @@ public static class Decoracao
             if (!estilo.flutuante)
                 NaParedeDeCima(sala, salas.chao, grupo, mundo);
 
-            if (prisao)
-                Prisao(q);
-            else if (cripta)
-                Cripta(q);
-            else if (profundezas)
-                Profundezas(q);
+            // As salas especiais ganham a mobilia do Village (loja, tesouro, biblioteca do altar, desafio).
+            if (!Mobiliar(q))
+            {
+                if (prisao)
+                    Prisao(q);
+                else if (cripta)
+                    Cripta(q);
+                else if (profundezas)
+                    Profundezas(q);
+            }
 
             Miudezas(q, mundo);
 
@@ -255,6 +263,11 @@ public static class Decoracao
                 Quebra(q, Um("Prisao/Barril"), p);
             else if (qual < 0.6f)
                 Quebra(q, Um("Prisao/Caixote"), p);
+            else if (qual < 0.7f)
+            {
+                Quebravel.Pote((Vector2)p + Vector2.down * 0.4f + Torto(0.15f), q.pai);
+                q.Tomar(p, true);
+            }
             else if (qual < 0.75f)
                 Solta(q, Um("Prisao/Saco"), p, 10);
             else if (qual < 0.88f)
@@ -379,6 +392,119 @@ public static class Decoracao
         sr.sortingOrder = 10;
         obj.AddComponent<EnfeiteAnimado>().Comecar(chama, 10f);
         Iluminacao.Luz(obj.transform, new Vector2(0f, -0.3f), Iluminacao.Magica, 4f, 1f, 0.25f);
+    }
+
+    // ------------------------------------------------------------------ as salas especiais (Village)
+
+    // O que vai na face da parede de cima de cada sala especial, entre as tochas.
+    private static string[] NaParedeDaSala(TipoDeSala tipo)
+    {
+        switch (tipo)
+        {
+            case TipoDeSala.Loja: return new[] { "Vila/Prateleira" };
+            case TipoDeSala.Tesouro: return new[] { "Vila/Escudos", "Vila/Estandarte" };
+            case TipoDeSala.Altar: return new[] { "Vila/Quadros", "Vila/Trofeus" };
+            case TipoDeSala.Desafio: return new[] { "Vila/Estandarte", "Vila/Escudos" };
+            default: return null;
+        }
+    }
+
+    // A mobilia de cada sala especial, encostada nas paredes (o meio fica pro que a sala tem).
+    private static bool Mobiliar(Quarto q)
+    {
+        string[] encostadas, soltas;
+        bool tapete = true, potes = false;
+
+        switch (q.sala.tipo)
+        {
+            case TipoDeSala.Loja:
+                encostadas = new[] { "Vila/ArmarioDePocoes", "Vila/ArmarioDePocoes", "Vila/Expositor", "Vila/BarrisDeGrao", "Vila/CaixotesDeSuprimento", "Vila/Barris" };
+                soltas = new[] { "Vila/Sacos", "Vila/Sacos", "Vila/Cesta", "Vila/Potes" };
+                potes = true;
+                Balcao(q);
+                break;
+            case TipoDeSala.Tesouro:
+                encostadas = new[] { "Vila/Armadura", "Vila/Cabide", "Vila/Bau", "Vila/BarrilDeArmas", "Vila/Bau" };
+                soltas = new[] { "Vila/Elmo", "Vila/Sacos", "Vila/Elmo" };
+                potes = true;
+                break;
+            case TipoDeSala.Altar:
+                encostadas = new[] { "Vila/Estante", "Vila/Estante", "Vila/Escrivaninha", "Vila/Estante", "Vila/Planta" };
+                soltas = new[] { "Vila/Livros", "Vila/Livros", "Vila/Papel", "Vila/Globo" };
+                break;
+            case TipoDeSala.Desafio:
+                encostadas = new[] { "Vila/Cabide", "Vila/Armadura", "Vila/BarrilDeArmas", "Vila/Cabide" };
+                soltas = new[] { "Vila/Elmo" };
+                tapete = false;
+                break;
+            default:
+                return false;
+        }
+
+        Vector2 meio = MapaDeCaminhos.Celula(q.sala.Meio);
+
+        // O tapete embaixo do que a sala tem.
+        GameObject tapeteNoChao = tapete ? Pequena(Um("Vila/Tapete"), meio + new Vector2(0f, -1.4f), q.pai, Pedreiro.OrdemDosEnfeites + 1) : null;
+
+        if (tapeteNoChao != null)
+            tapeteNoChao.GetComponent<SpriteRenderer>().flipX = false;
+
+        foreach (string grupo in encostadas)
+        {
+            if (!q.Encostada(2.4f, true, out Vector2Int c) && !q.Encostada(2.4f, false, out c))
+                break;
+
+            Sprite s = Um(grupo);
+
+            if (s != null)
+                Solida(q, s, c, Mathf.Max(0.6f, s.bounds.size.x * 0.85f));
+        }
+
+        // Candelabros de pe, acesos.
+        for (int i = 0; i < 2; i++)
+        {
+            if (!q.Encostada(2f, false, out Vector2Int c))
+                break;
+
+            GameObject cand = Solta(q, Um("Vila/CandelabroDePe"), c, 10);
+            AcenderEmCima(cand, Iluminacao.Vela, 3.8f, 0.9f);
+        }
+
+        foreach (string grupo in soltas)
+        {
+            if (q.Encostada(1.3f, false, out Vector2Int c))
+                Solta(q, Um(grupo), c, 10);
+        }
+
+        for (int i = 0; potes && i < Random.Range(2, 4); i++)
+        {
+            if (q.Encostada(1.2f, false, out Vector2Int c))
+            {
+                Quebravel.Pote((Vector2)c + Vector2.down * 0.4f + Torto(0.15f), q.pai);
+                q.Tomar(c, true);
+            }
+        }
+
+        return true;
+    }
+
+    // A loja da caverna: o mercador atras de uma mesa (os pedestais ficam na frente).
+    private static void Balcao(Quarto q)
+    {
+        Vector2 meio = MapaDeCaminhos.Celula(q.sala.Meio);
+        Sprite mesa = Um("Vila/Mesa");
+
+        if (mesa != null)
+        {
+            GameObject obj = Pequena(mesa, meio + new Vector2(0f, 0.9f), q.pai, 10);
+            obj.GetComponent<SpriteRenderer>().flipX = false;
+            obj.layer = Pedreiro.CamadaDaParede;
+            BoxCollider2D c = obj.AddComponent<BoxCollider2D>();
+            c.size = new Vector2(mesa.bounds.size.x * 0.9f, 0.8f);
+            c.offset = new Vector2(0f, 0.4f);
+        }
+
+        Mercador.Criar(meio + new Vector2(0f, 2.3f), q.pai);
     }
 
     // ------------------------------------------------------------------ Cripta e Profundezas
@@ -507,6 +633,23 @@ public static class Decoracao
         else
             tipos = new[] { "Prisao/Pedras", "Prisao/Pedras", "Profundezas/Ouro" };
 
+        // Teias nos cantos de cima (nos mundos com parede).
+        if (mundo != 4)
+        {
+            foreach (Vector2Int c in q.sala.celulas)
+            {
+                bool esquerda = q.Parede(c + Vector2Int.left), direita = q.Parede(c + Vector2Int.right);
+
+                if (q.planta.Contains(c) && q.Parede(c + Vector2Int.up) && (esquerda || direita) && Random.value < 0.6f)
+                {
+                    GameObject teia = Pequena(Um("Vila/Teia"), (Vector2)c + new Vector2(esquerda ? -0.25f : 0.25f, 0.55f), q.pai, Pedreiro.OrdemDasParedes + 1);
+
+                    if (teia != null)
+                        teia.GetComponent<SpriteRenderer>().flipX = direita;
+                }
+            }
+        }
+
         float noMeio = mundo == 4 ? 0.03f : 0.07f;
         float naBeirada = mundo == 4 ? 0.08f : 0.2f;
 
@@ -545,6 +688,11 @@ public static class Decoracao
                     Pequena(Um("Cripta/Estandarte"), (Vector2)c + new Vector2(0f, 0.75f), pai, naParede);
                 else if (tocha.Length > 0)
                     Animada(tocha, (Vector2)c + new Vector2(0f, 1.15f), pai, naParede, 10f);
+            }
+            else if (coluna == 0 && NaParedeDaSala(sala.tipo) != null)
+            {
+                string[] opcoes = NaParedeDaSala(sala.tipo);
+                Pequena(Um(opcoes[Random.Range(0, opcoes.Length)]), (Vector2)c + new Vector2(0f, 0.9f), pai, naParede);
             }
             else if (coluna == 0 && mundo <= 2)
             {

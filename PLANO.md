@@ -55,8 +55,9 @@ de novo.
   ondas na sala do fim.
 - **Pacotes da série EPIC RPG World** (1.14.0): com o Crypt e o The Depths of the Mountain, a Cripta e o
   último mundo (agora Profundezas) ganharam arte própria, 14 inimigos novos, o chefe Rei Esqueleto, portas,
-  armadilhas e decoração. Próximo: as áreas seguras abertas entre os mundos (Village, Ancient Ruins,
-  Grass Land) e mais mundos (escolher o caminho em dois portais).
+  armadilhas e decoração. Na 1.17.0, as áreas seguras abertas entre os mundos (Clareira e Ruínas, das
+  demos Grass Land e Ancient Ruins) e as salas especiais mobiliadas com o Village. Próximo: com os pacotes
+  completos, mais áreas seguras e mais mundos (escolher o caminho em dois portais).
 - **O que precisava adaptar do jogo antigo** (feito depois da etapa 8): moedas, chaves e bombas, loja,
   itens passivos e ativos com sinergias, as salas especiais virando pedaços da caverna (emboscada,
   desafio, altar, baús especiais, área escura), armadilhas e cenário vivo, temas dos mundos e as flechas
