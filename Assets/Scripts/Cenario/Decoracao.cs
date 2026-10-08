@@ -23,12 +23,24 @@ using UnityEngine;
 ///
 /// As tochas, velas, candelabros, cristais e chamas tem luz (<see cref="Iluminacao"/>): o resto do andar e escuro.
 ///
-/// Nada fica nos corredores nem na frente das portas; o que segura gente sai do mapa de caminhos.
+/// Cada peca so vai onde o desenho inteiro cabe (<see cref="Cabe"/>): sem encostar no desenho de outra, com o
+/// pe no chao livre da sala e sem passar da parede do lado nem da de baixo (as pecas altas so sobem pela face
+/// da parede de cima). Nada fica nos corredores, na frente das portas, em cima das armadilhas nem colado no
+/// que ja estava no chao (baus, armas, pedras, mesas); o que segura gente sai do mapa de caminhos.
 /// </summary>
 public static class Decoracao
 {
     private static readonly Dictionary<string, Sprite[]> grupos = new Dictionary<string, Sprite[]>();
     private static Sprite[] tocha, chama, velas;
+
+    /// <summary>O que cada desenho ja posto ocupa na tela (vale durante o <see cref="Espalhar"/>).</summary>
+    private static readonly List<Rect> desenhos = new List<Rect>();
+
+    /// <summary>Quanto dois desenhos podem se encostar (as beiradas dos desenhos sao quase transparentes).</summary>
+    private const float Folga = 0.1f;
+
+    /// <summary>A parede do lado e desenhada um pouco pra dentro do chao (ver o colisor do Pedreiro).</summary>
+    private const float ParedeDoLado = 0.3f;
 
     private static Sprite[] Grupo(string nome)
     {
@@ -79,8 +91,8 @@ public static class Decoracao
             return false;
         }
 
-        // Uma celula livre encostada numa parede (so a de cima, se pedir), longe dos outros cantos.
-        public bool Encostada(float espaco, bool soEmCima, out Vector2Int onde)
+        // As celulas livres encostadas numa parede (so a de cima, se pedir), longe dos outros cantos, embaralhadas.
+        public List<Vector2Int> Encostadas(float espaco, bool soEmCima)
         {
             List<Vector2Int> servem = new List<Vector2Int>();
 
@@ -99,16 +111,11 @@ public static class Decoracao
                     servem.Add(c);
             }
 
-            onde = servem.Count > 0 ? servem[Random.Range(0, servem.Count)] : default;
-
-            if (servem.Count > 0)
-                usados.Add(onde);
-
-            return servem.Count > 0;
+            return Embaralhar(servem);
         }
 
-        // Uma celula livre a ate "raio" de "perto" (pra montar a cena em volta do canto).
-        public bool Perto(Vector2Int perto, int raio, out Vector2Int onde)
+        // As celulas livres a ate "raio" de "perto" (pra montar a cena em volta do canto), embaralhadas.
+        public List<Vector2Int> Pertos(Vector2Int perto, int raio)
         {
             List<Vector2Int> servem = new List<Vector2Int>();
 
@@ -123,8 +130,24 @@ public static class Decoracao
                 }
             }
 
-            onde = servem.Count > 0 ? servem[Random.Range(0, servem.Count)] : default;
-            return servem.Count > 0;
+            return Embaralhar(servem);
+        }
+
+        // As celulas no meio do chao, com tudo em volta livre, longe das outras pecas do meio.
+        public List<Vector2Int> NoMeio(float espaco)
+        {
+            List<Vector2Int> servem = new List<Vector2Int>();
+
+            foreach (Vector2Int c in sala.celulas)
+            {
+                if (!livre.Contains(c) || Vector2.Distance(c, sala.Meio) < longeDoMeio || !Cercado(c, livre))
+                    continue;
+
+                if (usados.TrueForAll(u => Vector2.Distance(u, c) >= espaco))
+                    servem.Add(c);
+            }
+
+            return Embaralhar(servem);
         }
 
         public void Tomar(Vector2Int c, bool seguraGente)
@@ -136,11 +159,25 @@ public static class Decoracao
         }
     }
 
+    private static List<Vector2Int> Embaralhar(List<Vector2Int> lista)
+    {
+        for (int i = lista.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (lista[i], lista[j]) = (lista[j], lista[i]);
+        }
+
+        return lista;
+    }
+
     /// <param name="mundo">1 Porao, 2 Catacumbas, 3 Cripta, 4 Profundezas.</param>
     /// <param name="chao">O chao andavel (o mesmo do mapa de caminhos: o que segura gente sai dele).</param>
-    public static void Espalhar(int mundo, EstiloDeLadrilhos estilo, PlantaDeSalas.Planta salas, HashSet<Vector2Int> chao, Transform pai)
+    /// <param name="reservado">Onde ja tem algo que nao sai do chao (armadilhas, o caminho do tronco, velas).</param>
+    public static void Espalhar(int mundo, EstiloDeLadrilhos estilo, PlantaDeSalas.Planta salas, HashSet<Vector2Int> chao,
+                                HashSet<Vector2Int> reservado, Transform pai)
     {
         CarregarAnimadas();
+        desenhos.Clear();
         Transform grupo = new GameObject("Decoracao").transform;
         grupo.SetParent(pai, false);
 
@@ -151,6 +188,20 @@ public static class Decoracao
             for (int dx = -2; dx <= 2; dx++)
                 for (int dy = -2; dy <= 2; dy++)
                     livre.Remove(c + new Vector2Int(dx, dy));
+
+        // Nem colado no que ja ocupa o chao (baus, armas, pedras, mesas, buracos, as coisas das salas especiais).
+        foreach (Vector2Int c in salas.chao)
+        {
+            if (chao.Contains(c))
+                continue;
+
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dy = -1; dy <= 1; dy++)
+                    livre.Remove(c + new Vector2Int(dx, dy));
+        }
+
+        if (reservado != null)
+            livre.ExceptWith(reservado);
 
         bool prisao = mundo <= 2, cripta = mundo == 3, profundezas = mundo == 4;
         List<Vector2> usados = new List<Vector2>();
@@ -163,6 +214,11 @@ public static class Decoracao
                 sala = sala, planta = salas.chao, livre = livre, chao = chao, usados = usados, pai = grupo,
                 longeDoMeio = sala.DeLuta ? 0f : 3f, flutuante = estilo.flutuante,
             };
+
+            // O lancador de fogo primeiro (numa sala de luta da Cripta, as vezes, no meio da parede de cima):
+            // o resto da parede se arruma em volta dele.
+            if (cripta && sala.DeLuta && Random.value < 0.55f)
+                Lancador(q);
 
             if (!estilo.flutuante)
                 NaParedeDeCima(sala, salas.chao, grupo, mundo);
@@ -179,19 +235,277 @@ public static class Decoracao
             }
 
             Miudezas(q, mundo);
-
-            // O lancador de fogo: numa sala de luta da Cripta (as vezes), no meio da parede de cima.
-            if (cripta && sala.DeLuta && Random.value < 0.55f)
-                Lancador(sala, salas, grupo);
         }
 
         if (profundezas)
             NoVazio(salas.chao, grupo);
+
+        desenhos.Clear();
     }
 
     private static string Sortear(params string[] opcoes) => opcoes[Random.Range(0, opcoes.Length)];
 
     private static Vector2 Torto(float quanto = 0.25f) => new Vector2(Random.Range(-quanto, quanto), Random.Range(-quanto * 0.8f, quanto * 0.8f));
+
+    // ------------------------------------------------------------------ onde cada peca cabe
+
+    /// <summary>Como a peca fica na celula.</summary>
+    private enum Jeito
+    {
+        /// <summary>De pe, segura gente e tiro (camada das paredes).</summary>
+        Solida,
+        /// <summary>Barril ou caixote que quebra.</summary>
+        Quebra,
+        /// <summary>Pote do Village que quebra (o desenho e sorteado pelo Quebravel).</summary>
+        Pote,
+        /// <summary>De pe, ninguem esbarra (cadeira, balde, candelabro).</summary>
+        EmPe,
+        /// <summary>De pe, colada na parede de cima (o esqueleto acorrentado).</summary>
+        NaParede,
+        /// <summary>Deitada no chao (ossos, papel, correntes): nao sobe na parede.</summary>
+        Deitada,
+        /// <summary>O monte de velas acesas (Cripta).</summary>
+        Velas,
+        /// <summary>A chama magica azul.</summary>
+        Chama,
+    }
+
+    // Onde fica o pe do desenho, a partir do meio da celula.
+    private static Vector2 Desvio(Jeito jeito)
+    {
+        switch (jeito)
+        {
+            case Jeito.Solida: return Vector2.down * 0.4f;
+            case Jeito.Quebra: return Vector2.down * 0.4f + Torto(0.1f);
+            case Jeito.Pote: return Vector2.down * 0.4f + Torto(0.15f);
+            case Jeito.EmPe: return Vector2.down * 0.35f + Torto(0.2f);
+            case Jeito.NaParede: return new Vector2(0f, 0.1f);
+            case Jeito.Velas: return new Vector2(0f, 0.3f);
+            case Jeito.Chama: return Torto(0.2f) + Vector2.up * 0.6f;
+            default: return Torto(0.25f);
+        }
+    }
+
+    // O que o desenho ocupa com o pe (o pivo) em "onde". As folhas animadas tem muita sobra: so a parte desenhada.
+    private static Rect Retangulo(Sprite s, Vector2 onde, Jeito jeito = Jeito.EmPe)
+    {
+        if (jeito == Jeito.Velas)
+            return new Rect(onde.x - 0.35f, onde.y - 0.55f, 0.7f, 0.8f);
+
+        if (jeito == Jeito.Chama)
+            return new Rect(onde.x - 0.3f, onde.y - 0.5f, 0.6f, 0.6f);
+
+        if (jeito == Jeito.Pote)
+            return new Rect(onde.x - 0.4f, onde.y, 0.8f, 0.8f);
+
+        Bounds b = s.bounds;
+        return new Rect(onde + (Vector2)b.min, b.size);
+    }
+
+    private static Rect Encolher(Rect r, float quanto)
+    {
+        float w = Mathf.Max(0.02f, r.width - quanto * 2f), h = Mathf.Max(0.02f, r.height - quanto * 2f);
+        return new Rect(r.center.x - w * 0.5f, r.center.y - h * 0.5f, w, h);
+    }
+
+    /// <summary>Nao encosta em nenhum desenho ja posto.</summary>
+    private static bool Sobra(Rect r)
+    {
+        Rect menor = Encolher(r, Folga);
+
+        foreach (Rect outro in desenhos)
+            if (outro.Overlaps(menor))
+                return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// O desenho com o pe na celula <paramref name="pe"/> cabe: nao encosta em outro, o pe fica so em chao
+    /// livre da sala e nada passa da parede do lado nem da de baixo. A parte de cima pode ficar na frente de
+    /// ate <paramref name="sobe"/> celulas da face da parede de cima, como quem esta encostado nela (o que e
+    /// mais alto que isso vai pras paredes do lado, senao parece em pe em cima da parede).
+    /// </summary>
+    private static bool Cabe(Quarto q, Rect r, Vector2Int pe, int sobe)
+    {
+        Rect menor = Encolher(r, Folga);
+
+        // O pe: as celulas embaixo dele livres.
+        for (int x = Mathf.FloorToInt(menor.xMin + 0.5f); x <= Mathf.FloorToInt(menor.xMax + 0.5f); x++)
+            if (!q.livre.Contains(new Vector2Int(x, pe.y)))
+                return false;
+
+        // Tudo o que o desenho cobre e chao (ou a face da parede de cima, logo acima do chao). A parede do
+        // lado comeca "ParedeDoLado" pra dentro da celula de chao vizinha.
+        int x0 = Mathf.FloorToInt(menor.xMin + 0.5f - ParedeDoLado);
+        int x1 = Mathf.CeilToInt(menor.xMax - 0.5f + ParedeDoLado);
+        int y0 = Mathf.Min(pe.y, Mathf.FloorToInt(menor.yMin + 0.5f));
+        int y1 = Mathf.CeilToInt(menor.yMax - 0.5f);
+
+        for (int x = x0; x <= x1; x++)
+        {
+            for (int y = y0; y <= y1; y++)
+            {
+                Vector2Int c = new Vector2Int(x, y);
+
+                if (q.planta.Contains(c))
+                    continue;
+
+                bool face = false;
+
+                for (int k = 1; k <= sobe && y - k >= pe.y; k++)
+                    face |= q.planta.Contains(c + Vector2Int.down * k);
+
+                if (!face)
+                    return false;
+            }
+        }
+
+        return Sobra(r);
+    }
+
+    // Quanto empurrar o desenho pro lado pra ele nao entrar na parede do lado da celula (o barril largo
+    // encostado na parede da direita vai um pouco pra esquerda).
+    private static float Afastar(Quarto q, Rect r, Vector2Int c)
+    {
+        float esquerda = c.x - 0.5f + ParedeDoLado, direita = c.x + 0.5f - ParedeDoLado;
+
+        if (q.Parede(c + Vector2Int.left) && r.xMin + Folga < esquerda)
+            return esquerda - (r.xMin + Folga);
+
+        if (q.Parede(c + Vector2Int.right) && r.xMax - Folga > direita)
+            return direita - (r.xMax - Folga);
+
+        return 0f;
+    }
+
+    // Marca o desenho como posto e tira do chao livre as celulas embaixo do pe dele.
+    private static void Ocupar(Quarto q, Rect r, Vector2Int pe, bool seguraGente)
+    {
+        desenhos.Add(r);
+        Rect menor = Encolher(r, Folga);
+
+        for (int x = Mathf.FloorToInt(menor.xMin + 0.5f); x <= Mathf.FloorToInt(menor.xMax + 0.5f); x++)
+            q.Tomar(new Vector2Int(x, pe.y), seguraGente);
+    }
+
+    /// <summary>
+    /// Poe o desenho na primeira das <paramref name="celulas"/> onde ele cabe inteiro. Devolve o objeto
+    /// (null se nao coube em nenhuma) e a celula em <paramref name="onde"/>.
+    /// Na <see cref="Jeito.Solida"/>, <paramref name="largura"/> e a do colisor (0 = a do desenho).
+    /// </summary>
+    private static GameObject Por(Quarto q, IEnumerable<Vector2Int> celulas, Sprite desenho, Jeito jeito, out Vector2Int onde, float largura = 0f)
+    {
+        onde = default;
+
+        if (desenho == null && jeito != Jeito.Pote && jeito != Jeito.Velas && jeito != Jeito.Chama)
+            return null;
+
+        foreach (Vector2Int c in celulas)
+        {
+            if (!q.livre.Contains(c))
+                continue;
+
+            Vector2 pe = (Vector2)c + Desvio(jeito);
+            Rect r = Retangulo(desenho, pe, jeito);
+            float empurra = Afastar(q, r, c);
+            pe.x += empurra;
+            r.x += empurra;
+
+            if (!Cabe(q, r, c, jeito == Jeito.Deitada ? 0 : jeito == Jeito.NaParede ? 2 : 1))
+                continue;
+
+            GameObject obj = Criar(q, desenho, pe, jeito, largura);
+
+            if (obj == null)
+                return null;
+
+            Ocupar(q, r, c, jeito == Jeito.Solida || jeito == Jeito.Quebra || jeito == Jeito.Pote);
+            onde = c;
+            return obj;
+        }
+
+        return null;
+    }
+
+    private static GameObject Por(Quarto q, IEnumerable<Vector2Int> celulas, Sprite desenho, Jeito jeito, float largura = 0f) =>
+        Por(q, celulas, desenho, jeito, out _, largura);
+
+    // Uma peca encostada na parede, longe dos outros cantos (o canto vira o lugar de uma cena).
+    private static GameObject Encostar(Quarto q, float espaco, bool soEmCima, Sprite desenho, Jeito jeito, out Vector2Int onde, float largura = 0f)
+    {
+        GameObject obj = Por(q, q.Encostadas(espaco, soEmCima), desenho, jeito, out onde, largura);
+
+        if (obj != null)
+            q.usados.Add(onde);
+
+        return obj;
+    }
+
+    private static GameObject Criar(Quarto q, Sprite desenho, Vector2 pe, Jeito jeito, float largura)
+    {
+        switch (jeito)
+        {
+            case Jeito.Solida:
+            {
+                GameObject obj = Pequena(desenho, pe, q.pai, 10);
+                obj.layer = Pedreiro.CamadaDaParede;
+                BoxCollider2D colisor = obj.AddComponent<BoxCollider2D>();
+
+                if (largura <= 0f)
+                    largura = Mathf.Clamp(desenho.bounds.size.x * 0.8f, 0.5f, 1.6f);
+
+                colisor.size = new Vector2(largura, 0.6f);
+                colisor.offset = new Vector2(0f, 0.3f);
+                return obj;
+            }
+
+            case Jeito.Quebra:
+                return Quebravel.Vaso(pe, q.pai, desenho).gameObject;
+
+            case Jeito.Pote:
+            {
+                Quebravel pote = Quebravel.Pote(pe, q.pai);
+                return pote != null ? pote.gameObject : null;
+            }
+
+            case Jeito.Deitada:
+                return Pequena(desenho, pe, q.pai, Pedreiro.OrdemDosEnfeites + 1);
+
+            case Jeito.Velas:
+            {
+                if (velas.Length == 0)
+                    return null;
+
+                GameObject obj = Pequena(velas[0], pe, q.pai, 10);
+                obj.name = "Velas";
+                obj.AddComponent<EnfeiteAnimado>().Comecar(velas, 10f);
+                Iluminacao.Luz(obj.transform, Vector2.zero, Iluminacao.Vela, 3.8f, 0.9f, 0.15f);
+                return obj;
+            }
+
+            case Jeito.Chama:
+                return chama.Length > 0 ? ChamaMagica(pe, q.pai) : null;
+
+            default:
+                return Pequena(desenho, pe, q.pai, 10);
+        }
+    }
+
+    // Uma peca pendurada ou presa na parede (nao tem pe no chao): so precisa nao encostar em nada.
+    private static GameObject Pendurar(Sprite desenho, Vector2 onde, Transform pai, int ordem)
+    {
+        if (desenho == null)
+            return null;
+
+        Rect r = Retangulo(desenho, onde);
+
+        if (!Sobra(r))
+            return null;
+
+        desenhos.Add(r);
+        return Pequena(desenho, onde, pai, ordem);
+    }
 
     // ------------------------------------------------------------------ Old Prison (Porao e Catacumbas)
 
@@ -208,128 +522,135 @@ public static class Decoracao
             Cena cena = cenas[Random.Range(0, cenas.Count)];
             cenas.RemoveAll(x => x == cena);
 
-            if (!q.Encostada(4f, cena == Cena.Cela, out Vector2Int c))
-                break;
-
             switch (cena)
             {
-                case Cena.Deposito: Deposito(q, c); break;
-                case Cena.Tortura: Tortura(q, c); break;
-                case Cena.Cela: Cela(q, c); break;
-                case Cena.Mesa: MesaPosta(q, c); break;
-                default: Ossario(q, c); break;
+                case Cena.Deposito: Deposito(q); break;
+                case Cena.Tortura: Tortura(q); break;
+                case Cena.Cela: Cela(q); break;
+                case Cena.Mesa: MesaPosta(q); break;
+                default: Ossario(q); break;
             }
         }
 
         // Um candelabro aceso num canto.
-        if (sala.DeLuta && Random.value < 0.6f && q.Encostada(3f, false, out Vector2Int lugar))
+        if (sala.DeLuta && Random.value < 0.6f)
         {
-            GameObject cand = Pequena(Um("Prisao/Candelabro"), (Vector2)lugar + Vector2.down * 0.3f, q.pai, 10);
+            GameObject cand = Encostar(q, 3f, false, Um("Prisao/Candelabro"), Jeito.EmPe, out _);
             AcenderEmCima(cand, Iluminacao.Vela, 4f, 0.9f);
-            q.Tomar(lugar, false);
         }
 
-        // Uma gaiola pendurada perto da parede de cima.
-        if (Random.value < 0.4f && q.Encostada(3f, true, out Vector2Int gaiola))
+        // Uma gaiola pendurada perto da parede de cima (uma celula pra baixo, se der).
+        if (Random.value < 0.4f)
         {
-            Vector2Int baixo = gaiola + Vector2Int.down;
-            Vector2Int onde = q.livre.Contains(baixo) ? baixo : gaiola;
-            Pequena(Um("Prisao/Gaiola"), (Vector2)onde + new Vector2(0f, -0.2f), q.pai, 10);
+            Sprite gaiola = Um("Prisao/Gaiola");
+
+            foreach (Vector2Int c in q.Encostadas(3f, true))
+            {
+                Vector2Int baixo = c + Vector2Int.down;
+                Vector2Int onde = q.livre.Contains(baixo) ? baixo : c;
+
+                if (Pendurar(gaiola, (Vector2)onde + new Vector2(0f, -0.2f), q.pai, 10) != null)
+                {
+                    q.usados.Add(c);
+                    q.Tomar(onde, false);
+                    break;
+                }
+            }
         }
 
         // Correntes caindo do teto, na frente da parede de cima.
-        if (Random.value < 0.35f && q.Encostada(4f, true, out Vector2Int teto))
-            Pequena(Um("Prisao/CorrenteDoTeto"), (Vector2)teto + new Vector2(0f, 1.2f), q.pai, Pedreiro.OrdemDasParedes + 1);
+        if (Random.value < 0.35f)
+        {
+            Sprite corrente = Um("Prisao/CorrenteDoTeto");
+
+            foreach (Vector2Int c in q.Encostadas(4f, true))
+            {
+                if (Pendurar(corrente, (Vector2)c + new Vector2(0f, 1.2f), q.pai, Pedreiro.OrdemDasParedes + 1) != null)
+                {
+                    q.usados.Add(c);
+                    break;
+                }
+            }
+        }
     }
 
     // Toneis ou barris (que quebram), caixotes, sacos e baldes.
-    private static void Deposito(Quarto q, Vector2Int c)
+    private static void Deposito(Quarto q)
     {
+        GameObject primeiro = null;
+        Vector2Int c = default;
+
         if (Random.value < 0.5f && Grupo("Prisao/Tonel").Length > 0)
-            Solida(q, Um("Prisao/Tonel"), c, 1.5f);
-        else
-            Quebra(q, Um(Random.value < 0.3f ? "Prisao/BarrilDeMoedas" : "Prisao/Barril"), c);
+            primeiro = Encostar(q, 4f, false, Um("Prisao/Tonel"), Jeito.Solida, out c, 1.5f);
+
+        if (primeiro == null)
+            primeiro = Encostar(q, 4f, false, Um(Random.value < 0.3f ? "Prisao/BarrilDeMoedas" : "Prisao/Barril"), Jeito.Quebra, out c);
+
+        if (primeiro == null)
+            return;
 
         int mais = Random.Range(3, 6);
 
         for (int i = 0; i < mais; i++)
         {
-            if (!q.Perto(c, i < 2 ? 1 : 2, out Vector2Int p))
-                break;
-
+            List<Vector2Int> perto = q.Pertos(c, i < 2 ? 1 : 2);
             float qual = Random.value;
 
             if (qual < 0.4f)
-                Quebra(q, Um("Prisao/Barril"), p);
+                Por(q, perto, Um("Prisao/Barril"), Jeito.Quebra);
             else if (qual < 0.6f)
-                Quebra(q, Um("Prisao/Caixote"), p);
+                Por(q, perto, Um("Prisao/Caixote"), Jeito.Quebra);
             else if (qual < 0.7f)
-            {
-                Quebravel.Pote((Vector2)p + Vector2.down * 0.4f + Torto(0.15f), q.pai);
-                q.Tomar(p, true);
-            }
+                Por(q, perto, null, Jeito.Pote);
             else if (qual < 0.75f)
-                Solta(q, Um("Prisao/Saco"), p, 10);
+                Por(q, perto, Um("Prisao/Saco"), Jeito.EmPe);
             else if (qual < 0.88f)
-                Solta(q, Um("Prisao/Balde"), p, 10);
+                Por(q, perto, Um("Prisao/Balde"), Jeito.EmPe);
             else
-                Solta(q, Um("Prisao/BarrilCaido"), p, 10);
+                Por(q, perto, Um("Prisao/BarrilCaido"), Jeito.EmPe);
         }
     }
 
     // Uma maquina de tortura, com correntes, ossos, baldes e bolas de espinhos em volta.
-    private static void Tortura(Quarto q, Vector2Int c)
+    private static void Tortura(Quarto q)
     {
         string qual = Sortear("Prisao/DamaDeFerro", "Prisao/DamaDeFerro", "Prisao/Guilhotina", "Prisao/Tronco");
-        Solida(q, Um(qual), c, qual.EndsWith("Tronco") ? 1.8f : 1.2f);
+
+        if (Encostar(q, 4f, false, Um(qual), Jeito.Solida, out Vector2Int c, qual.EndsWith("Tronco") ? 1.8f : 1.2f) == null)
+            return;
 
         for (int i = 0; i < Random.Range(3, 6); i++)
         {
-            if (!q.Perto(c, 2, out Vector2Int p))
-                break;
-
             string miudo = Sortear("Prisao/Corrente", "Prisao/Corrente", "Prisao/Ossos", "Prisao/Ossos", "Prisao/BolaDeEspinhos", "Prisao/Balde");
-            Solta(q, Um(miudo), p, miudo.EndsWith("Balde") ? 10 : Pedreiro.OrdemDosEnfeites + 1);
+            Por(q, q.Pertos(c, 2), Um(miudo), miudo.EndsWith("Balde") ? Jeito.EmPe : Jeito.Deitada);
         }
     }
 
     // Um esqueleto acorrentado na parede de cima, uma gaiola no chao e o que sobrou do preso.
-    private static void Cela(Quarto q, Vector2Int c)
+    private static void Cela(Quarto q)
     {
-        Pequena(Um("Prisao/Acorrentado"), (Vector2)c + new Vector2(0f, 0.1f), q.pai, 10);
-        q.Tomar(c, false);
+        if (Encostar(q, 4f, true, Um("Prisao/Acorrentado"), Jeito.NaParede, out Vector2Int c) == null)
+            return;
 
-        if (q.Perto(c, 2, out Vector2Int g))
-            Solida(q, Um("Prisao/GaiolaNoChao"), g, 1f);
+        Por(q, q.Pertos(c, 2), Um("Prisao/GaiolaNoChao"), Jeito.Solida, 1f);
 
         for (int i = 0; i < Random.Range(2, 5); i++)
         {
-            if (!q.Perto(c, 2, out Vector2Int p))
-                break;
-
             string miudo = Sortear("Prisao/Ossos", "Prisao/Ossos", "Prisao/Papel", "Prisao/Corrente", "Prisao/Balde");
-            Solta(q, Um(miudo), p, miudo.EndsWith("Balde") ? 10 : Pedreiro.OrdemDosEnfeites + 1);
+            Por(q, q.Pertos(c, 2), Um(miudo), miudo.EndsWith("Balde") ? Jeito.EmPe : Jeito.Deitada);
         }
     }
 
     // Uma mesa com cadeiras, uma caneca e uma vela acesa em cima.
-    private static void MesaPosta(Quarto q, Vector2Int c)
+    private static void MesaPosta(Quarto q)
     {
-        // A mesa tem 2 celulas e meia de largura: precisa das do lado.
-        Vector2Int esquerda = c + Vector2Int.left, direita = c + Vector2Int.right;
-
-        if (!q.livre.Contains(esquerda) || !q.livre.Contains(direita))
-        {
-            Ossario(q, c);
-            return;
-        }
-
-        GameObject mesa = Solida(q, Um("Prisao/Mesa"), c, 2.2f);
-        q.Tomar(esquerda, true);
-        q.Tomar(direita, true);
+        GameObject mesa = Encostar(q, 4f, false, Um("Prisao/Mesa"), Jeito.Solida, out Vector2Int c, 2.2f);
 
         if (mesa == null)
+        {
+            Ossario(q);
             return;
+        }
 
         Pequena(Um("Prisao/Caneca"), (Vector2)c + new Vector2(Random.Range(-0.8f, -0.1f), 0.75f), mesa.transform, 11);
         GameObject vela = Pequena(Um("Prisao/Vela"), (Vector2)c + new Vector2(Random.Range(0.2f, 0.8f), 0.7f), mesa.transform, 11);
@@ -337,61 +658,55 @@ public static class Decoracao
 
         foreach (int lado in new[] { -2, 2 })
         {
-            Vector2Int cadeira = c + new Vector2Int(lado, 0);
+            if (Random.value >= 0.75f)
+                continue;
 
-            if (Random.value < 0.75f && q.livre.Contains(cadeira))
-            {
-                GameObject cad = Solta(q, Um("Prisao/Cadeira"), cadeira, 10);
+            GameObject cad = Por(q, new[] { c + new Vector2Int(lado, 0) }, Um("Prisao/Cadeira"), Jeito.EmPe);
 
-                if (cad != null)
-                    cad.GetComponent<SpriteRenderer>().flipX = lado > 0;
-            }
+            if (cad != null)
+                cad.GetComponent<SpriteRenderer>().flipX = lado > 0;
         }
 
-        if (q.Perto(c, 2, out Vector2Int papel))
-            Solta(q, Um("Prisao/Papel"), papel, Pedreiro.OrdemDosEnfeites + 1);
+        Por(q, q.Pertos(c, 2), Um("Prisao/Papel"), Jeito.Deitada);
     }
 
     // Um esqueleto no chao, ossos e velas (ou a chama magica azul de um ritual).
-    private static void Ossario(Quarto q, Vector2Int c)
+    private static void Ossario(Quarto q)
     {
-        Solta(q, Um("Prisao/Esqueleto"), c, Pedreiro.OrdemDosEnfeites + 1);
+        if (Encostar(q, 4f, false, Um("Prisao/Esqueleto"), Jeito.Deitada, out Vector2Int c) == null)
+            return;
+
         bool ritual = Random.value < 0.4f && chama.Length > 0;
 
         for (int i = 0; i < Random.Range(3, 6); i++)
         {
-            if (!q.Perto(c, 2, out Vector2Int p))
-                break;
+            List<Vector2Int> perto = q.Pertos(c, 2);
 
-            if (i < 2)
-            {
-                if (ritual)
-                    ChamaMagica((Vector2)p + Torto(0.2f), q.pai);
-                else
-                {
-                    GameObject vela = Solta(q, Um("Prisao/Vela"), p, 10);
-
-                    if (vela != null)
-                        Iluminacao.Luz(vela.transform, new Vector2(0f, 0.3f), Iluminacao.Vela, 3f, 0.75f, 0.15f);
-                }
-
-                q.Tomar(p, false);
-            }
+            if (i >= 2)
+                Por(q, perto, Um("Prisao/Ossos"), Jeito.Deitada);
+            else if (ritual)
+                Por(q, perto, null, Jeito.Chama);
             else
-                Solta(q, Um("Prisao/Ossos"), p, Pedreiro.OrdemDosEnfeites + 1);
+            {
+                GameObject vela = Por(q, perto, Um("Prisao/Vela"), Jeito.EmPe);
+
+                if (vela != null)
+                    Iluminacao.Luz(vela.transform, new Vector2(0f, 0.3f), Iluminacao.Vela, 3f, 0.75f, 0.15f);
+            }
         }
     }
 
-    private static void ChamaMagica(Vector2 onde, Transform pai)
+    private static GameObject ChamaMagica(Vector2 onde, Transform pai)
     {
         GameObject obj = new GameObject("Chama magica");
         obj.transform.SetParent(pai, false);
-        obj.transform.position = onde + Vector2.up * 0.6f;
+        obj.transform.position = onde;
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
         sr.sprite = chama[0];
         sr.sortingOrder = 10;
         obj.AddComponent<EnfeiteAnimado>().Comecar(chama, 10f);
         Iluminacao.Luz(obj.transform, new Vector2(0f, -0.3f), Iluminacao.Magica, 4f, 1f, 0.25f);
+        return obj;
     }
 
     // ------------------------------------------------------------------ as salas especiais (Village)
@@ -444,46 +759,40 @@ public static class Decoracao
         Vector2 meio = MapaDeCaminhos.Celula(q.sala.Meio);
 
         // O tapete embaixo do que a sala tem.
-        GameObject tapeteNoChao = tapete ? Pequena(Um("Vila/Tapete"), meio + new Vector2(0f, -1.4f), q.pai, Pedreiro.OrdemDosEnfeites + 1) : null;
+        Sprite desenhoDoTapete = tapete ? Um("Vila/Tapete") : null;
 
-        if (tapeteNoChao != null)
-            tapeteNoChao.GetComponent<SpriteRenderer>().flipX = false;
+        if (desenhoDoTapete != null)
+        {
+            Vector2 onde = meio + new Vector2(0f, -1.4f);
+            desenhos.Add(Retangulo(desenhoDoTapete, onde));
+            Pequena(desenhoDoTapete, onde, q.pai, Pedreiro.OrdemDosEnfeites + 1).GetComponent<SpriteRenderer>().flipX = false;
+        }
 
         foreach (string grupo in encostadas)
         {
-            if (!q.Encostada(2.4f, true, out Vector2Int c) && !q.Encostada(2.4f, false, out c))
-                break;
-
             Sprite s = Um(grupo);
 
-            if (s != null)
-                Solida(q, s, c, Mathf.Max(0.6f, s.bounds.size.x * 0.85f));
+            if (s == null)
+                continue;
+
+            float largura = Mathf.Max(0.6f, s.bounds.size.x * 0.85f);
+
+            if (Encostar(q, 2.4f, true, s, Jeito.Solida, out _, largura) == null)
+                Encostar(q, 2.4f, false, s, Jeito.Solida, out _, largura);
         }
 
         // Candelabros de pe, acesos.
         for (int i = 0; i < 2; i++)
         {
-            if (!q.Encostada(2f, false, out Vector2Int c))
-                break;
-
-            GameObject cand = Solta(q, Um("Vila/CandelabroDePe"), c, 10);
+            GameObject cand = Encostar(q, 2f, false, Um("Vila/CandelabroDePe"), Jeito.EmPe, out _);
             AcenderEmCima(cand, Iluminacao.Vela, 3.8f, 0.9f);
         }
 
         foreach (string grupo in soltas)
-        {
-            if (q.Encostada(1.3f, false, out Vector2Int c))
-                Solta(q, Um(grupo), c, 10);
-        }
+            Encostar(q, 1.3f, false, Um(grupo), Jeito.EmPe, out _);
 
         for (int i = 0; potes && i < Random.Range(2, 4); i++)
-        {
-            if (q.Encostada(1.2f, false, out Vector2Int c))
-            {
-                Quebravel.Pote((Vector2)c + Vector2.down * 0.4f + Torto(0.15f), q.pai);
-                q.Tomar(c, true);
-            }
-        }
+            Encostar(q, 1.2f, false, null, Jeito.Pote, out _);
 
         return true;
     }
@@ -496,15 +805,19 @@ public static class Decoracao
 
         if (mesa != null)
         {
-            GameObject obj = Pequena(mesa, meio + new Vector2(0f, 0.9f), q.pai, 10);
+            Vector2 onde = meio + new Vector2(0f, 0.9f);
+            GameObject obj = Pequena(mesa, onde, q.pai, 10);
             obj.GetComponent<SpriteRenderer>().flipX = false;
             obj.layer = Pedreiro.CamadaDaParede;
             BoxCollider2D c = obj.AddComponent<BoxCollider2D>();
             c.size = new Vector2(mesa.bounds.size.x * 0.9f, 0.8f);
             c.offset = new Vector2(0f, 0.4f);
+            desenhos.Add(Retangulo(mesa, onde));
         }
 
-        Mercador.Criar(meio + new Vector2(0f, 2.3f), q.pai);
+        Vector2 mercador = meio + new Vector2(0f, 2.3f);
+        Mercador.Criar(mercador, q.pai);
+        desenhos.Add(new Rect(mercador.x - 0.6f, mercador.y - 0.8f, 1.2f, 1.8f));
     }
 
     // ------------------------------------------------------------------ Cripta e Profundezas
@@ -518,36 +831,27 @@ public static class Decoracao
 
         for (int i = 0; i < coisas; i++)
         {
-            if (!q.Encostada(2.5f, false, out Vector2Int c))
-                break;
-
             float qual = Random.value;
 
-            if (qual < 0.45f && velas.Length > 0)
-            {
-                GameObject obj = Pequena(velas[0], (Vector2)c + new Vector2(0f, 0.3f), q.pai, 10);
-                obj.name = "Velas";
-                obj.AddComponent<EnfeiteAnimado>().Comecar(velas, 10f);
-                Iluminacao.Luz(obj.transform, Vector2.zero, Iluminacao.Vela, 3.8f, 0.9f, 0.15f);
-                q.Tomar(c, false);
-            }
+            if (qual < 0.45f)
+                Encostar(q, 2.5f, false, null, Jeito.Velas, out _);
             else if (qual < 0.75f)
-                Solida(q, Um("Cripta/Banco"), c, 1.6f);
+                Encostar(q, 2.5f, false, Um("Cripta/Banco"), Jeito.Solida, out _, 1.6f);
             else
-                Solida(q, Um("Cripta/Livro"), c, 0.9f);
+                Encostar(q, 2.5f, false, Um("Cripta/Livro"), Jeito.Solida, out _, 0.9f);
         }
 
-        Miudas(q, () => Pequena(Um("Cripta/Vaso"), Vector2.zero, q.pai, 9));
+        Miudas(q, true);
     }
 
     private static void Profundezas(Quarto q)
     {
         Grandes(q, false);
 
-        if (Random.value < 0.25f && q.Encostada(3f, false, out Vector2Int espada))
-            Solida(q, Um("Profundezas/Espada"), espada, 0.6f);
+        if (Random.value < 0.25f)
+            Encostar(q, 3f, false, Um("Profundezas/Espada"), Jeito.Solida, out _, 0.6f);
 
-        Miudas(q, null);
+        Miudas(q, false);
     }
 
     // Pecas grandes encostadas nas paredes (ou na beirada, nas Profundezas): seguram gente e tiro.
@@ -557,65 +861,34 @@ public static class Decoracao
 
         for (int i = 0; i < grandes; i++)
         {
-            if (!q.Encostada(2.5f, false, out Vector2Int c))
-                break;
-
             string qual = cripta ? Sortear("Cripta/Caixao", "Cripta/Estatua", "Cripta/Cruz", "Cripta/Candelabro")
                                  : Sortear("Profundezas/Estatua", "Profundezas/Cristal", "Profundezas/Cristal", "Profundezas/Candelabro");
-            GameObject peca = Solida(q, Um(qual), c, 0f);
+            GameObject peca = Encostar(q, 2.5f, false, Um(qual), Jeito.Solida, out _);
             Acender(peca, qual);
         }
     }
 
-    // Vasos na Cripta; montes de ouro e potes que quebram nas Profundezas.
-    private static void Miudas(Quarto q, System.Func<GameObject> vaso)
+    // Vasos na Cripta; montes de ouro e potes que quebram nas Profundezas. No meio do chao, com tudo em volta livre.
+    private static void Miudas(Quarto q, bool cripta)
     {
         int miudas = Random.Range(2, 5);
 
         for (int i = 0; i < miudas; i++)
         {
-            if (!Lugar(q, 1.6f, out Vector2Int c))
-                break;
+            List<Vector2Int> lugares = q.NoMeio(1.6f);
+            GameObject obj;
+            Vector2Int onde;
 
-            if (vaso != null)
-            {
-                GameObject v = vaso();
-
-                if (v != null)
-                    v.transform.position = (Vector2)c + Torto();
-            }
+            if (cripta)
+                obj = Por(q, lugares, Um("Cripta/Vaso"), Jeito.EmPe, out onde);
             else if (Random.value < 0.6f)
-            {
-                Sprite pote = Um("Profundezas/Pote");
-
-                if (pote != null)
-                    Quebravel.Vaso((Vector2)c + Torto() + Vector2.down * 0.3f, q.pai, pote);
-            }
+                obj = Por(q, lugares, Um("Profundezas/Pote"), Jeito.Quebra, out onde);
             else
-                Pequena(Um("Profundezas/Ouro"), (Vector2)c + Torto(), q.pai, Pedreiro.OrdemDosEnfeites + 1);
+                obj = Por(q, lugares, Um("Profundezas/Ouro"), Jeito.Deitada, out onde);
+
+            if (obj != null)
+                q.usados.Add(onde);
         }
-    }
-
-    // Um lugar no meio do chao, com tudo em volta livre.
-    private static bool Lugar(Quarto q, float espaco, out Vector2Int onde)
-    {
-        List<Vector2Int> servem = new List<Vector2Int>();
-
-        foreach (Vector2Int c in q.sala.celulas)
-        {
-            if (!q.livre.Contains(c) || Vector2.Distance(c, q.sala.Meio) < q.longeDoMeio || !Cercado(c, q.livre))
-                continue;
-
-            if (q.usados.TrueForAll(u => Vector2.Distance(u, c) >= espaco))
-                servem.Add(c);
-        }
-
-        onde = servem.Count > 0 ? servem[Random.Range(0, servem.Count)] : default;
-
-        if (servem.Count > 0)
-            q.usados.Add(onde);
-
-        return servem.Count > 0;
     }
 
     // ------------------------------------------------------------------ miudezas e paredes
@@ -633,7 +906,7 @@ public static class Decoracao
         else
             tipos = new[] { "Prisao/Pedras", "Prisao/Pedras", "Profundezas/Ouro" };
 
-        // Teias nos cantos de cima (nos mundos com parede).
+        // Teias nos cantos de cima (nos mundos com parede), onde nao tiver outra coisa na parede.
         if (mundo != 4)
         {
             foreach (Vector2Int c in q.sala.celulas)
@@ -642,7 +915,7 @@ public static class Decoracao
 
                 if (q.planta.Contains(c) && q.Parede(c + Vector2Int.up) && (esquerda || direita) && Random.value < 0.6f)
                 {
-                    GameObject teia = Pequena(Um("Vila/Teia"), (Vector2)c + new Vector2(esquerda ? -0.25f : 0.25f, 0.55f), q.pai, Pedreiro.OrdemDasParedes + 1);
+                    GameObject teia = Pendurar(Um("Vila/Teia"), (Vector2)c + new Vector2(esquerda ? -0.25f : 0.25f, 0.55f), q.pai, Pedreiro.OrdemDasParedes + 1);
 
                     if (teia != null)
                         teia.GetComponent<SpriteRenderer>().flipX = direita;
@@ -653,7 +926,7 @@ public static class Decoracao
         float noMeio = mundo == 4 ? 0.03f : 0.07f;
         float naBeirada = mundo == 4 ? 0.08f : 0.2f;
 
-        foreach (Vector2Int c in q.sala.celulas)
+        foreach (Vector2Int c in new List<Vector2Int>(q.sala.celulas))
         {
             if (!q.livre.Contains(c) || Vector2.Distance(c, q.sala.Meio) < q.longeDoMeio)
                 continue;
@@ -661,7 +934,7 @@ public static class Decoracao
             if (Random.value >= (q.NaBeirada(c) ? naBeirada : noMeio))
                 continue;
 
-            GameObject obj = Pequena(Um(tipos[Random.Range(0, tipos.Length)]), (Vector2)c + Torto(0.3f), q.pai, Pedreiro.OrdemDosEnfeites + 1);
+            GameObject obj = Por(q, new[] { c }, Um(tipos[Random.Range(0, tipos.Length)]), Jeito.Deitada);
 
             if (obj != null && mundo == 4)
                 obj.GetComponent<SpriteRenderer>().color = new Color(0.75f, 0.85f, 0.8f);
@@ -669,6 +942,7 @@ public static class Decoracao
     }
 
     // Tochas na face da parede de cima, a cada 4 celulas, longe dos corredores; entre elas, o que o mundo tem.
+    // Nada encosta no que ja esta na parede (o lancador de fogo).
     private static void NaParedeDeCima(SalaDaPlanta sala, HashSet<Vector2Int> planta, Transform pai, int mundo)
     {
         int n = 0;
@@ -685,31 +959,44 @@ public static class Decoracao
             if (coluna == 2)
             {
                 if (mundo == 3 && n++ % 2 == 1)
-                    Pequena(Um("Cripta/Estandarte"), (Vector2)c + new Vector2(0f, 0.75f), pai, naParede);
+                    Pendurar(Um("Cripta/Estandarte"), (Vector2)c + new Vector2(0f, 0.75f), pai, naParede);
                 else if (tocha.Length > 0)
-                    Animada(tocha, (Vector2)c + new Vector2(0f, 1.15f), pai, naParede, 10f);
+                    Tocha(c, pai);
             }
             else if (coluna == 0 && NaParedeDaSala(sala.tipo) != null)
             {
                 string[] opcoes = NaParedeDaSala(sala.tipo);
-                Pequena(Um(opcoes[Random.Range(0, opcoes.Length)]), (Vector2)c + new Vector2(0f, 0.9f), pai, naParede);
+                Pendurar(Um(opcoes[Random.Range(0, opcoes.Length)]), (Vector2)c + new Vector2(0f, 0.9f), pai, naParede);
             }
             else if (coluna == 0 && mundo <= 2)
             {
                 float qual = Random.value;
 
                 if (qual < 0.3f)
-                    Pequena(Um("Prisao/Estandarte"), (Vector2)c + new Vector2(0f, 0.95f), pai, naParede);
+                    Pendurar(Um("Prisao/Estandarte"), (Vector2)c + new Vector2(0f, 0.95f), pai, naParede);
                 else if (qual < 0.5f)
-                    Pequena(Um("Prisao/Retrato"), (Vector2)c + new Vector2(0f, 0.9f), pai, naParede);
+                    Pendurar(Um("Prisao/Retrato"), (Vector2)c + new Vector2(0f, 0.9f), pai, naParede);
                 else if (qual < 0.72f)
                     Corrente(c, pai);
                 else if (qual < 0.85f)
-                    Pequena(Um("Prisao/Acorrentado"), (Vector2)c + new Vector2(0f, 0.35f), pai, naParede);
+                    Pendurar(Um("Prisao/Acorrentado"), (Vector2)c + new Vector2(0f, 0.35f), pai, naParede);
             }
             else if (coluna == 0 && mundo == 3 && Random.value < 0.4f)
                 Corrente(c, pai);
         }
+    }
+
+    // Uma tocha acesa na face da parede (o quadro da folha tem muita sobra: conta so a tocha).
+    private static void Tocha(Vector2Int c, Transform pai)
+    {
+        Vector2 onde = (Vector2)c + new Vector2(0f, 1.15f);
+        Rect r = new Rect(onde.x - 0.3f, onde.y - 0.6f, 0.6f, 1.4f);
+
+        if (!Sobra(r))
+            return;
+
+        desenhos.Add(r);
+        Animada(tocha, onde, pai, Pedreiro.OrdemDasParedes + 1, 10f);
     }
 
     // Uma corrente na parede de cima: as curtas presas na parede; as compridas descem do teto, na frente dela.
@@ -721,9 +1008,9 @@ public static class Decoracao
             return;
 
         if (s.bounds.size.y > 2f)
-            Pequena(s, (Vector2)c + new Vector2(0f, -0.2f), pai, 10);
+            Pendurar(s, (Vector2)c + new Vector2(0f, -0.2f), pai, 10);
         else
-            Pequena(s, (Vector2)c + new Vector2(0f, 0.45f), pai, Pedreiro.OrdemDasParedes + 1);
+            Pendurar(s, (Vector2)c + new Vector2(0f, 0.45f), pai, Pedreiro.OrdemDasParedes + 1);
     }
 
     // A parede logo acima tem um buraco (o corredor que sobe) por perto: ali nao vai nada.
@@ -738,22 +1025,33 @@ public static class Decoracao
         return false;
     }
 
-    private static void Lancador(SalaDaPlanta sala, PlantaDeSalas.Planta salas, Transform pai)
+    // O lancador de fogo na face da parede de cima, perto do meio. A frente dele fica livre (o fogo desce por ali).
+    private static void Lancador(Quarto q)
     {
+        SalaDaPlanta sala = q.sala;
         List<Vector2Int> servem = new List<Vector2Int>();
 
         foreach (Vector2Int c in sala.celulas)
         {
-            if (salas.chao.Contains(c) && !salas.chao.Contains(c + Vector2Int.up) && !salas.chao.Contains(c + Vector2Int.up * 2)
-                && Mathf.Abs(c.x - sala.Meio.x) <= 3 && Mathf.Abs(c.x - sala.Meio.x) >= 1 && !PertoDeCorredor(c, salas.chao))
+            if (q.planta.Contains(c) && !q.planta.Contains(c + Vector2Int.up) && !q.planta.Contains(c + Vector2Int.up * 2)
+                && Mathf.Abs(c.x - sala.Meio.x) <= 3 && Mathf.Abs(c.x - sala.Meio.x) >= 1 && !PertoDeCorredor(c, q.planta))
                 servem.Add(c);
         }
 
-        if (servem.Count > 0)
-        {
-            Vector2Int c = servem[Random.Range(0, servem.Count)];
-            LancadorDeFogo.Criar((Vector2)c + new Vector2(0f, LancadorDeFogo.DoChao + 0.3f), pai, sala);
-        }
+        if (servem.Count == 0)
+            return;
+
+        Vector2Int onde = servem[Random.Range(0, servem.Count)];
+        Vector2 estatua = (Vector2)onde + new Vector2(0f, LancadorDeFogo.DoChao + 0.3f);
+
+        if (LancadorDeFogo.Criar(estatua, q.pai, sala) == null)
+            return;
+
+        desenhos.Add(new Rect(estatua.x - 0.6f, estatua.y - 0.65f, 1.2f, 1.3f));
+
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dy = 0; dy >= -3; dy--)
+                q.livre.Remove(onde + new Vector2Int(dx, dy));
     }
 
     private static bool Cercado(Vector2Int c, HashSet<Vector2Int> livre)
@@ -793,45 +1091,6 @@ public static class Decoracao
         Sprite s = peca.GetComponent<SpriteRenderer>().sprite;
         float altura = s != null ? s.bounds.size.y : 1f;
         Iluminacao.Luz(peca.transform, new Vector2(0f, altura * 0.85f), cor, raio, intensidade, 0.15f);
-    }
-
-    // Uma peca grande, de pe na celula: segura gente e tiro (camada das paredes). Largura 0 = a do desenho.
-    private static GameObject Solida(Quarto q, Sprite desenho, Vector2Int c, float largura)
-    {
-        if (desenho == null)
-            return null;
-
-        GameObject obj = Pequena(desenho, (Vector2)c + Vector2.down * 0.4f, q.pai, 10);
-        obj.layer = Pedreiro.CamadaDaParede;
-        BoxCollider2D colisor = obj.AddComponent<BoxCollider2D>();
-
-        if (largura <= 0f)
-            largura = Mathf.Clamp(desenho.bounds.size.x * 0.8f, 0.5f, 1.6f);
-
-        colisor.size = new Vector2(largura, 0.6f);
-        colisor.offset = new Vector2(0f, 0.3f);
-        q.Tomar(c, true);
-        return obj;
-    }
-
-    // Um barril ou caixote que quebra (as vezes solta moeda).
-    private static void Quebra(Quarto q, Sprite desenho, Vector2Int c)
-    {
-        if (desenho == null)
-            return;
-
-        Quebravel.Vaso((Vector2)c + Vector2.down * 0.4f + Torto(0.1f), q.pai, desenho);
-        q.Tomar(c, true);
-    }
-
-    // Uma peca solta, que ninguem esbarra.
-    private static GameObject Solta(Quarto q, Sprite desenho, Vector2Int c, int ordem)
-    {
-        if (desenho == null)
-            return null;
-
-        q.Tomar(c, false);
-        return Pequena(desenho, (Vector2)c + Torto(0.2f) + (ordem >= 10 ? Vector2.down * 0.35f : Vector2.zero), q.pai, ordem);
     }
 
     private static GameObject Pequena(Sprite desenho, Vector2 onde, Transform pai, int ordem)

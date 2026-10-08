@@ -9,21 +9,24 @@ using UnityEngine;
 /// rolante, espinhos), alem de mesas, barris, baratas e velas.
 ///
 /// Cada coisa sai sorteada por andar; as que ocupam lugar saem do chao do mapa de caminhos (os
-/// inimigos contornam e ninguem nasce em cima).
+/// inimigos contornam e ninguem nasce em cima). As que nao ocupam (espinhos, o caminho do tronco e da serra,
+/// velas) ficam reservadas: a <see cref="Decoracao"/> nao poe nada em cima.
 /// </summary>
 public static class RecheioDaCaverna
 {
     /// <summary>
     /// O que vai espalhado nas salas de luta. Nada fica em <paramref name="proibido"/> (corredores,
-    /// portas e as salas sem luta).
+    /// portas e as salas sem luta). Devolve as celulas reservadas (as armadilhas e o que nao sai do chao).
     /// </summary>
-    public static void Espalhar(GeradorDoAndar gerador, HashSet<Vector2Int> chao, HashSet<Vector2Int> proibido, Transform pai,
-                                int andar, int mundo, Sprite[] quadrosDoBau)
+    /// <param name="planta">O chao inteiro do andar (o que nao e chao e parede ou vazio).</param>
+    public static HashSet<Vector2Int> Espalhar(GeradorDoAndar gerador, HashSet<Vector2Int> planta, HashSet<Vector2Int> chao,
+                                               HashSet<Vector2Int> proibido, Transform pai, int andar, int mundo, Sprite[] quadrosDoBau)
     {
         List<Vector2> usados = new List<Vector2> { Vector2.zero };
         GameObject jogador = GameObject.FindWithTag("Player");
         EstatisticasDoJogador itens = jogador != null ? jogador.GetComponent<EstatisticasDoJogador>() : null;
         Proibido = proibido;
+        Reservado = new HashSet<Vector2Int>();
 
         if (quadrosDoBau != null && quadrosDoBau.Length > 0 && Random.value < 0.25f
             && Achar(chao, usados, 1, 1, 10f, out Vector2 maldito))
@@ -50,11 +53,17 @@ public static class RecheioDaCaverna
         for (int i = 0; i < serras; i++)
         {
             if (Reta(chao, usados, out Vector2 de, out Vector2 ate))
+            {
                 SerraNoTrilho.Criar(de, ate, pai);
+                Reservar(de, ate, 1);
+            }
         }
 
-        if (Random.value < 0.5f && Reta(chao, usados, out Vector2 troncoDe, out Vector2 troncoAte))
+        if (Random.value < 0.5f && DeParedeAParede(planta, chao, usados, out Vector2 troncoDe, out Vector2 troncoAte))
+        {
             TroncoRolante.Criar(troncoDe, troncoAte, pai);
+            Reservar(troncoDe, troncoAte, 2);
+        }
 
         int espinhos = Random.Range(1, 4);
 
@@ -68,6 +77,10 @@ public static class RecheioDaCaverna
             for (int x = 0; x < 2; x++)
                 for (int y = 0; y < 2; y++)
                     EspinhosQueSaem.Criar(canto + new Vector2(x, y), pai, fase);
+
+            for (int x = -1; x <= 2; x++)
+                for (int y = -1; y <= 2; y++)
+                    Reservado.Add(MapaDeCaminhos.Celula(canto) + new Vector2Int(x, y));
         }
 
         // ---------------- cenario ----------------
@@ -103,8 +116,16 @@ public static class RecheioDaCaverna
         for (int i = 0; i < velas; i++)
         {
             if (Achar(chao, usados, 0, 0, 2.5f, out Vector2 onde, false))
+            {
                 Vela.Criar(onde + new Vector2(Random.Range(-0.3f, 0.3f), Random.Range(-0.3f, 0.3f)), pai);
+                Reservado.Add(MapaDeCaminhos.Celula(onde));
+            }
         }
+
+        HashSet<Vector2Int> reservado = Reservado;
+        Proibido = null;
+        Reservado = null;
+        return reservado;
     }
 
     /// <summary>O que tem numa sala especial (sempre no meio dela).</summary>
@@ -158,8 +179,9 @@ public static class RecheioDaCaverna
         }
     }
 
-    // As celulas onde nada se espalha (vale durante o Espalhar).
+    // As celulas onde nada se espalha, e as ja tomadas por armadilhas e velas (valem durante o Espalhar).
     private static HashSet<Vector2Int> Proibido;
+    private static HashSet<Vector2Int> Reservado;
 
     // O premio da pedra rachada: moedas, ou chave e bomba, ou um bau.
     private static void Premio(Vector2 onde, Transform pai, GeradorDoAndar gerador, Sprite[] quadrosDoBau, EstatisticasDoJogador itens)
@@ -226,7 +248,17 @@ public static class RecheioDaCaverna
     }
 
     private static bool Pode(HashSet<Vector2Int> chao, Vector2Int c) =>
-        chao.Contains(c) && (Proibido == null || !Proibido.Contains(c));
+        chao.Contains(c) && (Proibido == null || !Proibido.Contains(c)) && (Reservado == null || !Reservado.Contains(c));
+
+    // Reserva a faixa de "de" ate "ate", com "largura" celulas pra cada lado.
+    private static void Reservar(Vector2 de, Vector2 ate, int largura)
+    {
+        Vector2Int a = MapaDeCaminhos.Celula(de), b = MapaDeCaminhos.Celula(ate);
+
+        for (int x = Mathf.Min(a.x, b.x) - largura; x <= Mathf.Max(a.x, b.x) + largura; x++)
+            for (int y = Mathf.Min(a.y, b.y) - largura; y <= Mathf.Max(a.y, b.y) + largura; y++)
+                Reservado.Add(new Vector2Int(x, y));
+    }
 
     private static void Ocupar(HashSet<Vector2Int> chao, Vector2 centro, int mx, int my)
     {
@@ -269,4 +301,58 @@ public static class RecheioDaCaverna
         de = ate = default;
         return false;
     }
+
+    /// <summary>
+    /// O caminho do tronco: uma faixa reta de 3 de largura que atravessa a sala de luta de parede a parede
+    /// (as duas pontas encostam em parede de verdade, nunca numa porta, num buraco ou no meio do chao).
+    /// </summary>
+    private static bool DeParedeAParede(HashSet<Vector2Int> planta, HashSet<Vector2Int> chao, List<Vector2> usados,
+                                        out Vector2 de, out Vector2 ate)
+    {
+        List<Vector2Int> celulas = new List<Vector2Int>(chao);
+
+        for (int tentativa = 0; tentativa < 200 && celulas.Count > 0; tentativa++)
+        {
+            Vector2Int c = celulas[Random.Range(0, celulas.Count)];
+
+            if (((Vector2)c).magnitude < 10f || !usados.TrueForAll(u => Vector2.Distance(u, c) >= 7f))
+                continue;
+
+            bool deitado = Random.value < 0.5f;
+            Vector2Int passo = deitado ? Vector2Int.right : Vector2Int.up;
+            Vector2Int lado = deitado ? Vector2Int.up : Vector2Int.right;
+
+            if (!Faixa(chao, c, lado))
+                continue;
+
+            Vector2Int a = c, b = c;
+
+            while (Faixa(chao, a - passo, lado))
+                a -= passo;
+
+            while (Faixa(chao, b + passo, lado))
+                b += passo;
+
+            // Parou antes da parede (porta, corredor, buraco, outra coisa): nao serve.
+            if (planta.Contains(a - passo) || planta.Contains(b + passo))
+                continue;
+
+            if (Vector2Int.Distance(a, b) < 5f)
+                continue;
+
+            if (Random.value < 0.5f)
+                (a, b) = (b, a);
+
+            de = a;
+            ate = b;
+            usados.Add((Vector2)(a + b) * 0.5f);
+            return true;
+        }
+
+        de = ate = default;
+        return false;
+    }
+
+    private static bool Faixa(HashSet<Vector2Int> chao, Vector2Int c, Vector2Int lado) =>
+        Pode(chao, c) && Pode(chao, c + lado) && Pode(chao, c - lado);
 }
