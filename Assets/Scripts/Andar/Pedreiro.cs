@@ -109,10 +109,18 @@ public class Pedreiro
             for (int linha = 0; linha < grade.Altura; linha++)
             {
                 Vector2Int canto = grade.Canto(coluna, linha);
-                bool baixoParede = !celulasDeChao.Contains(canto) && !celulasDeChao.Contains(canto + Vector2Int.right);
-                bool cimaChao = celulasDeChao.Contains(canto + Vector2Int.up) || celulasDeChao.Contains(canto + Vector2Int.one);
+                bool baixoEsq = !celulasDeChao.Contains(canto);
+                bool baixoDir = !celulasDeChao.Contains(canto + Vector2Int.right);
+                bool cimaEsq = celulasDeChao.Contains(canto + Vector2Int.up);
+                bool cimaDir = celulasDeChao.Contains(canto + Vector2Int.one);
 
-                if (baixoParede && cimaChao && paredesDaGrade[coluna, linha] >= 0)
+                // A beirada reta (os dois de baixo parede, algum de cima chao) e as quinas de cima da
+                // parede (um de baixo parede com chao em cima dele). As beiradas de lado ficam atras.
+                bool frente = (baixoEsq && baixoDir && (cimaEsq || cimaDir))
+                              || (baixoDir && !baixoEsq && cimaDir)
+                              || (baixoEsq && !baixoDir && cimaEsq);
+
+                if (frente && paredesDaGrade[coluna, linha] >= 0)
                 {
                     frenteDaGrade[coluna, linha] = paredesDaGrade[coluna, linha];
                     paredesDaGrade[coluna, linha] = -1;
