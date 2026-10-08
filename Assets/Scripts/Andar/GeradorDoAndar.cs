@@ -717,6 +717,7 @@ public class GeradorDoAndar : MonoBehaviour
 
         EspalharArmas(chaoDaCaverna, proibido, andar);
         RecheioDaCaverna.Espalhar(this, chaoDaCaverna, proibido, raiz.transform, andar, Mundo, quadrosDoBau);
+        Decoracao.Espalhar(Mundo, construtor.Estilo, salas, chaoDaCaverna, raiz.transform);
         EspalharInimigos(salas, chaoDaCaverna, andar, caverna);
 
         // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no

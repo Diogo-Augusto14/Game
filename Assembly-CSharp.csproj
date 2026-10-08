@@ -109,6 +109,9 @@
     <Compile Include="Assets\Scripts\Andar\SalaDeLuta.cs" />
     <Compile Include="Assets\Scripts\Andar\EstiloDeLadrilhos.cs" />
     <Compile Include="Assets\Scripts\Andar\DadosDosTemas.cs" />
+    <Compile Include="Assets\Scripts\Cenario\Decoracao.cs" />
+    <Compile Include="Assets\Scripts\Cenario\EnfeiteAnimado.cs" />
+    <Compile Include="Assets\Scripts\Cenario\LancadorDeFogo.cs" />
     <Compile Include="Assets\Scripts\Combate\Dano.cs" />
     <Compile Include="Assets\Scripts\Combate\Vida.cs" />
     <Compile Include="Assets\Scripts\Combate\PiscarAoTomarDano.cs" />

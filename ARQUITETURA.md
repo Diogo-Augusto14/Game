@@ -50,6 +50,9 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Arte/OldPrison` | A arte da caverna, do pacote Old Prison: chão, paredes, abismo, sangue e enfeites (32 × 32 por ladrilho) |
 | `Assets/Arte/Resources` | A arte dos outros pacotes (provisória) |
 | `Ferramentas/OldPrison` | `importar.py`: tira do pacote Old Prison as folhas e as regras do Tiled que a caverna usa |
+| `Ferramentas/Temas` | `importar.py`: tira dos pacotes Crypt e The Depths of the Mountain a arte da Cripta e das Profundezas (`DadosDosTemas.cs`) e a decoração (`Resources/Decoracao`: caixões, estátuas, cristais, tochas, portas de metal, o lançador de fogo) |
+| `Ferramentas/Personagens` | `importar.py`: recorta dos pacotes as folhas dos inimigos e do Rei Esqueleto (em volta do boneco, 32 pixels por unidade) e grava `quadros.json` |
+| `Pacotes/` | Os pacotes comprados, descompactados (fora do Git deste repositório público; ficam no privado `ThePrettie-Pacotes`, ver `CLAUDE.md`) |
 
 ## As peças do jogador
 
@@ -322,7 +325,16 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   os inimigos). Mesas (viram de lado no primeiro tiro), barris, caixotes, baratas e velas. Nada nos
   corredores nem na frente das portas; o que ocupa lugar sai do mapa de caminhos. (A emboscada saiu: a
   própria sala de luta já é uma.)
-- **Temas dos mundos**: Porão (marrom), Catacumbas (o azul do Old Prison), Cripta (verde) e Abismo
+- **Mundos com arte própria** (1.14.0, `EstiloDeLadrilhos`): Porão (o Old Prison em marrom), Catacumbas
+  (o Old Prison), **Cripta** (pacote Crypt: paredes e chão do Crypt, sem buracos, caixões, estátuas,
+  cruzes, estandartes e o lançador de fogo na parede) e **Profundezas** (pacote The Depths of the
+  Mountain: sem paredes, as salas flutuam sobre o vazio, com estátuas douradas, cristais, ouro, potes que
+  quebram e rochas saindo do vazio). Tochas acesas nas paredes de todos os mundos com parede; as portas
+  das salas são as portas de metal do Crypt; os espinhos são os do Crypt.
+- **Inimigos dos pacotes**: Catacumbas: esqueleto, escudeiro, mago e assassino (Old Prison). Cripta:
+  esqueletos, aranhas e minhocões que somem na terra (Crypt). Profundezas: goblins, goblin assassino,
+  pote mímico e os demônios (Depths). O **Rei Esqueleto** (Depths) é sorteado como chefe da Cripta.
+- **Temas dos mundos** (antes da 1.14.0): Porão (marrom), Catacumbas (o azul do Old Prison), Cripta (verde) e Abismo
   (vermelho), com o chão e as paredes recoloridos (`Resources/Temas`) e a música de cada um.
 - **Arcos especiais** (nos baús): explosivo, de gelo (deixa lento), venenoso e ricochete (quica nas
   paredes) — o `efeito` da arma (`EfeitoDoTiro`); a `CondicaoDoInimigo` cuida do gelo e do veneno.

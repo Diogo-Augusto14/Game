@@ -22,6 +22,15 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
     public static Quebravel Barril(Vector2 onde, Transform pai) =>
         Criar("Barril", onde, pai, new[] { ArteDoAntigo.Barril }, 8f, new Vector2(0.7f, 0.6f), false);
 
+    /// <summary>Um pote ou vaso dos pacotes (o desenho com o pe embaixo): quebra facil.</summary>
+    public static Quebravel Vaso(Vector2 onde, Transform pai, Sprite desenho)
+    {
+        Quebravel q = Criar("Vaso", onde, pai, new[] { desenho }, 3f, new Vector2(0.55f, 0.4f), false);
+        q.GetComponent<BoxCollider2D>().offset = new Vector2(0f, 0.2f);
+        q.desenho.spriteSortPoint = SpriteSortPoint.Pivot;
+        return q;
+    }
+
     public static Quebravel Caixote(Vector2 onde, Transform pai) =>
         Criar("Caixote", onde, pai, new[] { ArteDoAntigo.Caixote }, 6f, new Vector2(0.8f, 0.6f), false);
 

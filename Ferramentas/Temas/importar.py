@@ -10,7 +10,8 @@ repositorio privado ThePrettie-Pacotes) a arte dos mundos que nao sao o Old Pris
     Assets/Arte/Resources/Temas/Profundezas/Chao.png    a plataforma de pedra marrom (Tileset 2)
     Assets/Arte/Resources/Temas/Profundezas/Abismo.png  o vazio escuro (o fundo do mapa de exemplo)
 
-e escreve Assets/Scripts/Andar/DadosDosTemas.cs com as tabelas de cantos e as regras de variacao de
+a decoracao (Assets/Arte/Resources/Decoracao: caixoes, estatuas, cristais, tochas, as portas de metal e o
+lancador de fogo) e escreve Assets/Scripts/Andar/DadosDosTemas.cs com as tabelas de cantos e as regras de variacao de
 cada um. As regras que poem as faces sao as mesmas do Old Prison em todos (a ferramenta confere), e as
 paredes do Crypt tem ate as mesmas variacoes.
 
@@ -45,6 +46,59 @@ CHAO_DA_CRIPTA = [(517, 1), (518, 1), (568, 1), (468, 0.1), (519, 0.1),
 
 # O vazio das Profundezas: o ladrilho do fundo (camada "bg" do mapa de exemplo).
 VAZIO_DAS_PROFUNDEZAS = 3
+
+
+# A decoracao: Resources/Decoracao/<Grupo>/<Nome>/NN.png (cada pasta e um sorteio). (pacote, pasta, prefixo, numeros)
+CP = 'Crypt V1.6/Props/atlas props - individual sprites/'
+DPP = 'The Depths of the Mountain V1.5.1/Props/Static/Props-individual sprites/'
+PECAS = {
+    'Cripta/Caixao': [(CP, 'coffin - vertical - {}.png', range(1, 7))],
+    'Cripta/CaixaoDeitado': [(CP, 'coffin - horizontal - {}.png', range(1, 6))],
+    'Cripta/Estatua': [(CP, 'statue with support {}.png', range(1, 7))],
+    'Cripta/Cruz': [(CP, 'cross with support {}.png', range(1, 6))],
+    'Cripta/Candelabro': [(CP, 'candelabrum {}.png', range(1, 5))],
+    'Cripta/Estandarte': [(CP, 'banner - bigger - {}.png', range(1, 19))],
+    'Cripta/Vaso': [(CP, 'vase color scheme 1 - {}.png', range(1, 11)), (CP, 'vase color scheme 4 - {}.png', range(1, 12))],
+    'Profundezas/Estatua': [(DPP, 'golden statues_{}.png', range(0, 16)), (DPP, 'statues-men_{}.png', range(0, 8)), (DPP, 'statues-women_{}.png', range(0, 8))],
+    'Profundezas/Cristal': [(DPP, 'Crystals1_{}.png', range(0, 9)), (DPP, 'Crystals4_{}.png', range(0, 9))],
+    'Profundezas/Candelabro': [(DPP, 'candelabrum_{}.png', range(0, 3))],
+    'Profundezas/Ouro': [(DPP, 'piles of gold_{}.png', range(0, 8))],
+    'Profundezas/Pote': [(DPP, 'pots1_{}.png', range(0, 16)), (DPP, 'pots5_{}.png', range(0, 14))],
+    'Profundezas/Vazio': [(DPP, 'rock pillars coming from darkness-bg_{}.png', range(0, 4)), (DPP, 'rocks coming from darkness-bg_{}.png', range(0, 5)),
+                          (DPP, 'statues-far from platforms-bg_{}.png', range(0, 10)), (DPP, 'pillars-bg_{}.png', range(0, 8))],
+}
+# As animadas (folhas inteiras): Resources/Decoracao/<nome>.png
+ANIMADAS = {
+    'Tocha': 'Crypt V1.6/Props/animated/torch_burning.png',
+    'LancadorDeFogo': 'Crypt V1.6/Props/animated/face statue-fire projectile launcher-firing.png',
+    'PortaDeFrente': 'Crypt V1.6/Props/animated/doors-2-metal doors-horizontal-closing.png',
+    'PortaDeLado': 'Crypt V1.6/Props/animated/doors-2-metal doors-vertical-closing.png',
+}
+
+
+def pecas():
+    import glob
+    base = os.path.join(os.path.dirname(TEMAS), 'Decoracao')
+    total = 0
+    for grupo, fontes in PECAS.items():
+        pasta = os.path.join(base, grupo)
+        os.makedirs(pasta, exist_ok=True)
+        n = 0
+        for pacote, molde, numeros in fontes:
+            for i in numeros:
+                origem = os.path.join(PACOTES, pacote, molde.format(i))
+                if not os.path.exists(origem):
+                    continue
+                im = Image.open(origem).convert('RGBA')
+                caixa = im.getbbox()
+                if caixa:
+                    im = im.crop(caixa)
+                im.save(os.path.join(pasta, f'{n:02d}.png'))
+                n += 1
+        total += n
+    for nome, origem in ANIMADAS.items():
+        Image.open(os.path.join(PACOTES, origem)).convert('RGBA').save(os.path.join(base, nome + '.png'))
+    return total
 
 
 def recortar(folha, numero):
@@ -127,6 +181,7 @@ public static class DadosDosTemas
 '''
     with open(DADOS, 'w', encoding='utf-8', newline='\n') as f:
         f.write(codigo)
+    print(f'decoracao: {pecas()} pecas')
     print(f'ok: Cripta {len(CHAO_DA_CRIPTA)} chaos; Profundezas {len(cheios_p)} chaos, {len(varia_p)} variacoes, vazio {cor}')
 
 
