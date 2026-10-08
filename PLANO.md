@@ -48,6 +48,9 @@ de novo.
 - **Tamanho dos andares e quantos andares.** 12 andares em 4 mundos (duas cavernas e um chefe; o último é
   o Olho do Abismo). Depois da 1.10.0, achou grande e estreito: a primeira caverna tem umas 1100 células
   e 20 inimigos (mais 120 células e 3 inimigos a cada caverna), com corredores de 3 a 4 de largura.
+  Depois da 1.11.x, achou chato (caçar os últimos inimigos num mapa grande, pouco prêmio, sem tensão):
+  na 1.12.0 o andar virou salas que fecham ao entrar, com prêmio por sala, e ficou menor e mais cheio
+  (4 salas de luta no primeiro andar, 4 a 6 inimigos em cada, às vezes uma segunda onda).
 - **O que precisava adaptar do jogo antigo** (feito depois da etapa 8): moedas, chaves e bombas, loja,
   itens passivos e ativos com sinergias, as salas especiais virando pedaços da caverna (emboscada,
   desafio, altar, baús especiais, área escura), armadilhas e cenário vivo, temas dos mundos e as flechas

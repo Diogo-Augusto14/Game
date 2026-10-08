@@ -104,6 +104,9 @@
     <Compile Include="Assets\Scripts\Itens\Explosao.cs" />
     <Compile Include="Assets\Scripts\Itens\EstatisticasDoJogador.cs" />
     <Compile Include="Assets\Scripts\Itens\ItemPassivo.cs" />
+    <Compile Include="Assets\Scripts\Andar\PlantaDeSalas.cs" />
+    <Compile Include="Assets\Scripts\Andar\PortaDaSala.cs" />
+    <Compile Include="Assets\Scripts\Andar\SalaDeLuta.cs" />
     <Compile Include="Assets\Scripts\Combate\Dano.cs" />
     <Compile Include="Assets\Scripts\Combate\Vida.cs" />
     <Compile Include="Assets\Scripts\Combate\PiscarAoTomarDano.cs" />

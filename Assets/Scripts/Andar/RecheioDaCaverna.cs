@@ -2,65 +2,34 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// O que vai espalhado na caverna alem dos inimigos e das armas (as salas especiais e o cenario vivo do
-/// jogo antigo, adaptados pra caverna): loja, altar de sangue, desafio, emboscada, baus trancado e
-/// amaldicoado, pedestal de tesouro, pedra rachada com premio, area escura e as armadilhas (serra no
-/// trilho, tronco rolante, espinhos), alem de mesas, barris, baratas e velas.
+/// O que vai no andar alem dos inimigos e das armas (as salas especiais e o cenario vivo do jogo
+/// antigo). Nas salas especiais (<see cref="EncherEspecial"/>): a loja, o altar de sangue, o desafio e o
+/// tesouro (item no pedestal ou bau trancado). Espalhado nas salas de luta (<see cref="Espalhar"/>): bau
+/// amaldicoado, pedra rachada com premio, area escura e as armadilhas (serra no trilho, tronco
+/// rolante, espinhos), alem de mesas, barris, baratas e velas.
 ///
 /// Cada coisa sai sorteada por andar; as que ocupam lugar saem do chao do mapa de caminhos (os
 /// inimigos contornam e ninguem nasce em cima).
 /// </summary>
 public static class RecheioDaCaverna
 {
-    public static void Espalhar(GeradorDoAndar gerador, HashSet<Vector2Int> chao, Transform pai, int andar, int mundo,
-                                Sprite[] quadrosDoBau)
+    /// <summary>
+    /// O que vai espalhado nas salas de luta. Nada fica em <paramref name="proibido"/> (corredores,
+    /// portas e as salas sem luta).
+    /// </summary>
+    public static void Espalhar(GeradorDoAndar gerador, HashSet<Vector2Int> chao, HashSet<Vector2Int> proibido, Transform pai,
+                                int andar, int mundo, Sprite[] quadrosDoBau)
     {
         List<Vector2> usados = new List<Vector2> { Vector2.zero };
         GameObject jogador = GameObject.FindWithTag("Player");
         EstatisticasDoJogador itens = jogador != null ? jogador.GetComponent<EstatisticasDoJogador>() : null;
+        Proibido = proibido;
 
-        // ---------------- os lugares especiais ----------------
-        if (Random.value < 0.6f && Achar(chao, usados, 3, 2, 12f, out Vector2 loja))
+        if (quadrosDoBau != null && quadrosDoBau.Length > 0 && Random.value < 0.25f
+            && Achar(chao, usados, 1, 1, 10f, out Vector2 maldito))
         {
-            Loja.Criar(loja, pai, itens);
-            Ocupar(chao, loja + Vector2.up * 1.5f, 3, 1);
-            Ocupar(chao, loja + Vector2.down * 0.3f, 2, 0);
-        }
-
-        if (Random.value < 0.3f && Achar(chao, usados, 2, 2, 12f, out Vector2 altar))
-        {
-            AltarDeSangue.Criar(altar, pai, itens);
-            Ocupar(chao, altar, 0, 0);
-        }
-
-        if (Random.value < 0.3f && Achar(chao, usados, 2, 2, 14f, out Vector2 desafio))
-        {
-            Emboscada.Criar(desafio, pai, gerador, true, quadrosDoBau);
-            Ocupar(chao, desafio, 0, 0);
-        }
-
-        if (Random.value < 0.45f && Achar(chao, usados, 2, 2, 14f, out Vector2 emboscada))
-            Emboscada.Criar(emboscada, pai, gerador, false, quadrosDoBau);
-
-        if (quadrosDoBau != null && quadrosDoBau.Length > 0)
-        {
-            if (Random.value < 0.5f && Achar(chao, usados, 1, 1, 10f, out Vector2 trancado))
-            {
-                Bau.Criar(quadrosDoBau, trancado, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Trancado);
-                Ocupar(chao, trancado, 0, 0);
-            }
-
-            if (Random.value < 0.25f && Achar(chao, usados, 1, 1, 10f, out Vector2 maldito))
-            {
-                Bau.Criar(quadrosDoBau, maldito, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Amaldicoado);
-                Ocupar(chao, maldito, 0, 0);
-            }
-        }
-
-        if (Random.value < 0.3f && Achar(chao, usados, 1, 1, 12f, out Vector2 tesouro))
-        {
-            Pedestal.Criar(tesouro, pai, CatalogoDeItens.Sortear(itens));
-            Ocupar(chao, tesouro, 0, 0);
+            Bau.Criar(quadrosDoBau, maldito, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Amaldicoado);
+            Ocupar(chao, maldito, 0, 0);
         }
 
         // Pedra rachada (so bomba quebra) guardando um premio.
@@ -105,7 +74,7 @@ public static class RecheioDaCaverna
         }
 
         // ---------------- cenario ----------------
-        int moveis = Random.Range(5, 10);
+        int moveis = Random.Range(4, 8);
 
         for (int i = 0; i < moveis; i++)
         {
@@ -139,6 +108,59 @@ public static class RecheioDaCaverna
                 Vela.Criar(onde + new Vector2(Random.Range(-0.3f, 0.3f), Random.Range(-0.3f, 0.3f)), pai);
         }
     }
+
+    /// <summary>O que tem numa sala especial (sempre no meio dela).</summary>
+    public static void EncherEspecial(SalaDaPlanta sala, GeradorDoAndar gerador, HashSet<Vector2Int> chao, Transform pai,
+                                      Sprite[] quadrosDoBau)
+    {
+        GameObject jogador = GameObject.FindWithTag("Player");
+        EstatisticasDoJogador itens = jogador != null ? jogador.GetComponent<EstatisticasDoJogador>() : null;
+        Vector2 meio = MapaDeCaminhos.Celula(sala.Meio);
+        bool temBau = quadrosDoBau != null && quadrosDoBau.Length > 0;
+
+        switch (sala.tipo)
+        {
+            case TipoDeSala.Loja:
+                Loja.Criar(meio, pai, itens);
+                Ocupar(chao, meio + Vector2.up * 1.5f, 3, 1);
+                Ocupar(chao, meio + Vector2.down * 0.3f, 2, 0);
+                break;
+
+            case TipoDeSala.Altar:
+                AltarDeSangue.Criar(meio, pai, itens);
+                Ocupar(chao, meio, 0, 0);
+                break;
+
+            case TipoDeSala.Desafio:
+                Emboscada.Criar(meio, pai, gerador, true, quadrosDoBau);
+                Ocupar(chao, meio, 0, 0);
+                break;
+
+            case TipoDeSala.Tesouro:
+                // Um item no pedestal, ou um bau trancado (a chave vale a pena) com moedas em volta.
+                if (!temBau || Random.value < 0.6f)
+                {
+                    Pedestal.Criar(meio, pai, CatalogoDeItens.Sortear(itens));
+                }
+                else
+                {
+                    Bau.Criar(quadrosDoBau, meio, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Trancado);
+
+                    for (int i = 0; i < 3; i++)
+                        Coletavel.Criar(TipoDeColetavel.Moeda, meio + Vector2.down * 1.2f + Random.insideUnitCircle * 0.8f);
+                }
+
+                Ocupar(chao, meio, 0, 0);
+
+                // Velas em volta, pra sala parecer especial.
+                Vela.Criar(meio + new Vector2(-2f, 1f), pai);
+                Vela.Criar(meio + new Vector2(2f, 1f), pai);
+                break;
+        }
+    }
+
+    // As celulas onde nada se espalha (vale durante o Espalhar).
+    private static HashSet<Vector2Int> Proibido;
 
     // O premio da pedra rachada: moedas, ou chave e bomba, ou um bau.
     private static void Premio(Vector2 onde, Transform pai, GeradorDoAndar gerador, Sprite[] quadrosDoBau, EstatisticasDoJogador itens)
@@ -198,11 +220,14 @@ public static class RecheioDaCaverna
     {
         for (int x = -mx; x <= mx; x++)
             for (int y = -my; y <= my; y++)
-                if (!chao.Contains(c + new Vector2Int(x, y)))
+                if (!Pode(chao, c + new Vector2Int(x, y)))
                     return false;
 
         return true;
     }
+
+    private static bool Pode(HashSet<Vector2Int> chao, Vector2Int c) =>
+        chao.Contains(c) && (Proibido == null || !Proibido.Contains(c));
 
     private static void Ocupar(HashSet<Vector2Int> chao, Vector2 centro, int mx, int my)
     {
@@ -230,7 +255,7 @@ public static class RecheioDaCaverna
             Vector2Int lado = deitado ? Vector2Int.up : Vector2Int.right;
             int n = 0;
 
-            while (n < 9 && chao.Contains(c + passo * n) && chao.Contains(c + passo * n + lado) && chao.Contains(c + passo * n - lado))
+            while (n < 9 && Pode(chao, c + passo * n) && Pode(chao, c + passo * n + lado) && Pode(chao, c + passo * n - lado))
                 n++;
 
             if (n < 6)

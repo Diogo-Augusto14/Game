@@ -172,9 +172,11 @@ public static class Caverna
     /// <summary>
     /// Escolhe buracos de abismo: retangulos de chao (de 3 a 6 de largura e 3 a 5 de altura) nas
     /// partes abertas da caverna, longe do comeco, com chao em volta (pra nunca cortar um caminho).
-    /// As celulas continuam na planta; quem as separa e quem constroi.
+    /// As celulas continuam na planta; quem as separa e quem constroi. Nada de buraco encostando em
+    /// <paramref name="proibido"/> (corredores, portas, salas sem luta).
     /// </summary>
-    public static HashSet<Vector2Int> AbrirBuracos(HashSet<Vector2Int> chao, int quantos, float longeDoComeco)
+    public static HashSet<Vector2Int> AbrirBuracos(HashSet<Vector2Int> chao, int quantos, float longeDoComeco,
+                                                   HashSet<Vector2Int> proibido = null)
     {
         HashSet<Vector2Int> buracos = new HashSet<Vector2Int>();
         List<Vector2Int> celulas = new List<Vector2Int>(chao);
@@ -185,7 +187,7 @@ public static class Caverna
             Vector2Int canto = celulas[Random.Range(0, celulas.Count)];
             Vector2Int tamanho = new Vector2Int(Random.Range(3, 7), Random.Range(3, 6));
 
-            if (((Vector2)canto).magnitude < longeDoComeco || !CabeBuraco(chao, buracos, canto, tamanho))
+            if (((Vector2)canto).magnitude < longeDoComeco || !CabeBuraco(chao, buracos, canto, tamanho, proibido))
                 continue;
 
             for (int x = 0; x < tamanho.x; x++)
@@ -199,7 +201,8 @@ public static class Caverna
     }
 
     // O retangulo e 2 celulas em volta sao chao, sem outro buraco.
-    private static bool CabeBuraco(HashSet<Vector2Int> chao, HashSet<Vector2Int> buracos, Vector2Int canto, Vector2Int tamanho)
+    private static bool CabeBuraco(HashSet<Vector2Int> chao, HashSet<Vector2Int> buracos, Vector2Int canto, Vector2Int tamanho,
+                                   HashSet<Vector2Int> proibido)
     {
         for (int x = -2; x < tamanho.x + 2; x++)
         {
@@ -207,7 +210,7 @@ public static class Caverna
             {
                 Vector2Int c = canto + new Vector2Int(x, y);
 
-                if (!chao.Contains(c) || buracos.Contains(c))
+                if (!chao.Contains(c) || buracos.Contains(c) || (proibido != null && proibido.Contains(c)))
                     return false;
             }
         }

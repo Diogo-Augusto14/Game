@@ -17,7 +17,8 @@ using UnityEngine;
 /// Alguns entram em furia com pouca vida (<see cref="vidaDaFuria"/>): ficam vermelhos e mais rapidos.
 ///
 /// Comeca parado, sem saber do jogador. So acorda quando ve o jogador (perto e sem parede no meio)
-/// ou quando leva um tiro; acordado, nao esquece mais. So atira com o caminho livre ate o jogador.
+/// ou quando leva um tiro (nas salas de luta, quando o jogador entra: <see cref="EsperaASala"/>);
+/// acordado, nao esquece mais. So atira com o caminho livre ate o jogador.
 /// Pra chegar nele, vai reto quando da (sem parede nem buraco no caminho); quando nao da, segue o
 /// <see cref="MapaDeCaminhos"/>, que contorna paredes e buracos.
 ///
@@ -189,6 +190,12 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
 
     private void Apanhou(Dano dano) => Acordar();
 
+    /// <summary>
+    /// Mora numa sala de luta: so acorda quando o jogador entra nela (a <see cref="SalaDeLuta"/>
+    /// acorda) ou quando leva um tiro; ver o jogador pela porta aberta nao basta.
+    /// </summary>
+    public bool EsperaASala { get; set; }
+
     /// <summary>Passa a ir atras do jogador (ja acordado, nada muda).</summary>
     public void Acordar()
     {
@@ -241,7 +248,7 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
             caminhoLivre = distancia <= Mathf.Max(distanciaDeVisao, alcanceDoTiro) && !ParedeNoMeio(alvo.position);
             andaReto = caminhoLivre && !BarradoNoCaminho(ateOAlvo, distancia);
 
-            if (caminhoLivre && distancia <= distanciaDeVisao)
+            if (caminhoLivre && distancia <= distanciaDeVisao && !EsperaASala)
                 Acordar();
         }
 

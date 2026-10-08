@@ -3,20 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Monta e troca os andares: cada andar e uma caverna gigante e aberta, sem salas nem portas, como
-/// no Nuclear Throne, ou a arena de um chefe (<see cref="andares"/> diz a ordem).
+/// Monta e troca os andares: cada andar e um punhado de salas ligadas por corredores curtos, ou a
+/// arena de um chefe (<see cref="andares"/> diz a ordem).
 ///
-/// A caverna e cavada na hora (<see cref="Caverna"/>) e construida pelo <see cref="Pedreiro"/> com a
-/// arte do pacote Old Prison (paredes de tijolo, buracos de abismo, pocas de sangue, ossos), com
-/// o jogador numa clareira no centro do mundo. Os inimigos ficam espalhados em grupos, longe do
-/// comeco, parados ate verem o jogador. Quando o ultimo morre, o vortice da saida abre ali mesmo;
-/// pisar nele escurece a tela e monta o proximo andar, maior e com mais inimigos. O andar do chefe e
-/// um salao so dele (<see cref="Arena"/>): matou o chefe, o portal abre e cai um bau. Depois do ultimo
-/// andar, a partida acaba em vitoria e recomeca.
+/// A planta sai na hora (<see cref="PlantaDeSalas"/>) e e construida pelo <see cref="Pedreiro"/> com
+/// a arte do pacote Old Prison (paredes de tijolo, buracos de abismo, pocas de sangue, ossos), com o
+/// jogador na sala do comeco, no centro do mundo. Cada sala de luta (<see cref="SalaDeLuta"/>) guarda
+/// os inimigos dela dormindo; entrou, as grades fecham, e so abrem com todos mortos (as vezes depois
+/// de uma segunda onda), com um premio. As salas do lado tem loja, tesouro, altar ou desafio. Quando o
+/// ultimo inimigo do andar morre, o vortice da saida abre ali mesmo; pisar nele escurece a tela e monta
+/// o proximo andar, com mais salas e mais inimigos. O andar do chefe e um salao so dele
+/// (<see cref="Arena"/>): matou o chefe, o portal abre e cai um bau. Depois do ultimo andar, a partida
+/// acaba em vitoria e recomeca.
 ///
 /// Na tela, a <see cref="TelaDoJogo"/> desenha o nome do andar ao chegar, quantos inimigos faltam e o
-/// escuro da troca (daqui ela le); aqui fica so a seta na beirada apontando pro inimigo mais perto,
-/// quando sobram poucos. Ao abrir o jogo, mostra o menu inicial (<see cref="TelaDeInicio"/>); a
+/// escuro da troca (daqui ela le); aqui fica so a seta na beirada apontando pra sala que falta (ou
+/// pro inimigo mais perto), quando sobram poucas. Ao abrir o jogo, mostra o menu inicial (<see cref="TelaDeInicio"/>); a
 /// pausa (<see cref="TelaDePausa"/>) fica neste mesmo objeto. Cada andar toca a musica dele.
 /// </summary>
 [DisallowMultipleComponent]
@@ -27,39 +29,45 @@ public class GeradorDoAndar : MonoBehaviour
              "Depois do ultimo, vitoria")]
     [SerializeField] private AndarDaPartida[] andares;
 
-    [Tooltip("Tamanho da primeira caverna, em celulas de chao (1 celula = 1 unidade)")]
-    [SerializeField, Min(50)] private int celulasNoPrimeiroAndar = 1100;
+    [Header("Salas")]
+    [Tooltip("Salas de luta do comeco ate a do fim, no primeiro andar (contando a do fim)")]
+    [SerializeField, Min(1)] private int salasNoCaminho = 3;
 
-    [Tooltip("Celulas a mais em cada caverna seguinte")]
-    [SerializeField, Min(0)] private int celulasAMaisPorAndar = 120;
+    [Tooltip("Mais uma sala no caminho a cada tantos andares de salas")]
+    [SerializeField, Min(1)] private int andaresPorSalaAMais = 3;
 
-    [Tooltip("A caverna nao passa desta distancia do comeco, em celulas")]
-    [SerializeField, Min(10)] private int raioMaximo = 40;
+    [Tooltip("Salas de luta fora do caminho, no primeiro andar (mais uma a cada 4 andares de salas)")]
+    [SerializeField, Min(0)] private int lutasDoLado = 1;
 
-    [Tooltip("Metade da largura e da altura da clareira do comeco, em celulas")]
+    [Tooltip("Metade da largura e da altura da sala do comeco, em celulas")]
     [SerializeField] private Vector2Int clareira = new Vector2Int(5, 4);
 
     [Header("Inimigos")]
     [Tooltip("Os inimigos que aparecem: cada um a partir de um andar, sorteado pelo peso")]
     [SerializeField] private InimigoDoAndar[] inimigos;
 
-    [Tooltip("Inimigos na primeira caverna")]
-    [SerializeField, Min(0)] private int inimigosNoPrimeiroAndar = 20;
+    [Tooltip("Inimigos em cada sala de luta, no primeiro andar (a do fim tem 2 a mais)")]
+    [SerializeField] private Vector2Int inimigosPorSala = new Vector2Int(4, 6);
 
-    [Tooltip("Inimigos a mais em cada caverna seguinte")]
+    [Tooltip("Inimigos a mais por sala em cada andar de salas seguinte")]
+    [SerializeField, Min(0f)] private float inimigosAMaisPorSala = 0.5f;
 
-    [SerializeField, Min(0)] private int inimigosAMaisPorAndar = 3;
+    [Tooltip("Chance de uma sala de luta ter uma segunda onda (a do fim sempre tem)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeOnda = 0.3f;
 
-    [Tooltip("Os inimigos ficam em grupos deste tamanho")]
-    [SerializeField] private Vector2Int tamanhoDoGrupo = new Vector2Int(2, 4);
+    [Tooltip("Chance a mais de segunda onda em cada andar de salas seguinte")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeOndaAMaisPorAndar = 0.05f;
 
-    [Tooltip("Nenhum inimigo fica mais perto do comeco que isto, em unidades")]
+    [Tooltip("Inimigos que saem do chao na segunda onda")]
+    [SerializeField] private Vector2Int inimigosPorOnda = new Vector2Int(3, 4);
+
+    [Tooltip("Nenhum buraco fica mais perto do comeco que isto, em unidades")]
     [SerializeField, Min(0f)] private float longeDoComeco = 14f;
 
     [Tooltip("Ate quantos passos do jogador os inimigos acham caminho contornando paredes")]
     [SerializeField, Min(1)] private int distanciaDosCaminhos = 40;
 
-    [Tooltip("Com esta quantidade de inimigos ou menos, uma seta aponta pro mais perto")]
+    [Tooltip("Com esta quantidade de salas (ou inimigos soltos) ou menos, uma seta aponta pra mais perto")]
     [SerializeField, Min(0)] private int setaQuandoFaltarem = 3;
 
     [Header("Armas")]
@@ -68,7 +76,7 @@ public class GeradorDoAndar : MonoBehaviour
 
     [SerializeField, Min(0)] private int bausPorAndar = 3;
 
-    [Tooltip("Armas largadas no chao da caverna, por andar")]
+    [Tooltip("Armas largadas no chao das salas, por andar")]
     [SerializeField, Min(0)] private int armasNoChaoPorAndar = 1;
 
     [Tooltip("No primeiro andar, um bau ja na clareira do comeco")]
@@ -346,6 +354,7 @@ public class GeradorDoAndar : MonoBehaviour
 
         atual.vivos.Add(inimigo);
         ContornoClaro.Colocar(inimigo.gameObject, CorDoContorno);
+        SalaDeLuta.Adotar(inimigo);
     }
 
     /// <summary>Onde os inimigos que nascem no meio vao morar (somem junto com o andar).</summary>
@@ -641,9 +650,26 @@ public class GeradorDoAndar : MonoBehaviour
 
     private void GerarCaverna(int andar, int caverna)
     {
-        HashSet<Vector2Int> planta = Caverna.Cavar(celulasNoPrimeiroAndar + (caverna - 1) * celulasAMaisPorAndar, raioMaximo, clareira);
-        Caverna.Ajeitar(planta);
-        HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, buracosNoPrimeiroAndar + (caverna - 1) * buracosAMaisPorAndar, longeDoComeco * 0.7f);
+        PlantaDeSalas.Planta salas = PlantaDeSalas.Montar(salasNoCaminho + (caverna - 1) / Mathf.Max(1, andaresPorSalaAMais),
+                                                          lutasDoLado + (caverna - 1) / 4, SortearEspeciais(), clareira);
+        HashSet<Vector2Int> planta = salas.chao;
+
+        // Onde nada se espalha: corredores, a volta das portas e as salas sem luta.
+        HashSet<Vector2Int> proibido = new HashSet<Vector2Int>(salas.corredores);
+
+        foreach (Vector2Int porta in salas.portas)
+            for (int dx = -2; dx <= 2; dx++)
+                for (int dy = -2; dy <= 2; dy++)
+                    proibido.Add(porta + new Vector2Int(dx, dy));
+
+        foreach (SalaDaPlanta sala in salas.salas)
+        {
+            if (!sala.DeLuta)
+                proibido.UnionWith(sala.celulas);
+        }
+
+        HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, buracosNoPrimeiroAndar + (caverna - 1) * buracosAMaisPorAndar,
+                                                           longeDoComeco * 0.7f, proibido);
         HashSet<Vector2Int> pocas = Caverna.EspalharPocas(planta, buracos, pocasPorAndar);
         PedreiroDoMundo().Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
 
@@ -651,10 +677,17 @@ public class GeradorDoAndar : MonoBehaviour
         HashSet<Vector2Int> chaoDaCaverna = new HashSet<Vector2Int>(planta);
         chaoDaCaverna.ExceptWith(buracos);
         MapaDeCaminhos.Atual = new MapaDeCaminhos(chaoDaCaverna, distanciaDosCaminhos);
-        // Os baus primeiro: as celulas deles saem do chao, e ninguem nasce dentro de um.
-        EspalharArmas(chaoDaCaverna, andar);
-        RecheioDaCaverna.Espalhar(this, chaoDaCaverna, raiz.transform, andar, Mundo, quadrosDoBau);
-        EspalharInimigos(chaoDaCaverna, inimigosNoPrimeiroAndar + (caverna - 1) * inimigosAMaisPorAndar, andar);
+
+        // As salas especiais, os baus e o resto primeiro: as celulas deles saem do chao, e ninguem nasce dentro.
+        foreach (SalaDaPlanta sala in salas.salas)
+        {
+            if (!sala.DeLuta && sala.tipo != TipoDeSala.Comeco)
+                RecheioDaCaverna.EncherEspecial(sala, this, chaoDaCaverna, raiz.transform, quadrosDoBau);
+        }
+
+        EspalharArmas(chaoDaCaverna, proibido, andar);
+        RecheioDaCaverna.Espalhar(this, chaoDaCaverna, proibido, raiz.transform, andar, Mundo, quadrosDoBau);
+        EspalharInimigos(salas, chaoDaCaverna, andar, caverna);
 
         // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no
         // ponto mais longe do comeco: nunca embaixo do jogador.
@@ -662,6 +695,26 @@ public class GeradorDoAndar : MonoBehaviour
             AbrirSaida(MaisLongeDoComeco(chaoDaCaverna));
 
         chaoDoAndar = chaoDaCaverna;
+    }
+
+    // As salas especiais do andar (cada uma sorteada).
+    private static List<TipoDeSala> SortearEspeciais()
+    {
+        List<TipoDeSala> especiais = new List<TipoDeSala>();
+
+        if (Random.value < 0.65f)
+            especiais.Add(TipoDeSala.Loja);
+
+        if (Random.value < 0.5f)
+            especiais.Add(TipoDeSala.Tesouro);
+
+        if (Random.value < 0.25f)
+            especiais.Add(TipoDeSala.Altar);
+
+        if (Random.value < 0.25f)
+            especiais.Add(TipoDeSala.Desafio);
+
+        return especiais;
     }
 
     private static Vector2 MaisLongeDoComeco(HashSet<Vector2Int> chaoDaCaverna)
@@ -677,7 +730,8 @@ public class GeradorDoAndar : MonoBehaviour
         return longe;
     }
 
-    private void EspalharInimigos(HashSet<Vector2Int> chaoDaCaverna, int quantos, int andar)
+    // Cada sala de luta com os inimigos dela (dormindo ate o jogador entrar) e, as vezes, uma segunda onda.
+    private void EspalharInimigos(PlantaDeSalas.Planta salas, HashSet<Vector2Int> chaoDaCaverna, int andar, int caverna)
     {
         // So os que ja aparecem neste andar.
         List<InimigoDoAndar> possiveis = new List<InimigoDoAndar>();
@@ -696,49 +750,57 @@ public class GeradorDoAndar : MonoBehaviour
             }
         }
 
-        if (possiveis.Count == 0 || quantos <= 0)
-        {
+        if (possiveis.Count == 0)
             Debug.LogWarning("[Andar] nenhum inimigo pra espalhar: confira a lista Inimigos do objeto Andar", this);
-            return;
-        }
 
-        // So celulas longe do comeco e com chao em volta (ninguem nasce grudado na parede).
-        List<Vector2Int> lugares = new List<Vector2Int>();
-
-        foreach (Vector2Int c in chaoDaCaverna)
-        {
-            if (((Vector2)c).magnitude >= longeDoComeco && CercadaDeChao(chaoDaCaverna, c))
-                lugares.Add(c);
-        }
-
-        if (lugares.Count == 0)
-            return;
-
-        Transform pai = new GameObject("Inimigos").transform;
+        Transform pai = new GameObject("Salas de luta").transform;
         pai.SetParent(raiz.transform, false);
-        HashSet<Vector2Int> ocupadas = new HashSet<Vector2Int>();
+        int aMais = Mathf.FloorToInt((caverna - 1) * inimigosAMaisPorSala);
 
-        for (int tentativa = 0; vivos.Count < quantos && tentativa < quantos * 20; tentativa++)
+        foreach (SalaDaPlanta sala in salas.salas)
         {
-            // Um grupo em volta de um lugar sorteado.
-            Vector2Int centro = lugares[Random.Range(0, lugares.Count)];
-            int noGrupo = Random.Range(tamanhoDoGrupo.x, Mathf.Max(tamanhoDoGrupo.x, tamanhoDoGrupo.y) + 1);
+            if (!sala.DeLuta)
+                continue;
 
-            for (int i = 0; i < noGrupo * 6 && noGrupo > 0 && vivos.Count < quantos; i++)
+            bool fim = sala.tipo == TipoDeSala.Fim;
+            int quantos = Random.Range(inimigosPorSala.x, Mathf.Max(inimigosPorSala.x, inimigosPorSala.y) + 1) + aMais + (fim ? 2 : 0);
+            bool onda = fim || Random.value < chanceDeOnda + (caverna - 1) * chanceDeOndaAMaisPorAndar;
+            int porOnda = Random.Range(inimigosPorOnda.x, Mathf.Max(inimigosPorOnda.x, inimigosPorOnda.y) + 1) + aMais / 2;
+
+            if (possiveis.Count == 0)
             {
-                Vector2Int c = centro + new Vector2Int(Random.Range(-2, 3), Random.Range(-2, 3));
+                quantos = 0;
+                onda = false;
+            }
 
-                if (ocupadas.Contains(c) || !chaoDaCaverna.Contains(c) || !CercadaDeChao(chaoDaCaverna, c)
-                    || ((Vector2)c).magnitude < longeDoComeco)
+            SalaDeLuta luta = SalaDeLuta.Criar(sala, pai, this, chaoDaCaverna, onda ? 1 : 0, porOnda, quadrosDoBau);
+
+            // Lugares dentro da sala, longe das portas, com chao em volta e um pouco separados.
+            List<Vector2Int> lugares = new List<Vector2Int>();
+
+            foreach (Vector2Int c in sala.celulas)
+            {
+                if (chaoDaCaverna.Contains(c) && sala.BemDentro(c, 2f) && CercadaDeChao(chaoDaCaverna, c))
+                    lugares.Add(c);
+            }
+
+            List<Vector2Int> usados = new List<Vector2Int>();
+
+            for (int tentativa = 0; usados.Count < quantos && tentativa < quantos * 30 && lugares.Count > 0; tentativa++)
+            {
+                Vector2Int c = lugares[Random.Range(0, lugares.Count)];
+
+                if (!usados.TrueForAll(u => (u - c).sqrMagnitude >= 3))
                     continue;
 
-                ocupadas.Add(c);
-                noGrupo--;
-
-                GameObject novo = Instantiate(Sortear(possiveis, pesoTotal), (Vector2)c, Quaternion.identity, pai);
+                usados.Add(c);
+                GameObject novo = Instantiate(Sortear(possiveis, pesoTotal), (Vector2)c, Quaternion.identity, luta.transform);
 
                 if (novo.TryGetComponent(out Vida vida))
+                {
                     vivos.Add(vida);
+                    luta.Adicionar(vida);
+                }
 
                 ContornoClaro.Colocar(novo, CorDoContorno);
             }
@@ -760,8 +822,8 @@ public class GeradorDoAndar : MonoBehaviour
         return possiveis[possiveis.Count - 1].prefab;
     }
 
-    // Baus e armas no chao, longe do comeco e longe uns dos outros. No primeiro andar, um bau ja na clareira.
-    private void EspalharArmas(HashSet<Vector2Int> chaoDaCaverna, int andar)
+    // Baus e armas no chao das salas de luta, longe uns dos outros. No primeiro andar, um bau ja na sala do comeco.
+    private void EspalharArmas(HashSet<Vector2Int> chaoDaCaverna, HashSet<Vector2Int> proibido, int andar)
     {
         if (armas == null || armas.Length == 0)
             return;
@@ -772,7 +834,7 @@ public class GeradorDoAndar : MonoBehaviour
 
         foreach (Vector2Int c in chaoDaCaverna)
         {
-            if (((Vector2)c).magnitude >= 10f && CercadaDeChao(chaoDaCaverna, c))
+            if (((Vector2)c).magnitude >= 10f && CercadaDeChao(chaoDaCaverna, c) && !proibido.Contains(c))
                 lugares.Add(c);
         }
 
@@ -839,36 +901,63 @@ public class GeradorDoAndar : MonoBehaviour
             DesenharSeta();
     }
 
-    // Quando sobram poucos e o mais perto esta fora da tela: uma seta na beirada, apontando pra ele.
+    // Quando sobram poucas salas (ou poucos inimigos soltos) e a mais perto esta fora da tela: uma seta
+    // na beirada, apontando pra ela. Nunca no meio de uma luta.
     private void DesenharSeta()
     {
-        if (saida != null || vivos.Count == 0 || vivos.Count > setaQuandoFaltarem || Jogador == null)
+        if (saida != null || Jogador == null || SalaDeLuta.Fechada != null)
             return;
 
         if (cam == null)
             cam = Camera.main;
 
-        Vida maisPerto = null;
+        Vector2 alvo = Vector2.zero;
         float menor = float.MaxValue;
+        int salasQueFaltam = 0;
 
-        foreach (Vida vida in vivos)
+        foreach (SalaDeLuta sala in SalaDeLuta.Todas)
         {
-            if (vida == null)
+            if (sala == null || sala.Limpa)
                 continue;
 
-            float d = (vida.transform.position - Jogador.position).sqrMagnitude;
+            salasQueFaltam++;
+            float d = (sala.Meio - (Vector2)Jogador.position).sqrMagnitude;
 
             if (d < menor)
             {
                 menor = d;
-                maisPerto = vida;
+                alvo = sala.Meio;
             }
         }
 
-        if (cam == null || maisPerto == null)
+        if (salasQueFaltam > setaQuandoFaltarem)
             return;
 
-        Vector3 naTela = cam.WorldToScreenPoint(maisPerto.transform.position);
+        // Sem sala faltando: algum inimigo solto (quem fugiu de uma sala, quem nasceu no meio).
+        if (salasQueFaltam == 0)
+        {
+            if (vivos.Count == 0 || vivos.Count > setaQuandoFaltarem)
+                return;
+
+            foreach (Vida vida in vivos)
+            {
+                if (vida == null)
+                    continue;
+
+                float d = (vida.transform.position - Jogador.position).sqrMagnitude;
+
+                if (d < menor)
+                {
+                    menor = d;
+                    alvo = vida.transform.position;
+                }
+            }
+        }
+
+        if (cam == null || menor == float.MaxValue)
+            return;
+
+        Vector3 naTela = cam.WorldToScreenPoint(alvo);
 
         if (naTela.x > 0f && naTela.x < Screen.width && naTela.y > 0f && naTela.y < Screen.height)
             return;

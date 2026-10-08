@@ -75,18 +75,23 @@ parede ele procura olhando o caminho da frente a cada passo, então não atraves
 `CameraDoJogo` (segue o jogador e olha um pouco pra frente, na direção da mira; `Tremer` dá o tremor,
 `Pular` leva a câmera direto pro jogador quando ele troca de andar).
 
-## O andar: uma caverna gigante
+## O andar: salas que fecham
 
-Cada andar é uma caverna grande e aberta, sem salas nem portas, como no Nuclear Throne. Tudo fica no
-objeto **Andar** da cena (`GeradorDoAndar`), com os números no Inspector.
+Cada andar é um punhado de salas ligadas por corredores curtos, como no Enter the Gungeon (desde a
+1.12.0; antes era uma caverna grande e aberta, e ficava chato caçar os últimos inimigos). Entrou numa
+sala de luta, as grades fecham; só abrem com todos mortos, e cai um prêmio. Tudo fica no objeto
+**Andar** da cena (`GeradorDoAndar`), com os números no Inspector.
 
 | Script | O que faz |
 |---|---|
-| `Caverna` | Cava a planta: "andarilhos" saem do centro, andam, viram, se dividem e às vezes abrem uma galeria larga, até a caverna ter o tamanho pedido. Sai tudo ligado. O começo é sempre uma clareira. Depois ajeita a planta pras paredes do Old Prison e escolhe os buracos e as poças |
+| `PlantaDeSalas` | Monta a planta: a sala do começo no centro, um caminho de salas de luta até a do fim (maior), salas do lado (mais lutas e as especiais: loja, tesouro, altar, desafio) e às vezes um atalho entre duas lutas vizinhas. As salas ficam numa grade (19 × 17 de um meio ao outro); cada uma é um retângulo com cantos cortados, nichos e, nas grandes, pilares. Corredores de 3, e a ponta encostada em cada sala de luta é a porta dela |
+| `SalaDeLuta` | Uma sala de luta: os inimigos dormem até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem uma segunda onda saindo do chão (a sala do fim sempre tem). Limpou: abre e solta moedas, às vezes chave, bomba, coração ou um baú (a do fim sempre dá baú) |
+| `PortaDaSala` | A grade de ferro da porta: aberta, só o trilho no chão; fechada, é parede (camada `Wall`): segura gente e tiro |
+| `Caverna` | As ferramentas da planta: ajeita pras paredes do Old Prison e escolhe os buracos e as poças (o cavar com "andarilhos", da caverna antiga, ficou aí sem uso) |
 | `Pedreiro` | Transforma a planta em mundo com a arte do Old Prison, em Tilemaps: abismo, chão, sangue, enfeites e paredes, mais os colisores das paredes (camada `Wall`) e dos buracos (camada `Buraco`), só onde encostam no chão |
 | `Automapa` | As regras de encaixe do Tiled ("automapping"): pega os ladrilhos escolhidos pelos cantos e põe as faces de tijolo, os encontros e as variações, igual o Tiled faz |
 | `DadosDoOldPrison` | As tabelas de cantos e as regras do pacote, já convertidas (gerado pela ferramenta; não editar à mão) |
-| `GeradorDoAndar` | Monta o andar, espalha os inimigos em grupos longe do começo, conta quantos faltam, abre a saída quando o último morre e troca de andar. Na tela: o nome do andar, o contador e, quando sobram 3 ou menos, uma seta na beirada apontando pro mais perto |
+| `GeradorDoAndar` | Monta o andar, põe os inimigos em cada sala de luta, conta quantos faltam, abre a saída quando o último morre e troca de andar. Na tela: o nome do andar, o contador e, quando faltam 2 salas ou menos (fora de luta), uma seta na beirada apontando pra mais perto |
 | `Saida` | O vórtice: abre onde morreu o último inimigo e, pisado, leva pro próximo andar |
 | `Arena` | A planta do andar do chefe: um salão oval com quatro pilares, no mesmo formato da caverna (o `Pedreiro` constrói igual) |
 | `MapaDeCaminhos` | O caminho de qualquer ponto da caverna até o jogador, contornando paredes, buracos e baús (os inimigos usam quando não dá pra ir reto) |
@@ -101,9 +106,10 @@ no (0, 0). A lista **Andares** do objeto Andar diz a ordem da partida; hoje são
 | 4 e 5 | Cavernas |
 | 6 | **Coração da Prisão** (o Golem, o chefe final) |
 
-A primeira caverna tem umas 1500 células de chão (umas 7 telas cheias de chão) e 24 inimigos; cada
-caverna seguinte tem 400 células e 6 inimigos a mais. Depois do último andar, a partida acaba em
-vitória e recomeça.
+O primeiro andar tem 4 salas de luta (3 no caminho, contando a do fim, e 1 do lado) com 4 a 6 inimigos
+cada (a do fim, 2 a mais), mais as especiais sorteadas (loja 65%, tesouro 50%, altar 25%, desafio 25%).
+Uma sala a mais no caminho a cada 3 andares de salas, uma do lado a cada 4, e meio inimigo a mais por
+sala a cada andar. Depois do último andar, a partida acaba em vitória e recomeça.
 
 ### A arte do Old Prison e as regras do Tiled
 
@@ -112,7 +118,7 @@ O pacote Old Prison vem com arquivos do **Tiled Map Editor**: as folhas de ladri
 e as **regras de encaixe** (automapping), que põem embaixo de cada beirada a face de tijolo de 2 de
 altura e sorteiam variações (tijolo rachado, musgo). O jogo faz o mesmo na hora, a cada andar:
 
-1. a `Caverna` cava e **ajeita** a planta: nada de parede com menos de 3 de altura (o topo mais a face
+1. a `PlantaDeSalas` monta e a `Caverna` **ajeita** a planta: nada de parede com menos de 3 de altura (o topo mais a face
    de 2 não cabem) nem de encontro só pela diagonal (o pacote não tem desenho pra ele);
 2. o `Pedreiro` escolhe cada ladrilho pelos cantos: o **topo das paredes** são as células de parede com
    mais 2 de parede embaixo, porque essas 2 de baixo ficam pra face de tijolo; o **chão** é tudo que não
@@ -308,10 +314,12 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   13 **sinergias** (dois itens juntos dão um bônus). Os 6 **ativos** ficam no **R** e recarregam
   derrotando inimigos. Saem em pedestais: baú trancado e amaldiçoado, desafio, altar de sangue (paga com
   vida), loja (paga com moedas), tesouro e o prêmio do chefe.
-- **Recheio** (`RecheioDaCaverna`): cada caverna sorteia loja, altar, desafio, emboscada, baús
-  especiais, pedra rachada com prêmio e área escura, e as armadilhas: serra no trilho, tronco rolante e
-  espinhos (ferem o jogador e os inimigos). Mesas (viram de lado no primeiro tiro), barris, caixotes,
-  baratas e velas. O que ocupa lugar sai do mapa de caminhos.
+- **Recheio** (`RecheioDaCaverna`): as salas especiais ganham o que são (loja, altar, desafio, tesouro
+  com item no pedestal ou baú trancado). Nas salas de luta saem baú amaldiçoado, pedra rachada com
+  prêmio e área escura, e as armadilhas: serra no trilho, tronco rolante e espinhos (ferem o jogador e
+  os inimigos). Mesas (viram de lado no primeiro tiro), barris, caixotes, baratas e velas. Nada nos
+  corredores nem na frente das portas; o que ocupa lugar sai do mapa de caminhos. (A emboscada saiu: a
+  própria sala de luta já é uma.)
 - **Temas dos mundos**: Porão (marrom), Catacumbas (o azul do Old Prison), Cripta (verde) e Abismo
   (vermelho), com o chão e as paredes recoloridos (`Resources/Temas`) e a música de cada um.
 - **Arcos especiais** (nos baús): explosivo, de gelo (deixa lento), venenoso e ricochete (quica nas

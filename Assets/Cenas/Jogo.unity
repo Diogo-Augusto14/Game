@@ -614,9 +614,9 @@ MonoBehaviour:
   - nome: 
     chefe: {fileID: 1098764678197149752, guid: ae4508e983274a49948ae071f410f44c, type: 3}
     ouEntao: []
-  celulasNoPrimeiroAndar: 1100
-  celulasAMaisPorAndar: 120
-  raioMaximo: 40
+  salasNoCaminho: 3
+  andaresPorSalaAMais: 3
+  lutasDoLado: 1
   clareira: {x: 5, y: 4}
   inimigos:
   - prefab: {fileID: 7624800600701863497, guid: 6d06fbfc74634d308c00558a827e02d5, type: 3}
@@ -739,12 +739,14 @@ MonoBehaviour:
     primeiroAndar: 8
     ultimoAndar: 0
     peso: 0.6
-  inimigosNoPrimeiroAndar: 20
-  inimigosAMaisPorAndar: 3
-  tamanhoDoGrupo: {x: 2, y: 4}
+  inimigosPorSala: {x: 4, y: 6}
+  inimigosAMaisPorSala: 0.5
+  chanceDeOnda: 0.3
+  chanceDeOndaAMaisPorAndar: 0.05
+  inimigosPorOnda: {x: 3, y: 4}
   longeDoComeco: 12
   distanciaDosCaminhos: 40
-  setaQuandoFaltarem: 3
+  setaQuandoFaltarem: 2
   armas:
   - {fileID: 11400000, guid: b77bbb851ffe4703b65f225e4f0af6ca, type: 2}
   - {fileID: 11400000, guid: 34f21b9ee6754b8e84fa9f0c6bcec937, type: 2}
@@ -755,7 +757,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fd1052285e434c99bd2e86686c1f10c9, type: 2}
   - {fileID: 11400000, guid: f2401f0fb21f4ac1af320f90d278b882, type: 2}
   - {fileID: 11400000, guid: 6e94cbb0741b493f877a42065f4d767f, type: 2}
-  bausPorAndar: 3
+  bausPorAndar: 1
   armasNoChaoPorAndar: 1
   bauNoComeco: 0
   chanceDeMunicao: 0.12
@@ -766,9 +768,9 @@ MonoBehaviour:
   somDaMunicao: {fileID: 8300000, guid: 9c9cf1a2f6914988bd23c18cf20f1f60, type: 3}
   raioDaArena: {x: 12, y: 9}
   bauDepoisDoChefe: 1
-  buracosNoPrimeiroAndar: 8
-  buracosAMaisPorAndar: 2
-  pocasPorAndar: 10
+  buracosNoPrimeiroAndar: 3
+  buracosAMaisPorAndar: 1
+  pocasPorAndar: 6
   chanceDeEnfeite: 0.05
   chao: {fileID: 2800000, guid: ff996ffe69064f7cbbdd835205456d5e, type: 3}
   paredes: {fileID: 2800000, guid: 8b5059f7028d4ddd8a4afbffbb981ed4, type: 3}
