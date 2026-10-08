@@ -30,6 +30,7 @@ public static class Loja
             placa.GetComponent<MeshRenderer>().sharedMaterial = placa.font.material;
 
         placa.GetComponent<MeshRenderer>().sortingOrder = 30;
+        Iluminacao.Brilhar(placa.GetComponent<MeshRenderer>());
 
         ItemPassivo item = CatalogoDeItens.Sortear(jogador);
         Pedestal.Criar(onde + new Vector2(-1.6f, -0.3f), pai, item, item.Preco);

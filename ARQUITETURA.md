@@ -32,7 +32,7 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Jogador` | Controles, movimento e esquiva, animação, rastro da esquiva, cursor de mira, morte, os heróis e a habilidade deles |
 | `Assets/Scripts/Armas` | Os dados de uma arma (asset), a arma com a munição dela, quem atira, o tiro em voo, a arma na mão e no chão, o baú, a caixa de munição e a munição na tela |
 | `Assets/Scripts/Combate` | Vida e dano (a mesma peça pra todo mundo), o piscar branco e o impacto (hitstop e números de dano) |
-| `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, os jeitos extras (sumir, escudo, dividir, invocar), o contorno claro, os chefes e o boneco de treino |
+| `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, os jeitos extras (sumir, escudo, dividir, invocar), os chefes e o boneco de treino |
 | `Assets/Scripts/Itens` | Moedas, chaves e bombas (a bolsa), os coletáveis, a bomba e a explosão, os itens passivos e ativos, as sinergias, o pedestal (também da loja e do altar) e o orbe guardião |
 | `Assets/Scripts/Cenario` | O que enche a caverna: loja, altar de sangue, emboscada e desafio, área escura, serra no trilho, tronco rolante, espinhos, mesas e barris que quebram, baratas e velas |
 | `Assets/Scripts/Progresso` | Heróis liberados, estatísticas, conquistas, bestiário, a tela de progresso e a partida salva |
@@ -50,7 +50,7 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Arte/OldPrison` | A arte da caverna, do pacote Old Prison: chão, paredes, abismo, sangue e enfeites (32 × 32 por ladrilho) |
 | `Assets/Arte/Resources` | A arte dos outros pacotes (provisória) |
 | `Ferramentas/OldPrison` | `importar.py`: tira do pacote Old Prison as folhas e as regras do Tiled que a caverna usa |
-| `Ferramentas/Temas` | `importar.py`: tira dos pacotes Crypt e The Depths of the Mountain a arte da Cripta e das Profundezas (`DadosDosTemas.cs`) e a decoração (`Resources/Decoracao`: caixões, estátuas, cristais, tochas, a porta grande de madeira, o lançador de fogo) |
+| `Ferramentas/Temas` | `importar.py`: tira dos pacotes Old Prison, Crypt e The Depths of the Mountain a arte da Cripta e das Profundezas (`DadosDosTemas.cs`) e a decoração (`Resources/Decoracao`: as peças do Old Prison em `Prisao/`, caixões, estátuas, cristais, tochas, velas, a chama mágica, a porta grande de madeira, o lançador de fogo) |
 | `Ferramentas/Personagens` | `importar.py`: recorta dos pacotes as folhas dos inimigos e do Rei Esqueleto (em volta do boneco, 32 pixels por unidade) e grava `quadros.json` |
 | `Pacotes/` | Os pacotes comprados, descompactados (fora do Git deste repositório público; ficam no privado `ThePrettie-Pacotes`, ver `CLAUDE.md`) |
 
@@ -205,8 +205,7 @@ lista **Inimigos** do objeto Andar o primeiro e o último andar em que aparece e
 | 2 (4 e 5) | Morcego (rodeia e mergulha), Lobisomem (rodeia, duas disparadas), Orc e Esqueleto Blindados (armadura: metade do dano), Necromante (anéis, levanta esqueletos), Cavaleiro da Lança (investida longa), Urso (não é empurrado, anel de pedras), Orc Montado (galope duplo) |
 | 3 (7 e 8) | Demônio (corte à frente), Demônia (rodeia, leque), Demônia da Foice (anel de cortes), Fogo-Fátuo (voa, some, chamas em cruz), Monstro de Sangue (anel de sangue), Demônio do Tridente (arremesso), Demônio Arqueiro (flechas de fogo), Olho (espiral), Demônio das Lâminas (3 arrancadas), Orc de Elite (fúria), Esqueleto do Espadão (onda de corte), Cavaleiro do Escudo (bloqueia de frente), Cavaleiro Canhão (parado, rajada) |
 
-Os do mundo 2 e 3 continuam aparecendo no 4. Todo inimigo ganha um **contorno claro** de 1 pixel
-(`ContornoClaro`), pra não sumir no chão escuro.
+Os do mundo 2 e 3 continuam aparecendo no 4. (O contorno claro em volta dos inimigos saiu na 1.16.0.)
 
 | Script | O que faz |
 |---|---|
@@ -217,7 +216,6 @@ Os do mundo 2 e 3 continuam aparecendo no 4. Todo inimigo ganha um **contorno cl
 | `EscudoFrontal` | Segura o golpe que vem de frente (abre quando ele ataca); é um `IBloqueioDeDano` da `Vida` |
 | `DivideAoMorrer` | Ao morrer vira pedaços menores (a Bolha vira duas Bolinhas) |
 | `Invocador` | Levanta ajudantes do chão (o Necromante, até 2 esqueletos vivos); eles saem crescendo (`SaindoDoChao`) |
-| `ContornoClaro` | O contorno claro (quatro máscaras deslocadas 1 pixel recortam um retângulo claro atrás do desenho) |
 | `AnimacaoDoInimigo` | Parado, andando, atacando e morrendo, olhando pro jogador. O quadro do disparo chega bem quando o ataque sai |
 | `Vida` | Lado `Inimigos`; a vida muda de um pra outro, e a `armadura` segura uma parte do dano |
 | `PiscarAoTomarDano` | Fica branco a cada golpe |
@@ -331,12 +329,23 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   Mountain: sem paredes, as salas flutuam sobre o vazio, com estátuas douradas, cristais, ouro, potes que
   quebram e rochas saindo do vazio). Tochas acesas nas paredes de todos os mundos com parede; as portas
   das salas são a porta grande de madeira do Crypt (sobe do chão ao fechar); os espinhos são os do Crypt.
-- **Iluminação** (1.15.0, `Iluminacao`): o andar é escuro. A "Luz global" da cena fica bem fraca, num tom
-  de cada mundo (um pouco mais clara no salão do chefe), e só ilumina quem tem luz: o herói (fraca, em
-  volta dele), tochas (nas paredes de todos os mundos com parede, e no salão do chefe), velas,
-  candelabros, cristais, o portal, a estátua de fogo e os itens no pedestal. Tiros, moedas, efeitos,
-  armas no chão, bombas e as marcas dos chefes ficam na camada de desenho "Brilho", que a "Luz do brilho"
-  deixa sempre acesa. O fundo da câmera escurece junto.
+- **Iluminação** (1.16.0, `Iluminacao`, `Escuridao`, `FonteDeLuz`): o andar é escuro. Não usa as luzes 2D
+  do URP (no build elas não escureciam nada): a `Escuridao` é um véu preto por cima do mundo, uma textura
+  pequena (4 pontos por célula, filtrada) refeita a cada quadro, com a luz de fundo bem fraca num tom de
+  cada mundo (um pouco mais clara no salão do chefe) e buracos claros em volta de cada `FonteDeLuz`: o
+  herói (fraca), tochas (nas paredes de todos os mundos com parede, e no salão do chefe), velas,
+  candelabros, cristais, a chama mágica, o portal, a estátua de fogo e os itens no pedestal. A cor das
+  luzes tinge um pouco o véu (o fogo deixa a volta quente). Tiros, moedas, efeitos, números de dano,
+  preços da loja, armas no chão, bombas e as marcas dos chefes ficam na camada de desenho "Brilho", que é
+  desenhada por cima do véu. O fundo da câmera escurece junto.
+- **Decoração das salas** (1.16.0, `Decoracao`): cada sala ganha cenas montadas nos cantos, com as peças
+  dos pacotes. No Old Prison (Porão e Catacumbas): depósito (tonéis, barris e caixotes que quebram, sacos,
+  baldes), tortura (dama de ferro, guilhotina, tronco, correntes, bolas de espinhos), cela (esqueleto
+  acorrentado, gaiola), mesa posta (cadeiras, caneca, vela acesa) e ossário (esqueleto, ossos, velas ou a
+  chama mágica azul); na parede de cima, entre as tochas, estandartes, retratos, correntes e esqueletos
+  acorrentados; gaiolas penduradas, correntes caindo do teto, candelabros; e miudezas pelo chão (ossos,
+  pedras, papel, correntes), mais perto das paredes. A Cripta ganhou bancos, livros, montes de
+  velas, ossos e correntes; as Profundezas, a espada fincada e pedras.
 - **Inimigos dos pacotes**: Catacumbas: esqueleto, escudeiro, mago e assassino (Old Prison). Cripta:
   esqueletos, aranhas e minhocões que somem na terra (Crypt). Profundezas: goblins, goblin assassino,
   pote mímico e os demônios (Depths). O **Rei Esqueleto** (Depths) é sorteado como chefe da Cripta.

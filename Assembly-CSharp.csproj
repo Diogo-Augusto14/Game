@@ -64,7 +64,6 @@
     <Compile Include="Assets\Scripts\Jogador\AnimacaoDoJogador.cs" />
     <Compile Include="Assets\Scripts\Combate\Impacto.cs" />
     <Compile Include="Assets\Scripts\Combate\TextoFlutuante.cs" />
-    <Compile Include="Assets\Scripts\Inimigos\ContornoClaro.cs" />
     <Compile Include="Assets\Scripts\Inimigos\ViradaDeFase.cs" />
     <Compile Include="Assets\Scripts\Interface\AvisoDoAndar.cs" />
     <Compile Include="Assets\Scripts\Inimigos\SomeEAparece.cs" />
@@ -114,6 +113,8 @@
     <Compile Include="Assets\Scripts\Cenario\LancadorDeFogo.cs" />
     <Compile Include="Assets\Scripts\Nucleo\Iluminacao.cs" />
     <Compile Include="Assets\Scripts\Nucleo\LuzTremula.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\Escuridao.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\FonteDeLuz.cs" />
     <Compile Include="Assets\Scripts\Combate\Dano.cs" />
     <Compile Include="Assets\Scripts\Combate\Vida.cs" />
     <Compile Include="Assets\Scripts\Combate\PiscarAoTomarDano.cs" />

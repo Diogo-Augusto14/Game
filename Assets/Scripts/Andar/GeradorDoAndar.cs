@@ -223,7 +223,7 @@ public class GeradorDoAndar : MonoBehaviour
         if (jogador != null)
         {
             Herois.Aplicar(jogador, Herois.Atual);
-            Iluminacao.Luz(jogador.transform, new Vector2(0f, 0.2f), Iluminacao.Heroi, 5.5f, 0.8f, 0.03f);
+            Iluminacao.Luz(jogador.transform, new Vector2(0f, 0.2f), Iluminacao.Heroi, 4.5f, 0.85f, 0.03f);
         }
 
         GerarSemTravar(1);
@@ -369,7 +369,6 @@ public class GeradorDoAndar : MonoBehaviour
             return;
 
         atual.vivos.Add(inimigo);
-        ContornoClaro.Colocar(inimigo.gameObject, CorDoContorno);
         SalaDeLuta.Adotar(inimigo);
     }
 
@@ -402,7 +401,7 @@ public class GeradorDoAndar : MonoBehaviour
     private static readonly string[] NomesDosMundos = { "Porão", "Catacumbas", "Cripta", "Profundezas" };
 
     // A luz ambiente de cada mundo (o resto vem das tochas, das velas e do heroi) e o tom dela.
-    private static readonly float[] LuzDosMundos = { 0.2f, 0.17f, 0.15f, 0.14f };
+    private static readonly float[] LuzDosMundos = { 0.16f, 0.14f, 0.12f, 0.12f };
     private static readonly Color[] CorDosMundos =
     {
         new Color(1f, 0.85f, 0.7f), new Color(0.75f, 0.85f, 1f), new Color(0.7f, 0.95f, 1f), new Color(0.75f, 1f, 0.85f),
@@ -493,9 +492,6 @@ public class GeradorDoAndar : MonoBehaviour
 
         return vida;
     }
-
-    /// <summary>A cor do contorno claro em volta dos inimigos (a mesma do jogo antigo).</summary>
-    public static readonly Color CorDoContorno = new Color(1f, 0.95f, 0.85f, 0.6f);
 
     /// <summary>O jogador pisou na saida: vai pro proximo andar (ou vence, se era o ultimo).</summary>
     public void ProximoAndar()
@@ -684,7 +680,6 @@ public class GeradorDoAndar : MonoBehaviour
 
         GameObject novo = Instantiate(prefabDoChefe, (Vector2)Arena.OndeOChefeFica(raioDaArena), Quaternion.identity, raiz.transform);
         chefe = novo.GetComponent<Chefe>();
-        ContornoClaro.Colocar(novo, CorDoContorno);
 
         if (novo.TryGetComponent(out Vida vida))
             vivos.Add(vida);
@@ -880,8 +875,7 @@ public class GeradorDoAndar : MonoBehaviour
                     luta.Adicionar(vida);
                 }
 
-                ContornoClaro.Colocar(novo, CorDoContorno);
-            }
+                    }
         }
     }
 

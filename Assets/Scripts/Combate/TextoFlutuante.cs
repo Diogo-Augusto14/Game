@@ -37,6 +37,7 @@ public class TextoFlutuante : MonoBehaviour
             desenho.sharedMaterial = texto.font.material;
 
         desenho.sortingOrder = 40;
+        Iluminacao.Brilhar(desenho);
 
         TextoFlutuante t = obj.AddComponent<TextoFlutuante>();
         t.texto = texto;

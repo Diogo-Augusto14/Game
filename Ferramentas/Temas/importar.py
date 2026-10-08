@@ -19,6 +19,7 @@ Uso (da raiz do projeto):  python Ferramentas/Temas/importar.py [pasta com os pa
 Precisa do Pillow (pip install pillow).
 """
 import os
+import re
 import sys
 import importlib.util
 from PIL import Image
@@ -67,10 +68,72 @@ PECAS = {
     'Profundezas/Vazio': [(DPP, 'rock pillars coming from darkness-bg_{}.png', range(0, 4)), (DPP, 'rocks coming from darkness-bg_{}.png', range(0, 5)),
                           (DPP, 'statues-far from platforms-bg_{}.png', range(0, 10)), (DPP, 'pillars-bg_{}.png', range(0, 8))],
 }
+# Mais do Crypt: ossos, bancos e livros no chao.
+PECAS.update({
+    'Cripta/Ossos': [(CP, 'bones - color scheme 1 - {}.png', range(1, 46)), (CP, 'bones - color scheme 2 - {}.png', range(1, 25))],
+    'Cripta/Banco': [(CP, 'bench horizontal{}.png', ['', ' 2'])],
+    'Cripta/Livro': [(CP, 'book - support {}.png', range(1, 4))],
+    'Profundezas/Espada': [(DPP, 'sword stuck in the ground{}.png', [''])],
+})
+
+# O Old Prison (mundos 1 e 2): as pecas sao escolhidas pelo numero na lista do atlas (os nomes do pacote,
+# em ordem alfabetica) ou por um filtro no nome e no tamanho.
+OPP = 'Old Prison V1.7.1/Props/atlas props - individual sprites/'
+
+
+def faixa(*partes):
+    r = []
+    for a in partes:
+        r += list(range(a[0], a[1] + 1)) if isinstance(a, tuple) else [a]
+    return r
+
+
+def barril_em_pe(nome, im, moedas):
+    if not re.match(r'^barrel - (color scheme 2 - )?\d+( (gold|silver))?\.png$', nome):
+        return False
+    w, h = im.size
+    tem = ' gold' in nome or ' silver' in nome
+    return tem == moedas and w <= 33 and 36 <= h <= 45
+
+
+PRISAO = {
+    'Prisao/Barril': lambda n, im: barril_em_pe(n, im, False),
+    'Prisao/BarrilDeMoedas': lambda n, im: barril_em_pe(n, im, True),
+    'Prisao/Tonel': lambda n, im: re.match(r'^barrel - color scheme [12] - \d+\.png$', n) and im.size[0] >= 50 and im.size[1] > im.size[0],
+    'Prisao/BarrilCaido': lambda n, im: ' - dropped' in n,
+    'Prisao/Caixote': faixa((424, 431)),
+    'Prisao/Saco': faixa((753, 764)),
+    'Prisao/Balde': faixa((340, 351)),
+    'Prisao/Candelabro': [353, 358, 361, 367, 370],
+    'Prisao/Vela': faixa((375, 378)),
+    'Prisao/Corrente': faixa((380, 389), (391, 397)),
+    'Prisao/CorrenteDaParede': [379, 390, 398, 399, 400, 407, 408, 409, 410],
+    'Prisao/CorrenteDoTeto': [405, 406, 411, 412],
+    'Prisao/Acorrentado': faixa(281, 282, (284, 289), 326, 327, (329, 334)),
+    'Prisao/Esqueleto': faixa((251, 256), 271, 272, 283, 290, (296, 301), 306, 316, 317, 328, 335),
+    'Prisao/Ossos': faixa(250, (257, 270), (273, 280), (291, 295), (302, 305), (307, 315), (318, 325), (336, 339)),
+    'Prisao/Pedras': faixa((677, 752)),
+    'Prisao/Papel': faixa((485, 511)),
+    'Prisao/Gaiola': faixa((765, 769)),
+    'Prisao/GaiolaNoChao': [771, 774, 775, 777, 778, 780],
+    'Prisao/Mesa': [785, 787, 809, 811],
+    'Prisao/Cadeira': faixa((793, 808), (817, 832)),
+    'Prisao/Caneca': faixa((781, 784)),
+    'Prisao/DamaDeFerro': faixa((845, 850)),
+    'Prisao/Guilhotina': [851, 853],
+    'Prisao/Tronco': faixa((855, 858)),
+    'Prisao/Retrato': faixa((568, 603)),
+    'Prisao/Estandarte': faixa((606, 665)),
+    'Prisao/BolaDeEspinhos': faixa((438, 457)),
+    'Prisao/Ouro': [436, 437, 604, 605],
+}
+
 # As animadas (folhas inteiras): Resources/Decoracao/<nome>.png
 ANIMADAS = {
     'Tocha': 'Crypt V1.6/Props/animated/torch_burning.png',
     'LancadorDeFogo': 'Crypt V1.6/Props/animated/face statue-fire projectile launcher-firing.png',
+    'ChamaMagica': 'Old Prison V1.7.1/Props/magic flame.png',
+    'Velas': 'Crypt V1.6/Props/animated/candle_burning.png',
 }
 
 
@@ -137,6 +200,23 @@ def pecas():
                     im = im.crop(caixa)
                 im.save(os.path.join(pasta, f'{n:02d}.png'))
                 n += 1
+        total += n
+    lista_op = sorted(os.listdir(os.path.join(PACOTES, OPP)))
+    for grupo, escolha in PRISAO.items():
+        pasta = os.path.join(base, grupo)
+        os.makedirs(pasta, exist_ok=True)
+        n = 0
+        for i, nome in enumerate(lista_op):
+            im = Image.open(os.path.join(PACOTES, OPP, nome)).convert('RGBA')
+            caixa = im.getbbox()
+            if not caixa:
+                continue
+            im = im.crop(caixa)
+            if not (escolha(nome, im) if callable(escolha) else i in escolha):
+                continue
+            im.save(os.path.join(pasta, f'{n:02d}.png'))
+            n += 1
+        assert n > 0, grupo
         total += n
     for nome, origem in ANIMADAS.items():
         Image.open(os.path.join(PACOTES, origem)).convert('RGBA').save(os.path.join(base, nome + '.png'))

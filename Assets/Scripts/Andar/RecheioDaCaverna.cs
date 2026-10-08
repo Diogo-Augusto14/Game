@@ -71,7 +71,8 @@ public static class RecheioDaCaverna
         }
 
         // ---------------- cenario ----------------
-        int moveis = Random.Range(4, 8);
+        // Poucos: a decoracao das salas (Decoracao) ja traz barris e caixotes; a mesa vira escudo.
+        int moveis = Random.Range(2, 4);
 
         for (int i = 0; i < moveis; i++)
         {
@@ -97,7 +98,7 @@ public static class RecheioDaCaverna
         }
 
         // Velas: mais na Cripta (mundo 3).
-        int velas = mundo == 3 ? Random.Range(8, 14) : Random.Range(2, 6);
+        int velas = mundo == 3 ? Random.Range(6, 10) : Random.Range(2, 5);
 
         for (int i = 0; i < velas; i++)
         {
