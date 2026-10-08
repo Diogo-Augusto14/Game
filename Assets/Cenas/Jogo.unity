@@ -688,15 +688,15 @@ MonoBehaviour:
     ultimoAndar: 0
     peso: 0.8
   - prefab: {fileID: 226647630814359519, guid: 4444f24f807d4bd0a9517413eaa15f19, type: 3}
-    primeiroAndar: 7
+    primeiroAndar: 10
     ultimoAndar: 0
     peso: 2
   - prefab: {fileID: 1004995156621384842, guid: c3bcd5277b9b40dba2753995dcc2c9c9, type: 3}
-    primeiroAndar: 7
+    primeiroAndar: 10
     ultimoAndar: 0
     peso: 1.5
   - prefab: {fileID: 1241636838850033013, guid: 6a6bfebde9e442b6b5d32185d8ef3193, type: 3}
-    primeiroAndar: 7
+    primeiroAndar: 10
     ultimoAndar: 0
     peso: 1
   - prefab: {fileID: 278749727108349511, guid: b3feb98ddda449ac83a0c75cfcafc7a4, type: 3}
@@ -708,11 +708,11 @@ MonoBehaviour:
     ultimoAndar: 0
     peso: 1
   - prefab: {fileID: 182317919206825673, guid: 96b0f1a6a4444bae8d565df6bab17249, type: 3}
-    primeiroAndar: 7
+    primeiroAndar: 10
     ultimoAndar: 0
     peso: 1.2
   - prefab: {fileID: 253686251843262162, guid: 8bb5741355e84b64b135818da80f6049, type: 3}
-    primeiroAndar: 7
+    primeiroAndar: 10
     ultimoAndar: 0
     peso: 1.2
   - prefab: {fileID: 410441793863870405, guid: ff4b2ca93a414d8881c1cf68e39aa361, type: 3}
@@ -720,7 +720,7 @@ MonoBehaviour:
     ultimoAndar: 0
     peso: 1
   - prefab: {fileID: 936101365306429150, guid: c709557f09cc411fb461f7b44ebe654e, type: 3}
-    primeiroAndar: 8
+    primeiroAndar: 10
     ultimoAndar: 0
     peso: 1
   - prefab: {fileID: 455535338278284616, guid: 1394bdb09bf74252a2d46e4c3d298d75, type: 3}
@@ -739,6 +739,62 @@ MonoBehaviour:
     primeiroAndar: 8
     ultimoAndar: 0
     peso: 0.6
+  - prefab: {fileID: 520704497908636674, guid: 6e90c85a32d24a649ffc7df09d986712, type: 3}
+    primeiroAndar: 4
+    ultimoAndar: 8
+    peso: 2
+  - prefab: {fileID: 461465095299800342, guid: 1d5d8d1516534e27b334e41f93c58c44, type: 3}
+    primeiroAndar: 4
+    ultimoAndar: 8
+    peso: 1.2
+  - prefab: {fileID: 664878854763115870, guid: 47a364d3635048f58e5cbe83693eb3a3, type: 3}
+    primeiroAndar: 4
+    ultimoAndar: 8
+    peso: 1.2
+  - prefab: {fileID: 665397104231408350, guid: 3edda25f1949453e8b36e12f3cbb548b, type: 3}
+    primeiroAndar: 5
+    ultimoAndar: 8
+    peso: 1
+  - prefab: {fileID: 924269674239346828, guid: fc5689f5ff92416c92407aefefabef31, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 9
+    peso: 2.2
+  - prefab: {fileID: 399160052636759234, guid: a0e56e11f1314d32b93b4fde38c77412, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 925432199786997598, guid: 52a0e5cea7744276b31a7bfda436d11e, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1.5
+  - prefab: {fileID: 609370454353989333, guid: 520189a3fde8411f90b61f356348a4a1, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 807177259685767778, guid: 06c0fb9f8e154c44960e87e3a06f1b95, type: 3}
+    primeiroAndar: 7
+    ultimoAndar: 9
+    peso: 1
+  - prefab: {fileID: 176541014591632692, guid: 4d02e63df23a483f81ab423d1ca39568, type: 3}
+    primeiroAndar: 8
+    ultimoAndar: 0
+    peso: 0.8
+  - prefab: {fileID: 267807164662155706, guid: 1e6afdafd3d84136b8aa45e67950f5e0, type: 3}
+    primeiroAndar: 10
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 889392275575779989, guid: 3dc3ce38929a4abe875a3798eb4c1586, type: 3}
+    primeiroAndar: 10
+    ultimoAndar: 0
+    peso: 1.2
+  - prefab: {fileID: 1005872179714546676, guid: f3855748071d4f479ca3ff9006d9b7c7, type: 3}
+    primeiroAndar: 10
+    ultimoAndar: 0
+    peso: 1.8
+  - prefab: {fileID: 577702328166104189, guid: ce0281dcf14f4a7e93e3c4d2bea9b764, type: 3}
+    primeiroAndar: 10
+    ultimoAndar: 0
+    peso: 1.2
   inimigosPorSala: {x: 4, y: 6}
   inimigosAMaisPorSala: 0.5
   chanceDeOnda: 0.3

@@ -1,0 +1,226 @@
+{
+ "EsqueletoDaCripta": {
+  "quadro": [
+   60,
+   83
+  ],
+  "pes": 35.5,
+  "golpe": 12,
+  "altura": 41,
+  "quadros": {
+   "Idle": 7,
+   "Walk": 8,
+   "Attack01": 17,
+   "Death": 13
+  },
+  "espelhado": false
+ },
+ "EsqueletoRubro": {
+  "quadro": [
+   60,
+   83
+  ],
+  "pes": 35.5,
+  "golpe": 12,
+  "altura": 41,
+  "quadros": {
+   "Idle": 7,
+   "Walk": 8,
+   "Attack01": 17,
+   "Death": 13
+  },
+  "espelhado": false
+ },
+ "Aranha": {
+  "quadro": [
+   60,
+   34
+  ],
+  "pes": 13.0,
+  "golpe": 8,
+  "altura": 29,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 12,
+   "Death": 17
+  },
+  "espelhado": false
+ },
+ "AranhaVenenosa": {
+  "quadro": [
+   60,
+   34
+  ],
+  "pes": 13.0,
+  "golpe": 8,
+  "altura": 29,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 12,
+   "Death": 17
+  },
+  "espelhado": false
+ },
+ "Minhocao": {
+  "quadro": [
+   116,
+   63
+  ],
+  "pes": 21.5,
+  "golpe": 22,
+  "altura": 46,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 30,
+   "Death": 12
+  },
+  "espelhado": false
+ },
+ "MinhocaoSombrio": {
+  "quadro": [
+   116,
+   63
+  ],
+  "pes": 21.5,
+  "golpe": 22,
+  "altura": 46,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 30,
+   "Death": 12
+  },
+  "espelhado": false
+ },
+ "GoblinBrutamonte": {
+  "quadro": [
+   102,
+   64
+  ],
+  "pes": 26.0,
+  "golpe": 10,
+  "altura": 52,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 16,
+   "Death": 11
+  },
+  "espelhado": false
+ },
+ "GoblinDaClava": {
+  "quadro": [
+   108,
+   57
+  ],
+  "pes": 27.5,
+  "golpe": 4,
+  "altura": 46,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 16,
+   "Death": 11
+  },
+  "espelhado": false
+ },
+ "GoblinAssassino": {
+  "quadro": [
+   140,
+   50
+  ],
+  "pes": 17.0,
+  "golpe": 2,
+  "altura": 37,
+  "quadros": {
+   "Idle": 6,
+   "Walk": 6,
+   "Attack01": 11,
+   "Death": 10
+  },
+  "espelhado": false
+ },
+ "PoteMimico": {
+  "quadro": [
+   124,
+   77
+  ],
+  "pes": 21.5,
+  "golpe": 6,
+  "altura": 40,
+  "quadros": {
+   "Idle": 6,
+   "Walk": 8,
+   "Attack01": 24,
+   "Death": 10
+  },
+  "espelhado": false
+ },
+ "EsqueletoDaPrisao": {
+  "quadro": [
+   214,
+   96
+  ],
+  "pes": 28.0,
+  "golpe": 7,
+  "altura": 53,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 18,
+   "Death": 13
+  },
+  "espelhado": false
+ },
+ "EsqueletoEscudeiro": {
+  "quadro": [
+   208,
+   96
+  ],
+  "pes": 28.0,
+  "golpe": 7,
+  "altura": 53,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 18,
+   "Death": 13
+  },
+  "espelhado": false
+ },
+ "EsqueletoMago": {
+  "quadro": [
+   102,
+   89
+  ],
+  "pes": 25.5,
+  "golpe": 0,
+  "altura": 63,
+  "quadros": {
+   "Idle": 8,
+   "Walk": 8,
+   "Attack01": 16,
+   "Death": 13
+  },
+  "espelhado": false
+ },
+ "Assassino": {
+  "quadro": [
+   112,
+   60
+  ],
+  "pes": 14.0,
+  "golpe": 0,
+  "altura": 43,
+  "quadros": {
+   "Idle": 20,
+   "Walk": 12,
+   "Attack01": 18,
+   "Death": 24
+  },
+  "espelhado": false
+ }
+}
