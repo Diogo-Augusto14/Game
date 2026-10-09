@@ -200,8 +200,14 @@ public static class Decoracao
                     livre.Remove(c + new Vector2Int(dx, dy));
         }
 
+        // O que e alto tambem nao cobre essas celulas por cima (uma estatua na frente do tronco parado).
         if (reservado != null)
+        {
             livre.ExceptWith(reservado);
+
+            foreach (Vector2Int c in reservado)
+                desenhos.Add(new Rect(c.x - 0.5f, c.y - 0.5f, 1f, 1f));
+        }
 
         bool prisao = mundo <= 2, cripta = mundo == 3, profundezas = mundo == 4;
         List<Vector2> usados = new List<Vector2>();
