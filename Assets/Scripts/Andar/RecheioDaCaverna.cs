@@ -61,8 +61,23 @@ public static class RecheioDaCaverna
 
         if (Random.value < 0.5f && DeParedeAParede(planta, chao, usados, out Vector2 troncoDe, out Vector2 troncoAte))
         {
-            TroncoRolante.Criar(troncoDe, troncoAte, pai);
             Reservar(troncoDe, troncoAte, 2);
+
+            // Rolando pros lados ele fica em pe: parado, nao encosta na beirada da parede do lado.
+            Vector2 rumo = (troncoAte - troncoDe).normalized;
+
+            if (Mathf.Abs(rumo.x) > 0.5f)
+            {
+                troncoDe += rumo * TroncoRolante.LongeDaParede;
+                troncoAte -= rumo * TroncoRolante.LongeDaParede;
+            }
+
+            TroncoRolante.Criar(troncoDe, troncoAte, pai);
+
+            // Parado ele segura gente: as celulas das duas pontas saem do mapa de caminhos.
+            bool emPe = Mathf.Abs(rumo.x) > 0.5f;
+            Ocupar(chao, troncoDe, emPe ? 0 : 1, emPe ? 1 : 0);
+            Ocupar(chao, troncoAte, emPe ? 0 : 1, emPe ? 1 : 0);
         }
 
         int espinhos = Random.Range(1, 4);
@@ -140,7 +155,8 @@ public static class RecheioDaCaverna
         switch (sala.tipo)
         {
             case TipoDeSala.Loja:
-                // Sem o balcao do jogo antigo: a mesa e o mercador vem da Decoracao.
+                // Sem o balcao do jogo antigo: a mesa e o mercador vem da Decoracao (no mesmo meio).
+                meio = Decoracao.MeioDaLoja(sala, chao);
                 Loja.Criar(meio, pai, itens, false);
                 Ocupar(chao, meio + Vector2.up * 1.5f, 3, 1);
                 Ocupar(chao, meio + Vector2.down * 0.3f, 2, 0);

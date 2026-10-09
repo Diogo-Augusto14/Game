@@ -39,8 +39,14 @@ public static class Decoracao
     /// <summary>Quanto dois desenhos podem se encostar (as beiradas dos desenhos sao quase transparentes).</summary>
     private const float Folga = 0.1f;
 
-    /// <summary>A parede do lado e desenhada um pouco pra dentro do chao (ver o colisor do Pedreiro).</summary>
-    private const float ParedeDoLado = 0.3f;
+    /// <summary>
+    /// Quanto a parede do lado e desenhada pra dentro da celula de chao vizinha: 0,2 a 0,3 na maioria dos
+    /// ladrilhos, quase 0,5 nas quinas dos degraus da parede. Conta o pior caso, sem folga.
+    /// </summary>
+    private const float ParedeDoLado = 0.45f;
+
+    /// <summary>Nas Profundezas o chao acaba no meio da celula da beirada (o resto e o penhasco).</summary>
+    private const float BeiradaDoVazio = 0.5f;
 
     private static Sprite[] Grupo(string nome)
     {
@@ -342,11 +348,14 @@ public static class Decoracao
                 return false;
 
         // Tudo o que o desenho cobre e chao (ou a face da parede de cima, logo acima do chao). A parede do
-        // lado comeca "ParedeDoLado" pra dentro da celula de chao vizinha.
-        int x0 = Mathf.FloorToInt(menor.xMin + 0.5f - ParedeDoLado);
-        int x1 = Mathf.CeilToInt(menor.xMax - 0.5f + ParedeDoLado);
-        int y0 = Mathf.Min(pe.y, Mathf.FloorToInt(menor.yMin + 0.5f));
-        int y1 = Mathf.CeilToInt(menor.yMax - 0.5f);
+        // lado comeca "ParedeDoLado" pra dentro da celula de chao vizinha; aqui o desenho conta inteiro, sem
+        // folga. Nas Profundezas, o que fica deitado no chao tambem nao passa da beirada de cima nem da de baixo.
+        float lado = q.flutuante ? BeiradaDoVazio : ParedeDoLado;
+        float emPe = q.flutuante && sobe == 0 ? BeiradaDoVazio : 0f;
+        int x0 = Mathf.FloorToInt(r.xMin + 0.5f - lado + 0.001f);
+        int x1 = Mathf.CeilToInt(r.xMax - 0.5f + lado - 0.001f);
+        int y0 = Mathf.Min(pe.y, Mathf.FloorToInt(menor.yMin + 0.5f - emPe + 0.001f));
+        int y1 = Mathf.CeilToInt(menor.yMax - 0.5f + emPe - 0.001f);
 
         for (int x = x0; x <= x1; x++)
         {
@@ -357,9 +366,12 @@ public static class Decoracao
                 if (q.planta.Contains(c))
                     continue;
 
+                // A face so vale longe das quinas: parede com chao do lado, na mesma fileira, e parede do lado
+                // (a quina do degrau), e a beirada dela entra no chao.
                 bool face = false;
+                bool quina = q.planta.Contains(c + Vector2Int.left) || q.planta.Contains(c + Vector2Int.right);
 
-                for (int k = 1; k <= sobe && y - k >= pe.y; k++)
+                for (int k = 1; k <= sobe && y - k >= pe.y && !quina; k++)
                     face |= q.planta.Contains(c + Vector2Int.down * k);
 
                 if (!face)
@@ -371,16 +383,26 @@ public static class Decoracao
     }
 
     // Quanto empurrar o desenho pro lado pra ele nao entrar na parede do lado da celula (o barril largo
-    // encostado na parede da direita vai um pouco pra esquerda).
+    // encostado na parede da direita vai um pouco pra esquerda). Olha a parede do lado em todas as fileiras
+    // que o desenho cobre (nas quinas dos degraus, a parede so comeca mais pra cima).
     private static float Afastar(Quarto q, Rect r, Vector2Int c)
     {
-        float esquerda = c.x - 0.5f + ParedeDoLado, direita = c.x + 0.5f - ParedeDoLado;
+        float lado = q.flutuante ? BeiradaDoVazio : ParedeDoLado;
+        float esquerda = c.x - 0.5f + lado, direita = c.x + 0.5f - lado;
+        bool paredeEsquerda = false, paredeDireita = false;
 
-        if (q.Parede(c + Vector2Int.left) && r.xMin + Folga < esquerda)
-            return esquerda - (r.xMin + Folga);
+        // Parede do lado numa fileira: parede ao lado e chao na coluna da celula.
+        for (int y = c.y; y <= Mathf.CeilToInt(r.yMax - 0.5f) && !q.Parede(new Vector2Int(c.x, y)); y++)
+        {
+            paredeEsquerda |= q.Parede(new Vector2Int(c.x - 1, y));
+            paredeDireita |= q.Parede(new Vector2Int(c.x + 1, y));
+        }
 
-        if (q.Parede(c + Vector2Int.right) && r.xMax - Folga > direita)
-            return direita - (r.xMax - Folga);
+        if (paredeEsquerda && r.xMin < esquerda)
+            return esquerda - r.xMin;
+
+        if (paredeDireita && r.xMax > direita)
+            return direita - r.xMax;
 
         return 0f;
     }
@@ -754,15 +776,22 @@ public static class Decoracao
                 soltas = new[] { "Vila/Livros", "Vila/Livros", "Vila/Papel", "Vila/Globo" };
                 break;
             case TipoDeSala.Desafio:
-                encostadas = new[] { "Vila/Cabide", "Vila/Armadura", "Vila/BarrilDeArmas", "Vila/Cabide" };
-                soltas = new[] { "Vila/Elmo" };
+                encostadas = new[] { "Vila/Cabide", "Vila/Armadura", "Vila/BarrilDeArmas", "Vila/Cabide", "Vila/Armadura",
+                                     "Vila/BarrilDeArmas", "Vila/Caixotes", "Vila/Barris" };
+                soltas = new[] { "Vila/Elmo", "Vila/Elmo", "Vila/Sacos", "Vila/Elmo" };
                 tapete = false;
+                potes = true;
                 break;
             default:
                 return false;
         }
 
-        Vector2 meio = MapaDeCaminhos.Celula(q.sala.Meio);
+        Vector2 meio = q.sala.tipo == TipoDeSala.Loja ? MeioDaLoja(q.sala, q.planta) : MapaDeCaminhos.Celula(q.sala.Meio);
+
+        // O que a sala tem no meio (os pedestais da loja, o item, o altar, a emboscada): nada encosta nele.
+        desenhos.Add(q.sala.tipo == TipoDeSala.Loja
+            ? new Rect(meio.x - 2.4f, meio.y - 1f, 4.8f, 2f)
+            : new Rect(meio.x - 1.2f, meio.y - 0.8f, 2.4f, 2.4f));
 
         // O tapete embaixo do que a sala tem.
         Sprite desenhoDoTapete = tapete ? Um("Vila/Tapete") : null;
@@ -806,7 +835,7 @@ public static class Decoracao
     // A loja da caverna: o mercador atras de uma mesa (os pedestais ficam na frente).
     private static void Balcao(Quarto q)
     {
-        Vector2 meio = MapaDeCaminhos.Celula(q.sala.Meio);
+        Vector2 meio = MeioDaLoja(q.sala, q.planta);
         Sprite mesa = Um("Vila/Mesa");
 
         if (mesa != null)
@@ -824,6 +853,38 @@ public static class Decoracao
         Vector2 mercador = meio + new Vector2(0f, 2.3f);
         Mercador.Criar(mercador, q.pai);
         desenhos.Add(new Rect(mercador.x - 0.6f, mercador.y - 0.8f, 1.2f, 1.8f));
+    }
+
+    /// <summary>
+    /// Onde fica o meio da loja da caverna (os pedestais; a mesa e o mercador logo acima). O meio da sala, ou
+    /// mais pra baixo quando a mesa nao cabe ali (o alto da sala e um nicho mais estreito que ela). O
+    /// <see cref="RecheioDaCaverna"/> poe a loja no mesmo lugar.
+    /// </summary>
+    public static Vector2Int MeioDaLoja(SalaDaPlanta sala, HashSet<Vector2Int> chao)
+    {
+        Vector2Int meio = MapaDeCaminhos.Celula(sala.Meio);
+
+        for (int desce = 0; desce <= 3; desce++)
+        {
+            Vector2Int m = meio + Vector2Int.down * desce;
+            bool cabe = true;
+
+            // A mesa (2,8 de largura, com a beirada das paredes) nas fileiras de cima; os pedestais embaixo. O
+            // alto da mesa pode ficar na frente da parede de cima, mas nao de uma quina (parede com chao do lado).
+            for (int x = -2; x <= 2 && cabe; x++)
+            {
+                for (int y = -1; y <= 2 && cabe; y++)
+                    cabe = chao.Contains(m + new Vector2Int(x, y));
+
+                Vector2Int alto = m + new Vector2Int(x, 3);
+                cabe &= chao.Contains(alto) || (!chao.Contains(alto + Vector2Int.left) && !chao.Contains(alto + Vector2Int.right));
+            }
+
+            if (cabe)
+                return m;
+        }
+
+        return meio;
     }
 
     // ------------------------------------------------------------------ Cripta e Profundezas
@@ -1055,10 +1116,19 @@ public static class Decoracao
 
         desenhos.Add(new Rect(estatua.x - 0.6f, estatua.y - 0.65f, 1.2f, 1.3f));
 
-        for (int dx = -1; dx <= 1; dx++)
-            for (int dy = 0; dy >= -3; dy--)
+        // O caminho do fogo fica livre: o leque (3 bolas, 20 graus entre elas) ate o alcance, com uma
+        // celula de folga pros lados.
+        for (int dy = 0; dy >= -AlcanceDoFogo; dy--)
+        {
+            int largura = Mathf.CeilToInt(1.5f - dy * Mathf.Tan(20f * Mathf.Deg2Rad));
+
+            for (int dx = -largura; dx <= largura; dx++)
                 q.livre.Remove(onde + new Vector2Int(dx, dy));
+        }
     }
+
+    /// <summary>Ate onde vai o fogo do lancador (o alcance do FogoDaEstatua), em celulas.</summary>
+    private const int AlcanceDoFogo = 9;
 
     private static bool Cercado(Vector2Int c, HashSet<Vector2Int> livre)
     {

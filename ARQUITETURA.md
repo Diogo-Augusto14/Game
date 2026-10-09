@@ -322,7 +322,8 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   com item no pedestal ou baú trancado). Nas salas de luta saem baú amaldiçoado, pedra rachada com
   prêmio e área escura, e as armadilhas: serra no trilho, tronco rolante e espinhos (ferem o jogador e
   os inimigos). O tronco fica parado encostado numa parede e, de tempos em tempos, atravessa a sala até a
-  parede da frente (o caminho dele vai de parede a parede, nunca passa por porta nem buraco). Mesas (viram de lado no primeiro tiro), barris, caixotes, baratas e velas. Nada nos
+  parede da frente (o caminho dele vai de parede a parede, nunca passa por porta nem buraco). Parado, segura
+  gente e tiro como uma parede; rolando, machuca no comprimento todo (três círculos ao longo dele). Mesas (viram de lado no primeiro tiro), barris, caixotes, baratas e velas. Nada nos
   corredores nem na frente das portas; o que ocupa lugar sai do mapa de caminhos. (A emboscada saiu: a
   própria sala de luta já é uma.)
 - **Mundos com arte própria** (1.14.0, `EstiloDeLadrilhos`): Porão (o Old Prison em marrom), Catacumbas
@@ -368,7 +369,11 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   lado nem da de baixo e o que é alto só cobre uma célula da face da parede de cima (tonéis, armários e a
   dama de ferro vão pras paredes do lado). Encostada na parede do lado, a peça larga é empurrada pra
   dentro. Também fica longe das armadilhas, do caminho do tronco e da serra, das velas e do que já estava
-  no chão (baús, armas, pedras, mesas).
+  no chão (baús, armas, pedras, mesas). A beirada da parede do lado conta 0,45 pra dentro do chão (o pior
+  ladrilho, nas quinas dos degraus), sem folga; nas Profundezas o chão acaba no meio da célula da beirada.
+  Na frente do lançador de fogo fica livre o leque inteiro do fogo, até o alcance. A loja desce o meio
+  quando a mesa do mercador não cabe no alto da sala (`Decoracao.MeioDaLoja`), e nada encosta nos
+  pedestais.
 - **Inimigos dos pacotes**: Catacumbas: esqueleto, escudeiro, mago e assassino (Old Prison). Cripta:
   esqueletos, aranhas e minhocões que somem na terra (Crypt). Profundezas: goblins, goblin assassino,
   pote mímico e os demônios (Depths). O **Rei Esqueleto** (Depths) é sorteado como chefe da Cripta.
