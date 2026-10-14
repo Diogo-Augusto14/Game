@@ -4,49 +4,50 @@ from musicas import *  # noqa: constantes de instrumentos
 
 
 def catacumbas():
-    # 6/8 lento (3 batidas de seminima por compasso), Re dorico: harpa, flauta de pa, gotas.
-    m = Musica('Catacumbas', bpm=100, batidas_por_compasso=3, compassos=40, semente=2)
-    A = ['Dm', 'Dm', 'G/D', 'Dm', 'Bb', 'C', 'Dm', 'A']
-    B = ['Gm', 'Dm', 'Bb', 'F', 'Gm', 'Dm', 'C', 'A']
+    # 3/4 lento em Re menor (1.19.0): harpa grave, drone, nevoa de arco, um coro sem palavras cantando a
+    # melodia, gotas pingando ao longe e o taiko como um coracao. Sem flauta de pa nem kalimba alegre.
+    m = Musica('Catacumbas', bpm=96, batidas_por_compasso=3, compassos=40, semente=2)
+    A = ['Dm', 'Dm', 'C', 'Dm', 'Bb', 'Gm', 'A', 'A']
+    B = ['Gm', 'Dm', 'Eb', 'Bb', 'Gm', 'Dm', 'A', 'A']
     tudo = A + A + B + A + B
 
-    harpa = m.trilha('harpa', HARPA, volume=100, pan=50, reverb=95)
-    arpejo(harpa, tudo, [0, 2, 3, 4, 5, 4], 0.5, oitava=2, vel=64, legato=2.5, acentos=[12, 0, 4, 0, 6, 0])
+    harpa = m.trilha('harpa', HARPA, volume=92, pan=50, reverb=105)
+    arpejo(harpa, tudo, [0, 2, 3, 4, 3, 2], 0.5, oitava=1, vel=58, legato=2.5, acentos=[12, 0, 4, 0, 4, 0])
 
-    drone = m.trilha('drone', CORDAS_LENTAS, banco=BAIXOS, volume=84, reverb=80)
-    baixo(drone, tudo, [(0, 3, 'b')], oitava=2, vel=60)
+    drone = m.trilha('drone', CORDAS_LENTAS, banco=BAIXOS, volume=86, reverb=85)
+    baixo(drone, tudo, [(0, 3, 'b')], oitava=1, vel=60)
 
-    nevoa = m.trilha('nevoa', PAD_ARCO, volume=70, pan=72, reverb=110)
-    pad(nevoa, tudo, faixa=(50, 67), vozes=3, vel=54)
+    nevoa = m.trilha('nevoa', PAD_ARCO, volume=72, pan=72, reverb=115)
+    pad(nevoa, tudo, faixa=(50, 65), vozes=3, vel=48)
 
-    gotas = m.trilha('gotas', KALIMBA, volume=64, pan=96, reverb=127)
-    escala = [p(n) for n in ('D6', 'F6', 'A6', 'C7', 'E6', 'G6', 'A5')]
+    gotas = m.trilha('gotas', KALIMBA, volume=50, pan=96, reverb=127)
+    escala = [p(n) for n in ('D5', 'F5', 'A5', 'C6', 'E5')]
     for c in range(40):
-        if m.rnd.random() < 0.7:
+        if m.rnd.random() < 0.45:
             t = c * 3 + m.rnd.choice([0.5, 1, 1.5, 2, 2.5])
-            gotas.nota(t, 0.4, m.rnd.choice(escala), m.rnd.randint(34, 54))
+            gotas.nota(t, 0.4, m.rnd.choice(escala), m.rnd.randint(24, 38))
 
-    sinos = m.trilha('sinos', SINOS, volume=70, pan=40, reverb=120)
-    for c in (0, 4, 32, 36):
-        sinos.nota(c * 3, 3, Acorde(tudo[c]).raiz_em(4), 58)
+    sinos = m.trilha('sinos', SINOS, volume=62, pan=40, reverb=127)
+    for c in (0, 16, 32):
+        sinos.nota(c * 3, 3, p('D4'), 48)
 
-    mel_a = ('D5:1.5 E5:.5 F5:1 | A5:1.5 G5:.5 F5:.5 E5:.5 | D5:1 B4:.5 D5:1.5 | A4:3 | '
-             'F5:1.5 E5:.5 D5:1 | E5:1.5 G5:1.5 | F5:1 E5:.5 D5:1.5 | C#5:1.5 E5:1.5')
-    mel_b = ('G5:1.5 Bb5:1.5 | A5:1 F5:.5 D5:1.5 | F5:1.5 D5:1.5 | A4:1 C5:.5 F5:1.5 | '
-             'Bb5:1.5 A5:.5 G5:1 | F5:1.5 E5:.5 D5:1 | E5:1.5 G5:1.5 | E5:1 C#5:.5 A4:1.5')
-    pa = m.trilha('flauta de pa', FLAUTA_PA, volume=100, pan=64, reverb=100)
-    pa.melodia(8, mel_a, vel=84)
-    flauta = m.trilha('flauta', FLAUTA, volume=92, pan=70, reverb=100)
-    flauta.melodia(16, mel_b, vel=80)
-    cello = m.trilha('cello', CORDAS_LENTAS, banco=CELLOS, volume=100, pan=56, reverb=95)
-    cello.melodia(24, mel_a, vel=86, oitava=-1, legato=1.0)
+    mel_a = ('D4:1.5 E4:.5 F4:1 | A4:2 F4:1 | E4:1.5 D4:.5 C4:1 | D4:3 | '
+             'F4:1.5 E4:.5 D4:1 | Bb3:1 D4:1 G4:1 | E4:1.5 C#4:.5 E4:1 | A3:3')
+    mel_b = ('G4:1.5 A4:.5 Bb4:1 | A4:2 F4:1 | G4:1 Eb4:1 Bb3:1 | D4:3 | '
+             'Bb3:1 D4:1 G4:1 | F4:1.5 E4:.5 D4:1 | C#4:1.5 E4:.5 A4:1 | A4:3')
+    coro = m.trilha('coro', VOZES, volume=80, pan=64, reverb=120)
+    coro.melodia(8, mel_a, vel=68, legato=1.0)
+    clarinete = m.trilha('clarinete', CLARINETE, volume=78, pan=70, reverb=105)
+    clarinete.melodia(16, mel_b, vel=72, legato=1.0)
+    cello = m.trilha('cello', CORDAS_LENTAS, banco=CELLOS, volume=98, pan=56, reverb=100)
+    cello.melodia(24, mel_a, vel=80, oitava=-1, legato=1.0)
+    coro.melodia(32, mel_b, vel=64, legato=1.0)
 
-    taiko = m.trilha('taiko', TAIKO, volume=82, reverb=90)
-    for c in range(16, 32):
-        taiko.nota(c * 3, 1, p('D2'), 70 if c % 2 == 0 else 52)
+    taiko = m.trilha('taiko', TAIKO, volume=76, reverb=95)
+    for c in range(16, 40):
+        taiko.nota(c * 3, 1, p('D2'), 62 if c % 2 == 0 else 46)
         if c % 4 == 3:
-            taiko.nota(c * 3 + 2, 1, p('D2'), 50)
-            taiko.nota(c * 3 + 2.5, 1, p('D2'), 58)
+            taiko.nota(c * 3 + 2, 1, p('D2'), 44)
     return m
 
 
@@ -266,63 +267,75 @@ def chefe_final():
 
 
 def menu():
-    m = Musica('Menu', bpm=84, batidas_por_compasso=3, compassos=24, semente=7)
-    tudo = ['Am', 'Am', 'F', 'F', 'Dm', 'Dm', 'E', 'E',
-            'Am', 'Am', 'C', 'G', 'F', 'Dm', 'E', 'E',
-            'Am', 'F', 'Dm', 'E', 'Am', 'F', 'Dm', 'E']
-    harpa = m.trilha('harpa', HARPA, volume=96, pan=50, reverb=100)
-    arpejo(harpa, tudo, [0, 2, 3, 4, 3, 2], 0.5, oitava=2, vel=56, legato=2.5, acentos=[10, 0, 2, 0, 2, 0])
-    coro = m.trilha('coro', PAD_CORAL, volume=80, pan=70, reverb=110)
-    pad(coro, tudo, faixa=(55, 70), vozes=3, vel=56)
-    baixos = m.trilha('baixos', CORDAS_LENTAS, banco=BAIXOS, volume=72, reverb=80)
-    baixo(baixos, tudo, [(0, 3, 'b')], oitava=1, vel=56)
-    caixinha = m.trilha('caixinha', CAIXINHA, volume=96, pan=64, reverb=110)
-    caixinha.melodia(0, 'E5:1 A5:1 C6:1 | B5:2 A5:1 | A5:1 C6:1 F6:1 | E6:2 C6:1 | D6:1 C6:1 A5:1 | F5:2 A5:1 | '
-                        'G#5:1 B5:1 E6:1 | D6:2 B5:1 | C6:1 B5:1 A5:1 | E5:3 | G5:1 E5:1 C5:1 | D5:2 B4:1 | '
-                        'A5:1 G5:1 F5:1 | D5:2 F5:1 | E5:1 G#5:1 B5:1 | E5:3', vel=78, legato=1.4)
-    celesta = m.trilha('celesta', CELESTA, volume=74, pan=84, reverb=115)
-    celesta.melodia(16, 'E5:3 | C5:3 | F5:3 | E5:1.5 G#5:1.5 | A5:3 | A5:3 | F5:2 D5:1 | B4:3', vel=60, legato=1.0)
+    # Os portoes da prisao (1.19.0): Re menor bem lento, contrabaixos no chao, nevoa de arco, um sino
+    # dobrando longe, um piano grave e sozinho, e um violoncelo; um coracao de timpano no meio.
+    m = Musica('Menu', bpm=72, batidas_por_compasso=4, compassos=24, semente=7)
+    A = ['Dm', 'Dm', 'Bb', 'A', 'Dm', 'Gm', 'Eb', 'A']
+    B = ['Gm', 'Dm', 'Bb', 'A', 'Gm', 'Eb', 'A', 'A']
+    tudo = A + B + A
+
+    baixos = m.trilha('baixos', CORDAS_LENTAS, banco=BAIXOS, volume=88, reverb=85)
+    baixo(baixos, tudo, [(0, 4, 'b')], oitava=1, vel=60)
+
+    nevoa = m.trilha('nevoa', PAD_ARCO, volume=74, pan=70, reverb=120)
+    pad(nevoa, tudo, faixa=(50, 64), vozes=3, vel=46)
+
+    vozes = m.trilha('vozes', VOZES, volume=56, pan=44, reverb=125)
+    pad(vozes, tudo[8:], compasso0=8, faixa=(55, 67), vozes=3, vel=42)
+
+    sinos = m.trilha('sinos', SINOS, volume=62, pan=30, reverb=127)
+    for c in range(0, 24, 4):
+        sinos.nota(c * 4, 4, p('D4'), 50)
+        sinos.nota(c * 4 + 2, 2, p('A3'), 34)
+
+    piano = m.trilha('piano', PIANO, volume=96, pan=58, reverb=115)
+    motivo = ('A3:1 D4:1 F4:1 E4:1 | D4:3 r:1 | F4:1 D4:1 Bb3:1 C4:1 | C#4:3 r:1 | '
+              'A3:1 D4:1 F4:1 A4:1 | G4:2 Bb4:1 A4:1 | G4:1 Eb4:1 Bb3:1 G3:1 | A3:2 C#4:1 E4:1')
+    piano.melodia(0, motivo, vel=58, legato=1.3)
+    piano.melodia(16, motivo, vel=52, legato=1.3)
+
+    cello = m.trilha('cello', VIOLONCELO, volume=78, pan=62, reverb=105)
+    cello.melodia(8, 'D4:2 Bb3:1 G3:1 | A3:3 F3:1 | D4:2 F4:1 D4:1 | C#4:4 | '
+                     'Bb3:2 D4:1 G4:1 | G4:1.5 F4:.5 Eb4:2 | E4:2 C#4:2 | A3:4', vel=62, legato=1.0)
+
+    timp = m.trilha('timpano', TIMPANO, volume=80, reverb=100)
+    for c in range(8, 24):
+        timp.nota(c * 4, 1, p('D2'), 50)
+        timp.nota(c * 4 + 0.6, 1, p('D2'), 36)
     return m
 
 
 def loja():
-    m = Musica('Loja', bpm=112, batidas_por_compasso=4, compassos=24, semente=8)
-    frase = ['Dm7', 'G7', 'Dm7', 'G7', 'Bb', 'A7', 'Dm', 'A7']
-    tudo = frase * 3
-    pizz = m.trilha('pizz', PIZZ, volume=100, pan=50, reverb=60)
-    baixo(pizz, tudo, [(0, 0.9, 'b', 10), (1, 0.9, 2), (2, 0.9, '8'), (3, 0.9, 1)], oitava=2, vel=82)
-    marimba = m.trilha('marimba', MARIMBA, volume=80, pan=80, reverb=70)
-    for i, s in enumerate(tudo):
-        a = Acorde(s)
-        for bt in (1, 3):
-            for g in range(3):
-                marimba.nota(i * 4 + bt, 0.4, a.tom(g, 4), 60)
-    fagote_mel = ('D4:.5 F4:.5 A4:.5 C5:.5 B4:1 A4:1 | G4:1 F4:.5 G4:.5 B4:1 r:1 | '
-                  'A4:.5 G4:.5 F4:.5 E4:.5 D4:1 F4:1 | G4:2 r:2 | '
-                  'F3:.5 Bb3:.5 D4:.5 F4:.5 D4:1 Bb3:1 | C#4:1 E4:1 G4:1 E4:1 | '
-                  'F4:.5 E4:.5 D4:.5 C#4:.5 D4:1 A3:1 | E4:1 G4:1 A4:2')
-    clarinete_mel = ('D5:.5 F5:.5 A5:.5 C6:.5 B5:1 A5:1 | G5:1 F5:.5 G5:.5 B5:1 r:1 | '
-                     'A5:.5 G5:.5 F5:.5 E5:.5 D5:1 F5:1 | G5:2 r:2 | '
-                     'F4:.5 Bb4:.5 D5:.5 F5:.5 D5:1 Bb4:1 | C#5:1 E5:1 G5:1 E5:1 | '
-                     'F5:.5 E5:.5 D5:.5 C#5:.5 D5:1 A4:1 | E5:1 G5:1 A5:2')
-    fagote = m.trilha('fagote', FAGOTE, volume=104, pan=58, reverb=70)
-    fagote.swing = 0.33
-    fagote.melodia(0, fagote_mel, vel=90, legato=0.85)
-    fagote.melodia(16, fagote_mel, vel=86, legato=0.85)
-    clarinete = m.trilha('clarinete', CLARINETE, volume=92, pan=72, reverb=75)
-    clarinete.swing = 0.33
-    clarinete.melodia(8, clarinete_mel, vel=86, legato=0.85)
-    clarinete.melodia(16, clarinete_mel, vel=76, legato=0.85)
-    bat = m.bateria(kit=KIT_PADRAO, volume=84, reverb=55)
-    bat.swing = 0.33
-    for c in range(24):
-        t = c * 4
-        bat.nota(t, 0.4, 36, 60)
-        bat.nota(t + 2, 0.4, 36, 50)
-        bat.nota(t + 1, 0.3, 37, 58)
-        bat.nota(t + 3, 0.3, 37, 62)
-        for k in range(8):
-            bat.nota(t + k * 0.5, 0.2, 42, 40 if k % 2 else 52)
+    # O descanso (a loja e as areas seguras, 1.19.0): uma valsa lenta e triste em Re menor, violao, flauta
+    # baixa e violoncelo, como uma fogueira entre os mundos. Sem swing nem marimba.
+    m = Musica('Loja', bpm=84, batidas_por_compasso=3, compassos=32, semente=8)
+    A = ['Dm', 'C', 'Bb', 'A', 'Dm', 'C', 'Gm', 'A']
+    B = ['F', 'C', 'Dm', 'A', 'Bb', 'F', 'Gm', 'A']
+    tudo = A + B + A + B
+
+    violao = m.trilha('violao', VIOLAO, volume=96, pan=54, reverb=85)
+    arpejo(violao, tudo, [0, 1, 2, 3, 2, 1], 0.5, oitava=3, vel=56, legato=2.0, acentos=[10, 0, 2, 0, 2, 0])
+
+    cellos = m.trilha('cellos', CORDAS_LENTAS, banco=CELLOS, volume=80, reverb=90)
+    baixo(cellos, tudo, [(0, 3, 'b')], oitava=2, vel=52)
+
+    cordas = m.trilha('cordas', CORDAS_LENTAS, banco=VIOLAS, volume=66, pan=72, reverb=110)
+    pad(cordas, tudo[8:], compasso0=8, faixa=(53, 67), vozes=3, vel=42)
+
+    mel_a = ('A4:1.5 G4:.5 F4:1 | E4:2 C4:1 | D4:1 F4:1 Bb4:1 | A4:3 | '
+             'D5:1.5 C5:.5 A4:1 | G4:1 E4:1 C4:1 | D4:1 G4:1 Bb4:1 | A4:2 C#5:1')
+    mel_b = ('A3:1 C4:1 F4:1 | E4:2 G3:1 | A3:1 D4:1 F4:1 | E4:3 | '
+             'D4:1.5 C4:.5 Bb3:1 | A3:1 C4:1 F4:1 | G4:1.5 F4:.5 D4:1 | C#4:3')
+    flauta = m.trilha('flauta', FLAUTA, volume=84, pan=66, reverb=100)
+    flauta.melodia(0, mel_a, vel=66, legato=1.0)
+    flauta.melodia(16, mel_a, vel=60, legato=1.0)
+    cello = m.trilha('cello', VIOLONCELO, volume=96, pan=58, reverb=100)
+    cello.melodia(8, mel_b, vel=72, legato=1.0)
+    cello.melodia(24, mel_b, vel=70, legato=1.0)
+
+    bat = m.bateria(kit=KIT_ORQUESTRA, volume=70, reverb=90)
+    for c in range(8, 32):
+        bat.nota(c * 3, 0.5, 36, 40)
     return m
 
 

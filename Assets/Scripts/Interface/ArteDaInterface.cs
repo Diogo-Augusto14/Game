@@ -7,6 +7,9 @@ using UnityEngine;
 ///   InterfaceDragao/...  (Tiny RPG - Dragon Regalia GUI, CC0)
 ///       molduras douradas, faixas de titulo, botao, setas, ponteiro, barra, cursor e os
 ///       icones redondos de sair e de configuracoes
+///   InterfaceSombria/... (a mesma, recolorida por Ferramentas/Interface/sombria.py)
+///       ferro velho, pedra escura, pano cor de sangue e brasa, no clima da prisao (desde a 1.19.0).
+///       E a que o jogo usa; sem ela, volta pra colorida
 ///   Teclas/Teclado.png  (Controllers and Keyboard, da Vryell)
 ///       teclas de 16x16 em grade: coluna 0 solta, coluna 2 apertada
 ///   Teclas/ControleXbox.png, ControlePlayStation.png, Analogicos.png  (o mesmo pacote)
@@ -226,7 +229,7 @@ public static class ArteDaInterface
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void TrocarCursor()
     {
-        Texture2D cursor = Resources.Load<Texture2D>("InterfaceDragao/Cursor");
+        Texture2D cursor = Resources.Load<Texture2D>(Pasta + "Cursor") ?? Resources.Load<Texture2D>("InterfaceDragao/Cursor");
 
         if (cursor != null)
             Cursor.SetCursor(cursor, Vector2.zero, CursorMode.Auto);
@@ -235,14 +238,14 @@ public static class ArteDaInterface
     // ================================================================ ajudas
     private static Sprite Inteira(string nome, Vector4 borda, float pixelsPorUnidade)
     {
-        Texture2D textura = Textura("InterfaceDragao/" + nome);
+        Texture2D textura = Desenho(nome);
         return textura == null ? null : Recortar(nome, textura, new Rect(0, 0, textura.width, textura.height), borda, pixelsPorUnidade);
     }
 
     /// <summary>Um quadro de uma folha deitada (quadros lado a lado, da esquerda pra direita).</summary>
     private static Sprite Quadro(string nome, int largura, int altura, int indice, Vector4 borda, float pixelsPorUnidade)
     {
-        Texture2D textura = Textura("InterfaceDragao/" + nome);
+        Texture2D textura = Desenho(nome);
 
         if (textura == null)
             return null;
@@ -265,6 +268,30 @@ public static class ArteDaInterface
     }
 
     private static readonly Dictionary<string, Texture2D> texturas = new Dictionary<string, Texture2D>();
+
+    // A pasta da interface sombria (a colorida do pacote fica de reserva).
+    private const string Pasta = "InterfaceSombria/";
+
+    private static readonly Dictionary<string, Texture2D> sombrias = new Dictionary<string, Texture2D>();
+
+    // A sombria, lida uma vez (a interface pede todo quadro); sem ela, a colorida.
+    private static Texture2D Desenho(string nome)
+    {
+        if (!sombrias.TryGetValue(nome, out Texture2D sombria))
+        {
+            sombria = Resources.Load<Texture2D>(Pasta + nome);
+
+            if (sombria != null)
+            {
+                sombria.filterMode = FilterMode.Point;
+                sombria.wrapMode = TextureWrapMode.Clamp;
+            }
+
+            sombrias[nome] = sombria;
+        }
+
+        return sombria != null ? sombria : Textura("InterfaceDragao/" + nome);
+    }
 
     private static Texture2D Textura(string caminho)
     {

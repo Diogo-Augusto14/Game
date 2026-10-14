@@ -28,6 +28,14 @@ public class TelaDeInicio : MonoBehaviour
 {
     private const float TempoDeSair = 0.4f;
     private const float YDoTitulo = 390f;
+    private const int QuantasCinzas = 46;
+
+    // Os textos claros do menu, num tom de osso (o azulado de antes destoava da prisao).
+    private static readonly Color CorDeOsso = new Color(0.84f, 0.79f, 0.72f);
+
+    // As cinzas e brasas subindo devagar no fundo: posicao inicial (0 a 1), velocidade, tamanho e fase.
+    private RectTransform[] cinzas;
+    private Vector4[] dadosDasCinzas;
 
     private string titulo = "The Prettie";
     private Transform jogador;
@@ -128,6 +136,7 @@ public class TelaDeInicio : MonoBehaviour
 
         // Fundo opaco: a HUD e a sala do jogo, montadas por baixo, nao aparecem atras do menu.
         grupo = TelaSimples.Montar(gameObject, 100, new Color(0.03f, 0.02f, 0.03f, 1f));
+        MontarCinzas();
 
         // Topo: faixa rosa do Dragon Regalia e o nome na fonte gotica.
         topo = TelaSimples.Camada(transform, "Topo");
@@ -191,7 +200,7 @@ public class TelaDeInicio : MonoBehaviour
             21, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
             "[Tab] mapa | [M] música | [N] efeitos | Moeda compra na loja, chave abre baú trancado, o tiro especial quebra pedra rachada. || " +
-            "[Pad Select] mapa | [Pad LB] música | [Pad RB] efeitos | Moeda compra na loja, chave abre baú trancado, o tiro especial quebra pedra rachada.", 21, new Color(0.8f, 0.85f, 0.95f));
+            "[Pad Select] mapa | [Pad LB] música | [Pad RB] efeitos | Moeda compra na loja, chave abre baú trancado, o tiro especial quebra pedra rachada.", 21, new Color(0.72f, 0.68f, 0.64f));
 
         TelaSimples.Texto(pai, "Creditos", 16, new Color(0.5f, 0.47f, 0.5f), -514f,
             "Sons de interface: Nathan Gibson (CC BY 4.0)    Efeitos: Freedoom (BSD)    Interface: Tiny RPG Dragon Regalia GUI    " +
@@ -376,8 +385,50 @@ public class TelaDeInicio : MonoBehaviour
     }
 
     // ---------------- animacao ----------------
+    // Pontinhos atras de tudo: cinza clara e umas brasas vermelhas, subindo e balancando (como a fumaca
+    // de uma tocha na masmorra).
+    private void MontarCinzas()
+    {
+        CanvasGroup camada = TelaSimples.Camada(transform, "Cinzas");
+        cinzas = new RectTransform[QuantasCinzas];
+        dadosDasCinzas = new Vector4[QuantasCinzas];
+
+        for (int i = 0; i < QuantasCinzas; i++)
+        {
+            GameObject obj = new GameObject("Cinza", typeof(RectTransform));
+            obj.transform.SetParent(camada.transform, false);
+            Image ponto = obj.AddComponent<Image>();
+            ponto.raycastTarget = false;
+            bool brasa = Random.value < 0.35f;
+            float a = Random.Range(0.15f, brasa ? 0.7f : 0.4f);
+            ponto.color = brasa ? new Color(0.9f, Random.Range(0.25f, 0.45f), 0.12f, a) : new Color(0.6f, 0.56f, 0.52f, a);
+            float lado = Mathf.Round(Random.Range(2f, brasa ? 5f : 4f));
+            RectTransform rt = (RectTransform)obj.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(lado, lado);
+            cinzas[i] = rt;
+            dadosDasCinzas[i] = new Vector4(Random.value, Random.value, Random.Range(14f, 40f), Random.value * 10f);
+        }
+    }
+
+    private void AnimarCinzas(float t)
+    {
+        if (cinzas == null)
+            return;
+
+        for (int i = 0; i < cinzas.Length; i++)
+        {
+            Vector4 d = dadosDasCinzas[i];
+            float y = Mathf.Repeat(d.y + t * d.z / 1080f, 1f);
+            float x = d.x + Mathf.Sin(t * 0.4f + d.w) * 0.02f;
+            cinzas[i].anchoredPosition = new Vector2((x - 0.5f) * 1920f, (y - 0.5f) * 1080f);
+        }
+    }
+
     private void Animar(float t)
     {
+        AnimarCinzas(t);
+
         float desde = t - abriu;
 
         // O titulo cai de cima e passa um pouco do ponto; depois respira devagar.
@@ -414,8 +465,8 @@ public class TelaDeInicio : MonoBehaviour
 
         textoDoHeroi = TelaSimples.Texto(pai, "Nome do heroi", 46, new Color(1f, 0.9f, 0.6f), y + 85f, "");
         descricaoDoHeroi = TelaSimples.Texto(pai, "Descricao do heroi", 28, new Color(1f, 0.97f, 0.92f), y + 32f, "");
-        numerosDoHeroi = TelaSimples.Texto(pai, "Numeros do heroi", 24, new Color(0.85f, 0.93f, 1f), y - 18f, "");
-        dicaDoHeroi = TelaSimples.LinhaDeTeclas(pai, "Dica do heroi", y - 72f, "", 22, new Color(0.85f, 0.93f, 1f));
+        numerosDoHeroi = TelaSimples.Texto(pai, "Numeros do heroi", 24, CorDeOsso, y - 18f, "");
+        dicaDoHeroi = TelaSimples.LinhaDeTeclas(pai, "Dica do heroi", y - 72f, "", 22, CorDeOsso);
         dicaDoHeroi.anchoredPosition = new Vector2(120f, dicaDoHeroi.anchoredPosition.y);
 
         setaEsquerda = Imagem(pai, "Seta esquerda", new Vector2(-590f, y), 64f);
@@ -459,11 +510,11 @@ public class TelaDeInicio : MonoBehaviour
             TelaSimples.TrocarLinhaDeTeclas(dicaDoHeroi,
                 $"[A][D] ou [Esquerda][Direita] troca o herói ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados) || " +
                 $"[Pad CruzEsquerda][Pad CruzDireita] troca o herói ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)",
-                22, new Color(0.85f, 0.93f, 1f));
+                22, CorDeOsso);
         }
         else
         {
-            TelaSimples.TrocarLinhaDeTeclas(dicaDoHeroi, "Mais heróis chegam em breve", 22, new Color(0.85f, 0.93f, 1f));
+            TelaSimples.TrocarLinhaDeTeclas(dicaDoHeroi, "Mais heróis chegam em breve", 22, CorDeOsso);
         }
 
         // Herói bloqueado: o botao de jogar apaga e avisa.

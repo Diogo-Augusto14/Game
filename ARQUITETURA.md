@@ -154,13 +154,16 @@ Duas partes:
   dá pra usar. Desenhado no OnGUI em pixel art de tamanho inteiro (`Desenho`). Some com qualquer menu
   aberto (o OnGUI desenha por cima dos menus).
 - **Os menus, copiados do jogo antigo** (`Assets/Scripts/Interface`), montados por código em canvas
-  (uGUI), com a arte do Dragon Regalia (faixas, molduras, botões de losango, ponteiro, setas), as
+  (uGUI), com a arte do Dragon Regalia (faixas, molduras, botões de losango, ponteiro, setas) na
+  versão **sombria** (`InterfaceSombria`, desde a 1.19.0: a mesma arte recolorida pelo
+  `Ferramentas/Interface/sombria.py` em ferro velho, pedra escura, pano cor de sangue e brasa; a
+  colorida do pacote fica de reserva em `InterfaceDragao`), as
   fontes Jersey 15 e Jacquard 12, os desenhos das teclas e dos botões do controle nas dicas (trocam
   sozinhos entre teclado e controle, Xbox ou PlayStation), a transição escura entre telas e a música.
 
 | Tela | O que tem |
 |---|---|
-| `TelaDeInicio` | Título com a faixa rosa, o herói (retrato animado, descrição, números; as setas aparecem quando tiver mais de um), Jogar, Configurações e Sair do jogo, os controles com o desenho das teclas, os créditos e a versão. Só na primeira vez: "tentar de novo" vai direto pro jogo |
+| `TelaDeInicio` | Título na faixa cor de sangue, cinzas e brasas subindo no fundo, o herói (retrato animado, descrição, números; as setas aparecem quando tiver mais de um), Jogar, Configurações e Sair do jogo, os controles com o desenho das teclas, os créditos e a versão. Só na primeira vez: "tentar de novo" vai direto pro jogo |
 | `TelaDeOpcoes` | Volume da música e dos efeitos (barras), tela cheia, resolução e tremor da tela, tudo salvo (`Opcoes`) |
 | `TelaDePausa` | `Esc`, `P` ou `Start`: o andar, as armas, Continuar, Reiniciar partida, Configurações, Menu principal e Sair do jogo |
 | `TelaDeFimDeJogo` | Morreu (clarão vermelho) ou venceu (dourado): câmera lenta, o retrato do herói caindo ou parado, o resumo (herói, andar, tempo, inimigos e chefes derrotados, armas) e Tentar de novo, Menu principal, Sair do jogo |

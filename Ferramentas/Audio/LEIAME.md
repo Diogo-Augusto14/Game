@@ -11,7 +11,7 @@ freedoom ffmpeg`).
 | Arquivo | O que faz |
 |---|---|
 | `motor.py` | Escreve o MIDI, toca no fluidsynth e corta o loop sem emenda (pega a 2ª repetição e funde o começo com o que vem depois) |
-| `musicas.py`, `musicas2.py` | As 10 músicas, nota por nota: acordes, melodias, instrumentos |
+| `musicas.py`, `musicas2.py` | As 10 músicas, nota por nota: acordes, melodias, instrumentos. Na 1.19.0 o Menu, o Porão, as Catacumbas e a Loja foram refeitos mais sombrios (sem caixinha de música, celesta, flauta de pã, kalimba alegre nem swing) |
 | `gerar.py` | `python3 gerar.py Porao Chefe` gera só essas (sem nome, gera todas) em `saida/*.wav` |
 | `extrair_freedoom.py` | Tira os sons do `freedoom2.wad` pra `fd/sfx` |
 | `sfx.py` | Os efeitos: síntese, trechos do Freedoom e vinhetas no soundfont, em `sfx_wav/*.wav` |
