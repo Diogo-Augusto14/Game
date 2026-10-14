@@ -92,6 +92,7 @@ public class Projetil : MonoBehaviour
         rb.linearVelocity = rumo * arma.velocidade;
 
         projetil.atravessa = arma.atravessa;
+        projetil.persegue = arma.persegue;
         projetil.explode = arma.efeito == EfeitoDoTiro.Explode;
         projetil.quiques = arma.efeito == EfeitoDoTiro.Quica ? 3 : 0;
 
@@ -113,7 +114,7 @@ public class Projetil : MonoBehaviour
             colisor.radius = projetil.raio;
             obj.transform.localScale = Vector3.one * arma.escalaDoDesenho * itens.TamanhoVezes;
             projetil.atravessa |= itens.Atravessa;
-            projetil.persegue = itens.Persegue;
+            projetil.persegue |= itens.Persegue;
             projetil.explode |= itens.ExplodeAoAcertar;
             rb.linearVelocity = rumo * projetil.velocidade;
         }
@@ -158,9 +159,13 @@ public class Projetil : MonoBehaviour
             rumo = ate.normalized;
         }
 
-        // A Bussola Maldita: vira aos poucos pro inimigo vivo mais perto.
+        // A Bussola Maldita (e o Tomo Proibido): vira aos poucos pro inimigo vivo mais perto.
         if (persegue && !voltando)
             Perseguir();
+
+        // As laminas: o corte apaga (ou devolve) os tiros do outro lado que encosta.
+        if (arma.cortaTiros)
+            Cortar();
 
         // Freia ou acelera (sem parar de vez: tiro parado no ar so confunde) e faz a curva.
         if (aceleracao != 0f || curva != 0f || voltando || persegue)
@@ -248,11 +253,17 @@ public class Projetil : MonoBehaviour
         Sumir();
     }
 
-    // Gelo e veneno das flechas especiais (so em inimigo).
+    // Gelo e veneno das flechas especiais (so em inimigo), o raio que pula e o tiro que se divide.
     private void Efeito(Vida vida)
     {
         if (vida.Lado != Lado.Inimigos)
             return;
+
+        if (arma.encadeia > 0)
+            Raio.Encadear(vida, arma.dano * multiplicadorDeDano * 0.7f, arma.encadeia, dono, lado, arma.cor);
+
+        if (arma.divideAoAcertar > 0)
+            Dividir(vida);
 
         if (arma.efeito == EfeitoDoTiro.Gela)
             CondicaoDoInimigo.Gelar(vida.gameObject, 2.5f);
@@ -269,6 +280,71 @@ public class Projetil : MonoBehaviour
 
         explode = false;
         Explosao.Criar(corpo.position, arma.ehEspecial ? 2.2f : 1.3f, arma.dano * multiplicadorDeDano * 0.8f, lado, dono, arma.ehEspecial);
+    }
+
+    // Os pedacos saem em leque pra frente, de onde acertou (o que foi acertado ja levou o golpe: atravessam ele).
+    private void Dividir(Vida acertado)
+    {
+        DadosDaArma pedaco = arma.Fragmento;
+        int n = arma.divideAoAcertar;
+        float angulo = Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg;
+
+        for (int i = 0; i < n; i++)
+        {
+            float a = (angulo + (i - (n - 1) * 0.5f) * 28f) * Mathf.Deg2Rad;
+            Vector2 r = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+            Projetil p = Disparar(corpo.position + r * 0.3f, r, pedaco, dono, lado);
+            p.acertados = new System.Collections.Generic.List<Vida> { acertado };
+            p.atravessa = true;
+            p.multiplicadorDeDano = multiplicadorDeDano;
+        }
+    }
+
+    // Procura tiros do outro lado encostando no corte.
+    private void Cortar()
+    {
+        foreach (Collider2D c in Physics2D.OverlapCircleAll(corpo.position, raio + 0.15f))
+        {
+            if (c == null || !c.TryGetComponent(out Projetil outro) || outro == this || outro.acabou || outro.lado == lado)
+                continue;
+
+            if (arma.devolveTiros)
+                outro.Devolver(dono, lado, rumo);
+            else
+            {
+                outro.Sumir();
+                EfeitoDeFolha efeito = EfeitoDeFolha.Tocar(ArteDoAntigo.ExplosaoPequena, outro.transform.position, 30f, 25);
+
+                if (efeito != null)
+                    efeito.transform.localScale = Vector3.one * 0.5f;
+            }
+        }
+    }
+
+    /// <summary>
+    /// O tiro muda de lado (a Lamina Real devolve): vai pra onde o corte ia, mais rapido e batendo bem mais
+    /// forte (tiro de inimigo tira pouco: no inimigo, quatro vezes).
+    /// </summary>
+    public void Devolver(GameObject novoDono, Lado novoLado, Vector2 pra)
+    {
+        if (acabou || lado == novoLado)
+            return;
+
+        dono = novoDono;
+        lado = novoLado;
+        rumo = pra.sqrMagnitude > 0.0001f ? pra.normalized : -rumo;
+        velocidade = Mathf.Max(velocidade, 10f) * 1.2f;
+        aceleracao = Mathf.Max(0f, aceleracao);
+        curva = 0f;
+        alcance = percorrido + 12f;
+        multiplicadorDeDano = Mathf.Max(multiplicadorDeDano, 1f) * 4f;
+        corpo.linearVelocity = rumo * velocidade;
+
+        if (TryGetComponent(out SpriteRenderer desenho))
+            desenho.color = new Color(1f, 0.9f, 0.45f, desenho.color.a);
+
+        if (apontar)
+            corpo.MoveRotation(Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg);
     }
 
     private void Perseguir()

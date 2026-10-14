@@ -3,7 +3,8 @@ using UnityEngine;
 /// <summary>
 /// Desenha a arma que esta na mao, girando pra onde o jogador mira, e da um coice a cada tiro. Vale
 /// pra todas, a do heroi tambem (o boneco do heroi nao tem mais a arma desenhada; ver
-/// Ferramentas/Personagens/desarmar_herois.py). Some na esquiva e quando o jogador morre.
+/// Ferramentas/Personagens/desarmar_herois.py). Some na esquiva e quando o jogador morre. As laminas
+/// (<see cref="DadosDaArma.golpeNaMao"/>) balancam a cada golpe, um pra cada lado.
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(ArmaDoJogador))]
@@ -21,6 +22,10 @@ public class ArmaNaMao : MonoBehaviour
     private Vida vida;
     private SpriteRenderer desenho;
     private float coice;
+    private float golpeComecou = -10f;
+    private float ladoDoGolpe = 1f;
+
+    private const float DuracaoDoGolpe = 0.16f;
 
     private void Awake()
     {
@@ -48,6 +53,24 @@ public class ArmaNaMao : MonoBehaviour
     private void Atirou(Vector2 rumo, float intervalo)
     {
         coice = armas.Arma != null ? armas.Arma.coice : 0f;
+
+        if (armas.Arma != null && armas.Arma.golpeNaMao > 0f)
+        {
+            golpeComecou = Time.time;
+            ladoDoGolpe = -ladoDoGolpe;
+        }
+    }
+
+    // O balanco da lamina: corta de um lado pro outro rapido e volta pro meio.
+    private float Golpe(DadosDaArma dados)
+    {
+        float p = (Time.time - golpeComecou) / DuracaoDoGolpe;
+
+        if (dados.golpeNaMao <= 0f || p >= 1f)
+            return 0f;
+
+        float angulo = p < 0.7f ? Mathf.Lerp(1f, -1f, p / 0.7f) : Mathf.Lerp(-1f, 0f, (p - 0.7f) / 0.3f);
+        return angulo * dados.golpeNaMao * ladoDoGolpe;
     }
 
     private void LateUpdate()
@@ -68,7 +91,7 @@ public class ArmaNaMao : MonoBehaviour
         desenho.flipY = mira.x < 0f;
 
         // O desenho de chao das armas dos herois e na diagonal: o giro acerta (espelhado, ao contrario).
-        float giro = desenho.flipY ? -dados.giroNaMao : dados.giroNaMao;
+        float giro = (desenho.flipY ? -dados.giroNaMao : dados.giroNaMao) + Golpe(dados);
         // Mirando pra cima a arma fica atras do corpo; pra baixo e pros lados, na frente.
         desenho.sortingOrder = mira.y > 0.5f ? 9 : 11;
         desenho.transform.localPosition = (Vector3)(mira * (dados.distanciaDaMao - coice)) + new Vector3(0f, alturaDaMao, 0f);

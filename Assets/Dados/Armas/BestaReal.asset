@@ -36,6 +36,7 @@ MonoBehaviour:
   aceleracao: 0
   curva: 0
   giroDoDesenho: 0
+  divideAoAcertar: 3
   tirosPorDisparo: 3
   abertura: 8
   anel: 0

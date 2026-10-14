@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
+  m_Name: CetroDoAbismo
+  m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
+  nome: Cetro do Abismo
+  desenhoNaMao: {fileID: 21300000, guid: 3b6e4250e5f64cefa1e86026e175c8ee, type: 3}
+  desenhoNoChao: {fileID: 0}
+  giroNaMao: -45
+  distanciaDaMao: 0.5
+  coice: 0.08
+  infinita: 0
+  semPente: 1
+  pente: 14
+  municaoMaxima: 140
+  recarga: 1
+  somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
+  pesoNoBau: 0.6
+  raridade: 4
+  arsenal: 3
+  desenhoDoTiro: {fileID: 21300000, guid: 63649ba4c68b4f5ab0474ee9c4eee207, type: 3}
+  apontarODesenho: 0
+  cor: {r: 0.85, g: 0.55, b: 1, a: 1}
+  raio: 0.16
+  automatica: 1
+  tirosPorSegundo: 2.4
+  velocidade: 11
+  alcance: 11
+  dano: 6
+  empurrao: 3
+  aceleracao: 0
+  curva: 0
+  volta: 0
+  atravessa: 0
+  efeito: 0
+  giroDoDesenho: 0
+  cortaTiros: 0
+  devolveTiros: 0
+  encadeia: 4
+  persegue: 1
+  divideAoAcertar: 0
+  golpeNaMao: 0
+  tirosPorDisparo: 2
+  abertura: 14
+  anel: 0
+  dispersao: 2
+  especial: 1
+  recargaDoEspecial: 5
+  escalaDoDesenho: 1
+  rajada: 1
+  intervaloDaRajada: 0.1
+  giroNaRajada: 0
+  tremor: 0.05
+  som: {fileID: 8300000, guid: 0fe30ac92cdb485fab2d0bf83ec57005, type: 3}
+  volume: 0.35

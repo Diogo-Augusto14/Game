@@ -53,7 +53,7 @@ public static class Melhorias
     };
 
     /// <summary>O que cada nivel do Arsenal libera (pro texto da estatua).</summary>
-    public static readonly string[] NoArsenal = { "Cajado do Trovão", "Lâmina Real e Bumerangue de Prata", "Cetro do Abismo" };
+    public static readonly string[] NoArsenal = { "Cajado da Tempestade", "Lâmina Real e Bumerangue de Prata", "Cetro do Abismo" };
 
     private static int cristais = -1;
 

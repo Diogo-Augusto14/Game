@@ -115,6 +115,25 @@ public class DadosDaArma : ScriptableObject
     [Tooltip("Graus por segundo que o desenho gira em voo (o machado rodando; 0 = nao gira)")]
     public float giroDoDesenho;
 
+    [Header("Efeitos das armas novas")]
+    [Tooltip("O corte apaga os tiros dos inimigos que encosta (as laminas)")]
+    public bool cortaTiros;
+
+    [Tooltip("Com o corta tiros: em vez de apagar, devolve o tiro pro lado de quem atirou, mais forte (a Lamina Real)")]
+    public bool devolveTiros;
+
+    [Tooltip("Ao acertar, um raio pula pra tantos inimigos perto (o Cajado do Trovao; 0 = nao pula)")]
+    [Min(0)] public int encadeia;
+
+    [Tooltip("O tiro vira aos poucos pro inimigo mais perto (o Tomo Proibido)")]
+    public bool persegue;
+
+    [Tooltip("Ao acertar, se divide em tantos tiros menores, em leque (a Besta Real; 0 = nao divide)")]
+    [Min(0)] public int divideAoAcertar;
+
+    [Tooltip("Graus que a arma balanca na mao a cada golpe, ida e volta (as laminas; 0 = so o coice)")]
+    [Min(0f)] public float golpeNaMao;
+
     [Header("Varios tiros")]
     [Min(1)] public int tirosPorDisparo = 1;
 
@@ -141,6 +160,35 @@ public class DadosDaArma : ScriptableObject
     [System.NonSerialized] public bool ehEspecial;
 
     [System.NonSerialized] private DadosDaArma especialPronto;
+    [System.NonSerialized] private DadosDaArma fragmentoPronto;
+
+    /// <summary>
+    /// O pedaco de um tiro que se divide (<see cref="divideAoAcertar"/>): a mesma arma, menor, mais fraca,
+    /// mais curta e que nao divide de novo.
+    /// </summary>
+    public DadosDaArma Fragmento
+    {
+        get
+        {
+            if (fragmentoPronto != null)
+                return fragmentoPronto;
+
+            DadosDaArma f = Instantiate(this);
+            f.name = name + " (fragmento)";
+            f.ehEspecial = ehEspecial;
+            f.divideAoAcertar = 0;
+            f.encadeia = 0;
+            f.persegue = false;
+            f.dano = dano * 0.45f;
+            f.alcance = Mathf.Min(alcance, 4.5f);
+            f.velocidade = velocidade * 0.8f;
+            f.escalaDoDesenho = escalaDoDesenho * 0.7f;
+            f.raio = raio * 0.8f;
+            f.efeito = efeito == EfeitoDoTiro.Explode ? EfeitoDoTiro.Nenhum : efeito;
+            fragmentoPronto = f;
+            return f;
+        }
+    }
 
     /// <summary>O nome do tiro especial, pro HUD.</summary>
     public string NomeDoEspecial
