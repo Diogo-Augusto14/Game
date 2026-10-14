@@ -6,7 +6,7 @@ using UnityEngine;
 /// Uma sala de luta do andar (o ritmo das salas do jogo antigo, na planta nova): os inimigos dormem
 /// la dentro ate o jogador entrar. Entrou, as grades fecham (<see cref="PortaDaSala"/>), todo mundo
 /// acorda, e so abre com todos mortos. Algumas salas tem uma segunda onda, que sai do chao quando a
-/// primeira acaba. Limpou, cai o premio da sala (moedas, as vezes chave, bomba, coracao ou um bau).
+/// primeira acaba. Limpou, cai o premio da sala (moedas, as vezes chave, coracao ou um bau).
 ///
 /// Quem nasce no meio da luta (o esqueleto do Necromante, as bolinhas da Bolha) entra na conta da
 /// sala fechada (<see cref="Adotar"/>).
@@ -245,11 +245,9 @@ public class SalaDeLuta : MonoBehaviour
 
         float sorte = Random.value;
 
-        if (sorte < 0.15f)
+        if (sorte < 0.22f)
             Coletavel.Criar(TipoDeColetavel.Chave, onde);
-        else if (sorte < 0.3f)
-            Coletavel.Criar(TipoDeColetavel.Bomba, onde);
-        else if (sorte < 0.5f)
+        else if (sorte < 0.45f)
             Coletavel.Criar(TipoDeColetavel.Coracao, onde);
 
         // As vezes um bau (sempre na sala do fim).

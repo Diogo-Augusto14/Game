@@ -95,7 +95,6 @@
     <Compile Include="Assets\Scripts\Cenario\AreaEscura.cs" />
     <Compile Include="Assets\Scripts\Cenario\TroncoRolante.cs" />
     <Compile Include="Assets\Scripts\Itens\Coletavel.cs" />
-    <Compile Include="Assets\Scripts\Itens\Bomba.cs" />
     <Compile Include="Assets\Scripts\Itens\ItemAtivoDoJogador.cs" />
     <Compile Include="Assets\Scripts\Itens\OrbeGuardiao.cs" />
     <Compile Include="Assets\Scripts\Itens\Bolsa.cs" />

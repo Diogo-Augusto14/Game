@@ -27,12 +27,16 @@ public struct Dano
     /// <summary>Quem machucou (o atirador, nao a bala). Pode ser nulo.</summary>
     public GameObject fonte;
 
+    /// <summary>Veio de um tiro especial (G): so ele quebra a pedra rachada.</summary>
+    public bool especial;
+
     public Dano(float quantidade, Vector2 direcao, float empurrao, GameObject fonte)
     {
         this.quantidade = quantidade;
         this.direcao = direcao;
         this.empurrao = empurrao;
         this.fonte = fonte;
+        especial = false;
     }
 }
 

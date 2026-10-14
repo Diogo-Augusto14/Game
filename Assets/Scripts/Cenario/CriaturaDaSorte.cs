@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// A criaturinha da sorte da area segura (pacote Ancient Ruins): anda devagar por perto de onde nasceu.
-/// Um carinho e ela solta moedas (as vezes uma chave ou uma bomba) e sai correndo, sumindo na mata.
+/// Um carinho e ela solta moedas (as vezes uma chave ou um coracao) e sai correndo, sumindo na mata.
 /// </summary>
 public class CriaturaDaSorte : Interativo
 {
@@ -103,7 +103,7 @@ public class CriaturaDaSorte : Interativo
             Coletavel.Criar(TipoDeColetavel.Moeda, aqui + Random.insideUnitCircle * 0.8f);
 
         if (Random.value < 0.5f)
-            Coletavel.Criar(Random.value < 0.5f ? TipoDeColetavel.Chave : TipoDeColetavel.Bomba, aqui + Random.insideUnitCircle * 0.6f);
+            Coletavel.Criar(Random.value < 0.5f ? TipoDeColetavel.Chave : TipoDeColetavel.Coracao, aqui + Random.insideUnitCircle * 0.6f);
 
         Sons.Tocar(Som.Moeda, 0.9f);
 

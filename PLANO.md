@@ -62,7 +62,8 @@ de novo.
   chefe dela) e um chefe das Profundezas, o Rei Goblin (com a arte do Goblin Brutamonte, sorteado com o
   Olho do Abismo). Próximo: com os pacotes completos, mais áreas seguras, mais mundos pra escolher e um
   chefe com a arte própria dos bichos grandes do Depths.
-- **O que precisava adaptar do jogo antigo** (feito depois da etapa 8): moedas, chaves e bombas, loja,
+- **O que precisava adaptar do jogo antigo** (feito depois da etapa 8): moedas, chaves e bombas (as bombas
+  saíram na 1.18.0, trocadas pelo tiro especial de cada arma, no G, com recarga), loja,
   itens passivos e ativos com sinergias, as salas especiais virando pedaços da caverna (emboscada,
   desafio, altar, baús especiais, área escura), armadilhas e cenário vivo, temas dos mundos e as flechas
   especiais virando arcos achados.

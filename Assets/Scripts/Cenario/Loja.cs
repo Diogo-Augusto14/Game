@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// A loja (do jogo antigo, aqui num canto da caverna): o balcao do mercador e tres pedestais a venda,
-/// um item e duas coisas miudas (coracao, bomba, chave ou municao). Paga com moedas.
+/// um item e duas coisas miudas (coracao, chave ou municao). Paga com moedas.
 /// </summary>
 public static class Loja
 {
@@ -39,7 +39,7 @@ public static class Loja
         ItemPassivo item = CatalogoDeItens.Sortear(jogador);
         Pedestal.Criar(onde + new Vector2(-1.6f, -0.3f), pai, item, item.Preco);
 
-        Produto[] miudos = { Produto.Coracao, Produto.Bomba, Produto.Chave, Produto.Municao };
+        Produto[] miudos = { Produto.Coracao, Produto.Chave, Produto.Municao };
         Produto a = miudos[Random.Range(0, miudos.Length)];
         Produto b;
 

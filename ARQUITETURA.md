@@ -24,6 +24,7 @@ mudado à mão na cena e no prefab se perde.
 | `M` / `N` | `LB` / `RB` (nos menus) | Música / efeitos liga e desliga |
 | `Q` ou a roda do mouse | `Y` | Trocar de arma |
 | `E` | `B` | Pegar arma, abrir baú |
+| `G` | clique do analógico esquerdo | O tiro especial da arma na mão (com recarga) |
 | `Tab` | `Select` (Back) | O mapa do andar inteiro (o jogo para); de novo, `Esc` ou `B` fecha |
 
 ## Pastas
@@ -34,7 +35,7 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Armas` | Os dados de uma arma (asset), a arma com a munição dela, quem atira, o tiro em voo, a arma na mão e no chão, o baú, a caixa de munição e a munição na tela |
 | `Assets/Scripts/Combate` | Vida e dano (a mesma peça pra todo mundo), o piscar branco e o impacto (hitstop e números de dano) |
 | `Assets/Scripts/Inimigos` | O inimigo que anda e atira, a animação e a morte dele, os jeitos extras (sumir, escudo, dividir, invocar), os chefes e o boneco de treino |
-| `Assets/Scripts/Itens` | Moedas, chaves e bombas (a bolsa), os coletáveis, a bomba e a explosão, os itens passivos e ativos, as sinergias, o pedestal (também da loja e do altar) e o orbe guardião |
+| `Assets/Scripts/Itens` | Moedas e chaves (a bolsa), os coletáveis, a explosão, os itens passivos e ativos, as sinergias, o pedestal (também da loja e do altar) e o orbe guardião |
 | `Assets/Scripts/Cenario` | O que enche a caverna: loja, altar de sangue, emboscada e desafio, área escura, serra no trilho, tronco rolante, espinhos, mesas e barris que quebram, baratas e velas |
 | `Assets/Scripts/Progresso` | Heróis liberados, estatísticas, conquistas, bestiário, a tela de progresso e a partida salva |
 | `Assets/Scripts/Andar` | A caverna: cavar, construir as paredes, espalhar os inimigos, a sala secreta, a saída, a troca de andar e o caminho (o tema de cada mundo) |
@@ -66,7 +67,7 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `MovimentoDoJogador` | Anda com aceleração e freio; a esquiva é uma arrancada curta na direção do andar, sem tomar dano no começo (`Invulneravel`), com recarga curta |
 | `AnimacaoDoJogador` | Parado, andando, atirando e rolando na esquiva. O arco puxa e solta a cada tiro, parado ou andando (andando, o corpo dá um pulinho de 1 pixel a cada passo, porque o desenho do pacote não tem "andar atirando"). O corpo sempre olha pro lado da mira |
 | `RastroDaEsquiva` | As cópias azuladas que ficam pra trás na esquiva |
-| `ArmaDoJogador` | As duas armas: começa só com a do personagem (o arco, infinito). Troca entre elas, atira pra onde mira no ritmo da arma e gasta a munição; sem munição, só o clique. Pegar outra arma ocupa a mão vazia ou troca a da mão (o arco também). Não atira no meio da esquiva |
+| `ArmaDoJogador` | As duas armas: começa só com a do personagem (o arco, infinito). Troca entre elas, atira pra onde mira no ritmo da arma e gasta a munição; sem munição, só o clique. Pegar outra arma ocupa a mão vazia ou troca a da mão (o arco também). Não atira no meio da esquiva. O `G` solta o tiro especial da arma (ver **O tiro especial**) |
 | `ArmaNaMao` | Desenha a arma achada na mão, girando pra mira, com o coice do tiro (com o arco não aparece nada: ele já está no desenho do Arqueiro) |
 | `InteracaoDoJogador` | Acha a coisa usável mais perto (arma no chão, baú) e usa no `E` (a dica em cima dela é da interface) |
 | `CursorDaMira` | Troca o cursor por uma mira enquanto o mouse mira; com o controle, o cursor some |
@@ -92,7 +93,7 @@ a cura da Carne Assada). Tudo fica no objeto
 | Script | O que faz |
 |---|---|
 | `PlantaDeSalas` | Monta a planta: a sala do começo no centro, um caminho de salas de luta até a do fim (maior), salas do lado (mais lutas e as especiais: loja, tesouro, altar, desafio) e às vezes um atalho entre duas lutas vizinhas. As salas ficam numa grade (19 × 18 de um meio ao outro); cada uma é um retângulo com cantos cortados, nichos e, nas grandes, pilares. Corredores de 3, e a ponta encostada em cada sala de luta é a porta dela. Às vezes, uma **sala secreta** pendurada numa sala qualquer (menos a do começo): o corredor até ela fica de fora do chão (a `passagemSecreta`): é desenhado como parede, mas é uma parede de ilusão |
-| `SalaDeLuta` | Uma sala de luta: os inimigos dormem em grupos (um bicho principal por grupo, às vezes outro no meio) até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem mais uma onda saindo do chão (a sala do fim sempre tem uma, e duas do 4º andar de salas em diante). Limpou: abre e solta moedas, às vezes chave, bomba, coração ou um baú (a do fim sempre dá baú e abre o portal) |
+| `SalaDeLuta` | Uma sala de luta: os inimigos dormem em grupos (um bicho principal por grupo, às vezes outro no meio) até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem mais uma onda saindo do chão (a sala do fim sempre tem uma, e duas do 4º andar de salas em diante). Limpou: abre e solta moedas, às vezes chave, coração ou um baú (a do fim sempre dá baú e abre o portal) |
 | `PortaDaSala` | A porta da sala de luta: o portão de caveira do Old Prison nas quatro paredes (um arco de pedra da largura do corredor, sempre ali; as duas folhas fecham e abrem pra dentro da sala). Em cima e embaixo, de frente (embaixo, todo dentro do corredor, e a câmera vê a caveira, o lado de fora); nos lados, deitado, como as portas do Isaac. Quem está atrás do arco vê através dele. No Porão, o portão recolorido de marrom (`Temas/Porao/PortaoDeCaveira`, feito pelo `Ferramentas/Temas/recolorir_porao.py`). Fechada, é parede (camada `Wall`): segura gente e tiro |
 | `Caverna` | As ferramentas da planta: ajeita pras paredes do Old Prison e escolhe os buracos e as poças (o cavar com "andarilhos", da caverna antiga, ficou aí sem uso) |
 | `Pedreiro` | Transforma a planta em mundo com a arte do Old Prison, em Tilemaps: abismo, chão, sangue, enfeites e paredes, mais os colisores das paredes (camada `Wall`) e dos buracos (camada `Buraco`), só onde encostam no chão. A passagem secreta é desenhada como parede, mas os colisores são feitos com ela aberta; o `Remendar` redesenha aquele pedaço quando ela se revela |
@@ -316,8 +317,9 @@ jogador passa na frente ou atrás do boneco e dos inimigos conforme a altura.
 
 Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/Cenario`):
 
-- **Bolsa**: moedas (compram na loja), chaves (abrem o baú trancado) e bombas (**G**: explodem
-  inimigos, mesas, barris e as pedras rachadas, que só bomba quebra). Caem dos inimigos (`Coletavel`).
+- **Bolsa**: moedas (compram na loja) e chaves (abrem o baú trancado). Caem dos inimigos (`Coletavel`).
+  As bombas saíram na 1.18.0: no lugar delas, o tiro especial de cada arma (**G**), que também é o
+  único que quebra as pedras rachadas.
 - **Itens**: os 27 passivos do jogo antigo (`CatalogoDeItens`) mudam os números do jogador
   (`EstatisticasDoJogador`: dano, ritmo, tiros a mais, atravessar, perseguir, fênix, escudo, orbes...);
   13 **sinergias** (dois itens juntos dão um bônus). Os 6 **ativos** ficam no **R** e recarregam
@@ -345,7 +347,7 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   herói (fraca), tochas (nas paredes de todos os mundos com parede, e no salão do chefe), velas,
   candelabros, cristais, a chama mágica, o portal, a estátua de fogo e os itens no pedestal. A cor das
   luzes tinge um pouco o véu (o fogo deixa a volta quente). Tiros, moedas, efeitos, números de dano,
-  preços da loja, armas no chão, bombas e as marcas dos chefes ficam na camada de desenho "Brilho", que é
+  preços da loja, armas no chão e as marcas dos chefes ficam na camada de desenho "Brilho", que é
   desenhada por cima do véu. O fundo da câmera escurece junto.
 - **Área segura** (1.17.0, `AreaSegura`): depois de cada chefe (menos o último), antes do próximo mundo, um
   lugar aberto e claro, sem inimigos, cercado de árvores: a Clareira (Grass Land) depois do mundo 1 e as
@@ -441,6 +443,23 @@ Tudo no PlayerPrefs (`Assets/Scripts/Progresso`), como no jogo antigo:
 Inspector (desenho do tiro, ritmo, velocidade, alcance, dano, quantos tiros por disparo, abertura,
 dispersão, tremor, som) e arrastar o asset na `ArmaDoJogador`. Dá pra mexer nos números com o jogo
 rodando.
+
+O **tiro especial** (`G`, desde a 1.18.0): toda arma tem um, feito dela mesma na hora
+(`DadosDaArma.Especial`, uma cópia com o padrão mudado), sem gastar munição e com recarga
+(`recargaDoEspecial`, guardada por arma na `ArmaCarregada`: trocar de arma não zera). O tipo é o
+`especial` do asset:
+
+| Tipo | O que sai | Armas |
+|---|---|---|
+| Leque | Um leque largo dos tiros da arma, 50% mais forte | Os arcos, a besta |
+| Anel | 14 tiros em volta, 50% mais fortes | Varinha, tomo, cetro do Padre |
+| Carregado | Um tiro grande que atravessa, 6× o dano e empurra muito | Lança, cajado do trovão |
+| Giro | Dois anéis de 8 cortes que atravessam, 2× o dano | As espadas, o sabre |
+| Explosivo | Um tiro maior que explode onde bate, 3× o dano | Os machados, o cajado de fogo |
+
+Só o dano do especial quebra a pedra rachada (`Dano.especial`). O Barril de Pólvora deixa ele 50% mais
+forte e com 30% menos recarga; o ativo Pavio Eterno deixa ele pronto na hora. No HUD, em cima da
+moldura da arma: o nome e a barra da recarga.
 
 Pra ela aparecer na caverna: dar um **desenho na mão** (sem ele a arma não cai em baú nem no chão), a
 **munição** (`semPente` e o total em `municaoMaxima`, ou `infinita`; o pente com recarga ainda funciona, mas nenhuma arma usa) e o **peso no baú** (quanto maior, mais

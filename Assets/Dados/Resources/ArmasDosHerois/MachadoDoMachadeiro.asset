@@ -47,3 +47,5 @@ MonoBehaviour:
   tremor: 0.08
   som: {fileID: 8300000, guid: bb6a3bd0d6f2471abd2d18c98c6d79d3, type: 3}
   volume: 0.5
+  especial: 4
+  recargaDoEspecial: 7

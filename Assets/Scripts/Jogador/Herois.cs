@@ -215,7 +215,7 @@ public static class Herois
         if (arma != null && jogador.TryGetComponent(out ArmaDoJogador armas))
             armas.ComecarCom(arma);
 
-        // A bolsa (moedas, chaves, bombas), os itens e o item ativo ficam a partida inteira.
+        // A bolsa (moedas e chaves), os itens e o item ativo ficam a partida inteira.
         if (!jogador.TryGetComponent(out Bolsa bolsa))
             jogador.AddComponent<Bolsa>();
 

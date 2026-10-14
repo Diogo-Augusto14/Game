@@ -60,6 +60,7 @@ public class Projetil : MonoBehaviour
         if (arma.apontarODesenho)
             obj.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(rumo.y, rumo.x) * Mathf.Rad2Deg);
 
+        obj.transform.localScale = Vector3.one * arma.escalaDoDesenho;
         SpriteRenderer desenho = obj.AddComponent<SpriteRenderer>();
         desenho.sprite = arma.desenhoDoTiro;
         desenho.color = arma.cor;
@@ -102,11 +103,15 @@ public class Projetil : MonoBehaviour
         if (lado == Lado.Jogador && dono != null && dono.TryGetComponent(out EstatisticasDoJogador itens))
         {
             projetil.multiplicadorDeDano *= itens.MultiplicadorDoDano(arma.dano);
+
+            // O Barril de Polvora: o tiro especial bate mais forte.
+            if (arma.ehEspecial)
+                projetil.multiplicadorDeDano *= itens.PolvoraVezes;
             projetil.alcance *= itens.AlcanceVezes;
             projetil.velocidade *= itens.VelocidadeDoTiroVezes;
             projetil.raio *= itens.TamanhoVezes;
             colisor.radius = projetil.raio;
-            obj.transform.localScale = Vector3.one * itens.TamanhoVezes;
+            obj.transform.localScale = Vector3.one * arma.escalaDoDesenho * itens.TamanhoVezes;
             projetil.atravessa |= itens.Atravessa;
             projetil.persegue = itens.Persegue;
             projetil.explode |= itens.ExplodeAoAcertar;
@@ -225,7 +230,7 @@ public class Projetil : MonoBehaviour
                 return;
 
             // Protegido (esquiva, tempinho depois do golpe): tambem passa reto. Bateu num escudo: some.
-            if (!vida.ReceberDano(new Dano(arma.dano * multiplicadorDeDano, rumo, arma.empurrao, dono)) && !vida.Bloqueou)
+            if (!vida.ReceberDano(new Dano(arma.dano * multiplicadorDeDano, rumo, arma.empurrao, dono) { especial = arma.ehEspecial }) && !vida.Bloqueou)
                 return;
 
             Efeito(vida);
@@ -255,14 +260,15 @@ public class Projetil : MonoBehaviour
             CondicaoDoInimigo.Envenenar(vida.gameObject, 3f, Mathf.Max(2f, arma.dano * 0.6f));
     }
 
-    // A flecha explosiva (e a Polvora em Chamas): uma explosao pequena onde parou, sem ferir o jogador.
+    // A flecha explosiva (e a Polvora em Chamas): uma explosao pequena onde parou, sem ferir o jogador. A do
+    // tiro especial explosivo e maior.
     private void Explodir()
     {
         if (!explode || acabou)
             return;
 
         explode = false;
-        Explosao.Criar(corpo.position, 1.3f, arma.dano * multiplicadorDeDano * 0.8f, lado, dono);
+        Explosao.Criar(corpo.position, arma.ehEspecial ? 2.2f : 1.3f, arma.dano * multiplicadorDeDano * 0.8f, lado, dono, arma.ehEspecial);
     }
 
     private void Perseguir()

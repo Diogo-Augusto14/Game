@@ -12,6 +12,9 @@ using UnityEngine;
 ///
 /// Nao atira no meio da esquiva. Cada disparo avisa <see cref="AoAtirar"/> (a animacao do arco e a
 /// arma na mao escutam).
+///
+/// O tiro especial (G): o <see cref="DadosDaArma.Especial"/> da arma na mao, sem gastar municao; depois
+/// recarrega (<see cref="DadosDaArma.recargaDoEspecial"/>, mais rapido com o Barril de Polvora).
 /// </summary>
 [DisallowMultipleComponent]
 public class ArmaDoJogador : MonoBehaviour
@@ -47,6 +50,7 @@ public class ArmaDoJogador : MonoBehaviour
     private float recarregaAte = -1f;
     private float proximoClique;
     private readonly Rajada rajada = new Rajada();
+    private readonly Rajada rajadaEspecial = new Rajada();
 
     /// <summary>A arma na mao agora.</summary>
     public ArmaCarregada Atual => maos[naMao];
@@ -141,6 +145,12 @@ public class ArmaDoJogador : MonoBehaviour
         if (rajada.Atirando)
             DispararDaRajada();
 
+        if (rajadaEspecial.Atirando)
+            DispararDaRajada(rajadaEspecial, null);
+
+        if (controles.UsouEspecial)
+            UsarEspecial();
+
         if (Recarregando && Time.time >= recarregaAte)
         {
             Atual.Recarregar();
@@ -184,9 +194,38 @@ public class ArmaDoJogador : MonoBehaviour
         naMao = qual;
         recarregaAte = -1f;
         rajada.Parar();
+        rajadaEspecial.Parar();
         proximoTiro = Mathf.Max(proximoTiro, Time.time + 0.15f);
         Tocar(somDaTroca, 1f);
         AoTrocar?.Invoke();
+    }
+
+    // O tiro especial da arma na mao, se estiver pronto (no meio da esquiva, nao).
+    private void UsarEspecial()
+    {
+        if (movimento != null && movimento.Esquivando)
+            return;
+
+        if (!Atual.EspecialPronto)
+        {
+            if (Time.time >= proximoClique)
+            {
+                proximoClique = Time.time + 0.3f;
+                Tocar(somSemMunicao, 1f);
+            }
+
+            return;
+        }
+
+        DadosDaArma especial = Atual.Dados.Especial;
+        float polvora = TryGetComponent(out EstatisticasDoJogador itens) ? itens.PolvoraVezes : 1f;
+
+        // O Barril de Polvora: recarga 30% mais curta (o dano a mais e no Projetil).
+        Atual.UsarEspecial(Atual.Dados.recargaDoEspecial * (polvora > 1f ? 0.7f : 1f));
+        rajadaEspecial.Comecar(especial);
+        DispararDaRajada(rajadaEspecial, null);
+        proximoTiro = Mathf.Max(proximoTiro, Time.time + 0.2f);
+        AoAtirar?.Invoke(controles.Mira, 0.3f);
     }
 
     private void ComecarRecarga()
@@ -210,20 +249,23 @@ public class ArmaDoJogador : MonoBehaviour
     }
 
     // Um disparo (o unico, ou o da vez na rajada).
-    private void DispararDaRajada()
+    private void DispararDaRajada() => DispararDaRajada(rajada, Atual.Dados);
+
+    // O da vez desta rajada; os tiros extras dos itens so no tiro comum (dados nao nulo).
+    private void DispararDaRajada(Rajada qual, DadosDaArma extras)
     {
-        DadosDaArma dados = Atual.Dados;
+        DadosDaArma dados = extras != null ? extras : Atual.Dados.Especial;
         Vector2 rumo = controles.Mira;
 
         // A arma na mao atira da ponta dela; a do personagem, de perto do corpo.
         float saida = dados.desenhoNaMao != null ? dados.distanciaDaMao + 0.3f : distanciaDaSaida;
         Vector2 origem = (Vector2)transform.position + Vector2.up * alturaDaSaida + rumo * saida;
 
-        if (!rajada.Atualizar(origem, rumo, gameObject, Lado.Jogador))
+        if (!qual.Atualizar(origem, rumo, gameObject, Lado.Jogador))
             return;
 
         // Os itens que somam tiros: as runas (mais tiros em leque) e o Elmo de Duas Faces (um pra tras).
-        if (TryGetComponent(out EstatisticasDoJogador itens))
+        if (extras != null && TryGetComponent(out EstatisticasDoJogador itens))
         {
             for (int i = 1; i <= itens.TirosExtras; i++)
             {

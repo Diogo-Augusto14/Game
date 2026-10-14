@@ -148,10 +148,16 @@ public class ItemAtivoDoJogador : MonoBehaviour
                 Dizer("+ vida", new Color(1f, 0.35f, 0.4f));
                 return true;
 
-            case TipoDeAtivo.BombaEterna:
-                if (TryGetComponent(out Bolsa bolsa))
-                    bolsa.SoltarBomba();
+            case TipoDeAtivo.EspecialNaHora:
+                if (!TryGetComponent(out ArmaDoJogador armas) || armas.Atual == null || armas.Atual.EspecialPronto)
+                {
+                    Dizer("Especial pronto", new Color(0.8f, 0.8f, 0.9f));
+                    return false;
+                }
 
+                armas.Atual.AprontarEspecial();
+                Sons.Tocar(Som.Item, 0.8f, 0f);
+                Dizer("Especial pronto!", new Color(1f, 0.82f, 0.36f));
                 return true;
         }
 

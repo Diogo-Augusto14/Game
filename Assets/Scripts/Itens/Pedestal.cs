@@ -1,11 +1,10 @@
 using UnityEngine;
 
-/// <summary>O que um pedestal da: um item, ou (na loja) coracao, bomba, chave ou municao.</summary>
+/// <summary>O que um pedestal da: um item, ou (na loja) coracao, chave ou municao.</summary>
 public enum Produto
 {
     Item,
     Coracao,
-    Bomba,
     Chave,
     Municao,
 }
@@ -73,7 +72,6 @@ public class Pedestal : Interativo
             switch (produto)
             {
                 case Produto.Coracao: return "Coração";
-                case Produto.Bomba: return "Bomba";
                 case Produto.Chave: return "Chave";
                 case Produto.Municao: return "Munição";
                 default: return item != null ? item.Nome : "?";
@@ -112,7 +110,6 @@ public class Pedestal : Interativo
         switch (produto)
         {
             case Produto.Coracao: icone.sprite = Coletavel.Desenho(TipoDeColetavel.Coracao); break;
-            case Produto.Bomba: icone.sprite = Coletavel.Desenho(TipoDeColetavel.Bomba); break;
             case Produto.Chave: icone.sprite = Coletavel.Desenho(TipoDeColetavel.Chave); break;
             case Produto.Municao: icone.sprite = ArteDoAntigo.Icone(2155, 48f); break;
             default: icone.sprite = item != null ? item.Desenho : null; break;
@@ -191,12 +188,8 @@ public class Pedestal : Interativo
                 Sons.Tocar(Som.Coracao, 0.8f);
                 break;
 
-            case Produto.Bomba:
-                bolsa?.Ganhar(0, 0, 1);
-                break;
-
             case Produto.Chave:
-                bolsa?.Ganhar(0, 1, 0);
+                bolsa?.Ganhar(0, 1);
                 break;
 
             case Produto.Municao:

@@ -12,6 +12,7 @@ using UnityEngine.InputSystem;
 ///   trocar    Q ou a roda do mouse   | Y
 ///   recarregar R                     | X
 ///   interagir E (pegar arma, abrir bau) | B
+///   especial  G (o tiro especial da arma) | clique do analogico esquerdo
 ///
 /// Usa o Input System (o pacote novo da Unity), com as acoes montadas aqui no codigo.
 /// </summary>
@@ -33,7 +34,7 @@ public class ControlesDoJogador : MonoBehaviour
     private InputAction recarregar;
     private InputAction interagir;
     private InputAction habilidade;
-    private InputAction bomba;
+    private InputAction especial;
     private InputAction ativo;
 
     private float esquivaPedidaEm = -10f;
@@ -67,8 +68,8 @@ public class ControlesDoJogador : MonoBehaviour
     /// <summary>Apertou a habilidade do heroi neste quadro (F ou o X do controle).</summary>
     public bool UsouHabilidade { get; private set; }
 
-    /// <summary>Apertou pra soltar bomba neste quadro (G ou o clique do analogico esquerdo).</summary>
-    public bool SoltouBomba { get; private set; }
+    /// <summary>Apertou o tiro especial da arma neste quadro (G ou o clique do analogico esquerdo).</summary>
+    public bool UsouEspecial { get; private set; }
 
     /// <summary>Apertou o item ativo neste quadro (R ou o clique do analogico direito).</summary>
     public bool UsouAtivo { get; private set; }
@@ -114,8 +115,8 @@ public class ControlesDoJogador : MonoBehaviour
         habilidade = new InputAction("Habilidade", InputActionType.Button, "<Keyboard>/f");
         habilidade.AddBinding("<Gamepad>/buttonWest");
 
-        bomba = new InputAction("Bomba", InputActionType.Button, "<Keyboard>/g");
-        bomba.AddBinding("<Gamepad>/leftStickPress");
+        especial = new InputAction("Especial", InputActionType.Button, "<Keyboard>/g");
+        especial.AddBinding("<Gamepad>/leftStickPress");
 
         ativo = new InputAction("Ativo", InputActionType.Button, "<Keyboard>/r");
         ativo.AddBinding("<Gamepad>/rightStickPress");
@@ -132,7 +133,7 @@ public class ControlesDoJogador : MonoBehaviour
         recarregar.Enable();
         interagir.Enable();
         habilidade.Enable();
-        bomba.Enable();
+        especial.Enable();
         ativo.Enable();
     }
 
@@ -147,9 +148,9 @@ public class ControlesDoJogador : MonoBehaviour
         recarregar.Disable();
         interagir.Disable();
         habilidade.Disable();
-        bomba.Disable();
+        especial.Disable();
         ativo.Disable();
-        Trocou = Recarregou = Interagiu = UsouHabilidade = SoltouBomba = UsouAtivo = false;
+        Trocou = Recarregou = Interagiu = UsouHabilidade = UsouEspecial = UsouAtivo = false;
 
         // Desligado (um menu travou o jogador): solta tudo, e ao voltar os botoes so valem depois de soltos.
         Movimento = Vector2.zero;
@@ -168,7 +169,7 @@ public class ControlesDoJogador : MonoBehaviour
         recarregar.Dispose();
         interagir.Dispose();
         habilidade.Dispose();
-        bomba.Dispose();
+        especial.Dispose();
         ativo.Dispose();
     }
 
@@ -196,7 +197,7 @@ public class ControlesDoJogador : MonoBehaviour
         Recarregou = botoes && recarregar.WasPressedThisFrame();
         Interagiu = botoes && interagir.WasPressedThisFrame();
         UsouHabilidade = botoes && habilidade.WasPressedThisFrame();
-        SoltouBomba = botoes && bomba.WasPressedThisFrame();
+        UsouEspecial = botoes && especial.WasPressedThisFrame();
         UsouAtivo = botoes && ativo.WasPressedThisFrame();
 
         LerMira();

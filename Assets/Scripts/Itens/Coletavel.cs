@@ -4,12 +4,11 @@ public enum TipoDeColetavel
 {
     Moeda,
     Chave,
-    Bomba,
     Coracao,
 }
 
 /// <summary>
-/// Moeda, chave, bomba ou coracao no chao (do jogo antigo): encostando, vai pra <see cref="Bolsa"/>
+/// Moeda, chave ou coracao no chao (do jogo antigo): encostando, vai pra <see cref="Bolsa"/>
 /// (o coracao cura meio coracao, e so se nao estiver com a vida cheia). Com a Pedra-Ima, vem sozinho.
 /// <see cref="SoltarDoInimigo"/> sorteia o que cai de quem morre.
 /// </summary>
@@ -50,9 +49,6 @@ public class Coletavel : MonoBehaviour
             case TipoDeColetavel.Chave:
                 return ArteDoAntigo.Icone(179, 56f);
 
-            case TipoDeColetavel.Bomba:
-                return ArteDoAntigo.Icone(764, 52f);
-
             case TipoDeColetavel.Coracao:
                 return ArteDoAntigo.Icone(659, 56f);
 
@@ -62,7 +58,7 @@ public class Coletavel : MonoBehaviour
     }
 
     /// <summary>
-    /// O que cai de um inimigo: as vezes moeda (as vezes uma pilha), raramente chave, bomba ou coracao.
+    /// O que cai de um inimigo: as vezes moeda (as vezes uma pilha), raramente chave ou coracao.
     /// O chefe solta um punhado de moedas. A sorte (Amuleto) aumenta as chances.
     /// </summary>
     public static void SoltarDoInimigo(Vector2 onde, bool chefe, float sorte)
@@ -79,11 +75,9 @@ public class Coletavel : MonoBehaviour
 
         float sorteio = Random.value / Mathf.Max(0.1f, sorte);
 
-        if (sorteio < 0.02f)
+        if (sorteio < 0.03f)
             Criar(TipoDeColetavel.Chave, onde);
-        else if (sorteio < 0.045f)
-            Criar(TipoDeColetavel.Bomba, onde);
-        else if (sorteio < 0.075f)
+        else if (sorteio < 0.06f)
             Criar(TipoDeColetavel.Coracao, onde);
         else if (sorteio < 0.1f)
             Criar(TipoDeColetavel.Moeda, onde, 5);
@@ -126,18 +120,13 @@ public class Coletavel : MonoBehaviour
         switch (tipo)
         {
             case TipoDeColetavel.Moeda:
-                bolsa.Ganhar(quanto, 0, 0);
+                bolsa.Ganhar(quanto, 0);
                 Sons.Tocar(Som.Moeda, 0.6f);
                 break;
 
             case TipoDeColetavel.Chave:
-                bolsa.Ganhar(0, quanto, 0);
+                bolsa.Ganhar(0, quanto);
                 Sons.Tocar(Som.Chave, 0.8f);
-                break;
-
-            case TipoDeColetavel.Bomba:
-                bolsa.Ganhar(0, 0, quanto);
-                Sons.Tocar(Som.Item, 0.6f);
                 break;
 
             case TipoDeColetavel.Coracao:

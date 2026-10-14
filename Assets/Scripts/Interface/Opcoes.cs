@@ -30,7 +30,7 @@ public static class Opcoes
     /// <summary>Chame uma vez por quadro de quem estiver com a tela (menu, pausa, jogo).</summary>
     public static void LerTeclas()
     {
-        // No controle, LB e RB so com o jogo parado (menu, pausa): jogando, LB e bomba.
+        // No controle, LB e RB so com o jogo parado (menu, pausa): jogando, LB e esquiva.
         bool parado = Time.timeScale == 0f;
 
         if (Input.GetKeyDown(KeyCode.M) || (parado && Controle.Apertou(BotaoDoControle.LB)))

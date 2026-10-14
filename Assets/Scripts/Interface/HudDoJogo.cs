@@ -4,10 +4,11 @@ using UnityEngine;
 /// O que fica na tela durante o jogo, desenhado com a arte de interface (pixel art, em multiplos
 /// inteiros: ver <see cref="Desenho"/>):
 /// - em cima a esquerda, a vida em coracoes (cada coracao vale 2; meio coracao vale 1) e, embaixo
-///   deles, a habilidade do heroi (F) com a barra da recarga, as moedas, chaves e bombas, o item
+///   deles, a habilidade do heroi (F) com a barra da recarga, as moedas e chaves, o item
 ///   ativo (R) com a carga e, embaixo a esquerda, os icones dos itens que pegou;
 /// - em cima a direita, o andar e quantos inimigos faltam (ou "portal aberto");
-/// - embaixo a direita, a arma na mao na moldura, o nome, a municao, a recarga e a outra arma;
+/// - embaixo a direita, a arma na mao na moldura, o nome, a municao, o tiro especial (G) com a barra
+///   da recarga e a outra arma;
 /// - no alto, o nome e a barra de vida do chefe, no andar dele;
 /// - a dica do que da pra usar perto ("E  abrir o bau"). O nome do andar ao chegar e o
 ///   <see cref="AvisoDoAndar"/> (a placa azul do jogo antigo).
@@ -99,7 +100,7 @@ public class HudDoJogo
         Barra(barra, habilidade.Carga, pronta ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
     }
 
-    // Moedas, chaves e bombas, uma do lado da outra, e o item ativo do lado.
+    // Moedas e chaves, uma do lado da outra, e o item ativo do lado.
     private void Bolsa(Bolsa bolsa, ItemAtivoDoJogador ativo, int u)
     {
         float m = 8 * u;
@@ -110,7 +111,6 @@ public class HudDoJogo
 
         x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Moeda), bolsa.Moedas);
         x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Chave), bolsa.Chaves);
-        x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Bomba), bolsa.Bombas);
 
         // O item ativo: o icone, a barra de carga e o R.
         if (ativo != null && ativo.Item != null)
@@ -226,11 +226,21 @@ public class HudDoJogo
             Barra(barra, armas.ProgressoDaRecarga, Desenho.Dourado);
         }
 
-        // A outra arma, em cima da moldura.
+        // O tiro especial, logo em cima da moldura: "G  Leque" e a barra enchendo ate ficar pronto.
+        bool pronto = atual.EspecialPronto;
+        GUIStyle especial = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerRight);
+        string textoDoEspecial = (Controle.EmUso ? "LS" : "G") + "  " + atual.Dados.NomeDoEspecial;
+        Rect linhaDoEspecial = new Rect(Screen.width - m - largura, quadro.y - 24 * u, largura, 22 * u);
+        Desenho.Texto(linhaDoEspecial, textoDoEspecial, especial, pronto ? Desenho.Dourado : Desenho.Apagado);
+        float larguraDoTexto = Desenho.Largura(textoDoEspecial, especial);
+        Barra(new Rect(Screen.width - m - larguraDoTexto - 70 * u, quadro.y - 19 * u, 64 * u, 11 * u), atual.CargaDoEspecial,
+              pronto ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
+
+        // A outra arma, em cima do especial.
         if (armas.Outra != null)
         {
             GUIStyle outra = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerRight);
-            Desenho.Texto(new Rect(Screen.width - m - largura, quadro.y - 26 * u, largura, 24 * u),
+            Desenho.Texto(new Rect(Screen.width - m - largura, quadro.y - 48 * u, largura, 24 * u),
                           "Q  " + armas.Outra.Dados.nome, outra, Desenho.Apagado);
         }
     }

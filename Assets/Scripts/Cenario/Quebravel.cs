@@ -5,14 +5,14 @@ using UnityEngine;
 /// Uma coisa do cenario que quebra (veio do jogo antigo): mesa, barril, caixote e a pedra rachada.
 /// Segura tiro e ninguem atravessa; qualquer tiro acerta (lado <see cref="Lado.Neutro"/>). A mesa vira
 /// de lado no primeiro golpe (vira um escudo) e se despedaca no fim. As vezes solta uma moeda. A
-/// pedra rachada so quebra com bomba e guarda um premio.
+/// pedra rachada so quebra com o tiro especial (G) e guarda um premio.
 /// </summary>
 public class Quebravel : MonoBehaviour, IBloqueioDeDano
 {
     private Vida vida;
     private SpriteRenderer desenho;
     private Sprite[] quadros;
-    private bool soBomba;
+    private bool soEspecial;
     private System.Action<Vector2> premio;
     private bool virou;
     private Sprite[] cacos;
@@ -54,7 +54,7 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
     public static Quebravel Caixote(Vector2 onde, Transform pai) =>
         Criar("Caixote", onde, pai, new[] { ArteDoAntigo.Caixote }, 6f, new Vector2(0.8f, 0.6f), false);
 
-    /// <summary>Um monte de pedras rachadas: so bomba quebra; quebrando, chama <paramref name="premio"/>.</summary>
+    /// <summary>Um monte de pedras rachadas: so o tiro especial quebra; quebrando, chama <paramref name="premio"/>.</summary>
     public static Quebravel PedraRachada(Vector2 onde, Transform pai, System.Action<Vector2> premio)
     {
         Sprite[] pedras = ArteDoAntigo.Pedras;
@@ -79,7 +79,7 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
         return q;
     }
 
-    private static Quebravel Criar(string nome, Vector2 onde, Transform pai, Sprite[] quadros, float aguenta, Vector2 tamanho, bool soBomba)
+    private static Quebravel Criar(string nome, Vector2 onde, Transform pai, Sprite[] quadros, float aguenta, Vector2 tamanho, bool soEspecial)
     {
         GameObject obj = new GameObject(nome);
         obj.transform.SetParent(pai, false);
@@ -95,7 +95,7 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
         Quebravel q = obj.AddComponent<Quebravel>();
         q.desenho = sr;
         q.quadros = quadros;
-        q.soBomba = soBomba;
+        q.soEspecial = soEspecial;
         q.vida = obj.AddComponent<Vida>();
         q.vida.Configurar(Lado.Neutro, aguenta);
         q.vida.AoTomarDano += q.Apanhou;
@@ -103,7 +103,7 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
         return q;
     }
 
-    public bool Bloqueia(Dano dano) => soBomba && (dano.fonte == null || !dano.fonte.TryGetComponent(out Bomba _));
+    public bool Bloqueia(Dano dano) => soEspecial && !dano.especial;
 
     private void Apanhou(Dano dano)
     {
@@ -120,10 +120,10 @@ public class Quebravel : MonoBehaviour, IBloqueioDeDano
         foreach (Collider2D c in GetComponents<Collider2D>())
             c.enabled = false;
 
-        Sons.Tocar(soBomba ? Som.Segredo : Som.Pancada, 0.6f);
+        Sons.Tocar(soEspecial ? Som.Segredo : Som.Pancada, 0.6f);
         premio?.Invoke(transform.position);
 
-        if (!soBomba && Random.value < 0.25f)
+        if (!soEspecial && Random.value < 0.25f)
             Coletavel.Criar(TipoDeColetavel.Moeda, transform.position);
 
         StartCoroutine(Sumir());

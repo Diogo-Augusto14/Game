@@ -5,7 +5,7 @@ using UnityEngine;
 /// Os itens que o jogador pegou e o que eles mudam (vieram do jogo antigo): dano, ritmo, velocidade,
 /// tiros a mais, tiros que atravessam ou perseguem, escudo, fenix, orbes... Quem usa os numeros: a
 /// <see cref="ArmaDoJogador"/> (ritmo, tiros a mais, tiro pra tras), o <see cref="Projetil"/> (dano,
-/// alcance, tamanho, atravessar, perseguir, explodir), a <see cref="Bomba"/> (polvora), a loja
+/// alcance, tamanho, atravessar, perseguir, explodir), o tiro especial (polvora), a loja
 /// (desconto) e os <see cref="Coletavel"/> (ima, sorte). Juntar os dois itens de uma sinergia
 /// (<see cref="Sinergias"/>) da o bonus dela.
 /// </summary>
@@ -41,6 +41,7 @@ public class EstatisticasDoJogador : MonoBehaviour, IBloqueioDeDano
     public float BrasaVezes = 1.6f;
     public float NevoaExtra;
     public int Orbes;
+    /// <summary>O Barril de Polvora: o tiro especial bate mais forte e recarrega mais rapido.</summary>
     public float PolvoraVezes = 1f;
     public float CuraAoLimpar;
 

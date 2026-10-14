@@ -36,7 +36,7 @@ public static class RecheioDaCaverna
             Ocupar(chao, maldito, 0, 0);
         }
 
-        // Pedra rachada (so bomba quebra) guardando um premio.
+        // Pedra rachada (so o tiro especial quebra) guardando um premio.
         int pedras = Random.Range(1, 3);
 
         for (int i = 0; i < pedras; i++)
@@ -220,7 +220,7 @@ public static class RecheioDaCaverna
     private static HashSet<Vector2Int> Proibido;
     private static HashSet<Vector2Int> Reservado;
 
-    // O premio da pedra rachada: moedas, ou chave e bomba, ou um bau.
+    // O premio da pedra rachada: moedas, ou chave e coracao, ou um bau.
     private static void Premio(Vector2 onde, Transform pai, GeradorDoAndar gerador, Sprite[] quadrosDoBau, EstatisticasDoJogador itens)
     {
         float sorte = Random.value;
@@ -233,7 +233,7 @@ public static class RecheioDaCaverna
         else if (sorte < 0.7f)
         {
             Coletavel.Criar(TipoDeColetavel.Chave, onde);
-            Coletavel.Criar(TipoDeColetavel.Bomba, onde);
+            Coletavel.Criar(TipoDeColetavel.Coracao, onde);
         }
         else if (quadrosDoBau != null && quadrosDoBau.Length > 0)
         {

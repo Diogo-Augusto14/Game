@@ -453,7 +453,7 @@ public class GeradorDoAndar : MonoBehaviour
                 Registro.Derrotou(vida.gameObject, eraOChefe);
                 AoMatarInimigo?.Invoke(ondeMorreuOUltimo);
 
-                // Moeda, chave, bomba ou coracao (o Amuleto da Sorte ajuda).
+                // Moeda, chave ou coracao (o Amuleto da Sorte ajuda).
                 float sorte = Jogador != null && Jogador.TryGetComponent(out EstatisticasDoJogador itens) ? itens.Sorte : 1f;
                 Coletavel.SoltarDoInimigo(ondeMorreuOUltimo, eraOChefe, sorte);
 

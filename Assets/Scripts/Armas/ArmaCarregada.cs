@@ -1,7 +1,7 @@
 /// <summary>
 /// Uma arma de verdade, com a municao dela: os numeros vem do <see cref="DadosDaArma"/> (o asset,
 /// igual pra todas as copias), e o pente e a reserva sao desta arma. Quando cai no chao, vai junto
-/// com a municao que tinha.
+/// com a municao que tinha. O tiro especial (G) recarrega aqui, por arma: trocar de arma nao zera.
 /// </summary>
 public class ArmaCarregada
 {
@@ -22,6 +22,27 @@ public class ArmaCarregada
     }
 
     public bool Infinita => Dados.infinita;
+
+    // Quando o tiro especial fica pronto, e quanto durou a recarga dele (pra barra do HUD).
+    private float especialProntoEm;
+    private float recargaDoEspecial = 1f;
+
+    /// <summary>O tiro especial esta pronto.</summary>
+    public bool EspecialPronto => UnityEngine.Time.time >= especialProntoEm;
+
+    /// <summary>0 logo depois de usar o especial, 1 pronto.</summary>
+    public float CargaDoEspecial =>
+        EspecialPronto ? 1f : UnityEngine.Mathf.Clamp01(1f - (especialProntoEm - UnityEngine.Time.time) / recargaDoEspecial);
+
+    /// <summary>Usou o especial: ele recarrega por estes segundos.</summary>
+    public void UsarEspecial(float segundos)
+    {
+        recargaDoEspecial = UnityEngine.Mathf.Max(0.1f, segundos);
+        especialProntoEm = UnityEngine.Time.time + recargaDoEspecial;
+    }
+
+    /// <summary>O especial fica pronto na hora (o Pavio Eterno).</summary>
+    public void AprontarEspecial() => especialProntoEm = 0f;
 
     public bool TemNoPente => Infinita || NoPente > 0;
 

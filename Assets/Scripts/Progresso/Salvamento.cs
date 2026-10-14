@@ -56,7 +56,6 @@ public static class Salvamento
         {
             PlayerPrefs.SetInt(Prefixo + "moedas", bolsa.Moedas);
             PlayerPrefs.SetInt(Prefixo + "chaves", bolsa.Chaves);
-            PlayerPrefs.SetInt(Prefixo + "bombas", bolsa.Bombas);
         }
 
         if (jogador.TryGetComponent(out EstatisticasDoJogador itens))
@@ -105,7 +104,7 @@ public static class Salvamento
         }
 
         if (jogador.TryGetComponent(out Bolsa bolsa))
-            bolsa.Definir(PlayerPrefs.GetInt(Prefixo + "moedas", 0), PlayerPrefs.GetInt(Prefixo + "chaves", 0), PlayerPrefs.GetInt(Prefixo + "bombas", 1));
+            bolsa.Definir(PlayerPrefs.GetInt(Prefixo + "moedas", 0), PlayerPrefs.GetInt(Prefixo + "chaves", 0));
 
         // Os itens voltam calados (sem aviso), com as sinergias; depois a vida (que eles podem mudar).
         if (jogador.TryGetComponent(out EstatisticasDoJogador itens))
