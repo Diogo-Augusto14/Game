@@ -86,9 +86,10 @@ public class PortaDaPlanta
 public static class PlantaDeSalas
 {
     // A distancia entre os meios de duas salas vizinhas na grade. Com as salas de ate 15 x 12, sobra
-    // parede de 4 entre duas do lado (o corredor) e de 5 entre duas uma em cima da outra.
+    // parede de 4 entre duas do lado (o corredor) e de 6 entre duas uma em cima da outra: cabem os dois
+    // portoes de caveira (3 de altura cada) num corredor que sobe de uma sala de luta pra outra.
     public const int PassoX = 19;
-    public const int PassoY = 17;
+    public const int PassoY = 18;
     private const int LarguraDoCorredor = 3;
 
     private static readonly Vector2Int[] Direcoes = { Vector2Int.up, Vector2Int.right, Vector2Int.down, Vector2Int.left };

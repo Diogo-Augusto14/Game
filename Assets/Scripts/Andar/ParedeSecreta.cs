@@ -167,6 +167,8 @@ public class ParedeSecreta : MonoBehaviour, IBloqueioDeDano
         Color32[] pixels = new Color32[largura * altura];
         Color32 escuro = new Color32(14, 10, 20, 230);
         Color32 meio = new Color32(40, 32, 46, 150);
+        // A beirada clara embaixo do risco: a rachadura aparece ate no topo escuro das paredes dos lados.
+        Color32 claro = new Color32(176, 160, 150, 170);
         System.Random sorte = new System.Random(7);
 
         void Pintar(int x, int y, Color32 cor)
@@ -181,6 +183,7 @@ public class ParedeSecreta : MonoBehaviour, IBloqueioDeDano
             {
                 Pintar(x, y, escuro);
                 Pintar(x, y + 1, meio);
+                Pintar(x, y - 1, claro);
                 x += dx;
                 y += sorte.Next(-1, 2);
                 y = Mathf.Clamp(y, 4, altura - 5);

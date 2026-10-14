@@ -32,6 +32,14 @@ public class PortaDaSala : MonoBehaviour
     private const float Transparente = 0.4f;
 
     private static Sprite[] portao, portaoSemFrente;
+    private static int temaCarregado = -1;
+
+    /// <summary>
+    /// O tema do mundo (0 Porao, 1 Catacumbas...): o Porao usa o portao recolorido de marrom
+    /// (<c>Ferramentas/Temas/recolorir_porao.py</c>), os outros o azul do pacote. O gerador poe antes de
+    /// montar as salas.
+    /// </summary>
+    public static int Tema { get; set; } = 1;
     private static Transform jogador;
     private static Sprite grade, gradeDeLado, gradeDeLadoTopo;
     private static bool carregou;
@@ -151,13 +159,24 @@ public class PortaDaSala : MonoBehaviour
 
     private static void Carregar()
     {
+        int tema = Tema == 0 ? 0 : 1;
+
+        if (temaCarregado != tema)
+        {
+            temaCarregado = tema;
+            Texture2D folhaDoPortao = tema == 0 ? Resources.Load<Texture2D>("Temas/Porao/PortaoDeCaveira") : null;
+
+            if (folhaDoPortao == null)
+                folhaDoPortao = Resources.Load<Texture2D>("Masmorra/Prisao/PortaoDeCaveira");
+
+            portao = Cortar(folhaDoPortao, 96, PeDoPortao);
+            portaoSemFrente = CortarDoPe(folhaDoPortao, 96, PeDoPortao);
+        }
+
         if (carregou)
             return;
 
         carregou = true;
-        Texture2D folhaDoPortao = Resources.Load<Texture2D>("Masmorra/Prisao/PortaoDeCaveira");
-        portao = Cortar(folhaDoPortao, 96, PeDoPortao);
-        portaoSemFrente = CortarDoPe(folhaDoPortao, 96, PeDoPortao);
         grade = Resources.Load<Sprite>("Itens/Grade");
         gradeDeLado = Resources.Load<Sprite>("Itens/GradeDeLado");
         gradeDeLadoTopo = Resources.Load<Sprite>("Itens/GradeDeLadoTopo");

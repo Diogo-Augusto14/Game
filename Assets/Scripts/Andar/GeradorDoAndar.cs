@@ -980,6 +980,9 @@ public class GeradorDoAndar : MonoBehaviour
         this.planta = salas;
         pedreiroDoAndar = construtor;
 
+        // As portas das salas no jeito do mundo (o portao marrom no Porao).
+        PortaDaSala.Tema = Tema;
+
         // Onde nada se espalha: corredores, a volta das portas e da passagem secreta e as salas sem luta.
         HashSet<Vector2Int> proibido = new HashSet<Vector2Int>(salas.corredores);
 
