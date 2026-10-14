@@ -262,6 +262,9 @@ public class GeradorDoAndar : MonoBehaviour
 
         if (!TryGetComponent(out clima))
             clima = gameObject.AddComponent<ClimaDoAndar>();
+
+        if (!TryGetComponent(out DicasDaPrimeiraVez _))
+            gameObject.AddComponent<DicasDaPrimeiraVez>();
         pedreiro = new Pedreiro(chao, paredes, abismo, sangue, enfeites, chanceDeEnfeite);
         quadrosDoVortice = FolhaDeSprites.Cortar(vortice, quadroDoVortice, pixelsPorUnidade);
         quadrosDoBau = FolhaDeSprites.Cortar(bau, quadroDoBau, DadosDoOldPrison.Lado);
@@ -552,7 +555,10 @@ public class GeradorDoAndar : MonoBehaviour
     public void SalaLimpa(SalaDeLuta sala, bool doFim)
     {
         if (doFim && saida == null && raiz != null && !trocando && sala != null)
+        {
             AbrirSaida(sala.LugarDoPortal());
+            DicasDaPrimeiraVez.Mostrar("portal");
+        }
     }
 
     // ---------------- trocar de andar ----------------
@@ -824,6 +830,8 @@ public class GeradorDoAndar : MonoBehaviour
             cam.backgroundColor = AreaSegura.Fundo(mundo);
 
         clima.Mudar(Tema, true);
+        DicasDaPrimeiraVez.Mostrar("descanso");
+        DicasDaPrimeiraVez.Mostrar("estatua");
         AoComecarAndar?.Invoke();
     }
 

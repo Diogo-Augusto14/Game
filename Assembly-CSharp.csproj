@@ -164,6 +164,7 @@
     <Compile Include="Assets\Scripts\Interface\Minimapa.cs" />
     <Compile Include="Assets\Scripts\Interface\TelaDosModos.cs" />
     <Compile Include="Assets\Scripts\Interface\TelaDaEstatua.cs" />
+    <Compile Include="Assets\Scripts\Interface\DicasDaPrimeiraVez.cs" />
     <Compile Include="Assets\Scripts\Interface\TelaDoJogo.cs" />
     <Compile Include="Assets\Scripts\Interface\ArteDaInterface.cs" />
     <Compile Include="Assets\Scripts\Interface\DicaDupla.cs" />

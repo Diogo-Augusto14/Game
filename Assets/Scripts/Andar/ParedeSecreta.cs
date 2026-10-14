@@ -105,6 +105,8 @@ public class ParedeSecreta : MonoBehaviour
 
         EfeitoDeFolha fio = EfeitoDeFolha.Tocar(poeira, new Vector2Int(64, 64), 20f, c + new Vector2(Random.Range(-0.35f, 0.35f), 0.4f), 10f);
 
+        DicasDaPrimeiraVez.Mostrar("parede");
+
         if (fio != null)
         {
             fio.transform.localScale = Vector3.one * 0.45f;

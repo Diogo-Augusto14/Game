@@ -139,7 +139,10 @@ public class SalaDeLuta : MonoBehaviour
             porta.Fechar();
 
         if (portas.Count > 0)
+        {
             Sons.Tocar(Som.PortaFecha);
+            DicasDaPrimeiraVez.Mostrar("sala");
+        }
 
         foreach (Vida inimigo in inimigos)
         {

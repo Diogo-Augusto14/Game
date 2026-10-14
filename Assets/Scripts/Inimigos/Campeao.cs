@@ -292,6 +292,7 @@ public class Campeao : MonoBehaviour
                 CameraDoJogo.Tremer(0.2f, 0.4f);
             }
             Sons.Tocar(Som.Campeao, 0.6f);
+            DicasDaPrimeiraVez.Mostrar("campeao");
         }
 
         if (Tem(TipoDeCampeao.Flamejante) && Vector2.Distance(transform.position, ultimaChama) > 0.8f)
