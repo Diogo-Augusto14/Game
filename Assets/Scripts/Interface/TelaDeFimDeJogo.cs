@@ -267,6 +267,15 @@ public class TelaDeFimDeJogo : MonoBehaviour
         Text armas = LinhaDeTexto(pai, "Armas", -76f, 24, new Color(0.85f, 0.85f, 0.85f), "");
         armas.rectTransform.sizeDelta = new Vector2(1080f, 64f);
         armas.text = "Armas: " + ListaDeArmas(Armas(andar));
+
+        // O modo, os cristais pegos e, no desafio do dia, os pontos e o recorde.
+        string modo = Partida.Modo == ModoDeJogo.Normal ? "" : Partida.NomeDoModo + "   ";
+        string pontos = Partida.Diario
+            ? $"   {Partida.UltimosPontos} pontos" + (Partida.BateuORecorde ? " (novo recorde do dia!)" : $" (recorde: {Partida.RecordeDoDia(Partida.Dia)})")
+            : "";
+        Text extra = LinhaDeTexto(pai, "Modo", -128f, 24, new Color(0.8f, 0.65f, 1f), "");
+        extra.rectTransform.sizeDelta = new Vector2(1080f, 40f);
+        extra.text = $"{modo}Cristais: +{Partida.CristaisNestaPartida} (total {Melhorias.Cristais}){pontos}";
     }
 
     /// <summary>"Nome ........ valor": o nome alinhado a direita, o valor a esquerda.</summary>

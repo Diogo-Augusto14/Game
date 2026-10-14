@@ -180,7 +180,7 @@ public class Bau : Interativo
 
     private static bool Serve(DadosDaArma a, ArmaDoJogador doJogador, bool semRepetir)
     {
-        if (a == null || a.pesoNoBau <= 0f || a.desenhoNaMao == null)
+        if (a == null || a.pesoNoBau <= 0f || a.desenhoNaMao == null || !Melhorias.Liberada(a))
             return false;
 
         if (!semRepetir || doJogador == null)

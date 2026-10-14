@@ -38,7 +38,8 @@ public class TelaDoJogo : MonoBehaviour
     /// <summary>Algum menu (ou a transicao escura entre eles) na tela: o HUD e a seta do andar somem.</summary>
     public static bool MenuAberto =>
         TelaDeInicio.Aberta || TelaDePausa.Aberta || TelaDeFimDeJogo.Atual != null || TelaDeOpcoes.Aberta
-        || TelaDeNovidades.Ocupada || TransicaoDeTela.Ocupada || TelaDeProgresso.Aberta || Minimapa.Aberto;
+        || TelaDeNovidades.Ocupada || TransicaoDeTela.Ocupada || TelaDeProgresso.Aberta || Minimapa.Aberto
+        || TelaDosModos.Aberta || TelaDaEstatua.Aberta;
 
     private void Awake()
     {

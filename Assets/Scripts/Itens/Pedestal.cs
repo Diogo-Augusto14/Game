@@ -85,7 +85,7 @@ public class Pedestal : Interativo
         {
             GameObject jogador = GameObject.FindWithTag("Player");
             float desconto = jogador != null && jogador.TryGetComponent(out EstatisticasDoJogador e) ? e.Desconto : 1f;
-            return Mathf.Max(1, Mathf.CeilToInt(preco * desconto));
+            return Mathf.Max(1, Mathf.CeilToInt(preco * desconto * Melhorias.PrecoNaLoja));
         }
     }
 

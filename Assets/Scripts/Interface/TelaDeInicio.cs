@@ -41,6 +41,7 @@ public class TelaDeInicio : MonoBehaviour
     private int botaoJogar;
     private int botaoSair;
     private bool continuando;
+    private ModoDeJogo modoDaPartida;
     private Image setaEsquerda;
     private Image setaDireita;
     private int ladoAceso;
@@ -138,18 +139,19 @@ public class TelaDeInicio : MonoBehaviour
         painelDoHeroi = TelaSimples.Camada(transform, "Heroi");
         MontarEscolhaDoHeroi(painelDoHeroi.transform, 105f);
 
-        // Com partida salva aparece o "Continuar"; a coluna sobe um pouco pra caber.
+        // Com partida salva aparece o "Continuar"; a coluna sobe um pouco e aperta pra caber.
         bool temSalvo = Salvamento.Existe;
-        float y = temSalvo ? -92f : -110f;
-        const float passo = 62f;
-        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, 54f), 30)
+        float y = temSalvo ? -82f : -96f;
+        float passo = temSalvo ? 54f : 60f;
+        menu = new MenuDeBotoes(transform, 0f, new Vector2(540f, 50f), 28)
             { AtrasoDaEntrada = 0.3f, IntervaloDaEntrada = 0.06f };
 
-        botaoJogar = menu.Adicionar("Jogar", y, Jogar, "[Enter] || [Pad A]");
+        botaoJogar = menu.Adicionar(RotuloDoJogar, y, Jogar, "[Enter] || [Pad A]");
 
         if (temSalvo)
             menu.Adicionar("Continuar", y -= passo, ContinuarPartida, "[C] || [Pad Y]");
 
+        menu.Adicionar("Modos de jogo", y -= passo, AbrirModos, "[J]");
         menu.Adicionar("Progresso", y -= passo, AbrirProgresso, "[P] || [Pad B]");
         menu.Adicionar("Configurações", y -= passo, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
         botaoSair = menu.Adicionar("Sair do jogo", y - passo, SairDoJogo, "[Esc] || [Pad Select]", IconeDoBotao.Sair, perigo: true);
@@ -180,12 +182,12 @@ public class TelaDeInicio : MonoBehaviour
         rodape = TelaSimples.Camada(transform, "Rodape");
         Transform pai = rodape.transform;
 
-        TelaSimples.Painel(pai, "Painel dos controles", ArteDaInterface.MolduraPequena, -428f, new Vector2(1500f, 118f));
+        TelaSimples.Painel(pai, "Painel dos controles", ArteDaInterface.MolduraPequena, -436f, new Vector2(1500f, 108f));
 
         Color corDasDicas = new Color(0.92f, 0.92f, 0.95f);
         TelaSimples.LinhaDeTeclas(pai, "Controles", -408f,
-            "[W][A][S][D] andar | mouse mira e atira | [Espaco] esquiva | [Q] troca | [E] pega | [F] habilidade | [G] especial | [R] item | [Esc] pausa || " +
-            "[Pad AnalogicoEsquerdo] andar (clique: especial) | [Pad AnalogicoDireito] mira (clique: item) | [Pad RT] atira | [Pad A] esquiva | [Pad Y] troca | [Pad B] pega | [Pad X] habilidade",
+            "[W][A][S][D] andar | mouse mira, esquerdo atira, direito especial | [Espaco] esquiva | [Q] troca | [E] pega | [F] habilidade | [R] item | [Esc] pausa || " +
+            "[Pad AnalogicoEsquerdo] andar | [Pad AnalogicoDireito] mira (clique: item) | [Pad RT] atira | [Pad LT] especial | [Pad A] esquiva | [Pad Y] troca | [Pad B] pega | [Pad X] habilidade",
             21, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
             "[Tab] mapa | [M] música | [N] efeitos | Moeda compra na loja, chave abre baú trancado, o tiro especial quebra pedra rachada. || " +
@@ -224,7 +226,7 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         // Com as opcoes por cima, as teclas sao delas (o Esc de la nao pode sair do jogo).
-        menu.Ligado = !TelaDeOpcoes.Ocupada && !TelaDeNovidades.Ocupada && !TelaDeProgresso.Ocupada && t - abriu >= 0.4f;
+        menu.Ligado = !TelaDeOpcoes.Ocupada && !TelaDeNovidades.Ocupada && !TelaDeProgresso.Ocupada && !TelaDosModos.Ocupada && t - abriu >= 0.4f;
 
         if (menu.Ligado && !TransicaoDeTela.Ocupada)
             LerAtalhos();
@@ -253,6 +255,10 @@ public class TelaDeInicio : MonoBehaviour
         {
             AbrirProgresso();
         }
+        else if (Input.GetKeyDown(KeyCode.J))
+        {
+            AbrirModos();
+        }
         else if (Salvamento.Existe && (Input.GetKeyDown(KeyCode.C) || Controle.Apertou(BotaoDoControle.Y)))
         {
             ContinuarPartida();
@@ -279,7 +285,14 @@ public class TelaDeInicio : MonoBehaviour
                && RectTransformUtility.RectangleContainsScreenPoint(imagem.rectTransform, Input.mousePosition, null);
     }
 
-    private void Jogar()
+    // "Jogar", ou "Jogar (maldito)" quando o ultimo modo escolhido foi o maldito.
+    private static string RotuloDoJogar => TelaDosModos.Preferido == ModoDeJogo.Maldito ? "Jogar (maldito)" : "Jogar";
+
+    private void Jogar() => JogarNoModo(TelaDosModos.Preferido);
+
+    private void AbrirModos() => TelaDosModos.Abrir(JogarNoModo);
+
+    private void JogarNoModo(ModoDeJogo modo)
     {
         if (!Herois.Liberado(Herois.Atual))
         {
@@ -288,6 +301,7 @@ public class TelaDeInicio : MonoBehaviour
         }
 
         Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
+        modoDaPartida = modo;
         continuando = false;
         menu.Ligado = false;
         saindoDesde = Time.unscaledTime;
@@ -335,9 +349,18 @@ public class TelaDeInicio : MonoBehaviour
             return;
         }
 
-        // Partida nova: o heroi escolhido (com a arma dele) no andar 1, e o salvo antigo deixa de valer.
+        // Partida nova, no modo escolhido: o andar 1 (montado por baixo do menu) e refeito se o modo mudou.
+        // Depois o heroi escolhido (com a arma dele e as melhorias da estatua), e o salvo antigo deixa de valer.
+        Partida.Comecar(modoDaPartida);
+
+        if (andar != null)
+            andar.RefazerSeOModoMudou();
+
         if (jogador != null)
+        {
             Herois.Aplicar(jogador.gameObject, Herois.Atual);
+            Melhorias.AplicarNoComeco(jogador.gameObject);
+        }
 
         Salvamento.Apagar();
         Registro.ComecouPartida();
@@ -447,7 +470,7 @@ public class TelaDeInicio : MonoBehaviour
         if (menu != null)
         {
             menu.Apagar(botaoJogar, !liberado);
-            menu.TrocarRotulo(botaoJogar, liberado ? "Jogar" : "Herói bloqueado");
+            menu.TrocarRotulo(botaoJogar, liberado ? RotuloDoJogar : "Herói bloqueado");
         }
 
         quadrosDoRetrato = Herois.Parado(heroi);

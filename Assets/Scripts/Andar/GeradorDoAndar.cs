@@ -172,6 +172,10 @@ public class GeradorDoAndar : MonoBehaviour
     private readonly List<Renderer> desenhosEscondidos = new List<Renderer>();
     private readonly List<Behaviour> pecasEscondidas = new List<Behaviour>();
 
+    // Com que modo (e dia do desafio) o andar de agora foi montado: o menu inicial refaz o andar 1 se mudou.
+    private ModoDeJogo modoDoAndar;
+    private int diaDoAndar;
+
     // Que tema cada mundo tem nesta partida (0 Porao, 1 Catacumbas, 2 Cripta, 3 Profundezas).
     private int[] ordemDosTemas = { 0, 1, 2, 3 };
 
@@ -284,6 +288,10 @@ public class GeradorDoAndar : MonoBehaviour
             Iluminacao.Luz(jogador.transform, new Vector2(0f, 0.2f), Iluminacao.Heroi, 4.5f, 0.85f, 0.03f);
         }
 
+        // "Tentar de novo" e uma partida nova no mesmo modo (o desafio do dia repete o mapa de hoje).
+        if (TelaDeInicio.JaPassou)
+            Partida.Comecar(Partida.Modo);
+
         GerarSemTravar(1);
 
         // Na primeira vez, o menu inicial por cima do andar 1; "tentar de novo" vem direto pro jogo.
@@ -291,6 +299,7 @@ public class GeradorDoAndar : MonoBehaviour
             TelaDeInicio.Mostrar(this);
         else
         {
+            Melhorias.AplicarNoComeco(jogador);
             Musica.Tocar(MusicaDoAndar);
             AvisoDoAndar.Mostrar(nome);
             Salvamento.Salvar(this, jogador);
@@ -454,8 +463,12 @@ public class GeradorDoAndar : MonoBehaviour
                 AoMatarInimigo?.Invoke(ondeMorreuOUltimo);
 
                 // Moeda, chave ou coracao (o Amuleto da Sorte ajuda).
-                float sorte = Jogador != null && Jogador.TryGetComponent(out EstatisticasDoJogador itens) ? itens.Sorte : 1f;
+                float sorte = (Jogador != null && Jogador.TryGetComponent(out EstatisticasDoJogador itens) ? itens.Sorte : 1f) * Partida.SorteVezes;
                 Coletavel.SoltarDoInimigo(ondeMorreuOUltimo, eraOChefe, sorte);
+
+                // O campeao solta mais (moedas e um cristal).
+                if (vida.TryGetComponent(out Campeao _))
+                    Campeao.Premiar(ondeMorreuOUltimo);
 
                 if (eraOChefe)
                 {
@@ -536,6 +549,19 @@ public class GeradorDoAndar : MonoBehaviour
     }
 
     // ---------------- trocar de andar ----------------
+    /// <summary>
+    /// O menu inicial escolheu o modo (maldito, desafio do dia) depois do andar 1 ja montado por baixo dele:
+    /// se mudou, monta o andar 1 de novo, no jeito do modo.
+    /// </summary>
+    public void RefazerSeOModoMudou()
+    {
+        if (Andar == 1 && !descansando && (modoDoAndar != Partida.Modo || (Partida.Diario && diaDoAndar != Partida.Dia)))
+        {
+            GerarSemTravar(1);
+            PorNoComeco();
+        }
+    }
+
     /// <summary>Mostra o nome do andar de novo (ao sair do menu inicial, que escondia ele).</summary>
     public void MostrarNome()
     {
@@ -669,6 +695,10 @@ public class GeradorDoAndar : MonoBehaviour
         if (!novo.TryGetComponent(out Vida vida))
             return null;
 
+        // Nas ondas tambem sai campeao, mais raro que nas salas.
+        if (Random.value < Partida.ChanceDeCampeao(Andar) * 0.5f)
+            Campeao.Sortear(novo);
+
         Registrar(vida);
         avisouLimpo = false;
 
@@ -706,6 +736,10 @@ public class GeradorDoAndar : MonoBehaviour
             // Venceu: a tela da vitoria escurece sozinha por cima do salao do chefe.
             escuro = 0f;
             Registro.Venceu();
+
+            // Zerar da cristais (o dobro no maldito) e, no desafio do dia, conta o recorde.
+            Melhorias.Ganhar(10 * Partida.CristaisVezes);
+            Partida.Terminar(Andar, true);
             Progresso.Zerar(Herois.Atual.Nome);
             Salvamento.Apagar();
             TelaDeFimDeJogo.MostrarVitoria(this);
@@ -742,6 +776,7 @@ public class GeradorDoAndar : MonoBehaviour
     // A area segura (AreaSegura): aberta, clara e sem inimigos.
     private void GerarDescanso()
     {
+        Partida.Semear(Andar + 50);
         int mundo = Mundo;
         descansando = true;
         nome = AreaSegura.Nome(mundo);
@@ -884,6 +919,11 @@ public class GeradorDoAndar : MonoBehaviour
 
     private void Gerar(int andar)
     {
+        // No desafio do dia, o sorteio do andar parte da semente do dia: o mapa sai igual pra todo mundo.
+        Partida.Semear(andar);
+        modoDoAndar = Partida.Modo;
+        diaDoAndar = Partida.Dia;
+
         // O andar e o chefe vem da parte da lista do tema deste mundo (o caminho escolhido).
         Andar = andar;
         int naLista = AndarNoTema(andar);
@@ -1026,6 +1066,14 @@ public class GeradorDoAndar : MonoBehaviour
         }
 
         EspalharArmas(chaoDaCaverna, proibido, andar);
+
+        // No comeco da partida, a estatua dos cristais na sala do comeco (no desafio do dia as melhorias nao valem).
+        if (andar == 1 && !Partida.Diario)
+        {
+            Vector2 estatua = new Vector2(3f, 1.5f);
+            EstatuaDosCristais.Criar(estatua, raiz.transform);
+            chaoDaCaverna.Remove(MapaDeCaminhos.Celula(estatua));
+        }
         HashSet<Vector2Int> armadilhas = RecheioDaCaverna.Espalhar(this, planta, chaoDaCaverna, proibido, raiz.transform, andar, Tema + 1, quadrosDoBau);
         Decoracao.Espalhar(Tema + 1, construtor.Estilo, salas, chaoDaCaverna, armadilhas, raiz.transform);
         EspalharInimigos(salas, chaoDaCaverna, AndarNoTema(andar), caverna);
@@ -1178,11 +1226,13 @@ public class GeradorDoAndar : MonoBehaviour
                 continue;
 
             bool fim = sala.tipo == TipoDeSala.Fim;
-            int quantos = Random.Range(inimigosPorSala.x, Mathf.Max(inimigosPorSala.x, inimigosPorSala.y) + 1) + aMais + (fim ? 2 : 0);
+            int quantos = Mathf.RoundToInt((Random.Range(inimigosPorSala.x, Mathf.Max(inimigosPorSala.x, inimigosPorSala.y) + 1) + aMais + (fim ? 2 : 0))
+                                           * Partida.InimigosVezes);
             int porOnda = Random.Range(inimigosPorOnda.x, Mathf.Max(inimigosPorOnda.x, inimigosPorOnda.y) + 1) + aMais / 2;
 
             // Ondas a mais: as vezes uma; a sala do fim sempre uma, e duas do quarto andar de salas em diante.
             int ondas = fim ? (caverna >= 4 ? 2 : 1) : (Random.value < chanceDeOnda + (caverna - 1) * chanceDeOndaAMaisPorAndar ? 1 : 0);
+            ondas += Partida.OndasAMais;
 
             if (possiveis.Count == 0)
             {
@@ -1239,13 +1289,16 @@ public class GeradorDoAndar : MonoBehaviour
                 GameObject qual = Random.value < 0.3f ? Sortear(possiveis, pesoTotal) : principais[grupo];
                 GameObject novo = Instantiate(qual, (Vector2)c, Quaternion.identity, luta.transform);
 
+                // As vezes um campeao (mais vida, uma aura e um poder extra).
+                if (Random.value < Partida.ChanceDeCampeao(Andar))
+                    Campeao.Sortear(novo);
+
                 if (novo.TryGetComponent(out Vida vida))
                 {
                     vivos.Add(vida);
                     luta.Adicionar(vida);
                 }
-
-                    }
+            }
         }
     }
 
@@ -1316,7 +1369,7 @@ public class GeradorDoAndar : MonoBehaviour
             {
                 DadosDaArma sorteada = armas[Random.Range(0, armas.Length)];
 
-                if (sorteada != null && sorteada.desenhoNaMao != null)
+                if (sorteada != null && sorteada.desenhoNaMao != null && Melhorias.Liberada(sorteada))
                     ArmaNoChao.Criar(new ArmaCarregada(sorteada), lugar, pai);
             }
         }

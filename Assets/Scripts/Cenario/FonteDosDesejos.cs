@@ -151,7 +151,7 @@ public class FonteDosDesejos : Interativo
                 {
                     foreach (DadosDaArma a in armas)
                     {
-                        if (a != null && a != jogada && a.desenhoNaMao != null && a.pesoNoBau > 0f && (int)a.raridade == r)
+                        if (a != null && a != jogada && a.desenhoNaMao != null && a.pesoNoBau > 0f && (int)a.raridade == r && Melhorias.Liberada(a))
                             servem.Add(a);
                     }
                 }

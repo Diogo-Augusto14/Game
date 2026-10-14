@@ -134,7 +134,8 @@ public class Chefe : MonoBehaviour, IAnimavel, IInvulneravel
 
     private bool Investindo => Time.time < investindoAte;
 
-    private float Ritmo => NaFuria ? ritmoNaFuria : 1f;
+    // A furia e o modo maldito deixam mais rapido.
+    private float Ritmo => (NaFuria ? ritmoNaFuria : 1f) * Partida.RitmoDosInimigos;
 
     private bool Acabou => vida.Morto || alvo == null || (vidaDoAlvo != null && vidaDoAlvo.Morto);
 

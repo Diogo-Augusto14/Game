@@ -61,6 +61,12 @@ public class Vida : MonoBehaviour
     /// </summary>
     public System.Func<bool> SegundaChance;
 
+    /// <summary>
+    /// Um escudo posto por fora (o campeao blindado): true = segura o golpe inteiro, como o
+    /// <see cref="IBloqueioDeDano"/>.
+    /// </summary>
+    public System.Func<Dano, bool> Escudo;
+
     /// <summary>Segundos a mais sem tomar dano depois de um golpe (o Elixir de Nevoa).</summary>
     public float TempoSemDanoExtra { get; set; }
 
@@ -152,7 +158,7 @@ public class Vida : MonoBehaviour
         if (bloqueio == null && lado == Lado.Jogador)
             TryGetComponent(out bloqueio);
 
-        if (bloqueio != null && bloqueio.Bloqueia(dano))
+        if ((bloqueio != null && bloqueio.Bloqueia(dano)) || (Escudo != null && Escudo(dano)))
         {
             Bloqueou = true;
             return false;

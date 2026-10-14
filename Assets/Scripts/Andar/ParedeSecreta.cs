@@ -8,8 +8,9 @@ using UnityEngine;
 /// e o <see cref="GeradorDoAndar"/> redesenha aquele pedaco como corredor (o minimapa passa a mostrar a
 /// sala). O tiro tambem atravessa: atirar na parede e um jeito de achar.
 ///
-/// Pistas, so as que a parede tem por natureza: nada de tocha nem mobilia na frente dela. Monte com
-/// <see cref="Criar"/>.
+/// A pista: com o jogador perto (ate <see cref="DistanciaDaPista"/>), de tempos em tempos cai um fiozinho
+/// de poeira da boca da passagem (na 1.19.0; antes nao tinha pista nenhuma e quase ninguem achava). Nada
+/// de tocha nem mobilia na frente dela. Monte com <see cref="Criar"/>.
 /// </summary>
 public class ParedeSecreta : MonoBehaviour
 {
@@ -18,6 +19,11 @@ public class ParedeSecreta : MonoBehaviour
     private System.Action aoRevelar;
     private Transform jogador;
     private bool revelada;
+    private float proximaPista;
+    private Texture2D poeira;
+
+    /// <summary>Ate esta distancia (unidades) da parede, a poeira cai como pista.</summary>
+    public const float DistanciaDaPista = 6f;
 
     /// <param name="passagem">As celulas da passagem (o corredor ate a sala secreta).</param>
     /// <param name="dona">A sala de onde se chega na passagem.</param>
@@ -69,7 +75,43 @@ public class ParedeSecreta : MonoBehaviour
         }
 
         if (passagem.Contains(MapaDeCaminhos.Celula(jogador.position)))
+        {
             Revelar();
+            return;
+        }
+
+        if (Time.time >= proximaPista)
+            DarPista();
+    }
+
+    // Um fiozinho de poeira caindo de um ponto da boca, pequeno e meio apagado: so quem olha percebe.
+    private void DarPista()
+    {
+        proximaPista = Time.time + Random.Range(1.6f, 3f);
+
+        if (boca.Count == 0)
+            return;
+
+        Vector2 c = boca[Random.Range(0, boca.Count)];
+
+        if (Vector2.Distance(c, jogador.position) > DistanciaDaPista)
+            return;
+
+        if (poeira == null)
+            poeira = Resources.Load<Texture2D>("Efeitos/Poeira");
+
+        if (poeira == null)
+            return;
+
+        EfeitoDeFolha fio = EfeitoDeFolha.Tocar(poeira, new Vector2Int(64, 64), 20f, c + new Vector2(Random.Range(-0.35f, 0.35f), 0.4f), 10f);
+
+        if (fio != null)
+        {
+            fio.transform.localScale = Vector3.one * 0.45f;
+
+            if (fio.TryGetComponent(out SpriteRenderer sr))
+                sr.color = new Color(1f, 0.95f, 0.85f, 0.7f);
+        }
     }
 
     private void Revelar()

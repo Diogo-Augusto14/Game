@@ -123,7 +123,27 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
     /// <summary>Com pouca vida, mais rapido (so quem tem <see cref="vidaDaFuria"/>).</summary>
     public bool NaFuria { get; private set; }
 
-    private float Ritmo => NaFuria ? ritmoNaFuria : 1f;
+    // A furia, o campeao furioso e o modo maldito deixam mais rapido (andar, preparar e atacar).
+    private float Ritmo => (NaFuria ? ritmoNaFuria : 1f) * RitmoExtra * Partida.RitmoDosInimigos;
+
+    /// <summary>O campeao furioso ataca mais rapido (1 = normal).</summary>
+    public float RitmoExtra { get; set; } = 1f;
+
+    /// <summary>O campeao veloz anda mais rapido (so o andar; 1 = normal).</summary>
+    public float VelocidadeExtra { get; set; } = 1f;
+
+    /// <summary>O campeao furioso solta mais tiros por vez: a arma vira uma copia so dele, com mais tiros.</summary>
+    public void MaisTiros(int aMais)
+    {
+        if (arma == null || aMais <= 0)
+            return;
+
+        arma = Instantiate(arma);
+        arma.tirosPorDisparo += aMais;
+
+        if (!arma.anel)
+            arma.abertura = Mathf.Max(arma.abertura, 12f);
+    }
 
     /// <summary>Ja viu o jogador (ou levou tiro) e esta atras dele.</summary>
     public bool Acordado { get; private set; }
@@ -396,7 +416,7 @@ public class InimigoAtirador : MonoBehaviour, IAnimavel
         }
 
         // Gelo e o tempo lento (Espiral do Tempo) deixam devagar.
-        corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade * Ritmo * CondicaoDoInimigo.Fator(this), aceleracao * Time.fixedDeltaTime);
+        corpo.linearVelocity = Vector2.MoveTowards(corpo.linearVelocity, querAndar * velocidade * VelocidadeExtra * Ritmo * CondicaoDoInimigo.Fator(this), aceleracao * Time.fixedDeltaTime);
     }
 
     private bool ParedeNoMeio(Vector2 ate) =>

@@ -13,6 +13,7 @@ using UnityEngine.Tilemaps;
 ///   a criatura da sorte (<see cref="CriaturaDaSorte"/>), que anda por ali e solta moedas num carinho;
 ///   um bau de graca (o bau do Village) e potes que quebram;
 ///   a Fonte dos Desejos (<see cref="FonteDosDesejos"/>), que troca a arma da mao por outra, melhor ou pior;
+///   a estatua dos cristais (<see cref="EstatuaDosCristais"/>), onde se compra as melhorias entre partidas;
 ///   e o portal pro proximo mundo: na clareira, no meio de um circulo de pedras; nas ruinas, em cima do
 ///   altar, que acende quando o jogador chega perto (<see cref="AltarDoPortal"/>). Quando da pra escolher
 ///   o caminho (<see cref="GeradorDoAndar.OpcoesDeCaminho"/>), sao dois portais lado a lado, cada um com
@@ -120,6 +121,13 @@ public static class AreaSegura
         lugar.Ocupar(calice, 1.5f);
         CriaturaDaSorte.Criar(new Vector2(5f, -6f), raiz);
         lugar.Ocupar(new Vector2(5f, -6f), 1.5f);
+
+        // A estatua dos cristais (as melhorias entre partidas); no desafio do dia elas nao valem.
+        if (!Partida.Diario)
+        {
+            EstatuaDosCristais.Criar(new Vector2(10f, -5.5f), raiz);
+            lugar.Ocupar(new Vector2(10f, -4.8f), 1.8f);
+        }
 
         // A Fonte dos Desejos: joga a arma e ela devolve outra, melhor ou pior.
         FonteDosDesejos.Criar(new Vector2(-4.5f, -7.5f), raiz, gerador.ArmasDoBau);

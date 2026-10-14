@@ -80,6 +80,8 @@
     <Compile Include="Assets\Scripts\Progresso\AvisoDeConquista.cs" />
     <Compile Include="Assets\Scripts\Progresso\TelaDeProgresso.cs" />
     <Compile Include="Assets\Scripts\Progresso\Salvamento.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Partida.cs" />
+    <Compile Include="Assets\Scripts\Progresso\Melhorias.cs" />
     <Compile Include="Assets\Scripts\Andar\RecheioDaCaverna.cs" />
     <Compile Include="Assets\Scripts\Inimigos\CondicaoDoInimigo.cs" />
     <Compile Include="Assets\Scripts\Nucleo\ArteDoAntigo.cs" />
@@ -117,6 +119,8 @@
     <Compile Include="Assets\Scripts\Andar\AreaSegura.cs" />
     <Compile Include="Assets\Scripts\Cenario\Mercador.cs" />
     <Compile Include="Assets\Scripts\Cenario\FonteDaCura.cs" />
+    <Compile Include="Assets\Scripts\Cenario\FonteDosDesejos.cs" />
+    <Compile Include="Assets\Scripts\Cenario\EstatuaDosCristais.cs" />
     <Compile Include="Assets\Scripts\Cenario\CaliceDosEspiritos.cs" />
     <Compile Include="Assets\Scripts\Cenario\CriaturaDaSorte.cs" />
     <Compile Include="Assets\Scripts\Cenario\AltarDoPortal.cs" />
@@ -150,10 +154,13 @@
     <Compile Include="Assets\Scripts\Inimigos\TiroAoMorrer.cs" />
     <Compile Include="Assets\Scripts\Inimigos\IAnimavel.cs" />
     <Compile Include="Assets\Scripts\Inimigos\Chefe.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\Campeao.cs" />
     <Compile Include="Assets\Scripts\Andar\Arena.cs" />
     <Compile Include="Assets\Scripts\Interface\Desenho.cs" />
     <Compile Include="Assets\Scripts\Interface\HudDoJogo.cs" />
     <Compile Include="Assets\Scripts\Interface\Minimapa.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDosModos.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDaEstatua.cs" />
     <Compile Include="Assets\Scripts\Interface\TelaDoJogo.cs" />
     <Compile Include="Assets\Scripts\Interface\ArteDaInterface.cs" />
     <Compile Include="Assets\Scripts\Interface\DicaDupla.cs" />

@@ -62,8 +62,11 @@ public class DadosDaArma : ScriptableObject
              "(as raras saem mais nos andares fundos)")]
     public Raridade raridade;
 
-    /// <summary>O peso no bau neste andar: as raras ficam mais comuns quanto mais fundo.</summary>
-    public float PesoNoAndar(int andar) => pesoNoBau * Raridades.Fator(raridade, andar);
+    [Tooltip("0 = sai desde o comeco. 1 a 3 = so sai depois de comprar esse nivel do Arsenal na estatua dos cristais")]
+    [Min(0)] public int arsenal;
+
+    /// <summary>O peso no bau neste andar: as raras ficam mais comuns quanto mais fundo (e no modo maldito, mais cedo).</summary>
+    public float PesoNoAndar(int andar) => pesoNoBau * Raridades.Fator(raridade, andar + Partida.AndaresDeRaridade);
 
     [Header("O tiro")]
     [Tooltip("O desenho do tiro (flecha, bala...)")]

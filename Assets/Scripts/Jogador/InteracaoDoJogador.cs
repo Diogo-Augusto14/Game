@@ -43,7 +43,8 @@ public class InteracaoDoJogador : MonoBehaviour
             }
         }
 
-        if (perto != null && controles.Interagiu)
+        // A tela da estatua acabou de fechar com o B (que tambem e o interagir no controle): nao reabre.
+        if (perto != null && controles.Interagiu && !TelaDaEstatua.Ocupada)
             perto.Usar(gameObject);
     }
 }

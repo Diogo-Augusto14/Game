@@ -8,11 +8,11 @@ using UnityEngine.InputSystem;
 ///   andar     WASD ou setas          | analogico esquerdo ou cruz
 ///   mirar     mouse                  | analogico direito (solto: mira pra onde anda)
 ///   atirar    botao esquerdo         | RT ou RB
-///   esquiva   espaco, shift ou botao direito | LT, LB ou A
+///   esquiva   espaco ou shift        | LB ou A
 ///   trocar    Q ou a roda do mouse   | Y
 ///   recarregar R                     | X
 ///   interagir E (pegar arma, abrir bau) | B
-///   especial  G (o tiro especial da arma) | clique do analogico esquerdo
+///   especial  botao direito ou G (o tiro especial da arma) | LT ou clique do analogico esquerdo
 ///
 /// Usa o Input System (o pacote novo da Unity), com as acoes montadas aqui no codigo.
 /// </summary>
@@ -68,7 +68,7 @@ public class ControlesDoJogador : MonoBehaviour
     /// <summary>Apertou a habilidade do heroi neste quadro (F ou o X do controle).</summary>
     public bool UsouHabilidade { get; private set; }
 
-    /// <summary>Apertou o tiro especial da arma neste quadro (G ou o clique do analogico esquerdo).</summary>
+    /// <summary>Apertou o tiro especial da arma neste quadro (botao direito, G, LT ou o clique do analogico esquerdo).</summary>
     public bool UsouEspecial { get; private set; }
 
     /// <summary>Apertou o item ativo neste quadro (R ou o clique do analogico direito).</summary>
@@ -96,8 +96,6 @@ public class ControlesDoJogador : MonoBehaviour
 
         esquivar = new InputAction("Esquivar", InputActionType.Button, "<Keyboard>/space");
         esquivar.AddBinding("<Keyboard>/leftShift");
-        esquivar.AddBinding("<Mouse>/rightButton");
-        esquivar.AddBinding("<Gamepad>/leftTrigger");
         esquivar.AddBinding("<Gamepad>/leftShoulder");
         esquivar.AddBinding("<Gamepad>/buttonSouth");
 
@@ -115,7 +113,10 @@ public class ControlesDoJogador : MonoBehaviour
         habilidade = new InputAction("Habilidade", InputActionType.Button, "<Keyboard>/f");
         habilidade.AddBinding("<Gamepad>/buttonWest");
 
-        especial = new InputAction("Especial", InputActionType.Button, "<Keyboard>/g");
+        // O botao direito era da esquiva ate a 1.19.0: agora e o tiro especial (a esquiva fica no espaco).
+        especial = new InputAction("Especial", InputActionType.Button, "<Mouse>/rightButton");
+        especial.AddBinding("<Keyboard>/g");
+        especial.AddBinding("<Gamepad>/leftTrigger");
         especial.AddBinding("<Gamepad>/leftStickPress");
 
         ativo = new InputAction("Ativo", InputActionType.Button, "<Keyboard>/r");
@@ -181,7 +182,7 @@ public class ControlesDoJogador : MonoBehaviour
 
         if (!jogando)
             esperandoSoltar = true;
-        else if (esperandoSoltar && !atirar.IsPressed() && !esquivar.IsPressed())
+        else if (esperandoSoltar && !atirar.IsPressed() && !esquivar.IsPressed() && !especial.IsPressed())
             esperandoSoltar = false;
 
         bool botoes = jogando && !esperandoSoltar;

@@ -198,8 +198,9 @@ public static class Herois
         if (jogador == null || heroi == null)
             return;
 
+        // A vida do heroi, mais o Coracao de pedra da estatua dos cristais.
         if (jogador.TryGetComponent(out Vida vida))
-            vida.DefinirMaxima(heroi.Vida);
+            vida.DefinirMaxima(heroi.Vida + Melhorias.VidaAMais);
 
         if (jogador.TryGetComponent(out MovimentoDoJogador movimento))
             movimento.VelocidadeDeAndar = heroi.Velocidade;

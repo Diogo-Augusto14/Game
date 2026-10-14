@@ -18,6 +18,8 @@ public static class Salvamento
     public static string Resumo => Existe
         ? (PlayerPrefs.GetInt(Prefixo + "descanso", 0) == 1 ? "Área segura" : $"Andar {PlayerPrefs.GetInt(Prefixo + "andar", 1)}")
           + $" com o {PlayerPrefs.GetString(Prefixo + "heroi", "?")}"
+          + (PlayerPrefs.GetInt(Prefixo + "modo", 0) == (int)ModoDeJogo.Maldito ? " (maldito)"
+             : PlayerPrefs.GetInt(Prefixo + "modo", 0) == (int)ModoDeJogo.Diario ? " (desafio do dia)" : "")
         : "";
 
     public static void Salvar(GeradorDoAndar andar, GameObject jogador)
@@ -33,6 +35,8 @@ public static class Salvamento
         PlayerPrefs.SetInt(Prefixo + "andar", andar.Andar);
         PlayerPrefs.SetInt(Prefixo + "descanso", andar.Descansando ? 1 : 0);
         PlayerPrefs.SetString(Prefixo + "caminho", andar.Caminho);
+        PlayerPrefs.SetInt(Prefixo + "modo", (int)Partida.Modo);
+        PlayerPrefs.SetInt(Prefixo + "dia", Partida.Dia);
         PlayerPrefs.SetFloat(Prefixo + "vida", vida != null ? vida.Atual : 0f);
         PlayerPrefs.SetInt(Prefixo + "inimigos", ResumoDaPartida.InimigosDerrotados);
         PlayerPrefs.SetInt(Prefixo + "chefes", ResumoDaPartida.ChefesDerrotados);
@@ -91,6 +95,11 @@ public static class Salvamento
         if (andar == null || jogador == null || heroi == null)
             return false;
 
+        // O modo primeiro: o desafio do dia monta os andares com a semente do dia dele, e nele as melhorias nao valem.
+        Partida.Modo = (ModoDeJogo)Mathf.Clamp(PlayerPrefs.GetInt(Prefixo + "modo", 0), 0, 2);
+        Partida.Dia = PlayerPrefs.GetInt(Prefixo + "dia", Partida.Hoje);
+        Partida.CristaisNestaPartida = 0;
+
         Herois.Escolher(System.Array.IndexOf(Herois.Todos, heroi));
         Herois.Aplicar(jogador, heroi);
 
@@ -145,7 +154,7 @@ public static class Salvamento
 
     public static void Apagar()
     {
-        foreach (string chave in new[] { "existe", "heroi", "andar", "descanso", "caminho", "vida", "inimigos", "chefes", "tempo", "naMao",
+        foreach (string chave in new[] { "existe", "heroi", "andar", "descanso", "caminho", "modo", "dia", "vida", "inimigos", "chefes", "tempo", "naMao",
                                          "arma0", "arma1", "pente0", "pente1", "reserva0", "reserva1",
                                          "moedas", "chaves", "bombas", "itens", "ativo", "carga" })
             PlayerPrefs.DeleteKey(Prefixo + chave);

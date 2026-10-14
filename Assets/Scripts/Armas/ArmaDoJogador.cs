@@ -244,7 +244,8 @@ public class ArmaDoJogador : MonoBehaviour
         float polvora = TryGetComponent(out EstatisticasDoJogador itens) ? itens.PolvoraVezes : 1f;
 
         // O Barril de Polvora: recarga 30% mais curta (o dano a mais e no Projetil).
-        Atual.UsarEspecial(Atual.Dados.recargaDoEspecial * (polvora > 1f ? 0.7f : 1f));
+        // E a Polvora antiga da estatua dos cristais: ate 30% mais curta.
+        Atual.UsarEspecial(Atual.Dados.recargaDoEspecial * (polvora > 1f ? 0.7f : 1f) * Melhorias.RecargaDoEspecial);
         rajadaEspecial.Comecar(especial);
         DispararDaRajada(rajadaEspecial, null);
         proximoTiro = Mathf.Max(proximoTiro, Time.time + 0.2f);

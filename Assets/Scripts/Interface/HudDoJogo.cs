@@ -100,7 +100,7 @@ public class HudDoJogo
         Barra(barra, habilidade.Carga, pronta ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
     }
 
-    // Moedas e chaves, uma do lado da outra, e o item ativo do lado.
+    // Moedas, chaves e cristais, um do lado do outro, e o item ativo do lado.
     private void Bolsa(Bolsa bolsa, ItemAtivoDoJogador ativo, int u)
     {
         float m = 8 * u;
@@ -111,6 +111,9 @@ public class HudDoJogo
 
         x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Moeda), bolsa.Moedas);
         x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Chave), bolsa.Chaves);
+
+        // Os cristais (guardados entre partidas, gastos na estatua).
+        x = Contador(x, y, lado, u, estilo, Coletavel.Desenho(TipoDeColetavel.Cristal), Melhorias.Cristais);
 
         // O item ativo: o icone, a barra de carga e o R.
         if (ativo != null && ativo.Item != null)
@@ -226,10 +229,10 @@ public class HudDoJogo
             Barra(barra, armas.ProgressoDaRecarga, Desenho.Dourado);
         }
 
-        // O tiro especial, logo em cima da moldura: "G  Leque" e a barra enchendo ate ficar pronto.
+        // O tiro especial, logo em cima da moldura: "Dir  Leque" e a barra enchendo ate ficar pronto.
         bool pronto = atual.EspecialPronto;
         GUIStyle especial = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerRight);
-        string textoDoEspecial = (Controle.EmUso ? "LS" : "G") + "  " + atual.Dados.NomeDoEspecial;
+        string textoDoEspecial = (Controle.EmUso ? "LT" : "Dir") + "  " + atual.Dados.NomeDoEspecial;
         Rect linhaDoEspecial = new Rect(Screen.width - m - largura, quadro.y - 24 * u, largura, 22 * u);
         Desenho.Texto(linhaDoEspecial, textoDoEspecial, especial, pronto ? Desenho.Dourado : Desenho.Apagado);
         float larguraDoTexto = Desenho.Largura(textoDoEspecial, especial);

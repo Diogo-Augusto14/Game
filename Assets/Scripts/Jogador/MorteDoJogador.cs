@@ -39,6 +39,9 @@ public class MorteDoJogador : MonoBehaviour
         Registro.Morreu(quemBateu);
         Salvamento.Apagar();
 
+        // No desafio do dia, confere o recorde (a tela do fim mostra).
+        Partida.Terminar(GeradorDoAndar.AndarAtual, false);
+
         // Nada de andar, atirar ou esquivar; o corpo para e deixa de bater nas coisas.
         DesligarSeTiver<ControlesDoJogador>();
         DesligarSeTiver<MovimentoDoJogador>();
