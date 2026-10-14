@@ -125,7 +125,7 @@ public static class CatalogoDeItens
         P("Brasa da Fúria", "Mais forte ferido", 993, "Com um coração de vida ou menos, seus tiros causam 60% mais dano.", e => e.Brasa = true),
         P("Elixir de Névoa", "Mais tempo invencível", 123, "Depois de levar dano, fica invencível por bem mais tempo.", e => e.NevoaExtra += 0.8f),
         P("Orbe Guardião", "Um orbe te protege", 335, "Um orbe gira em volta de você: desmancha tiros inimigos e fere quem encostar.", e => e.Orbes += 1, 20),
-        P("Barril de Pólvora", "Tiro especial mais forte", 340, "O tiro especial (G) causa 50% mais dano e recarrega 30% mais rápido.",
+        P("Barril de Pólvora", "Tiro especial mais forte", 340, "O tiro especial (botão direito) causa 50% mais dano e recarrega 30% mais rápido.",
           e => e.PolvoraVezes *= 1.5f, 10),
         P("Carne Assada", "Cura a cada andar", 486, "Ao limpar um andar de inimigos, recupera meio coração.", e => e.CuraAoLimpar += 1f),
         P("Pacto de Sangue", "Poder por um preço", 289, "Seus tiros causam 60% mais dano, mas você perde um coração de vida máxima.",
@@ -135,7 +135,7 @@ public static class CatalogoDeItens
         A("Moeda do Destino", "Ativo: troca os itens", 131, "Ativo (R): troca por outros os itens dos pedestais perto.", TipoDeAtivo.MoedaDoDestino, 25),
         A("Cometa de Fogo", "Ativo: anel de chamas", 1002, "Ativo (R): solta 12 bolas de fogo em volta de você.", TipoDeAtivo.CometaDeFogo, 10),
         A("Pêssego Encantado", "Ativo: cura um coração", 440, "Ativo (R): recupera um coração.", TipoDeAtivo.PessegoEncantado, 25),
-        A("Pavio Eterno", "Ativo: especial na hora", 778, "Ativo (R): o tiro especial (G) fica pronto na hora.", TipoDeAtivo.EspecialNaHora, 8),
+        A("Pavio Eterno", "Ativo: especial na hora", 778, "Ativo (R): o tiro especial (botão direito) fica pronto na hora.", TipoDeAtivo.EspecialNaHora, 8),
     };
 }
 

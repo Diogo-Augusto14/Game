@@ -18,10 +18,10 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class TelaDeOpcoes : MonoBehaviour
 {
-    private enum Linha { Musica, Efeitos, TelaCheia, Resolucao, Tremor, Numeros, Voltar }
+    private enum Linha { Musica, Efeitos, TelaCheia, Resolucao, Tremor, Numeros, Idioma, Voltar }
 
-    private static readonly string[] Nomes = { "Música", "Efeitos", "Tela cheia", "Resolução", "Tremor da tela", "Números de dano", "Voltar" };
-    private static readonly float[] Alturas = { 185f, 120f, 55f, -10f, -75f, -140f, -232f };
+    private static readonly string[] Nomes = { "Música", "Efeitos", "Tela cheia", "Resolução", "Tremor da tela", "Números de dano", "Idioma", "Voltar" };
+    private static readonly float[] Alturas = { 200f, 142f, 84f, 26f, -32f, -90f, -148f, -240f };
 
     private const float XDoNome = -330f;
     private const float XDoValor = 190f;
@@ -35,6 +35,9 @@ public class TelaDeOpcoes : MonoBehaviour
 
     private Action aoFechar;
     private int escolhida;
+    private Lingua idiomaAoAbrir;
+    private Text titulo;
+    private RectTransform teclas;
     private int quadroQueAbriu;
 
     private readonly Text[] nomes = new Text[Nomes.Length];
@@ -80,7 +83,9 @@ public class TelaDeOpcoes : MonoBehaviour
 
         // Fundo opaco: o menu ou a pausa de baixo nao aparecem embolados com as linhas daqui.
         TelaSimples.Montar(gameObject, 120, new Color(0.03f, 0.02f, 0.03f, 1f));
-        TelaSimples.Titulo(transform, "Titulo", 110, new Color(1f, 0.95f, 0.85f), 330f, "Configurações");
+        idiomaAoAbrir = Idioma.Atual;
+        IdiomaMudou = false;
+        titulo = TelaSimples.Titulo(transform, "Titulo", 110, new Color(1f, 0.95f, 0.85f), 330f, "Configurações");
 
         for (int i = 0; i < Nomes.Length; i++)
         {
@@ -103,9 +108,7 @@ public class TelaDeOpcoes : MonoBehaviour
         setaDireita = Imagem("Seta direita", Vector2.zero, 48f);
         ponteiro = Imagem("Ponteiro", Vector2.zero, 64f);
 
-        TelaSimples.LinhaDeTeclas(transform, "Teclas", -345f,
-            "[W][S] escolher | [A][D] mudar | [Esc] voltar || " +
-            "[Pad CruzCima][Pad CruzBaixo] escolher | [Pad CruzEsquerda][Pad CruzDireita] mudar | [Pad B] voltar", 28, new Color(0.92f, 0.92f, 0.95f));
+        teclas = TelaSimples.LinhaDeTeclas(transform, "Teclas", -345f, TextoDasTeclas, 28, new Color(0.92f, 0.92f, 0.95f));
 
         if (Application.isEditor)
         {
@@ -176,6 +179,7 @@ public class TelaDeOpcoes : MonoBehaviour
             case Linha.Resolucao: Opcoes.MudarResolucao(passo); break;
             case Linha.Tremor: Opcoes.AlternarTremor(); break;
             case Linha.Numeros: Opcoes.AlternarNumeros(); break;
+            case Linha.Idioma: TrocarIdioma(); break;
             default: return;
         }
 
@@ -197,6 +201,7 @@ public class TelaDeOpcoes : MonoBehaviour
             case Linha.TelaCheia:
             case Linha.Tremor:
             case Linha.Numeros:
+            case Linha.Idioma:
                 Mudar(1);
                 break;
             default:
@@ -210,8 +215,36 @@ public class TelaDeOpcoes : MonoBehaviour
         Sons.Tocar(Som.MenuFechar, 1f, 0f);
         quadroQueFechou = Time.frameCount;
         Destroy(gameObject);
+
+        // Trocou o idioma no menu inicial: o menu e montado de novo, ja no idioma novo.
+        if (Idioma.Atual != idiomaAoAbrir && TelaDeInicio.Aberta)
+        {
+            TelaDeInicio.VoltarAoMenu();
+            return;
+        }
+
         aoFechar?.Invoke();
     }
+
+    /// <summary>O idioma mudou desde que esta tela abriu (quem abriu remonta os textos dele).</summary>
+    public static bool IdiomaMudou { get; private set; }
+
+    private void TrocarIdioma()
+    {
+        Idioma.Atual = Idioma.Ingles ? Lingua.Portugues : Lingua.Ingles;
+        IdiomaMudou = Idioma.Atual != idiomaAoAbrir;
+
+        // Os textos desta tela ja trocam na hora.
+        titulo.text = Idioma.T("Configurações");
+        TelaSimples.TrocarLinhaDeTeclas(teclas, TextoDasTeclas, 28, new Color(0.92f, 0.92f, 0.95f));
+
+        for (int i = 0; i < Nomes.Length; i++)
+            nomes[i].text = Idioma.T(Nomes[i]);
+    }
+
+    private const string TextoDasTeclas =
+        "[W][S] escolher | [A][D] mudar | [Esc] voltar || " +
+        "[Pad CruzCima][Pad CruzBaixo] escolher | [Pad CruzEsquerda][Pad CruzDireita] mudar | [Pad B] voltar";
 
     private void OnDestroy()
     {
@@ -227,9 +260,10 @@ public class TelaDeOpcoes : MonoBehaviour
 
         valores[(int)Linha.Musica].text = Porcento(Musica.Volume);
         valores[(int)Linha.Efeitos].text = Porcento(Sons.Volume);
-        valores[(int)Linha.TelaCheia].text = Opcoes.TelaCheia ? "Ligada" : "Desligada";
-        valores[(int)Linha.Tremor].text = Opcoes.TremorLigado ? "Ligado" : "Desligado";
-        valores[(int)Linha.Numeros].text = Opcoes.NumerosDeDano ? "Ligados" : "Desligados";
+        valores[(int)Linha.TelaCheia].text = Idioma.T(Opcoes.TelaCheia ? "Ligada" : "Desligada");
+        valores[(int)Linha.Tremor].text = Idioma.T(Opcoes.TremorLigado ? "Ligado" : "Desligado");
+        valores[(int)Linha.Numeros].text = Idioma.T(Opcoes.NumerosDeDano ? "Ligados" : "Desligados");
+        valores[(int)Linha.Idioma].text = Idioma.NomeDoAtual;
 
         Vector2Int resolucao = Opcoes.Resolucao;
         valores[(int)Linha.Resolucao].text = $"{resolucao.x} x {resolucao.y}";
@@ -262,7 +296,7 @@ public class TelaDeOpcoes : MonoBehaviour
     /// <summary>O ponteiro fica antes do nome; no Voltar, antes do botao.</summary>
     private float XDoPonteiro => escolhida != (int)Linha.Voltar ? XDoNome - 60f : -230f;
 
-    private static string Porcento(float volume) => volume <= 0f ? "Mudo" : $"{Mathf.RoundToInt(volume * 100f)}%";
+    private static string Porcento(float volume) => volume <= 0f ? Idioma.T("Mudo") : $"{Mathf.RoundToInt(volume * 100f)}%";
 
     private void AnimarPonteiro(float tempo)
     {

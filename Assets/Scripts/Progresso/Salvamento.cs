@@ -16,8 +16,8 @@ public static class Salvamento
 
     /// <summary>"Andar 4 com o Soldado" (ou "Área segura com o Soldado"), pro botao do menu.</summary>
     public static string Resumo => Existe
-        ? (PlayerPrefs.GetInt(Prefixo + "descanso", 0) == 1 ? "Área segura" : $"Andar {PlayerPrefs.GetInt(Prefixo + "andar", 1)}")
-          + $" com o {PlayerPrefs.GetString(Prefixo + "heroi", "?")}"
+        ? (PlayerPrefs.GetInt(Prefixo + "descanso", 0) == 1 ? Idioma.T("Área segura") : Idioma.F("Andar {0}", PlayerPrefs.GetInt(Prefixo + "andar", 1)))
+          + " " + Idioma.F("com o {0}", Idioma.T(PlayerPrefs.GetString(Prefixo + "heroi", "?")))
           + (PlayerPrefs.GetInt(Prefixo + "modo", 0) == (int)ModoDeJogo.Maldito ? " (maldito)"
              : PlayerPrefs.GetInt(Prefixo + "modo", 0) == (int)ModoDeJogo.Diario ? " (desafio do dia)" : "")
         : "";

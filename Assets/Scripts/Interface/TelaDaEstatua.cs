@@ -97,14 +97,14 @@ public class TelaDaEstatua : MonoBehaviour
 
     private void Atualizar()
     {
-        cristais.text = $"Você tem {Melhorias.Cristais} cristais";
+        cristais.text = Idioma.F("Você tem {0} cristais", Melhorias.Cristais);
 
         for (int i = 0; i < Melhorias.Todas.Length; i++)
         {
             Melhorias.Dados d = Melhorias.Todas[i];
             int nivel = Melhorias.Nivel(d.Qual), maximo = d.Precos.Length;
-            string preco = Melhorias.NoMaximo(d.Qual) ? "completa" : $"{Melhorias.Preco(d.Qual)} cristais";
-            menu.TrocarRotulo(i, $"{d.Nome}  {nivel}/{maximo}  -  {preco}");
+            string preco = Melhorias.NoMaximo(d.Qual) ? Idioma.T("completa") : Idioma.F("{0} cristais", Melhorias.Preco(d.Qual));
+            menu.TrocarRotulo(i, $"{Idioma.T(d.Nome)}  {nivel}/{maximo}  -  {preco}");
             menu.Apagar(i, Melhorias.NoMaximo(d.Qual) || Melhorias.Cristais < Melhorias.Preco(d.Qual));
         }
     }
@@ -112,19 +112,20 @@ public class TelaDaEstatua : MonoBehaviour
     private string Descricao(int botao)
     {
         if (botao < 0 || botao >= Melhorias.Todas.Length)
-            return "Os cristais caem dos campeões (os inimigos com aura) e dos chefes, e ficam guardados mesmo se você morrer.";
+            return Idioma.T("Os cristais caem dos campeões (os inimigos com aura) e dos chefes, e ficam guardados mesmo se você morrer.");
 
         Melhorias.Dados d = Melhorias.Todas[botao];
-        string texto = "Cada nível: " + d.PorNivel + ".";
+        string texto = Idioma.F("Cada nível: {0}.", Idioma.T(d.PorNivel));
 
         if (d.Qual == Melhoria.Arsenal)
         {
             int nivel = Melhorias.Nivel(Melhoria.Arsenal);
-            texto += nivel < Melhorias.NoArsenal.Length ? $"\nPróximo: {Melhorias.NoArsenal[nivel]}." : "\nTodas as armas já saem dos baús.";
+            texto += "\n" + (nivel < Melhorias.NoArsenal.Length ? Idioma.F("Próximo: {0}.", Idioma.T(Melhorias.NoArsenal[nivel]))
+                                                               : Idioma.T("Todas as armas já saem dos baús."));
         }
 
         if (Partida.Diario)
-            texto += "\n(No desafio do dia as melhorias não valem: só a partir da próxima partida.)";
+            texto += "\n" + Idioma.T("(No desafio do dia as melhorias não valem: só a partir da próxima partida.)");
 
         return texto;
     }

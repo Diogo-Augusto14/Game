@@ -107,7 +107,7 @@ public class EstatisticasDoJogador : MonoBehaviour, IBloqueioDeDano
                 s.Bonus.Aplicar?.Invoke(this);
 
                 if (avisar)
-                    Anunciar("Sinergia: " + s.Bonus.Nome + "!", s.Bonus.Resumo, new Color(0.6f, 1f, 0.9f));
+                    Anunciar(Idioma.F("Sinergia: {0}!", Idioma.T(s.Bonus.Nome)), s.Bonus.Resumo, new Color(0.6f, 1f, 0.9f));
             }
         }
 

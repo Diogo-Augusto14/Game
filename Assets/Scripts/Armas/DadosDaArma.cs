@@ -330,15 +330,16 @@ public static class Raridades
 {
     public const int Quantas = 5;
 
+    /// <summary>O nome da raridade, no idioma do jogo.</summary>
     public static string Nome(Raridade r)
     {
         switch (r)
         {
-            case Raridade.Incomum: return "Incomum";
-            case Raridade.Rara: return "Rara";
-            case Raridade.Epica: return "Épica";
-            case Raridade.Lendaria: return "Lendária";
-            default: return "Comum";
+            case Raridade.Incomum: return Idioma.T("Incomum");
+            case Raridade.Rara: return Idioma.T("Rara");
+            case Raridade.Epica: return Idioma.T("Épica");
+            case Raridade.Lendaria: return Idioma.T("Lendária");
+            default: return Idioma.T("Comum");
         }
     }
 

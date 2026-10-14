@@ -108,7 +108,7 @@ public class HabilidadeDoHeroi : MonoBehaviour
 
     private IEnumerator Usar(TipoDeHabilidade qual)
     {
-        TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.3f, heroi.NomeDaHabilidade + "!", new Color(1f, 0.9f, 0.5f), 0.9f);
+        TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.3f, Idioma.T(heroi.NomeDaHabilidade) + "!", new Color(1f, 0.9f, 0.5f), 0.9f);
 
         switch (qual)
         {

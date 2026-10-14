@@ -64,7 +64,7 @@ public static class Progresso
             if (!Herois.Liberado(h))
                 todos = false;
             else if (antes.Contains(h))
-                AvisoDeConquista.Mostrar("Herói liberado: " + h.Nome, h.Descricao);
+                AvisoDeConquista.Mostrar(Idioma.F("Herói liberado: {0}", Idioma.T(h.Nome)), h.Descricao);
         }
 
         if (todos)

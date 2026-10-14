@@ -62,6 +62,8 @@
     <Compile Include="Assets\Scripts\Jogador\MovimentoDoJogador.cs" />
     <Compile Include="Assets\Scripts\Armas\DadosDaArma.cs" />
     <Compile Include="Assets\Scripts\Nucleo\FolhaDeSprites.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\Idioma.cs" />
+    <Compile Include="Assets\Scripts\Nucleo\Traducoes.cs" />
     <Compile Include="Assets\Scripts\Jogador\RastroDaEsquiva.cs" />
     <Compile Include="Assets\Scripts\Jogador\AnimacaoDoJogador.cs" />
     <Compile Include="Assets\Scripts\Combate\Impacto.cs" />

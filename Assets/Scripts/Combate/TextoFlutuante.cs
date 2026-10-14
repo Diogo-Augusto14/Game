@@ -18,6 +18,7 @@ public class TextoFlutuante : MonoBehaviour
 
     public static TextoFlutuante Mostrar(Vector3 posicao, string conteudo, Color cor, float duracao = Duracao)
     {
+        conteudo = Idioma.T(conteudo);
         GameObject obj = new GameObject("Texto flutuante");
         obj.transform.position = posicao;
 

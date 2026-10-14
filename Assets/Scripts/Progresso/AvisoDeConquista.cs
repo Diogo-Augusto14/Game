@@ -36,7 +36,7 @@ public class AvisoDeConquista : MonoBehaviour
             atual.Montar();
         }
 
-        atual.fila.Enqueue((titulo, detalhe));
+        atual.fila.Enqueue((Idioma.T(titulo), Idioma.T(detalhe)));
     }
 
     private void Montar()

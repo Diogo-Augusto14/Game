@@ -65,16 +65,17 @@ public class Pedestal : Interativo
         return pedestal;
     }
 
+    // O nome no idioma do jogo.
     private string Nome
     {
         get
         {
             switch (produto)
             {
-                case Produto.Coracao: return "Coração";
-                case Produto.Chave: return "Chave";
-                case Produto.Municao: return "Munição";
-                default: return item != null ? item.Nome : "?";
+                case Produto.Coracao: return Idioma.T("Coração");
+                case Produto.Chave: return Idioma.T("Chave");
+                case Produto.Municao: return Idioma.T("Munição");
+                default: return item != null ? Idioma.T(item.Nome) : "?";
             }
         }
     }
@@ -93,15 +94,15 @@ public class Pedestal : Interativo
     {
         get
         {
-            string resumo = produto == Produto.Item && item != null ? " - " + item.Resumo : "";
+            string resumo = produto == Produto.Item && item != null ? " - " + Idioma.T(item.Resumo) : "";
 
             if (preco > 0)
-                return $"comprar {Nome} ({PrecoAgora} moedas){resumo}";
+                return Idioma.F("comprar {0} ({1} moedas){2}", Nome, PrecoAgora, resumo);
 
             if (custoEmVida > 0f)
-                return $"dar {custoEmVida / 2f:0.#} coração por {Nome}{resumo}";
+                return Idioma.F("dar {0} coração por {1}{2}", (custoEmVida / 2f).ToString("0.#"), Nome, resumo);
 
-            return $"pegar {Nome}{resumo}";
+            return Idioma.F("pegar {0}{1}", Nome, resumo);
         }
     }
 

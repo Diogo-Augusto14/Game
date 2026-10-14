@@ -185,7 +185,19 @@ public class TelaDePausa : MonoBehaviour
         TransicaoDeTela.Trocar(TelaDeFimDeJogo.RecarregarCena);
     }
 
-    private void AbrirOpcoes() => TelaDeOpcoes.Abrir(Atualizar);
+    // Trocou o idioma nas configuracoes: a pausa e montada de novo, no idioma novo.
+    private void AbrirOpcoes() => TelaDeOpcoes.Abrir(() =>
+    {
+        if (TelaDeOpcoes.IdiomaMudou)
+        {
+            Fechar();
+            Pausar();
+        }
+        else
+        {
+            Atualizar();
+        }
+    });
 
     /// <summary>Salva a partida (o andar recomeca do comeco no "Continuar") e volta pro menu inicial.</summary>
     private void SalvarESair()
@@ -215,15 +227,15 @@ public class TelaDePausa : MonoBehaviour
         if (tela == null)
             return;
 
-        resumo.text = andar.NomeNaTela + (andar.Andar >= andar.Andares ? " (último andar)" : "");
+        resumo.text = andar.NomeNaTela + (andar.Andar >= andar.Andares ? " " + Idioma.T("(último andar)") : "");
         ArmaDoJogador armas = andar.Jogador != null ? andar.Jogador.GetComponent<ArmaDoJogador>() : null;
-        itens.text = "Armas: " + TelaDeFimDeJogo.ListaDeArmas(armas);
+        itens.text = Idioma.T("Armas:") + " " + TelaDeFimDeJogo.ListaDeArmas(armas);
         TelaSimples.TrocarLinhaDeTeclas(opcoes,
-            $"[M] música: {Musica()} | [N] efeitos: {Efeitos()} || [Pad LB] música: {Musica()} | [Pad RB] efeitos: {Efeitos()}",
+            Idioma.F("[M] música: {0} | [N] efeitos: {1} || [Pad LB] música: {0} | [Pad RB] efeitos: {1}", Musica(), Efeitos()),
             26, new Color(1f, 0.85f, 0.4f));
     }
 
-    private static string Musica() => Opcoes.MusicaLigada ? "ligada" : "desligada";
+    private static string Musica() => Idioma.T(Opcoes.MusicaLigada ? "ligada" : "desligada");
 
-    private static string Efeitos() => Opcoes.EfeitosLigados ? "ligados" : "desligados";
+    private static string Efeitos() => Idioma.T(Opcoes.EfeitosLigados ? "ligados" : "desligados");
 }

@@ -798,7 +798,7 @@ public class GeradorDoAndar : MonoBehaviour
         Partida.Semear(Andar + 50);
         int mundo = Mundo;
         descansando = true;
-        nome = AreaSegura.Nome(mundo);
+        nome = Idioma.T(AreaSegura.Nome(mundo));
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
         outrasSaidas.Clear();
@@ -962,7 +962,8 @@ public class GeradorDoAndar : MonoBehaviour
         if (string.IsNullOrEmpty(titulo))
             titulo = NomeDoMundo;
 
-        nome = !string.IsNullOrEmpty(titulo) ? $"Andar {andar} de {Andares}: {titulo}" : $"Andar {andar} de {Andares}";
+        nome = !string.IsNullOrEmpty(titulo) ? Idioma.F("Andar {0} de {1}: {2}", andar, Andares, Idioma.T(titulo))
+                                             : Idioma.F("Andar {0} de {1}", andar, Andares);
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
         outrasSaidas.Clear();

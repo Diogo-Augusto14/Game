@@ -248,7 +248,7 @@ public class TelaDeFimDeJogo : MonoBehaviour
     {
         Herois.Heroi heroi = Herois.Atual;
         string andarAlcancado = andar == null ? "?"
-            : vitoria ? $"Os {andar.Andares} andares da prisão"
+            : vitoria ? Idioma.F("Os {0} andares da prisão", andar.Andares)
             : andar.NomeNaTela;
 
         string[,] dados =
@@ -266,16 +266,17 @@ public class TelaDeFimDeJogo : MonoBehaviour
         // As armas que o jogador tinha na mao (no jogo antigo eram os itens pegos).
         Text armas = LinhaDeTexto(pai, "Armas", -76f, 24, new Color(0.85f, 0.85f, 0.85f), "");
         armas.rectTransform.sizeDelta = new Vector2(1080f, 64f);
-        armas.text = "Armas: " + ListaDeArmas(Armas(andar));
+        armas.text = Idioma.T("Armas:") + " " + ListaDeArmas(Armas(andar));
 
         // O modo, os cristais pegos e, no desafio do dia, os pontos e o recorde.
         string modo = Partida.Modo == ModoDeJogo.Normal ? "" : Partida.NomeDoModo + "   ";
         string pontos = Partida.Diario
-            ? $"   {Partida.UltimosPontos} pontos" + (Partida.BateuORecorde ? " (novo recorde do dia!)" : $" (recorde: {Partida.RecordeDoDia(Partida.Dia)})")
+            ? "   " + Idioma.F("{0} pontos", Partida.UltimosPontos) + " "
+              + (Partida.BateuORecorde ? Idioma.T("(novo recorde do dia!)") : Idioma.F("(recorde: {0})", Partida.RecordeDoDia(Partida.Dia)))
             : "";
         Text extra = LinhaDeTexto(pai, "Modo", -128f, 24, new Color(0.8f, 0.65f, 1f), "");
         extra.rectTransform.sizeDelta = new Vector2(1080f, 40f);
-        extra.text = $"{modo}Cristais: +{Partida.CristaisNestaPartida} (total {Melhorias.Cristais}){pontos}";
+        extra.text = modo + Idioma.F("Cristais: +{0} (total {1})", Partida.CristaisNestaPartida, Melhorias.Cristais) + pontos;
     }
 
     /// <summary>"Nome ........ valor": o nome alinhado a direita, o valor a esquerda.</summary>
@@ -381,12 +382,12 @@ public class TelaDeFimDeJogo : MonoBehaviour
     internal static string ListaDeArmas(ArmaDoJogador armas)
     {
         if (armas == null || armas.Atual == null)
-            return "<color=#aaaaaa>nenhuma</color>";
+            return $"<color=#aaaaaa>{Idioma.T("nenhuma")}</color>";
 
-        string lista = $"<color=#FFD966>{armas.Atual.Dados.nome}</color>";
+        string lista = $"<color=#FFD966>{Idioma.T(armas.Atual.Dados.nome)}</color>";
 
         if (armas.Outra != null)
-            lista += $"   <color=#cccccc>{armas.Outra.Dados.nome}</color>";
+            lista += $"   <color=#cccccc>{Idioma.T(armas.Outra.Dados.nome)}</color>";
 
         return lista;
     }

@@ -176,6 +176,8 @@ Duas partes:
 | `ArteDaInterface`, `FonteDoJogo`, `IconeDeTecla`, `DicaDupla` | A arte e as fontes lidas de `Resources`, e as dicas com o desenho das teclas |
 | `Controle` | O controle nos menus (qual foi mexido por último, Xbox ou PlayStation) |
 | `Sons`, `Musica` | Os sons dos menus e a música: menu, uma por caverna, chefe, chefe final, vitória e fim de jogo. `M` liga e desliga a música, `N` os efeitos |
+| `Idioma`, `Traducoes` | O idioma (1.19.0): portugues ou ingles, nas Configuracoes. O jogo e escrito em portugues e traduz na hora de mostrar (`Idioma.T`, e `Idioma.F` pros modelos com lacunas, "Andar {0} de {1}"); as pecas que desenham texto (`TelaSimples`, `MenuDeBotoes`, `Desenho.Texto`, `TextoFlutuante`, os avisos) ja traduzem sozinhas. O dicionario sai do `Ferramentas/Idioma/ingles.py` pelo `gerar.py` (que confere se cada chave existe no jogo). Texto novo: ponha o par la e rode o gerar |
+| `DicasDaPrimeiraVez` | As dicas da primeira partida: cada uma aparece uma vez na vida (PlayerPrefs), em fila, embaixo da tela |
 | `ResumoDaPartida`, `VersaoDoJogo`, `Herois` | Os números da partida, a versão instalada e os heróis da escolha (por enquanto só o Arqueiro) |
 
 O volume dos efeitos é o do `AudioListener` (vale pra todos os sons do jogo); a música fica de fora e
@@ -227,6 +229,14 @@ Os do mundo 2 e 3 continuam aparecendo no 4. (O contorno claro em volta dos inim
 | `Vida` | Lado `Inimigos`; a vida muda de um pra outro, e a `armadura` segura uma parte do dano |
 | `PiscarAoTomarDano` | Fica branco a cada golpe |
 | `MorteDoInimigo` | Para, deixa de bater nas coisas, toca a morte e some numa nuvem de poeira |
+
+O **clima** (`ClimaDoAndar`, 1.19.0): som de fundo em loop por mundo e eventos longe (gota, corrente,
+rangido, gemido, vento, pedrinhas; `Resources/Ambiente`, feitos pelo `Ferramentas/Audio/ambiente.py`),
+poeira e névoa embaixo do véu do escuro (aparecem só na luz) e a vinheta nas bordas. As tochas
+(`LuzTremula`) engasgam e balançam a luz.
+
+O **campeão-chefe** (`Campeao.SortearChefe`): às vezes na sala do fim (andar 2+), dois poderes, 6× a
+vida e a barra de vida no alto (`Campeao.ChefeAtivo`, desenhada pela HUD).
 
 Os **campeões** (`Campeao`, desde a 1.19.0): ao montar as salas, cada inimigo tem uma chance
 (`Partida.ChanceDeCampeao`: 5% no andar 1, sobe 1% por andar até 16%, o dobro no modo maldito; nas

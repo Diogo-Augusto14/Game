@@ -58,7 +58,7 @@ public class TelaDeNovidades : MonoBehaviour
         TelaSimples.Montar(gameObject, 130, new Color(0.03f, 0.02f, 0.03f, 1f));
         TelaSimples.Titulo(transform, "Titulo", 90, new Color(1f, 0.95f, 0.85f), 400f, "Novidades");
         TelaSimples.Faixa(transform, "Faixa", ArteDaInterface.FaixaRosa, 400f, 760f);
-        TelaSimples.Texto(transform, "Versao", 30, new Color(0.8f, 0.7f, 0.75f), 315f, "Versão " + versao.TrimStart('v'));
+        TelaSimples.Texto(transform, "Versao", 30, new Color(0.8f, 0.7f, 0.75f), 315f, Idioma.F("Versão {0}", versao.TrimStart('v')));
 
         // Area do texto bem dentro da moldura (a borda dela tem uns 50 px): sem encostar nem vazar.
         UnityEngine.UI.Text texto = TelaSimples.Texto(transform, "Corpo", 28, new Color(1f, 0.97f, 0.92f), -22f, corpo);

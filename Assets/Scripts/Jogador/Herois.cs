@@ -50,10 +50,10 @@ public static class Herois
 
         /// <summary>O que falta fazer, pro menu mostrar no heroi bloqueado.</summary>
         public string Requisito =>
-            LiberaNoMundo > 0 ? $"Vença o chefe do mundo {LiberaNoMundo}"
-            : LiberaZerandoCom != null ? $"Zere o jogo com o {LiberaZerandoCom}"
-            : LiberaComVitorias > 1 ? $"Zere o jogo {LiberaComVitorias} vezes"
-            : LiberaComVitorias == 1 ? "Zere o jogo"
+            LiberaNoMundo > 0 ? Idioma.F("Vença o chefe do mundo {0}", LiberaNoMundo)
+            : LiberaZerandoCom != null ? Idioma.F("Zere o jogo com o {0}", Idioma.T(LiberaZerandoCom))
+            : LiberaComVitorias > 1 ? Idioma.F("Zere o jogo {0} vezes", LiberaComVitorias)
+            : LiberaComVitorias == 1 ? Idioma.T("Zere o jogo")
             : "";
 
         /// <summary>A linha dos numeros no menu.</summary>
@@ -61,9 +61,10 @@ public static class Herois
         {
             get
             {
-                string coracoes = Vida % 2 == 0 ? $"{Vida / 2}" : $"{Vida / 2},5";
+                string coracoes = Vida % 2 == 0 ? $"{Vida / 2}" : $"{Vida / 2}{(Idioma.Ingles ? "." : ",")}5";
                 DadosDaArma arma = Herois.Arma(this);
-                return $"Vida: {coracoes} corações     Arma: {(arma != null ? arma.nome : "?")}     F: {NomeDaHabilidade}";
+                return Idioma.F("Vida: {0} corações     Arma: {1}     F: {2}", coracoes, arma != null ? Idioma.T(arma.nome) : "?",
+                                Idioma.T(NomeDaHabilidade));
             }
         }
     }

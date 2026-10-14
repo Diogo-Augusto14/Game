@@ -143,7 +143,7 @@ public class TelaDeInicio : MonoBehaviour
         TelaSimples.Faixa(topo.transform, "Faixa do titulo", ArteDaInterface.FaixaRosa, YDoTitulo, 1150f);
         textoDoTitulo = TelaSimples.Titulo(topo.transform, "Titulo", 150, new Color(1f, 0.93f, 0.8f), YDoTitulo, titulo);
         TelaSimples.Texto(topo.transform, "Subtitulo", 30, new Color(0.8f, 0.7f, 0.7f), 282f,
-            $"Desça os {(andar != null ? andar.Andares : 6)} andares da prisão e derrote os chefes");
+            Idioma.F("Desça os {0} andares da prisão e derrote os chefes", andar != null ? andar.Andares : 6));
 
         painelDoHeroi = TelaSimples.Camada(transform, "Heroi");
         MontarEscolhaDoHeroi(painelDoHeroi.transform, 105f);
@@ -501,15 +501,15 @@ public class TelaDeInicio : MonoBehaviour
         Herois.Heroi heroi = Herois.Atual;
         bool liberado = Herois.Liberado(heroi);
 
-        textoDoHeroi.text = liberado ? heroi.Nome : $"{heroi.Nome}  (bloqueado)";
-        descricaoDoHeroi.text = heroi.Descricao;
-        numerosDoHeroi.text = liberado ? heroi.Numeros : "Para liberar: " + heroi.Requisito;
+        textoDoHeroi.text = liberado ? Idioma.T(heroi.Nome) : Idioma.F("{0}  (bloqueado)", Idioma.T(heroi.Nome));
+        descricaoDoHeroi.text = Idioma.T(heroi.Descricao);
+        numerosDoHeroi.text = liberado ? heroi.Numeros : Idioma.F("Para liberar: {0}", heroi.Requisito);
 
         if (Herois.Todos.Length > 1)
         {
             TelaSimples.TrocarLinhaDeTeclas(dicaDoHeroi,
-                $"[A][D] ou [Esquerda][Direita] troca o herói ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados) || " +
-                $"[Pad CruzEsquerda][Pad CruzDireita] troca o herói ({LiberadosNoTotal()} de {Herois.Todos.Length} liberados)",
+                Idioma.F("[A][D] ou [Esquerda][Direita] troca o herói ({0} de {1} liberados) || " +
+                         "[Pad CruzEsquerda][Pad CruzDireita] troca o herói ({0} de {1} liberados)", LiberadosNoTotal(), Herois.Todos.Length),
                 22, CorDeOsso);
         }
         else

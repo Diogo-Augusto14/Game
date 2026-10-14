@@ -204,12 +204,12 @@ public class TelaDeProgresso : MonoBehaviour
         {
             int indice = pagina * LinhasPorPagina + i;
             bool tem = indice < linhas.Count;
-            esquerda[i].text = tem ? linhas[indice].Esquerda : "";
-            direita[i].text = tem ? linhas[indice].Direita : "";
+            esquerda[i].text = tem ? Idioma.T(linhas[indice].Esquerda) : "";
+            direita[i].text = tem ? Idioma.T(linhas[indice].Direita) : "";
             esquerda[i].color = tem ? linhas[indice].Cor : CorDoTexto;
         }
 
-        rodapeDaPagina.text = paginas > 1 ? $"Página {pagina + 1} de {paginas}" : "";
+        rodapeDaPagina.text = paginas > 1 ? Idioma.F("Página {0} de {1}", pagina + 1, paginas) : "";
     }
 
     private List<LinhaDaTela> Linhas()
@@ -231,18 +231,18 @@ public class TelaDeProgresso : MonoBehaviour
         {
             Numero("Partidas", Registro.Partidas.ToString()),
             Numero("Vitórias", Progresso.Vitorias.ToString()),
-            Numero("Heróis liberados", $"{System.Array.FindAll(Herois.Todos, Herois.Liberado).Length} de {Herois.Todos.Length}"),
+            Numero("Heróis liberados", Idioma.F("{0} de {1}", System.Array.FindAll(Herois.Todos, Herois.Liberado).Length, Herois.Todos.Length)),
             Numero("Mortes", Registro.Mortes.ToString()),
-            Numero("Mais fundo", maisFundo > 0 ? $"Andar {maisFundo}" : "-"),
+            Numero("Mais fundo", maisFundo > 0 ? Idioma.F("Andar {0}", maisFundo) : "-"),
             Numero("Tempo jogado", Tempo(Registro.TempoJogado)),
             Numero("Inimigos derrotados", Registro.InimigosDerrotados.ToString()),
             Numero("Chefes derrotados", Registro.ChefesDerrotados.ToString()),
             Numero("Armas pegas", Registro.ArmasPegas.ToString()),
             Numero("Habilidades usadas", Registro.HabilidadesUsadas.ToString()),
-            Numero("Inimigos conhecidos", $"{Registro.TiposVistos} de {Bestiario.Todas.Count}"),
-            Numero("Conquistas", $"{Conquistas.Quantas} de {Conquistas.Todas.Count}"),
+            Numero("Inimigos conhecidos", Idioma.F("{0} de {1}", Registro.TiposVistos, Bestiario.Todas.Count)),
+            Numero("Conquistas", Idioma.F("{0} de {1}", Conquistas.Quantas, Conquistas.Todas.Count)),
             Numero("Quem mais te matou", carrasco != null
-                ? $"{Bestiario.Nome(carrasco)} ({Registro.MortesPor(carrasco)}x)"
+                ? $"{Idioma.T(Bestiario.Nome(carrasco))} ({Registro.MortesPor(carrasco)}x)"
                 : "ninguém, ainda"),
         };
     }
@@ -262,7 +262,7 @@ public class TelaDeProgresso : MonoBehaviour
         foreach (Conquistas.Conquista c in Conquistas.Todas)
         {
             bool tem = Conquistas.Tem(c);
-            linhas.Add(new LinhaDaTela((tem ? "• " : "  ") + c.Nome, c.ComoGanhar, tem ? CorEscolhida : CorApagada));
+            linhas.Add(new LinhaDaTela((tem ? "• " : "  ") + Idioma.T(c.Nome), c.ComoGanhar, tem ? CorEscolhida : CorApagada));
         }
 
         return linhas;
@@ -281,7 +281,7 @@ public class TelaDeProgresso : MonoBehaviour
             }
 
             Color cor = f.Chefe ? new Color(1f, 0.55f, 0.5f) : CorDoTexto;
-            linhas.Add(new LinhaDaTela(f.Nome, $"{f.ComoLuta}  Derrotados: {Registro.Derrotados(f.Id)}", cor));
+            linhas.Add(new LinhaDaTela(f.Nome, Idioma.T(f.ComoLuta) + "  " + Idioma.F("Derrotados: {0}", Registro.Derrotados(f.Id)), cor));
         }
 
         return linhas;

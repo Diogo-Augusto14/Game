@@ -17,7 +17,7 @@ public class ArmaNoChao : Interativo
         get
         {
             string municao = arma.Infinita ? "" : $" ({arma.NoPente + arma.Reserva})";
-            return "pegar " + arma.Dados.nome + municao + " [" + Raridades.Nome(arma.Dados.raridade) + "]";
+            return Idioma.F("pegar {0}{1} [{2}]", Idioma.T(arma.Dados.nome), municao, Raridades.Nome(arma.Dados.raridade));
         }
     }
 

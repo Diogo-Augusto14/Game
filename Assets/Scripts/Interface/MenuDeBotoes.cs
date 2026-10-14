@@ -157,7 +157,7 @@ public class MenuDeBotoes
     public void TrocarRotulo(int indice, string rotulo)
     {
         if (indice >= 0 && indice < botoes.Count)
-            botoes[indice].Rotulo.text = rotulo;
+            botoes[indice].Rotulo.text = Idioma.T(rotulo);
     }
 
     /// <summary>Escolhe um botao sem apertar (ex.: Esc no menu vai pro "Sair do jogo").</summary>

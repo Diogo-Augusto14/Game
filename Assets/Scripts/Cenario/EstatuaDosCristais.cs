@@ -16,7 +16,7 @@ public class EstatuaDosCristais : Interativo
 
     public override float Alcance => 1.8f;
 
-    public override string Dica => $"usar a estátua dos cristais ({Melhorias.Cristais} cristais)";
+    public override string Dica => Idioma.F("usar a estátua dos cristais ({0} cristais)", Melhorias.Cristais);
 
     /// <param name="pe">Onde fica o pe da estatua.</param>
     public static EstatuaDosCristais Criar(Vector2 pe, Transform pai)

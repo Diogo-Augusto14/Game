@@ -47,7 +47,7 @@ public static class Loja
         TextMesh placa = new GameObject("Placa").AddComponent<TextMesh>();
         placa.transform.SetParent(loja, false);
         placa.transform.localPosition = new Vector3(0f, balcao ? 3.3f : 4.3f, 0f);
-        placa.text = "Loja";
+        placa.text = Idioma.T("Loja");
         placa.font = FonteDoJogo.Texto;
         placa.fontSize = 64;
         placa.characterSize = 0.09f;

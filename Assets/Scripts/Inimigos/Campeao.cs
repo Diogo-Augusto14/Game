@@ -71,8 +71,8 @@ public class Campeao : MonoBehaviour
 
     /// <summary>"Campeão-chefe furioso e blindado" (ou o nome do campeao comum).</summary>
     public string NomeCompleto => ehChefe && segundo.HasValue
-        ? $"Campeão-chefe {Adjetivo(tipo)} e {Adjetivo(segundo.Value)}"
-        : Nome(tipo);
+        ? Idioma.F("Campeão-chefe {0} e {1}", Idioma.T(Adjetivo(tipo)), Idioma.T(Adjetivo(segundo.Value)))
+        : Idioma.T(Nome(tipo));
 
     private bool Tem(TipoDeCampeao t) => tipo == t || segundo == t;
 

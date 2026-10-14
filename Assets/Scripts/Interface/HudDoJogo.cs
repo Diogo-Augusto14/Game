@@ -96,7 +96,7 @@ public class HudDoJogo
         float y = m + (tela.coracao != null ? tela.coracao.height : 16) * u + 4 * u;
         GUIStyle estilo = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.UpperLeft);
         bool pronta = habilidade.Pronta;
-        Desenho.Texto(new Rect(m, y, 300 * u, 22 * u), "F  " + habilidade.Nome, estilo, pronta ? Desenho.Dourado : Desenho.Apagado);
+        Desenho.Texto(new Rect(m, y, 300 * u, 22 * u), "F  " + Idioma.T(habilidade.Nome), estilo, pronta ? Desenho.Dourado : Desenho.Apagado);
 
         Rect barra = new Rect(m, y + 22 * u, 80 * u, 13 * u);
         Barra(barra, habilidade.Carga, pronta ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
@@ -185,7 +185,7 @@ public class HudDoJogo
         float largura = 260 * u;
 
         float linhaDeTexto = 32 * u;
-        Desenho.Texto(new Rect(direita - largura, quadro.y, largura, linhaDeTexto), atual.Dados.nome, medio, Raridades.Cor(atual.Dados.raridade));
+        Desenho.Texto(new Rect(direita - largura, quadro.y, largura, linhaDeTexto), Idioma.T(atual.Dados.nome), medio, Raridades.Cor(atual.Dados.raridade));
 
         string municao;
         Color cor = Desenho.Claro;
@@ -234,7 +234,7 @@ public class HudDoJogo
         // O tiro especial, logo em cima da moldura: "Dir  Leque" e a barra enchendo ate ficar pronto.
         bool pronto = atual.EspecialPronto;
         GUIStyle especial = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerRight);
-        string textoDoEspecial = (Controle.EmUso ? "LT" : "Dir") + "  " + atual.Dados.NomeDoEspecial;
+        string textoDoEspecial = (Controle.EmUso ? "LT" : Idioma.T("Dir")) + "  " + Idioma.T(atual.Dados.NomeDoEspecial);
         Rect linhaDoEspecial = new Rect(Screen.width - m - largura, quadro.y - 24 * u, largura, 22 * u);
         Desenho.Texto(linhaDoEspecial, textoDoEspecial, especial, pronto ? Desenho.Dourado : Desenho.Apagado);
         float larguraDoTexto = Desenho.Largura(textoDoEspecial, especial);
@@ -246,7 +246,7 @@ public class HudDoJogo
         {
             GUIStyle outra = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerRight);
             Desenho.Texto(new Rect(Screen.width - m - largura, quadro.y - 48 * u, largura, 24 * u),
-                          "Q  " + armas.Outra.Dados.nome, outra, Desenho.Apagado);
+                          "Q  " + Idioma.T(armas.Outra.Dados.nome), outra, Desenho.Apagado);
         }
     }
 
@@ -258,7 +258,7 @@ public class HudDoJogo
         GUIStyle medio = Desenho.Estilo(tela.fonteTexto, 22 * u, TextAnchor.UpperRight);
         Rect onde = new Rect(Screen.width - m - largura, m, largura, 24 * u);
 
-        Desenho.Texto(onde, gerador.Descansando ? "Área segura" : $"Andar {gerador.Andar} de {gerador.Andares}", pequeno, Desenho.Apagado);
+        Desenho.Texto(onde, gerador.Descansando ? Idioma.T("Área segura") : Idioma.F("Andar {0} de {1}", gerador.Andar, gerador.Andares), pequeno, Desenho.Apagado);
         onde.y += 22 * u;
         onde.height = 32 * u;
 
@@ -269,7 +269,7 @@ public class HudDoJogo
         else if (gerador.PortalAberto)
             Desenho.Texto(onde, "O portal abriu!", medio, Desenho.Dourado);
         else if (gerador.ChefeAtual == null)
-            Desenho.Texto(onde, $"Inimigos: {gerador.Faltam}", medio, Desenho.Claro);
+            Desenho.Texto(onde, Idioma.F("Inimigos: {0}", gerador.Faltam), medio, Desenho.Claro);
     }
 
     private void BarraDoChefe(Chefe chefe, int u)
@@ -323,6 +323,6 @@ public class HudDoJogo
         Vector3 naTela = cam.WorldToScreenPoint(coisa.transform.position + Vector3.up * 0.9f);
         GUIStyle estilo = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerCenter);
         float largura = 300 * u;
-        Desenho.Texto(new Rect(naTela.x - largura * 0.5f, Screen.height - naTela.y - 22 * u, largura, 20 * u), "E  " + coisa.Dica, estilo, Desenho.Claro);
+        Desenho.Texto(new Rect(naTela.x - largura * 0.5f, Screen.height - naTela.y - 22 * u, largura, 20 * u), "E  " + Idioma.T(coisa.Dica), estilo, Desenho.Claro);
     }
 }

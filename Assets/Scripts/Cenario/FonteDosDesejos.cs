@@ -31,7 +31,7 @@ public class FonteDosDesejos : Interativo
         get
         {
             ArmaCarregada arma = ArmaNaMao();
-            return arma != null ? $"jogar {arma.Dados.nome} na fonte (pode vir melhor ou pior)" : "";
+            return arma != null ? Idioma.F("jogar {0} na fonte (pode vir melhor ou pior)", Idioma.T(arma.Dados.nome)) : "";
         }
     }
 
@@ -125,8 +125,8 @@ public class FonteDosDesejos : Interativo
         ArmaNoChao.Criar(new ArmaCarregada(nova), frente, transform.parent);
         EfeitoDeFolha.Tocar(ArteDoAntigo.ExplosaoPequena, frente, 24f, 25);
 
-        string frase = diferenca > 0 ? "Sorte! " : diferenca < 0 ? "Que azar... " : "";
-        TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.2f, frase + nova.nome + " [" + Raridades.Nome(nova.raridade) + "]",
+        string frase = diferenca > 0 ? Idioma.T("Sorte!") + " " : diferenca < 0 ? Idioma.T("Que azar...") + " " : "";
+        TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.2f, frase + Idioma.T(nova.nome) + " [" + Raridades.Nome(nova.raridade) + "]",
                                Raridades.Cor(nova.raridade), 2.5f);
         Sons.Tocar(diferenca >= 0 ? Som.Segredo : Som.Negado, 0.8f);
 

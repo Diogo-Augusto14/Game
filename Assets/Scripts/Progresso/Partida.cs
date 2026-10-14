@@ -57,7 +57,7 @@ public static class Partida
 
     /// <summary>"Normal", "Maldito" ou "Desafio de 14/10".</summary>
     public static string NomeDoModo =>
-        Maldito ? "Modo maldito" : Diario ? $"Desafio de {Dia % 100:00}/{Dia / 100 % 100:00}" : "Normal";
+        Maldito ? Idioma.T("Modo maldito") : Diario ? Idioma.F("Desafio de {0}", TelaDosModos.DataCurta(Dia)) : Idioma.T("Normal");
 
     /// <summary>Uma partida nova comecou (os numeros do modo voltam do zero).</summary>
     public static void Comecar(ModoDeJogo modo)
@@ -143,7 +143,8 @@ public static class Partida
 
         PlayerPrefs.SetInt(Prefixo + "recorde." + Dia, pontos);
         PlayerPrefs.SetString(Prefixo + "resumo." + Dia,
-            (venceu ? "Zerou" : $"Andar {andar}") + $", {ResumoDaPartida.InimigosDerrotados} inimigos, {ResumoDaPartida.TempoFormatado()}");
+            (venceu ? Idioma.T("Zerou") : Idioma.F("Andar {0}", andar)) + ", "
+            + Idioma.F("{0} inimigos, {1}", ResumoDaPartida.InimigosDerrotados, ResumoDaPartida.TempoFormatado()));
         PlayerPrefs.Save();
         return true;
     }

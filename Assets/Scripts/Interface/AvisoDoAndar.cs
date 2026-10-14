@@ -22,6 +22,7 @@ public class AvisoDoAndar : MonoBehaviour
 
     public static void Mostrar(string mensagem)
     {
+        mensagem = Idioma.T(mensagem);
         if (atual == null)
         {
             atual = new GameObject("Aviso do andar").AddComponent<AvisoDoAndar>();

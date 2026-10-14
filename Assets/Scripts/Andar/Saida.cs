@@ -74,7 +74,7 @@ public class Saida : MonoBehaviour
         TextMesh texto = new GameObject("Texto").AddComponent<TextMesh>();
         texto.transform.SetParent(pai, false);
         texto.transform.localPosition = new Vector3(0f, altura, 0f);
-        texto.text = conteudo;
+        texto.text = Idioma.T(conteudo);
         texto.font = FonteDoJogo.Texto;
         texto.fontSize = 64;
         texto.characterSize = tamanho;

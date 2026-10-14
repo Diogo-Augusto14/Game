@@ -102,6 +102,7 @@ public static class Desenho
     /// <summary>Texto com uma sombra escura embaixo (le em cima de qualquer chao).</summary>
     public static void Texto(Rect onde, string texto, GUIStyle estilo, Color cor)
     {
+        texto = Idioma.T(texto);
         float s = U;
         GUI.color = new Color(Sombra.r, Sombra.g, Sombra.b, Sombra.a * cor.a);
         GUI.Label(new Rect(onde.x + s, onde.y + s, onde.width, onde.height), texto, estilo);
@@ -111,5 +112,5 @@ public static class Desenho
     }
 
     /// <summary>A largura do texto, pra encaixar coisas do lado.</summary>
-    public static float Largura(string texto, GUIStyle estilo) => estilo.CalcSize(new GUIContent(texto)).x;
+    public static float Largura(string texto, GUIStyle estilo) => estilo.CalcSize(new GUIContent(Idioma.T(texto))).x;
 }

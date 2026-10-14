@@ -111,7 +111,7 @@ public static class Conquistas
 
         PlayerPrefs.SetInt(Prefixo + c.Id, 1);
         PlayerPrefs.Save();
-        AvisoDeConquista.Mostrar("Conquista: " + c.Nome, c.ComoGanhar);
+        AvisoDeConquista.Mostrar(Idioma.F("Conquista: {0}", Idioma.T(c.Nome)), c.ComoGanhar);
         Debug.Log($"[Conquistas] {c.Nome}");
     }
 

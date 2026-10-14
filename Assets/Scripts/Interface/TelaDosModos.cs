@@ -66,7 +66,7 @@ public class TelaDosModos : MonoBehaviour
         menu = new MenuDeBotoes(transform, 0f, new Vector2(620f, 66f), 32) { IntervaloDaEntrada = 0.04f };
         botaoNormal = menu.Adicionar("Normal", 180f, () => Escolher(ModoDeJogo.Normal));
         botaoMaldito = menu.Adicionar(Partida.MalditoLiberado ? "Modo maldito" : "Modo maldito (bloqueado)", 100f, () => Escolher(ModoDeJogo.Maldito));
-        botaoDiario = menu.Adicionar($"Desafio do dia ({Partida.Hoje % 100:00}/{Partida.Hoje / 100 % 100:00})", 20f, () => Escolher(ModoDeJogo.Diario));
+        botaoDiario = menu.Adicionar(Idioma.F("Desafio do dia ({0})", DataCurta(Partida.Hoje)), 20f, () => Escolher(ModoDeJogo.Diario));
         menu.Adicionar("Voltar", -60f, Fechar, "[Esc] || [Pad B]");
         menu.Apagar(botaoMaldito, !Partida.MalditoLiberado);
         menu.Escolher(Preferido == ModoDeJogo.Maldito ? botaoMaldito : botaoNormal, false);
@@ -104,25 +104,30 @@ public class TelaDosModos : MonoBehaviour
     private string Descricao(int botao)
     {
         if (botao == botaoNormal)
-            return "A partida de sempre. As melhorias da estátua dos cristais valem.";
+            return Idioma.T("A partida de sempre. As melhorias da estátua dos cristais valem.");
 
         if (botao == botaoMaldito)
         {
             return Partida.MalditoLiberado
-                ? "Inimigos 25% mais rápidos, salas mais cheias e com uma onda a mais, o dobro de campeões.\n" +
-                  "Em troca: mais sorte nos prêmios, armas raras mais cedo e cristais em dobro."
-                : "Zere o jogo uma vez para liberar.";
+                ? Idioma.T("Inimigos 25% mais rápidos, salas mais cheias e com uma onda a mais, o dobro de campeões.") + "\n" +
+                  Idioma.T("Em troca: mais sorte nos prêmios, armas raras mais cedo e cristais em dobro.")
+                : Idioma.T("Zere o jogo uma vez para liberar.");
         }
 
         if (botao == botaoDiario)
         {
             int recorde = Partida.RecordeDoDia(Partida.Hoje);
-            string seu = recorde > 0 ? $"Seu recorde de hoje: {recorde} pontos ({Partida.ResumoDoRecorde(Partida.Hoje)})." : "Você ainda não jogou o desafio de hoje.";
-            return "O mesmo mapa para todo mundo hoje, sem as melhorias da estátua (o mapa troca todo dia às 21h de Brasília).\n" + seu;
+            string seu = recorde > 0 ? Idioma.F("Seu recorde de hoje: {0} pontos ({1}).", recorde, Partida.ResumoDoRecorde(Partida.Hoje))
+                                     : Idioma.T("Você ainda não jogou o desafio de hoje.");
+            return Idioma.T("O mesmo mapa para todo mundo hoje, sem as melhorias da estátua (o mapa troca todo dia às 21h de Brasília).") + "\n" + seu;
         }
 
         return "";
     }
+
+    /// <summary>"14/10" (no ingles, "10/14").</summary>
+    public static string DataCurta(int dia) =>
+        Idioma.Ingles ? $"{dia / 100 % 100:00}/{dia % 100:00}" : $"{dia % 100:00}/{dia / 100 % 100:00}";
 
     private void Escolher(ModoDeJogo modo)
     {

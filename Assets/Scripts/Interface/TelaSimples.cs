@@ -59,7 +59,7 @@ public static class TelaSimples
         texto.horizontalOverflow = HorizontalWrapMode.Wrap;
         texto.verticalOverflow = VerticalWrapMode.Overflow;
         texto.raycastTarget = false;
-        texto.text = conteudo;
+        texto.text = Idioma.T(conteudo);
         obj.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.8f);
         return texto;
     }
@@ -198,6 +198,7 @@ public static class TelaSimples
     /// <summary>Refaz o conteudo de uma linha da <see cref="LinhaDeTeclas"/> (ex.: musica ligada/desligada).</summary>
     public static void TrocarLinhaDeTeclas(RectTransform linha, string conteudo, int tamanho, Color cor)
     {
+        conteudo = Idioma.T(conteudo);
         int corte = conteudo.IndexOf("||", System.StringComparison.Ordinal);
         DicaDupla dupla = linha.GetComponent<DicaDupla>();
 
@@ -339,7 +340,7 @@ public static class TelaSimples
         texto.horizontalOverflow = HorizontalWrapMode.Overflow;
         texto.verticalOverflow = VerticalWrapMode.Overflow;
         texto.raycastTarget = false;
-        texto.text = conteudo;
+        texto.text = Idioma.T(conteudo);
         obj.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.8f);
     }
 
