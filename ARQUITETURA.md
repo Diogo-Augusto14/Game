@@ -93,7 +93,7 @@ a cura da Carne Assada). Tudo fica no objeto
 |---|---|
 | `PlantaDeSalas` | Monta a planta: a sala do começo no centro, um caminho de salas de luta até a do fim (maior), salas do lado (mais lutas e as especiais: loja, tesouro, altar, desafio) e às vezes um atalho entre duas lutas vizinhas. As salas ficam numa grade (19 × 17 de um meio ao outro); cada uma é um retângulo com cantos cortados, nichos e, nas grandes, pilares. Corredores de 3, e a ponta encostada em cada sala de luta é a porta dela. Às vezes, uma **sala secreta** pendurada numa sala qualquer (menos a do começo): o corredor até ela fica de fora do chão (a `passagemSecreta`), então é parede até a bomba abrir |
 | `SalaDeLuta` | Uma sala de luta: os inimigos dormem em grupos (um bicho principal por grupo, às vezes outro no meio) até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem mais uma onda saindo do chão (a sala do fim sempre tem uma, e duas do 4º andar de salas em diante). Limpou: abre e solta moedas, às vezes chave, bomba, coração ou um baú (a do fim sempre dá baú e abre o portal) |
-| `PortaDaSala` | A grade de ferro da porta: aberta, só o trilho no chão; fechada, é parede (camada `Wall`): segura gente e tiro |
+| `PortaDaSala` | A porta da sala de luta. Na parede de cima, o portão de caveira do Old Prison (um arco de pedra da largura do corredor, sempre ali; as duas folhas fecham e abrem). Na de baixo e nas dos lados, uma grade de ferro que sobe do chão. Fechada, é parede (camada `Wall`): segura gente e tiro |
 | `Caverna` | As ferramentas da planta: ajeita pras paredes do Old Prison e escolhe os buracos e as poças (o cavar com "andarilhos", da caverna antiga, ficou aí sem uso) |
 | `Pedreiro` | Transforma a planta em mundo com a arte do Old Prison, em Tilemaps: abismo, chão, sangue, enfeites e paredes, mais os colisores das paredes (camada `Wall`) e dos buracos (camada `Buraco`), só onde encostam no chão. Os colisores da passagem secreta ficam num grupo à parte, e o `Remendar` refaz os ladrilhos e os colisores daquele pedaço quando ela abre |
 | `ParedeSecreta` | A parede da sala secreta: por fora, parede como as outras, com uma rachadura e pedrinhas caídas no pé (e sem tocha por perto). Tiro não faz nada; a bomba encostada abre a passagem. A sala tem um item de graça, um baú, moedas, a bomba de volta e a mobília do tesouro. Só nos mundos com parede (nas Profundezas as salas flutuam) |
@@ -336,7 +336,8 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   cruzes, estandartes e o lançador de fogo na parede) e **Profundezas** (pacote The Depths of the
   Mountain: sem paredes, as salas flutuam sobre o vazio, com estátuas douradas, cristais, ouro, potes que
   quebram e rochas saindo do vazio). Tochas acesas nas paredes de todos os mundos com parede; as portas
-  das salas são a porta grande de madeira do Crypt (sobe do chão ao fechar); os espinhos são os do Crypt.
+  das salas são o portão de caveira do Old Prison na parede de cima e a grade de ferro nas outras (desde a
+  1.18.0; antes, a porta grande de madeira do Crypt); os espinhos são os do Crypt.
 - **Iluminação** (1.16.0, `Iluminacao`, `Escuridao`, `FonteDeLuz`): o andar é escuro. Não usa as luzes 2D
   do URP (no build elas não escureciam nada): a `Escuridao` é um véu preto por cima do mundo, uma textura
   pequena (4 pontos por célula, filtrada) refeita a cada quadro, com a luz de fundo bem fraca num tom de
