@@ -169,6 +169,7 @@ public class GeradorDoAndar : MonoBehaviour
     private Pedreiro.Obra obra;
     private Pedreiro pedreiroDoAndar;
     private readonly List<Saida> outrasSaidas = new List<Saida>();
+    private ClimaDoAndar clima;
     private readonly List<Renderer> desenhosEscondidos = new List<Renderer>();
     private readonly List<Behaviour> pecasEscondidas = new List<Behaviour>();
 
@@ -258,6 +259,9 @@ public class GeradorDoAndar : MonoBehaviour
 
         if (!TryGetComponent(out Minimapa _))
             gameObject.AddComponent<Minimapa>();
+
+        if (!TryGetComponent(out clima))
+            clima = gameObject.AddComponent<ClimaDoAndar>();
         pedreiro = new Pedreiro(chao, paredes, abismo, sangue, enfeites, chanceDeEnfeite);
         quadrosDoVortice = FolhaDeSprites.Cortar(vortice, quadroDoVortice, pixelsPorUnidade);
         quadrosDoBau = FolhaDeSprites.Cortar(bau, quadroDoBau, DadosDoOldPrison.Lado);
@@ -813,6 +817,7 @@ public class GeradorDoAndar : MonoBehaviour
         if (cam != null)
             cam.backgroundColor = AreaSegura.Fundo(mundo);
 
+        clima.Mudar(Tema, true);
         AoComecarAndar?.Invoke();
     }
 
@@ -972,6 +977,8 @@ public class GeradorDoAndar : MonoBehaviour
         int m = Mathf.Clamp(Tema, 0, LuzDosMundos.Length - 1);
         Iluminacao.Ambiente(LuzDosMundos[m] + (chefeDoAndar != null ? 0.08f : 0f), CorDosMundos[m]);
 
+        // O som de fundo, a poeira e a nevoa do mundo.
+        clima.Mudar(Tema, false);
         AoComecarAndar?.Invoke();
     }
 

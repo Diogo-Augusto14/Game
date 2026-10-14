@@ -308,6 +308,8 @@ public class Projetil : MonoBehaviour
             if (c == null || !c.TryGetComponent(out Projetil outro) || outro == this || outro.acabou || outro.lado == lado)
                 continue;
 
+            Sons.Tocar(Som.CorteDeTiro, 0.55f);
+
             if (arma.devolveTiros)
                 outro.Devolver(dono, lado, rumo);
             else

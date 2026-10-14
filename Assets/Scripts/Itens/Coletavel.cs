@@ -173,7 +173,7 @@ public class Coletavel : MonoBehaviour
 
             case TipoDeColetavel.Cristal:
                 Melhorias.Ganhar(quanto);
-                Sons.Tocar(Som.Segredo, 0.7f);
+                Sons.Tocar(Som.Cristal, 0.8f);
                 TextoFlutuante.Mostrar(transform.position + Vector3.up * 0.6f, quanto > 1 ? $"+{quanto} cristais" : "+1 cristal",
                                        new Color(0.8f, 0.6f, 1f), 1.2f);
                 break;

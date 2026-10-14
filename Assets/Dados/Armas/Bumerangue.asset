@@ -60,5 +60,5 @@ MonoBehaviour:
   intervaloDaRajada: 0.1
   giroNaRajada: 0
   tremor: 0.02
-  som: {fileID: 8300000, guid: 1a10f5999d6c41d0b808e90569b83702, type: 3}
+  som: {fileID: 8300000, guid: f9eeb238f56643e3afaeb1f5113dcf67, type: 3}
   volume: 0.45

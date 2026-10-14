@@ -198,6 +198,7 @@ public class Campeao : MonoBehaviour
         {
             avisou = true;
             TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.5f, Nome(tipo), cor, 1.4f);
+            Sons.Tocar(Som.Campeao, 0.6f);
         }
 
         if (tipo == TipoDeCampeao.Flamejante && Vector2.Distance(transform.position, ultimaChama) > 0.8f)
@@ -219,7 +220,7 @@ public class Campeao : MonoBehaviour
         {
             escudoAte = Time.time + DuracaoDoEscudo;
             proximoEscudo = escudoAte + RecargaDoEscudo;
-            Sons.Tocar(Som.Destranca, 0.5f);
+            Sons.Tocar(Som.Escudo, 0.6f);
         }
 
         bool ligado = Time.time < escudoAte;

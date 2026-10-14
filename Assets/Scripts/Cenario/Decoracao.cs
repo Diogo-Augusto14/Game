@@ -1203,7 +1203,7 @@ public static class Decoracao
         sr.sprite = quadros[0];
         sr.sortingOrder = ordem;
         obj.AddComponent<EnfeiteAnimado>().Comecar(quadros, qps);
-        Iluminacao.Luz(obj.transform, new Vector2(0f, 0.25f), Iluminacao.Fogo, 5.5f, 1f, 0.18f);
+        Iluminacao.Luz(obj.transform, new Vector2(0f, 0.25f), Iluminacao.Fogo, 5.5f, 1f, 0.26f);
     }
 
     /// <summary>Tochas na parede de cima do salao do chefe (a cada 4 celulas).</summary>

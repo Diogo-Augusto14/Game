@@ -54,7 +54,16 @@ public enum Som
     Espinhos,
     Alcapao,
     Cura,
-    Arremesso
+    Arremesso,
+
+    // 1.19.0: os das coisas novas (antes usavam sons genericos).
+    Escudo,
+    Raio,
+    Bumerangue,
+    CorteDeTiro,
+    PortaoDaCela,
+    Campeao,
+    Cristal,
 }
 
 /// <summary>

@@ -92,7 +92,7 @@ public class Prisioneiro : Interativo
 
     private IEnumerator Abrir(EstatisticasDoJogador itens)
     {
-        Sons.Tocar(Som.PortaAbre, 0.8f);
+        Sons.Tocar(Som.PortaoDaCela, 0.9f);
 
         for (int i = 0; i < portao.Length; i++)
         {

@@ -3,3 +3,4 @@ sfx_wav/
 fd/
 __pycache__/
 *.mid
+ambiente_wav/

@@ -55,6 +55,7 @@
     <Compile Include="Assets\Scripts\Armas\ArmaDoJogador.cs" />
     <Compile Include="Assets\Scripts\Jogador\ControlesDoJogador.cs" />
     <Compile Include="Assets\Scripts\Mundo\CameraDoJogo.cs" />
+    <Compile Include="Assets\Scripts\Mundo\ClimaDoAndar.cs" />
     <Compile Include="Assets\Scripts\Armas\Projetil.cs" />
     <Compile Include="Assets\Scripts\Armas\Raio.cs" />
     <Compile Include="Assets\Scripts\Jogador\CursorDaMira.cs" />

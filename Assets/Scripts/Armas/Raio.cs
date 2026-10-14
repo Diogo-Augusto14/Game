@@ -41,7 +41,7 @@ public class Raio : MonoBehaviour
             ja.Add(alvo);
             Vector2 rumo = ate - ponto;
             alvo.ReceberDano(new Dano(dano, rumo.sqrMagnitude > 0.001f ? rumo.normalized : Vector2.up, 1.5f, dono));
-            Sons.Tocar(Som.Acerto, 0.35f);
+            Sons.Tocar(Som.Raio, 0.5f);
             ponto = ate;
             dano *= 0.85f;
             yield return new WaitForSeconds(0.07f);
