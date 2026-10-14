@@ -62,7 +62,7 @@ public class TelaDePausa : MonoBehaviour
             if (vidaDoJogador == null && andar.Jogador != null)
                 vidaDoJogador = andar.Jogador.GetComponent<Vida>();
 
-            bool podePausar = !andar.Trocando && (vidaDoJogador == null || !vidaDoJogador.Morto) && Time.timeScale > 0f;
+            bool podePausar = !andar.Trocando && (vidaDoJogador == null || !vidaDoJogador.Morto) && Time.timeScale > 0f && !Minimapa.Ocupado;
 
             if (podePausar && (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P) || Controle.Apertou(BotaoDoControle.Start)))
                 Pausar();

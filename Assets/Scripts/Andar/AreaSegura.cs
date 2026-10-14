@@ -13,7 +13,9 @@ using UnityEngine.Tilemaps;
 ///   a criatura da sorte (<see cref="CriaturaDaSorte"/>), que anda por ali e solta moedas num carinho;
 ///   um bau de graca (o bau do Village) e potes que quebram;
 ///   e o portal pro proximo mundo: na clareira, no meio de um circulo de pedras; nas ruinas, em cima do
-///   altar, que acende quando o jogador chega perto (<see cref="AltarDoPortal"/>).
+///   altar, que acende quando o jogador chega perto (<see cref="AltarDoPortal"/>). Quando da pra escolher
+///   o caminho (<see cref="GeradorDoAndar.OpcoesDeCaminho"/>), sao dois portais lado a lado, cada um com
+///   o nome do mundo pra onde leva.
 ///
 /// Depois do mundo 1, a Clareira (pacote Grass Land); depois dos outros, as Ruinas Antigas (pacote
 /// Ancient Ruins), ao entardecer depois do mundo 3. O jogador chega no meio (0, 0).
@@ -83,25 +85,38 @@ public static class AreaSegura
         Arvores(lugar, tema, ruinas);
 
         // ---- o que tem no lugar
-        Vector2 portal = ruinas ? new Vector2(0f, 8.6f) : new Vector2(0f, 7.5f);
+        // O portal (ou os dois, quando da pra escolher o proximo mundo).
+        List<int> opcoes = gerador.OpcoesDeCaminho;
+        bool escolha = opcoes.Count > 1;
+        Vector2 portal = ruinas ? new Vector2(0f, 8.6f) : new Vector2(escolha ? -4.5f : 0f, 7.5f);
 
         if (ruinas)
-            AltarDoPortal.Criar(new Vector2(0f, 8f), raiz, gerador, portal);
+            AltarDoPortal.Criar(new Vector2(0f, 8f), raiz, gerador, portal, escolha ? opcoes[0] : -1);
         else
         {
-            gerador.AbrirPortalDoDescanso(portal);
+            gerador.AbrirPortalDoDescanso(portal, escolha ? opcoes[0] : -1);
             CirculoDePedras(lugar, portal);
         }
 
         lugar.Ocupar(portal, ruinas ? 3.8f : 2f);
-        for (float y = 1.5f; y < portal.y - 1f; y += 1.5f)
-            lugar.Ocupar(new Vector2(0f, y), 1.3f);
+        Caminho(lugar, portal);
+
+        if (escolha)
+        {
+            Vector2 outro = ruinas ? new Vector2(-8f, 7f) : new Vector2(4.5f, 7.5f);
+            gerador.AbrirPortalDoDescanso(outro, opcoes[1]);
+            CirculoDePedras(lugar, outro);
+            lugar.Ocupar(outro, 2.4f);
+            Caminho(lugar, outro);
+        }
 
         Barraca(lugar, new Vector2(-9f, 0.5f), gerador);
         FonteDaCura.Criar(new Vector2(9f, 0.5f), raiz);
         lugar.Ocupar(new Vector2(9f, 0.8f), 3f);
-        CaliceDosEspiritos.Criar(new Vector2(6f, 6.5f), raiz);
-        lugar.Ocupar(new Vector2(6f, 6.5f), 1.5f);
+        // Com dois portais, o calice e o bau vao mais pros lados (o meio de cima e dos portais).
+        Vector2 calice = escolha && !ruinas ? new Vector2(10f, 5.5f) : new Vector2(6f, 6.5f);
+        CaliceDosEspiritos.Criar(calice, raiz);
+        lugar.Ocupar(calice, 1.5f);
         CriaturaDaSorte.Criar(new Vector2(5f, -6f), raiz);
         lugar.Ocupar(new Vector2(5f, -6f), 1.5f);
 
@@ -110,8 +125,9 @@ public static class AreaSegura
 
         if (bau.Length > 0)
         {
-            Bau.Criar(bau, new Vector2(-6f, 6f), raiz, gerador.ArmasDoBau, null, null, null);
-            lugar.Ocupar(new Vector2(-6f, 6f), 1.5f);
+            Vector2 ondeOBau = escolha ? new Vector2(-10f, 5.8f) : new Vector2(-6f, 6f);
+            Bau.Criar(bau, ondeOBau, raiz, gerador.ArmasDoBau, null, null, null);
+            lugar.Ocupar(ondeOBau, 1.5f);
         }
 
         if (ruinas)
@@ -236,6 +252,15 @@ public static class AreaSegura
                     Peca(arbustos[Random.Range(0, arbustos.Length)], p + new Vector2(Random.Range(-1.2f, 1.2f), -0.6f), mata, 10);
             }
         }
+    }
+
+    // Nada no caminho do comeco ate o portal (nem a placa dele).
+    private static void Caminho(Lugar lugar, Vector2 portal)
+    {
+        for (float t = 0.15f; t < 1f; t += 0.15f)
+            lugar.Ocupar(Vector2.Lerp(Vector2.zero, portal, t), 1.3f);
+
+        lugar.Ocupar(portal + Vector2.up * 1.8f, 1.6f);
     }
 
     private static void CirculoDePedras(Lugar lugar, Vector2 meio)

@@ -137,6 +137,7 @@
     <Compile Include="Assets\Scripts\Andar\Pedreiro.cs" />
     <Compile Include="Assets\Scripts\Andar\GeradorDoAndar.cs" />
     <Compile Include="Assets\Scripts\Andar\Saida.cs" />
+    <Compile Include="Assets\Scripts\Andar\ParedeSecreta.cs" />
     <Compile Include="Assets\Scripts\Andar\MapaDeCaminhos.cs" />
     <Compile Include="Assets\Scripts\Armas\ArmaCarregada.cs" />
     <Compile Include="Assets\Scripts\Armas\ArmaNaMao.cs" />
@@ -153,6 +154,7 @@
     <Compile Include="Assets\Scripts\Andar\Arena.cs" />
     <Compile Include="Assets\Scripts\Interface\Desenho.cs" />
     <Compile Include="Assets\Scripts\Interface\HudDoJogo.cs" />
+    <Compile Include="Assets\Scripts\Interface\Minimapa.cs" />
     <Compile Include="Assets\Scripts\Interface\TelaDoJogo.cs" />
     <Compile Include="Assets\Scripts\Interface\ArteDaInterface.cs" />
     <Compile Include="Assets\Scripts\Interface\DicaDupla.cs" />

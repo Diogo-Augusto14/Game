@@ -17,6 +17,9 @@ public enum TipoDeSala
     Tesouro,
     Altar,
     Desafio,
+
+    /// <summary>Escondida atras de uma parede rachada: so uma bomba abre a passagem. Tem premio.</summary>
+    Secreta,
 }
 
 /// <summary>Uma sala da planta: o retangulo dela, as celulas de chao e as portas.</summary>
@@ -47,6 +50,13 @@ public class SalaDaPlanta
         ponto.y >= area.yMin - 0.5f + folga && ponto.y <= area.yMax - 0.5f - folga;
 }
 
+/// <summary>Um corredor entre duas salas (o minimapa mostra ele junto com as salas).</summary>
+public class LigacaoDaPlanta
+{
+    public SalaDaPlanta a, b;
+    public readonly List<Vector2Int> celulas = new List<Vector2Int>();
+}
+
 /// <summary>Uma porta de sala de luta: a fileira de celulas do corredor encostada na sala.</summary>
 public class PortaDaPlanta
 {
@@ -68,6 +78,10 @@ public class PortaDaPlanta
 /// Cada sala e um retangulo com os cantos as vezes cortados, nichos nas paredes sem corredor e, nas
 /// grandes, pilares pra se esconder dos tiros. Os corredores tem 3 de largura; a ponta de cada um que
 /// encosta numa sala de luta e a porta dela.
+///
+/// As vezes ainda tem uma sala secreta (<see cref="TipoDeSala.Secreta"/>) pendurada numa sala qualquer
+/// (menos a do comeco): o corredor ate ela fica fechado por parede (a <see cref="Planta.passagemSecreta"/>),
+/// e so uma bomba encostada nela abre (<see cref="ParedeSecreta"/>).
 /// </summary>
 public static class PlantaDeSalas
 {
@@ -85,13 +99,37 @@ public static class PlantaDeSalas
         public readonly List<SalaDaPlanta> salas = new List<SalaDaPlanta>();
         public readonly HashSet<Vector2Int> corredores = new HashSet<Vector2Int>();
         public readonly HashSet<Vector2Int> portas = new HashSet<Vector2Int>();
+
+        /// <summary>Os corredores entre as salas (sem o da sala secreta).</summary>
+        public readonly List<LigacaoDaPlanta> ligacoes = new List<LigacaoDaPlanta>();
+
+        /// <summary>A sala secreta (nula se o andar nao tem) e a sala de onde se chega nela.</summary>
+        public SalaDaPlanta secreta, donaDoSegredo;
+
+        /// <summary>
+        /// As celulas que a bomba abre: o corredor ate a sala secreta. Ficam fora do <see cref="chao"/>
+        /// (sao parede ate abrir); a sala secreta em si ja e chao, mas ninguem chega nela.
+        /// </summary>
+        public readonly HashSet<Vector2Int> passagemSecreta = new HashSet<Vector2Int>();
+
+        /// <summary>O chao com a passagem secreta aberta.</summary>
+        public HashSet<Vector2Int> ChaoAberto
+        {
+            get
+            {
+                HashSet<Vector2Int> aberto = new HashSet<Vector2Int>(chao);
+                aberto.UnionWith(passagemSecreta);
+                return aberto;
+            }
+        }
     }
 
     /// <param name="noCaminho">Salas de luta do comeco ate o fim (contando a do fim).</param>
     /// <param name="lutasDoLado">Salas de luta fora do caminho.</param>
     /// <param name="especiais">As salas especiais deste andar (loja, tesouro...), sempre do lado.</param>
     /// <param name="clareira">Metade da largura e da altura da sala do comeco.</param>
-    public static Planta Montar(int noCaminho, int lutasDoLado, List<TipoDeSala> especiais, Vector2Int clareira)
+    /// <param name="comSegredo">Pendura uma sala secreta numa sala qualquer (se couber).</param>
+    public static Planta Montar(int noCaminho, int lutasDoLado, List<TipoDeSala> especiais, Vector2Int clareira, bool comSegredo = false)
     {
         Planta planta = new Planta();
         Dictionary<Vector2Int, SalaDaPlanta> grade = new Dictionary<Vector2Int, SalaDaPlanta>();
@@ -163,12 +201,25 @@ public static class PlantaDeSalas
                 ligacoes.Add(atalhos[Random.Range(0, atalhos.Count)]);
         }
 
+        // A sala secreta: num lado livre de uma sala qualquer menos a do comeco, de preferencia sem
+        // encostar em outra (assim nenhuma parede fina denuncia ela).
+        if (comSegredo)
+        {
+            SalaDaPlanta dona = QualquerComLadoLivre(planta, grade, s => s.tipo != TipoDeSala.Comeco);
+
+            if (dona != null && (Livre(grade, dona.naGrade, true, out Vector2Int onde) || Livre(grade, dona.naGrade, false, out onde)))
+            {
+                planta.secreta = Nova(planta, grade, TipoDeSala.Secreta, onde, dona.distancia + 1);
+                planta.donaDoSegredo = dona;
+            }
+        }
+
         // Os tamanhos e as celulas de cada sala (sabendo de que lado chegam corredores).
         foreach (SalaDaPlanta sala in planta.salas)
             Desenhar(sala, clareira, LadosComVizinho(grade, sala));
 
         foreach (KeyValuePair<SalaDaPlanta, SalaDaPlanta> ligacao in ligacoes)
-            Corredor(planta, ligacao.Key, ligacao.Value);
+            planta.ligacoes.Add(Corredor(planta, ligacao.Key, ligacao.Value, planta.corredores, true));
 
         foreach (SalaDaPlanta sala in planta.salas)
             planta.chao.UnionWith(sala.celulas);
@@ -177,6 +228,19 @@ public static class PlantaDeSalas
 
         // As paredes do Old Prison so abrem chao: as portas continuam no lugar, mas podem crescer.
         Caverna.Ajeitar(planta.chao);
+
+        // A passagem secreta: o corredor (sem porta) e o que o ajeito abrir em volta dele. Fica fora do
+        // chao: ate a bomba abrir, e parede.
+        if (planta.secreta != null)
+        {
+            HashSet<Vector2Int> corredor = new HashSet<Vector2Int>();
+            Corredor(planta, planta.donaDoSegredo, planta.secreta, corredor, false);
+            HashSet<Vector2Int> aberto = new HashSet<Vector2Int>(planta.chao);
+            aberto.UnionWith(corredor);
+            Caverna.Ajeitar(aberto);
+            aberto.ExceptWith(planta.chao);
+            planta.passagemSecreta.UnionWith(aberto);
+        }
 
         foreach (SalaDaPlanta sala in planta.salas)
         {
@@ -394,8 +458,11 @@ public static class PlantaDeSalas
     }
 
     // ---------------- corredores e portas ----------------
-    private static void Corredor(Planta planta, SalaDaPlanta a, SalaDaPlanta b)
+    // As celulas vao pra "destino"; com portas, a ponta encostada em cada sala de luta vira a porta dela.
+    private static LigacaoDaPlanta Corredor(Planta planta, SalaDaPlanta a, SalaDaPlanta b, HashSet<Vector2Int> destino, bool comPortas)
     {
+        LigacaoDaPlanta ligacao = new LigacaoDaPlanta { a = a, b = b };
+
         Vector2Int d = b.naGrade - a.naGrade;
 
         // a fica embaixo ou a esquerda.
@@ -414,15 +481,16 @@ public static class PlantaDeSalas
         int de = deitado ? a.area.xMax : a.area.yMax;
         int ate = deitado ? b.area.xMin : b.area.yMin;
 
-        PortaDaPlanta portaDeA = a.DeLuta ? new PortaDaPlanta { paraDentro = -d } : null;
-        PortaDaPlanta portaDeB = b.DeLuta ? new PortaDaPlanta { paraDentro = d } : null;
+        PortaDaPlanta portaDeA = comPortas && a.DeLuta ? new PortaDaPlanta { paraDentro = -d } : null;
+        PortaDaPlanta portaDeB = comPortas && b.DeLuta ? new PortaDaPlanta { paraDentro = d } : null;
 
         for (int passo = de; passo < ate; passo++)
         {
             for (int k = -(LarguraDoCorredor / 2); k <= LarguraDoCorredor / 2; k++)
             {
                 Vector2Int c = deitado ? new Vector2Int(passo, meio + k) : new Vector2Int(meio + k, passo);
-                planta.corredores.Add(c);
+                destino.Add(c);
+                ligacao.celulas.Add(c);
 
                 if (passo == de && portaDeA != null)
                     portaDeA.celulas.Add(c);
@@ -437,6 +505,8 @@ public static class PlantaDeSalas
 
         if (portaDeB != null)
             b.portas.Add(portaDeB);
+
+        return ligacao;
     }
 
     // Se o ajeito das paredes alargou o corredor bem na porta, a porta cresce junto (nada passa pelo lado).

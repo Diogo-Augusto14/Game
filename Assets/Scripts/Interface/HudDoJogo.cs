@@ -247,7 +247,9 @@ public class HudDoJogo
         onde.y += 22 * u;
         onde.height = 32 * u;
 
-        if (gerador.Descansando)
+        if (gerador.EscolhendoCaminho)
+            Desenho.Texto(onde, "Escolha um dos portais", medio, Desenho.Dourado);
+        else if (gerador.Descansando)
             Desenho.Texto(onde, gerador.PortalAberto ? "O portal abriu!" : "Descanse; o portal é no altar", medio, gerador.PortalAberto ? Desenho.Dourado : Desenho.Claro);
         else if (gerador.PortalAberto)
             Desenho.Texto(onde, "O portal abriu!", medio, Desenho.Dourado);

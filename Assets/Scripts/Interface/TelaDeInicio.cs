@@ -188,8 +188,8 @@ public class TelaDeInicio : MonoBehaviour
             "[Pad AnalogicoEsquerdo] andar (clique: bomba) | [Pad AnalogicoDireito] mira (clique: item) | [Pad RT] atira | [Pad A] esquiva | [Pad Y] troca | [Pad B] pega | [Pad X] habilidade",
             21, corDasDicas);
         TelaSimples.LinhaDeTeclas(pai, "Som", -448f,
-            "[M] música | [N] efeitos | Moeda compra na loja, chave abre baú trancado, bomba quebra pedra rachada. || " +
-            "[Pad LB] música | [Pad RB] efeitos | Moeda compra na loja, chave abre baú trancado, bomba quebra pedra rachada.", 21, new Color(0.8f, 0.85f, 0.95f));
+            "[Tab] mapa | [M] música | [N] efeitos | Moeda compra na loja, chave abre baú trancado, bomba abre pedra e parede rachadas. || " +
+            "[Pad Select] mapa | [Pad LB] música | [Pad RB] efeitos | Moeda compra na loja, chave abre baú trancado, bomba abre pedra e parede rachadas.", 21, new Color(0.8f, 0.85f, 0.95f));
 
         TelaSimples.Texto(pai, "Creditos", 16, new Color(0.5f, 0.47f, 0.5f), -514f,
             "Sons de interface: Nathan Gibson (CC BY 4.0)    Efeitos: Freedoom (BSD)    Interface: Tiny RPG Dragon Regalia GUI    " +

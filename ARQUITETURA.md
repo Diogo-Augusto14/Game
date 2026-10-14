@@ -24,6 +24,7 @@ mudado à mão na cena e no prefab se perde.
 | `M` / `N` | `LB` / `RB` (nos menus) | Música / efeitos liga e desliga |
 | `Q` ou a roda do mouse | `Y` | Trocar de arma |
 | `E` | `B` | Pegar arma, abrir baú |
+| `Tab` | `Select` (Back) | O mapa do andar inteiro (o jogo para); de novo, `Esc` ou `B` fecha |
 
 ## Pastas
 
@@ -36,9 +37,9 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Itens` | Moedas, chaves e bombas (a bolsa), os coletáveis, a bomba e a explosão, os itens passivos e ativos, as sinergias, o pedestal (também da loja e do altar) e o orbe guardião |
 | `Assets/Scripts/Cenario` | O que enche a caverna: loja, altar de sangue, emboscada e desafio, área escura, serra no trilho, tronco rolante, espinhos, mesas e barris que quebram, baratas e velas |
 | `Assets/Scripts/Progresso` | Heróis liberados, estatísticas, conquistas, bestiário, a tela de progresso e a partida salva |
-| `Assets/Scripts/Andar` | A caverna: cavar, construir as paredes, espalhar os inimigos, a saída e a troca de andar |
+| `Assets/Scripts/Andar` | A caverna: cavar, construir as paredes, espalhar os inimigos, a sala secreta, a saída, a troca de andar e o caminho (o tema de cada mundo) |
 | `Assets/Scripts/Mundo` | A câmera |
-| `Assets/Scripts/Interface` | O HUD, o menu inicial, a pausa, os controles e o fim da partida |
+| `Assets/Scripts/Interface` | O HUD, o minimapa, o menu inicial, a pausa, os controles e o fim da partida |
 | `Assets/Scripts/Nucleo` | Peças pequenas usadas por todo lado (cortar folha de animação, efeito que toca uma vez) |
 | `Assets/Shaders` | `Silhueta`: pinta o desenho de uma cor só (o branco do golpe) |
 | `Assets/Editor` | Montar a cena e o Play pela cena do jogo |
@@ -90,15 +91,16 @@ a cura da Carne Assada). Tudo fica no objeto
 
 | Script | O que faz |
 |---|---|
-| `PlantaDeSalas` | Monta a planta: a sala do começo no centro, um caminho de salas de luta até a do fim (maior), salas do lado (mais lutas e as especiais: loja, tesouro, altar, desafio) e às vezes um atalho entre duas lutas vizinhas. As salas ficam numa grade (19 × 17 de um meio ao outro); cada uma é um retângulo com cantos cortados, nichos e, nas grandes, pilares. Corredores de 3, e a ponta encostada em cada sala de luta é a porta dela |
+| `PlantaDeSalas` | Monta a planta: a sala do começo no centro, um caminho de salas de luta até a do fim (maior), salas do lado (mais lutas e as especiais: loja, tesouro, altar, desafio) e às vezes um atalho entre duas lutas vizinhas. As salas ficam numa grade (19 × 17 de um meio ao outro); cada uma é um retângulo com cantos cortados, nichos e, nas grandes, pilares. Corredores de 3, e a ponta encostada em cada sala de luta é a porta dela. Às vezes, uma **sala secreta** pendurada numa sala qualquer (menos a do começo): o corredor até ela fica de fora do chão (a `passagemSecreta`), então é parede até a bomba abrir |
 | `SalaDeLuta` | Uma sala de luta: os inimigos dormem em grupos (um bicho principal por grupo, às vezes outro no meio) até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem mais uma onda saindo do chão (a sala do fim sempre tem uma, e duas do 4º andar de salas em diante). Limpou: abre e solta moedas, às vezes chave, bomba, coração ou um baú (a do fim sempre dá baú e abre o portal) |
 | `PortaDaSala` | A grade de ferro da porta: aberta, só o trilho no chão; fechada, é parede (camada `Wall`): segura gente e tiro |
 | `Caverna` | As ferramentas da planta: ajeita pras paredes do Old Prison e escolhe os buracos e as poças (o cavar com "andarilhos", da caverna antiga, ficou aí sem uso) |
-| `Pedreiro` | Transforma a planta em mundo com a arte do Old Prison, em Tilemaps: abismo, chão, sangue, enfeites e paredes, mais os colisores das paredes (camada `Wall`) e dos buracos (camada `Buraco`), só onde encostam no chão |
+| `Pedreiro` | Transforma a planta em mundo com a arte do Old Prison, em Tilemaps: abismo, chão, sangue, enfeites e paredes, mais os colisores das paredes (camada `Wall`) e dos buracos (camada `Buraco`), só onde encostam no chão. Os colisores da passagem secreta ficam num grupo à parte, e o `Remendar` refaz os ladrilhos e os colisores daquele pedaço quando ela abre |
+| `ParedeSecreta` | A parede da sala secreta: por fora, parede como as outras, com uma rachadura e pedrinhas caídas no pé (e sem tocha por perto). Tiro não faz nada; a bomba encostada abre a passagem. A sala tem um item de graça, um baú, moedas, a bomba de volta e a mobília do tesouro. Só nos mundos com parede (nas Profundezas as salas flutuam) |
 | `Automapa` | As regras de encaixe do Tiled ("automapping"): pega os ladrilhos escolhidos pelos cantos e põe as faces de tijolo, os encontros e as variações, igual o Tiled faz |
 | `DadosDoOldPrison` | As tabelas de cantos e as regras do pacote, já convertidas (gerado pela ferramenta; não editar à mão) |
 | `GeradorDoAndar` | Monta o andar, põe os inimigos em cada sala de luta, conta quantos faltam, abre a saída quando a sala do fim fica limpa (ou o último morre) e troca de andar. Na tela: o nome do andar, o contador e, quando faltam 2 salas ou menos (fora de luta), uma seta na beirada apontando pra mais perto |
-| `Saida` | O vórtice: abre na sala do fim quando ela fica limpa (no chefe, onde ele morreu) e, pisado, leva pro próximo andar |
+| `Saida` | O vórtice: abre na sala do fim quando ela fica limpa (no chefe, onde ele morreu) e, pisado, leva pro próximo andar. Na área segura pode levar pra um tema (a escolha do caminho): fica da cor dele, com o nome em cima |
 | `Arena` | A planta do andar do chefe: um salão oval com quatro pilares, no mesmo formato da caverna (o `Pedreiro` constrói igual) |
 | `MapaDeCaminhos` | O caminho de qualquer ponto da caverna até o jogador, contornando paredes, buracos e baús (os inimigos usam quando não dá pra ir reto) |
 
@@ -266,7 +268,7 @@ em **fúria**: fica avermelhado, mais rápido, e ganha um ataque a mais. Morto, 
 baú no meio do salão.
 
 A partida tem **12 andares em 4 mundos**: duas cavernas e o chefe, três vezes, e no fim duas cavernas e
-o Olho do Abismo. O chefe de cada mundo é sorteado entre dois (`chefe` e `ouEntao` na lista **Andares**);
+o Olho do Abismo ou o Rei Goblin. O chefe de cada mundo é sorteado entre dois (`chefe` e `ouEntao` na lista **Andares**);
 o nome do andar dele vem do próprio chefe (`lugar`).
 
 | Mundo | Chefes | Ataques |
@@ -274,7 +276,10 @@ o nome do andar dele vem do próprio chefe (`lugar`).
 | 1 | **Minotauro** (320) ou **Lobisomem Alfa** (300) | Minotauro: investidas, pisão, cortes. Lobisomem: botes seguidos, garras em dois leques, uivo que chama cães; na fúria, botes com garras |
 | 2 | **Senhor da Guerra** (380) ou **Demônio do Martelo** (360) | Senhor da Guerra: machadada (onda de choque), machados bumerangue (vão e voltam), investida, grito que chama orcs. Demônio: pula em você e cai soltando um anel, espiral, cuspe de fogo (marcas no chão que explodem) |
 | 3 | **Rei Necromante** (400) ou **Golem de Brasa** (480) | Rei: some e reaparece longe com um anel, ossos que saem das marcas em volta de você, muralha de tiros, levanta esqueletos |
-| final | **Olho do Abismo** (650) | Não anda. Anel, rajada, espiral, chama olhos; com 60% da vida: dois anéis, leques e o raio; com 25%: tiros em cruz girando o tempo todo |
+| final | **Olho do Abismo** (650) ou **Rei Goblin** (640) | Olho: não anda. Anel, rajada, espiral, chama olhos; com 60% da vida: dois anéis, leques e o raio; com 25%: tiros em cruz girando o tempo todo. Rei Goblin (o Goblin Brutamonte das Profundezas no dobro do tamanho, 1.18.0): martelada de cristal (dois anéis), salto esmagador (cai soltando pedras), cristais que saem do chão em volta de você, varrida em leque; na fúria, chama goblins assassinos, três investidas e chuva de cristais; no fim, espiral |
+
+Os chefes vêm do tema do mundo (ver **O caminho**, embaixo): escolhendo a Cripta como mundo 2, o chefe
+dela (Rei Necromante, Golem ou Rei Esqueleto) aparece no andar 6.
 
 Na **virada de fase** (a fúria, `ViradaDeFase`), igual pra todos: ruge, a tela treme, o jogo congela um
 instante, os tiros inimigos no ar somem e uma frase aparece em cima dele.
@@ -349,7 +354,19 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   moedas, uma vez), a criatura da sorte (`CriaturaDaSorte`: passeia, um carinho solta moedas e ela foge),
   um baú de graça (o do Village) e potes que quebram. O portal: na clareira, num círculo de pedras; nas
   ruínas, o altar acende quando o jogador chega perto e abre o portal em cima dele (`AltarDoPortal`).
-  Não conta como andar; o "Continuar" salvo ali já volta no próximo mundo (`AndarParaSalvar`).
+  Não conta como andar; o "Continuar" salvo ali volta pra ela (a escolha do caminho ainda não foi feita).
+- **O caminho** (1.18.0, `GeradorDoAndar.Caminho`): cada mundo tem um tema (Porão, Catacumbas, Cripta,
+  Profundezas), com o desenho, a luz, a música, a decoração, os inimigos e o chefe dele. Na Clareira
+  (depois do primeiro chefe) são **dois portais**, cada um com o nome e o que tem lá: o escolhido vira o
+  mundo 2 e o outro, o mundo 3; as Profundezas são sempre o fim. Os inimigos e o chefe saem da parte da
+  lista **Inimigos** e **Andares** do tema (`AndarNoTema`: na Cripta como mundo 2, o andar 4 sorteia como
+  o andar 7); o tamanho das salas e a quantidade de inimigos seguem o andar de verdade. O salvamento guarda
+  a ordem.
+- **Minimapa** (1.18.0, `Minimapa`): no canto de cima à direita, um pedaço do mapa em volta do jogador;
+  `Tab` (ou o Select do controle) abre o mapa inteiro, com o jogo parado. Só aparecem as salas em que
+  entrou e, apagadas, as vizinhas, com os corredores; as de luta com inimigos ficam vermelhas, as especiais
+  têm ícone (loja, tesouro, altar, desafio, a do fim e a secreta, depois de aberta), e o portal aberto e o
+  jogador piscam. Na arena do chefe e na área segura não tem mapa.
 - **Salas especiais mobiliadas** (1.17.0, `Decoracao.Mobiliar`, pacote Village): a loja da caverna tem o
   mercador atrás de uma mesa, armários de poções, prateleiras na parede, expositor, barris, caixotes e
   sacos; o tesouro, armaduras, cabides de armas, baús e escudos; o altar, estantes de livros,
@@ -415,7 +432,7 @@ Tudo no PlayerPrefs (`Assets/Scripts/Progresso`), como no jogo antigo:
 | `Conquistas` | 17 conquistas; ganhar mostra o `AvisoDeConquista` no canto |
 | `Bestiario` | Nome e "como luta" de cada inimigo e chefe |
 | `TelaDeProgresso` | O botão **Progresso** do menu: abas de estatísticas, conquistas e bestiário |
-| `Salvamento` | A partida salva: no começo de cada andar e no **Salvar e sair** da pausa (herói, andar, vida, armas, números). **Continuar** no menu volta pro começo do andar salvo. Morrer, vencer ou jogar de novo apaga |
+| `Salvamento` | A partida salva: no começo de cada andar e no **Salvar e sair** da pausa (herói, andar, vida, armas, números e o caminho). **Continuar** no menu volta pro começo do andar salvo (ou pra área segura, se salvou nela). Morrer, vencer ou jogar de novo apaga |
 
 ## Criar uma arma
 

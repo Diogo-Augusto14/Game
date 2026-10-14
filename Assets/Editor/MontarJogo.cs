@@ -628,13 +628,13 @@ public static class MontarJogo
         });
 
         // A ordem dos andares: quatro mundos de duas cavernas e um chefe (sorteado entre dois); o
-        // ultimo e o Olho do Abismo. O nome do andar do chefe vem do proprio chefe (o "lugar").
+        // ultimo e o Olho do Abismo ou o Rei Goblin. O nome do andar do chefe vem do proprio chefe (o "lugar").
         var andares = new (GameObject chefe, GameObject ouEntao)[]
         {
             (null, null), (null, null), (Prefab("Minotauro"), Prefab("LobisomemAlfa")),
             (null, null), (null, null), (Prefab("SenhorDaGuerra"), Prefab("DemonioDoMartelo")),
             (null, null), (null, null), (Prefab("ReiNecromante"), Prefab("Golem")),
-            (null, null), (null, null), (Prefab("OlhoDoAbismo"), null),
+            (null, null), (null, null), (Prefab("OlhoDoAbismo"), Prefab("ReiGoblin")),
         };
         Mexer(gerador, "andares", p =>
         {

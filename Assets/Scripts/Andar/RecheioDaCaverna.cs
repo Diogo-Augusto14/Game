@@ -3,8 +3,9 @@ using UnityEngine;
 
 /// <summary>
 /// O que vai no andar alem dos inimigos e das armas (as salas especiais e o cenario vivo do jogo
-/// antigo). Nas salas especiais (<see cref="EncherEspecial"/>): a loja, o altar de sangue, o desafio e o
-/// tesouro (item no pedestal ou bau trancado). Espalhado nas salas de luta (<see cref="Espalhar"/>): bau
+/// antigo). Nas salas especiais (<see cref="EncherEspecial"/>): a loja, o altar de sangue, o desafio, o
+/// tesouro (item no pedestal ou bau trancado) e a sala secreta (item de graca, um bau, moedas e a bomba
+/// de volta). Espalhado nas salas de luta (<see cref="Espalhar"/>): bau
 /// amaldicoado, pedra rachada com premio e as armadilhas (serra no trilho, tronco
 /// rolante, espinhos), alem de mesas, barris, baratas e velas.
 ///
@@ -191,6 +192,26 @@ public static class RecheioDaCaverna
                 // Velas em volta, pra sala parecer especial.
                 Vela.Criar(meio + new Vector2(-2f, 1f), pai);
                 Vela.Criar(meio + new Vector2(2f, 1f), pai);
+                break;
+
+            case TipoDeSala.Secreta:
+                // O premio de quem achou: um item de graca, um bau do lado, moedas e a bomba de volta.
+                Pedestal.Criar(meio, pai, CatalogoDeItens.Sortear(itens));
+                Ocupar(chao, meio, 0, 0);
+
+                if (temBau)
+                {
+                    Vector2 bau = meio + Vector2.right * 2.5f;
+                    Bau.Criar(quadrosDoBau, bau, pai, gerador.ArmasDoBau, null, null, null);
+                    Ocupar(chao, bau, 0, 0);
+                }
+
+                for (int i = 0; i < 5; i++)
+                    Coletavel.Criar(TipoDeColetavel.Moeda, meio + Vector2.down * 1.5f + Random.insideUnitCircle * 1f);
+
+                Coletavel.Criar(TipoDeColetavel.Bomba, meio + Vector2.left * 2.5f);
+                Vela.Criar(meio + new Vector2(-2f, 1f), pai);
+                Vela.Criar(meio + new Vector2(2f, 1.2f), pai);
                 break;
         }
     }

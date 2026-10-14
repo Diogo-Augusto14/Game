@@ -3,7 +3,8 @@ using UnityEngine;
 /// <summary>
 /// A partida salva, pro "Continuar" do menu inicial (veio do jogo antigo). Salva sozinho no comeco de
 /// cada andar, e tambem pelo "Salvar e sair" da pausa: o heroi, o andar, a vida, as duas armas (com
-/// a municao) e os numeros da partida. Continuar recomeca o andar salvo do comeco.
+/// a municao), os numeros da partida e o caminho (o tema de cada mundo). Continuar recomeca o andar
+/// salvo do comeco; salvo na area segura, volta pra ela (a escolha do caminho ainda nao foi feita).
 ///
 /// Morrer, vencer ou comecar uma partida nova apaga o salvo. Fica no PlayerPrefs.
 /// </summary>
@@ -13,9 +14,10 @@ public static class Salvamento
 
     public static bool Existe => PlayerPrefs.GetInt(Prefixo + "existe", 0) == 1;
 
-    /// <summary>"Andar 4 de 12 com o Soldado", pro botao do menu.</summary>
+    /// <summary>"Andar 4 com o Soldado" (ou "Área segura com o Soldado"), pro botao do menu.</summary>
     public static string Resumo => Existe
-        ? $"Andar {PlayerPrefs.GetInt(Prefixo + "andar", 1)} com o {PlayerPrefs.GetString(Prefixo + "heroi", "?")}"
+        ? (PlayerPrefs.GetInt(Prefixo + "descanso", 0) == 1 ? "Área segura" : $"Andar {PlayerPrefs.GetInt(Prefixo + "andar", 1)}")
+          + $" com o {PlayerPrefs.GetString(Prefixo + "heroi", "?")}"
         : "";
 
     public static void Salvar(GeradorDoAndar andar, GameObject jogador)
@@ -28,7 +30,9 @@ public static class Salvamento
 
         PlayerPrefs.SetInt(Prefixo + "existe", 1);
         PlayerPrefs.SetString(Prefixo + "heroi", Herois.Atual.Nome);
-        PlayerPrefs.SetInt(Prefixo + "andar", andar.AndarParaSalvar);
+        PlayerPrefs.SetInt(Prefixo + "andar", andar.Andar);
+        PlayerPrefs.SetInt(Prefixo + "descanso", andar.Descansando ? 1 : 0);
+        PlayerPrefs.SetString(Prefixo + "caminho", andar.Caminho);
         PlayerPrefs.SetFloat(Prefixo + "vida", vida != null ? vida.Atual : 0f);
         PlayerPrefs.SetInt(Prefixo + "inimigos", ResumoDaPartida.InimigosDerrotados);
         PlayerPrefs.SetInt(Prefixo + "chefes", ResumoDaPartida.ChefesDerrotados);
@@ -123,7 +127,8 @@ public static class Salvamento
 
         ResumoDaPartida.Restaurar(PlayerPrefs.GetInt(Prefixo + "inimigos", 0), PlayerPrefs.GetInt(Prefixo + "chefes", 0),
                                   PlayerPrefs.GetFloat(Prefixo + "tempo", 0f));
-        andar.Continuar(Mathf.Clamp(PlayerPrefs.GetInt(Prefixo + "andar", 1), 1, andar.Andares));
+        andar.Caminho = PlayerPrefs.GetString(Prefixo + "caminho", "");
+        andar.Continuar(Mathf.Clamp(PlayerPrefs.GetInt(Prefixo + "andar", 1), 1, andar.Andares), PlayerPrefs.GetInt(Prefixo + "descanso", 0) == 1);
         return true;
     }
 
@@ -141,7 +146,7 @@ public static class Salvamento
 
     public static void Apagar()
     {
-        foreach (string chave in new[] { "existe", "heroi", "andar", "vida", "inimigos", "chefes", "tempo", "naMao",
+        foreach (string chave in new[] { "existe", "heroi", "andar", "descanso", "caminho", "vida", "inimigos", "chefes", "tempo", "naMao",
                                          "arma0", "arma1", "pente0", "pente1", "reserva0", "reserva1",
                                          "moedas", "chaves", "bombas", "itens", "ativo", "carga" })
             PlayerPrefs.DeleteKey(Prefixo + chave);

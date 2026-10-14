@@ -614,7 +614,8 @@ MonoBehaviour:
     ouEntao: []
   - nome: 
     chefe: {fileID: 1098764678197149752, guid: ae4508e983274a49948ae071f410f44c, type: 3}
-    ouEntao: []
+    ouEntao:
+    - {fileID: 468335482014209615, guid: 6a8786689d1d481dbccf8ace411f5fc7, type: 3}
   salasNoCaminho: 3
   andaresPorSalaAMais: 3
   lutasDoLado: 1

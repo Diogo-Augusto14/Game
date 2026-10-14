@@ -91,6 +91,7 @@ public static class Bestiario
         new Ficha("ReiNecromante", "Rei Necromante", "Some, ergue ossos do chão e levanta os mortos.", true),
         new Ficha("Golem", "Golem de Brasa", "Espirais de fogo, leques e anéis que aceleram.", true),
         new Ficha("ReiEsqueleto", "Rei Esqueleto", "Espadão em leque, giro de cortes e a espada fincada no chão.", true),
+        new Ficha("ReiGoblin", "Rei Goblin", "Martelo de cristal: anéis, saltos, cristais no chão e, na fúria, chama os assassinos.", true),
         new Ficha("OlhoDoAbismo", "Olho do Abismo", "O fim de tudo. Três fases.", true),
     };
 }

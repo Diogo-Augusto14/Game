@@ -20,7 +20,13 @@ using UnityEngine;
 /// Na tela, a <see cref="TelaDoJogo"/> desenha o nome do andar ao chegar, quantos inimigos faltam e o
 /// escuro da troca (daqui ela le); aqui fica so a seta na beirada apontando pra sala que falta (ou
 /// pro inimigo mais perto), quando sobram poucas. Ao abrir o jogo, mostra o menu inicial (<see cref="TelaDeInicio"/>); a
-/// pausa (<see cref="TelaDePausa"/>) fica neste mesmo objeto. Cada andar toca a musica dele.
+/// pausa (<see cref="TelaDePausa"/>) e o minimapa (<see cref="Minimapa"/>) ficam neste mesmo objeto. Cada
+/// andar toca a musica dele.
+///
+/// O caminho: cada mundo tem um tema (Porao, Catacumbas, Cripta, Profundezas), com o desenho, os inimigos
+/// e o chefe dele. Na area segura depois do primeiro chefe aparecem dois portais (Catacumbas ou Cripta):
+/// o escolhido vira o mundo 2 e o outro, o mundo 3 (<see cref="Caminho"/>). Os inimigos e o chefe vem da
+/// parte da lista do tema (<see cref="AndarNoTema"/>); o tamanho das salas segue o andar de verdade.
 /// </summary>
 [DisallowMultipleComponent]
 public class GeradorDoAndar : MonoBehaviour
@@ -67,6 +73,9 @@ public class GeradorDoAndar : MonoBehaviour
 
     [Tooltip("Ate quantos passos do jogador os inimigos acham caminho contornando paredes")]
     [SerializeField, Min(1)] private int distanciaDosCaminhos = 40;
+
+    [Tooltip("Chance de um andar de salas ter uma sala secreta (atras de uma parede que so a bomba abre)")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeSalaSecreta = 0.6f;
 
     [Tooltip("Com esta quantidade de salas (ou inimigos soltos) ou menos, uma seta aponta pra mais perto")]
     [SerializeField, Min(0)] private int setaQuandoFaltarem = 3;
@@ -156,6 +165,29 @@ public class GeradorDoAndar : MonoBehaviour
     private string nome;
     private float nomeAte;
     private Texture2D seta;
+    private PlantaDeSalas.Planta planta;
+    private Pedreiro.Obra obra;
+    private Pedreiro pedreiroDoAndar;
+    private readonly List<Saida> outrasSaidas = new List<Saida>();
+    private readonly List<Renderer> desenhosEscondidos = new List<Renderer>();
+    private readonly List<Behaviour> pecasEscondidas = new List<Behaviour>();
+
+    // Que tema cada mundo tem nesta partida (0 Porao, 1 Catacumbas, 2 Cripta, 3 Profundezas).
+    private int[] ordemDosTemas = { 0, 1, 2, 3 };
+
+    /// <summary>A planta do andar de salas (nula na arena e na area segura): o minimapa desenha ela.</summary>
+    public PlantaDeSalas.Planta Planta => planta;
+
+    /// <summary>Na area segura com dois portais: o jogador escolhe o proximo mundo.</summary>
+    public bool EscolhendoCaminho => descansando && escolhaNoDescanso;
+
+    private bool escolhaNoDescanso;
+
+    /// <summary>A passagem pra sala secreta deste andar ja foi aberta pela bomba.</summary>
+    public bool SegredoAberto { get; private set; }
+
+    /// <summary>Onde o portal esta (se ja abriu).</summary>
+    public Vector2? OndeEstaOPortal => saida != null ? (Vector2)saida.transform.position : (Vector2?)null;
 
     /// <summary>O andar atual (o primeiro e 1). Na area segura, o do chefe que acabou de cair.</summary>
     public int Andar { get; private set; }
@@ -163,8 +195,23 @@ public class GeradorDoAndar : MonoBehaviour
     /// <summary>Na area segura entre os mundos (depois do chefe, antes do proximo mundo).</summary>
     public bool Descansando => descansando;
 
-    /// <summary>O andar que o "Continuar" do menu monta (da area segura, ja o do proximo mundo).</summary>
-    public int AndarParaSalvar => descansando ? Mathf.Min(Andar + 1, Andares) : Andar;
+    /// <summary>
+    /// Os temas dos mundos desta partida, na ordem, como texto ("0213": o mundo 2 e a Cripta). O
+    /// salvamento guarda e devolve.
+    /// </summary>
+    public string Caminho
+    {
+        get => string.Concat(System.Array.ConvertAll(ordemDosTemas, t => t.ToString()));
+        set
+        {
+            int[] lida = { 0, 1, 2, 3 };
+
+            for (int i = 0; value != null && i < value.Length && i < lida.Length; i++)
+                lida[i] = Mathf.Clamp(value[i] - '0', 0, NomesDosMundos.Length - 1);
+
+            ordemDosTemas = lida;
+        }
+    }
 
     private bool descansando;
 
@@ -204,6 +251,9 @@ public class GeradorDoAndar : MonoBehaviour
 
         if (!TryGetComponent(out TelaDePausa _))
             gameObject.AddComponent<TelaDePausa>();
+
+        if (!TryGetComponent(out Minimapa _))
+            gameObject.AddComponent<Minimapa>();
         pedreiro = new Pedreiro(chao, paredes, abismo, sangue, enfeites, chanceDeEnfeite);
         quadrosDoVortice = FolhaDeSprites.Cortar(vortice, quadroDoVortice, pixelsPorUnidade);
         quadrosDoBau = FolhaDeSprites.Cortar(bau, quadroDoBau, DadosDoOldPrison.Lado);
@@ -249,26 +299,133 @@ public class GeradorDoAndar : MonoBehaviour
 
     /// <summary>A musica deste andar: a do chefe (a do final, no ultimo) ou a da caverna.</summary>
     public TemaMusical MusicaDoAndar =>
-        descansando ? TemaMusical.Loja : chefe != null ? (Andar >= Andares ? TemaMusical.ChefeFinal : TemaMusical.Chefe) : Musica.DaCaverna(Mundo);
+        descansando ? TemaMusical.Loja : chefe != null ? (Andar >= Andares ? TemaMusical.ChefeFinal : TemaMusical.Chefe) : Musica.DaCaverna(Tema + 1);
 
     /// <summary>
     /// Em que mundo o andar esta: cada chefe fecha um mundo (o Mundo 1 vai ate o primeiro chefe).
     /// A musica das cavernas muda por mundo.
     /// </summary>
-    public int Mundo
+    public int Mundo => MundoDoAndar(Andar);
+
+    private int MundoDoAndar(int andar)
+    {
+        int mundo = 1;
+
+        for (int i = 0; andares != null && i < andar - 1 && i < andares.Length; i++)
+        {
+            if (andares[i] != null && andares[i].chefe != null)
+                mundo++;
+        }
+
+        return mundo;
+    }
+
+    /// <summary>O tema do mundo atual (0 Porao, 1 Catacumbas, 2 Cripta, 3 Profundezas): desenho, luz e musica.</summary>
+    public int Tema => TemaDoMundo(Mundo);
+
+    private int TemaDoMundo(int mundo) => ordemDosTemas[Mathf.Clamp(mundo - 1, 0, ordemDosTemas.Length - 1)];
+
+    /// <summary>Quantos mundos a partida tem (um por chefe).</summary>
+    private int Mundos => MundoDoAndar(Andares + 1) - 1;
+
+    /// <summary>
+    /// O andar da lista que vale pros inimigos e o chefe deste andar: o mesmo andar, no mundo cujo tema
+    /// caiu aqui (a Cripta escolhida como mundo 2 traz os bichos e o chefe dos andares da Cripta).
+    /// </summary>
+    public int AndarNoTema(int andar)
+    {
+        int mundo = MundoDoAndar(andar);
+        int dono = TemaDoMundo(mundo) + 1;
+
+        if (dono == mundo || andares == null || andares.Length == 0)
+            return andar;
+
+        int primeiro = PrimeiroAndar(mundo), primeiroDoDono = PrimeiroAndar(dono), ultimoDoDono = PrimeiroAndar(dono + 1) - 1;
+
+        if (primeiroDoDono < 1 || ultimoDoDono < primeiroDoDono)
+            return andar;
+
+        // O chefe vai pro chefe; as cavernas, pra caverna na mesma posicao (sem passar do chefe).
+        bool doChefe = andar - 1 < andares.Length && andares[andar - 1] != null && andares[andar - 1].chefe != null;
+        return doChefe ? ultimoDoDono : Mathf.Min(primeiroDoDono + (andar - primeiro), Mathf.Max(primeiroDoDono, ultimoDoDono - 1));
+    }
+
+    // O primeiro andar do mundo (depois do ultimo, Andares + 1).
+    private int PrimeiroAndar(int mundo)
+    {
+        for (int a = 1; a <= Andares; a++)
+        {
+            if (MundoDoAndar(a) == mundo)
+                return a;
+        }
+
+        return Andares + 1;
+    }
+
+    /// <summary>
+    /// Os temas que o jogador pode escolher pro proximo mundo, na area segura: os que ainda nao sairam,
+    /// menos o do ultimo mundo (as Profundezas sao sempre o fim). Um so = sem escolha.
+    /// </summary>
+    public List<int> OpcoesDeCaminho
     {
         get
         {
-            int mundo = 1;
+            List<int> opcoes = new List<int>();
+            int proximo = Mundo + 1;
+            int mundos = Mundos;
 
-            for (int i = 0; andares != null && i < Andar - 1 && i < andares.Length; i++)
+            for (int m = proximo; m <= Mathf.Max(proximo, mundos - 1) && m <= ordemDosTemas.Length; m++)
             {
-                if (andares[i] != null && andares[i].chefe != null)
-                    mundo++;
+                if (!opcoes.Contains(TemaDoMundo(m)))
+                    opcoes.Add(TemaDoMundo(m));
             }
 
-            return mundo;
+            return opcoes;
         }
+    }
+
+    /// <summary>O nome de um tema (Porao, Catacumbas, Cripta, Profundezas).</summary>
+    public static string NomeDoTema(int tema) => NomesDosMundos[Mathf.Clamp(tema, 0, NomesDosMundos.Length - 1)];
+
+    /// <summary>O que tem num tema, na placa do portal da area segura.</summary>
+    public static string ResumoDoTema(int tema)
+    {
+        switch (tema)
+        {
+            case 1: return "esqueletos, magos e assassinos";
+            case 2: return "aranhas, minhocões e fogo";
+            case 3: return "goblins e demônios";
+            default: return "";
+        }
+    }
+
+    /// <summary>A cor do portal de cada tema.</summary>
+    public static Color CorDoTema(int tema)
+    {
+        switch (tema)
+        {
+            case 1: return new Color(0.65f, 0.8f, 1f);
+            case 2: return new Color(0.6f, 1f, 0.7f);
+            case 3: return new Color(1f, 0.6f, 0.5f);
+            default: return Color.white;
+        }
+    }
+
+    // O mundo seguinte fica com este tema (trocando de lugar com o mundo que tinha ele).
+    private void EscolherCaminho(int tema)
+    {
+        int proximo = Mundo;   // indice (0 a 3) do proximo mundo
+
+        if (tema < 0 || proximo >= ordemDosTemas.Length)
+            return;
+
+        int onde = System.Array.IndexOf(ordemDosTemas, tema);
+
+        if (onde < proximo)
+            return;
+
+        ordemDosTemas[onde] = ordemDosTemas[proximo];
+        ordemDosTemas[proximo] = tema;
     }
 
     private void Update()
@@ -345,16 +502,24 @@ public class GeradorDoAndar : MonoBehaviour
         }
     }
 
-    /// <summary>Abre o portal da area segura (na clareira ja nasce aberto; nas ruinas, o altar abre).</summary>
-    public void AbrirPortalDoDescanso(Vector2 onde)
+    /// <summary>
+    /// Abre um portal da area segura (na clareira ja nasce aberto; nas ruinas, o altar abre). Com
+    /// <paramref name="tema"/>, ele leva pro mundo com esse tema (a escolha do caminho); da pra ter dois.
+    /// </summary>
+    public void AbrirPortalDoDescanso(Vector2 onde, int tema = -1)
     {
-        if (saida == null && raiz != null)
-            AbrirSaida(onde);
+        if (raiz == null)
+            return;
+
+        if (saida == null)
+            AbrirSaida(onde, tema);
+        else
+            outrasSaidas.Add(Saida.Criar(raiz.transform, onde, quadrosDoVortice, 12f, this, tema));
     }
 
-    private void AbrirSaida(Vector2 onde)
+    private void AbrirSaida(Vector2 onde, int tema = -1)
     {
-        saida = Saida.Criar(raiz.transform, onde, quadrosDoVortice, 12f, this);
+        saida = Saida.Criar(raiz.transform, onde, quadrosDoVortice, 12f, this, tema);
 
         if (audioSource != null && portalAbrindo != null)
             audioSource.PlayOneShot(portalAbrindo, volume);
@@ -429,12 +594,12 @@ public class GeradorDoAndar : MonoBehaviour
     private Color? fundoDaCena;
 
     /// <summary>O nome do mundo do andar (Porao, Catacumbas, Cripta, Profundezas).</summary>
-    public string NomeDoMundo => NomesDosMundos[Mathf.Clamp(Mundo - 1, 0, NomesDosMundos.Length - 1)];
+    public string NomeDoMundo => NomeDoTema(Tema);
 
     // Quem constroi o andar no jeito do mundo (sem a arte do mundo, o Old Prison original).
     private Pedreiro PedreiroDoMundo()
     {
-        int i = Mathf.Clamp(Mundo - 1, 0, NomesDosMundos.Length - 1);
+        int i = Mathf.Clamp(Tema, 0, NomesDosMundos.Length - 1);
 
         if (!pedreiros.TryGetValue(i, out Pedreiro feito))
         {
@@ -481,11 +646,12 @@ public class GeradorDoAndar : MonoBehaviour
     {
         List<InimigoDoAndar> possiveis = new List<InimigoDoAndar>();
         float pesoTotal = 0f;
+        int naLista = AndarNoTema(Andar);
 
         foreach (InimigoDoAndar inimigo in inimigos)
         {
-            if (inimigo != null && inimigo.prefab != null && inimigo.peso > 0f && Andar >= inimigo.primeiroAndar
-                && (inimigo.ultimoAndar <= 0 || Andar <= inimigo.ultimoAndar))
+            if (inimigo != null && inimigo.prefab != null && inimigo.peso > 0f && naLista >= inimigo.primeiroAndar
+                && (inimigo.ultimoAndar <= 0 || naLista <= inimigo.ultimoAndar))
             {
                 possiveis.Add(inimigo);
                 pesoTotal += inimigo.peso;
@@ -512,11 +678,19 @@ public class GeradorDoAndar : MonoBehaviour
         return vida;
     }
 
-    /// <summary>O jogador pisou na saida: vai pro proximo andar (ou vence, se era o ultimo).</summary>
-    public void ProximoAndar()
+    /// <summary>
+    /// O jogador pisou na saida: vai pro proximo andar (ou vence, se era o ultimo). Saindo da area
+    /// segura por um portal com tema, o proximo mundo fica com ele.
+    /// </summary>
+    public void ProximoAndar(int tema = -1)
     {
-        if (!trocando && (vidaDoJogador == null || !vidaDoJogador.Morto))
-            StartCoroutine(TrocarDeAndar());
+        if (trocando || (vidaDoJogador != null && vidaDoJogador.Morto))
+            return;
+
+        if (descansando)
+            EscolherCaminho(tema);
+
+        StartCoroutine(TrocarDeAndar());
     }
 
     private IEnumerator TrocarDeAndar()
@@ -570,6 +744,9 @@ public class GeradorDoAndar : MonoBehaviour
         nome = AreaSegura.Nome(mundo);
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
+        outrasSaidas.Clear();
+        planta = null;
+        obra = null;
         chefe = null;
         chaoDoAndar = null;
         MapaDeCaminhos.Atual = null;
@@ -582,6 +759,7 @@ public class GeradorDoAndar : MonoBehaviour
         raiz = new GameObject("Area segura");
         raiz.transform.SetParent(transform, false);
 
+        escolhaNoDescanso = OpcoesDeCaminho.Count > 1;
         HashSet<Vector2Int> chaoDoDescanso = AreaSegura.Montar(mundo, raiz.transform, this);
         MapaDeCaminhos.Atual = new MapaDeCaminhos(chaoDoDescanso, distanciaDosCaminhos);
         chaoDoAndar = chaoDoDescanso;
@@ -614,18 +792,30 @@ public class GeradorDoAndar : MonoBehaviour
         CameraDoJogo.Pular();
     }
 
-    /// <summary>O "Continuar" do menu: escurece, monta o andar salvo e poe o jogador no comeco dele.</summary>
-    public void Continuar(int andar)
+    /// <summary>
+    /// O "Continuar" do menu: escurece, monta o andar salvo e poe o jogador no comeco dele. Com
+    /// <paramref name="descanso"/>, volta pra area segura depois do chefe desse andar (a escolha do
+    /// caminho fica pra fazer).
+    /// </summary>
+    public void Continuar(int andar, bool descanso = false)
     {
         if (!trocando)
-            StartCoroutine(ContinuarEm(andar));
+            StartCoroutine(ContinuarEm(andar, descanso));
     }
 
-    private IEnumerator ContinuarEm(int andar)
+    private IEnumerator ContinuarEm(int andar, bool descanso)
     {
         trocando = true;
         escuro = 1f;
-        yield return IrPara(andar);
+
+        if (descanso)
+        {
+            Andar = andar;
+            yield return IrParaODescanso();
+        }
+        else
+            yield return IrPara(andar);
+
         trocando = false;
     }
 
@@ -691,9 +881,11 @@ public class GeradorDoAndar : MonoBehaviour
 
     private void Gerar(int andar)
     {
-        AndarDaPartida esse = andares != null && andar <= andares.Length ? andares[andar - 1] : null;
-        GameObject chefeDoAndar = esse != null ? esse.Sortear() : null;
+        // O andar e o chefe vem da parte da lista do tema deste mundo (o caminho escolhido).
         Andar = andar;
+        int naLista = AndarNoTema(andar);
+        AndarDaPartida esse = andares != null && naLista <= andares.Length ? andares[naLista - 1] : null;
+        GameObject chefeDoAndar = esse != null ? esse.Sortear() : null;
         descansando = false;
 
         // O nome: o do andar, ou o lugar do chefe sorteado ("Covil do Minotauro").
@@ -708,6 +900,10 @@ public class GeradorDoAndar : MonoBehaviour
         nome = !string.IsNullOrEmpty(titulo) ? $"Andar {andar} de {Andares}: {titulo}" : $"Andar {andar} de {Andares}";
         nomeAte = Time.unscaledTime + tempoDoNome;
         saida = null;
+        outrasSaidas.Clear();
+        planta = null;
+        obra = null;
+        SegredoAberto = false;
         chefe = null;
         chaoDoAndar = null;
         MapaDeCaminhos.Atual = null;
@@ -727,7 +923,7 @@ public class GeradorDoAndar : MonoBehaviour
             GerarCaverna(andar, CavernasAte(andar));
 
         // O escuro do mundo (no salao do chefe, um pouco menos).
-        int m = Mathf.Clamp(Mundo - 1, 0, LuzDosMundos.Length - 1);
+        int m = Mathf.Clamp(Tema, 0, LuzDosMundos.Length - 1);
         Iluminacao.Ambiente(LuzDosMundos[m] + (chefeDoAndar != null ? 0.08f : 0f), CorDosMundos[m]);
 
         AoComecarAndar?.Invoke();
@@ -775,11 +971,16 @@ public class GeradorDoAndar : MonoBehaviour
 
     private void GerarCaverna(int andar, int caverna)
     {
+        // A sala secreta so nos mundos com parede (nas Profundezas as salas flutuam: nao tem o que esconder).
+        Pedreiro construtor = PedreiroDoMundo();
+        bool comSegredo = !construtor.Estilo.flutuante && Random.value < chanceDeSalaSecreta;
         PlantaDeSalas.Planta salas = PlantaDeSalas.Montar(salasNoCaminho + (caverna - 1) / Mathf.Max(1, andaresPorSalaAMais),
-                                                          lutasDoLado + (caverna - 1) / 4, SortearEspeciais(), clareira);
+                                                          lutasDoLado + (caverna - 1) / 4, SortearEspeciais(), clareira, comSegredo);
         HashSet<Vector2Int> planta = salas.chao;
+        this.planta = salas;
+        pedreiroDoAndar = construtor;
 
-        // Onde nada se espalha: corredores, a volta das portas e as salas sem luta.
+        // Onde nada se espalha: corredores, a volta das portas e da passagem secreta e as salas sem luta.
         HashSet<Vector2Int> proibido = new HashSet<Vector2Int>(salas.corredores);
 
         foreach (Vector2Int porta in salas.portas)
@@ -787,19 +988,24 @@ public class GeradorDoAndar : MonoBehaviour
                 for (int dy = -2; dy <= 2; dy++)
                     proibido.Add(porta + new Vector2Int(dx, dy));
 
+        foreach (Vector2Int c in salas.passagemSecreta)
+            for (int dx = -2; dx <= 2; dx++)
+                for (int dy = -2; dy <= 2; dy++)
+                    proibido.Add(c + new Vector2Int(dx, dy));
+
         foreach (SalaDaPlanta sala in salas.salas)
         {
             if (!sala.DeLuta)
                 proibido.UnionWith(sala.celulas);
         }
 
-        Pedreiro construtor = PedreiroDoMundo();
         int quantosBuracos = construtor.Estilo.temBuracos ? buracosNoPrimeiroAndar + (caverna - 1) * buracosAMaisPorAndar : 0;
         HashSet<Vector2Int> buracos = Caverna.AbrirBuracos(planta, quantosBuracos, longeDoComeco * 0.7f, proibido);
         HashSet<Vector2Int> pocas = construtor.Estilo.temSangue
             ? Caverna.EspalharPocas(planta, buracos, pocasPorAndar)
             : new HashSet<Vector2Int>();
-        construtor.Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+        obra = construtor.Construir(raiz.transform, planta, buracos, pocas, new System.Random(Random.Range(int.MinValue, int.MaxValue)),
+                                    salas.passagemSecreta);
 
         // Daqui pra frente so interessa onde da pra pisar.
         HashSet<Vector2Int> chaoDaCaverna = new HashSet<Vector2Int>(planta);
@@ -814,9 +1020,16 @@ public class GeradorDoAndar : MonoBehaviour
         }
 
         EspalharArmas(chaoDaCaverna, proibido, andar);
-        HashSet<Vector2Int> armadilhas = RecheioDaCaverna.Espalhar(this, planta, chaoDaCaverna, proibido, raiz.transform, andar, Mundo, quadrosDoBau);
-        Decoracao.Espalhar(Mundo, construtor.Estilo, salas, chaoDaCaverna, armadilhas, raiz.transform);
-        EspalharInimigos(salas, chaoDaCaverna, andar, caverna);
+        HashSet<Vector2Int> armadilhas = RecheioDaCaverna.Espalhar(this, planta, chaoDaCaverna, proibido, raiz.transform, andar, Tema + 1, quadrosDoBau);
+        Decoracao.Espalhar(Tema + 1, construtor.Estilo, salas, chaoDaCaverna, armadilhas, raiz.transform);
+        EspalharInimigos(salas, chaoDaCaverna, AndarNoTema(andar), caverna);
+
+        // A parede que esconde a sala secreta (a bomba abre), e o que tem la dentro apagado ate abrir.
+        if (salas.secreta != null && salas.passagemSecreta.Count > 0)
+        {
+            ParedeSecreta.Criar(salas.passagemSecreta, salas.donaDoSegredo, raiz.transform, AbrirSegredo);
+            EsconderSegredo(salas.secreta);
+        }
 
         // Sem ninguem pra matar (lista de inimigos vazia, por exemplo), a saida ja nasce aberta, mas no
         // ponto mais longe do comeco: nunca embaixo do jogador.
@@ -824,6 +1037,70 @@ public class GeradorDoAndar : MonoBehaviour
             AbrirSaida(MaisLongeDoComeco(chaoDaCaverna));
 
         chaoDoAndar = chaoDaCaverna;
+    }
+
+    // A sala secreta fica no escuro e quieta ate abrir: as luzes dela, o que brilha por cima do escuro
+    // (moedas, o item) e as moedas (que a Pedra-Ima puxaria pela parede) ficam desligados. Senao a camera
+    // mostra a sala do outro lado da parede.
+    private void EsconderSegredo(SalaDaPlanta secreta)
+    {
+        desenhosEscondidos.Clear();
+        pecasEscondidas.Clear();
+        RectInt area = new RectInt(secreta.area.xMin - 2, secreta.area.yMin - 2, secreta.area.width + 4, secreta.area.height + 4);
+
+        foreach (Renderer desenho in raiz.GetComponentsInChildren<Renderer>())
+        {
+            if (desenho.enabled && !(desenho is UnityEngine.Tilemaps.TilemapRenderer) && area.Contains(MapaDeCaminhos.Celula(desenho.transform.position)))
+            {
+                desenho.enabled = false;
+                desenhosEscondidos.Add(desenho);
+            }
+        }
+
+        foreach (Behaviour peca in raiz.GetComponentsInChildren<Behaviour>())
+        {
+            if (peca.enabled && (peca is FonteDeLuz || peca is Coletavel) && area.Contains(MapaDeCaminhos.Celula(peca.transform.position)))
+            {
+                peca.enabled = false;
+                pecasEscondidas.Add(peca);
+            }
+        }
+    }
+
+    // A bomba abriu a parede da sala secreta: aquele pedaco do andar e refeito com o corredor aberto,
+    // e o corredor entra no chao (os inimigos tambem passam). O que estava apagado la dentro acende.
+    private void AbrirSegredo()
+    {
+        if (planta == null || SegredoAberto)
+            return;
+
+        SegredoAberto = true;
+
+        foreach (Renderer desenho in desenhosEscondidos)
+            if (desenho != null)
+                desenho.enabled = true;
+
+        foreach (Behaviour peca in pecasEscondidas)
+            if (peca != null)
+                peca.enabled = true;
+
+        desenhosEscondidos.Clear();
+        pecasEscondidas.Clear();
+        RectInt passagem = Caverna.Limites(planta.passagemSecreta);
+        RectInt janela = new RectInt(passagem.xMin - 3, passagem.yMin - 4, passagem.width + 6, passagem.height + 8);
+
+        try
+        {
+            if (pedreiroDoAndar != null && obra != null)
+                pedreiroDoAndar.Remendar(obra, planta.ChaoAberto, janela);
+        }
+        catch (System.Exception erro)
+        {
+            Debug.LogException(erro, this);
+        }
+
+        if (chaoDoAndar != null)
+            chaoDoAndar.UnionWith(planta.passagemSecreta);
     }
 
     // As salas especiais do andar (cada uma sorteada).

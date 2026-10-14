@@ -187,10 +187,17 @@ public static class Decoracao
         Transform grupo = new GameObject("Decoracao").transform;
         grupo.SetParent(pai, false);
 
-        // Longe dos corredores e da frente das portas.
+        // Longe dos corredores e da frente das portas (a passagem secreta conta como corredor: nada de
+        // tocha ou barril na frente dela; a falta da tocha e uma pista).
         HashSet<Vector2Int> livre = new HashSet<Vector2Int>(chao);
+        HashSet<Vector2Int> aberto = salas.ChaoAberto;
 
         foreach (Vector2Int c in salas.corredores)
+            for (int dx = -2; dx <= 2; dx++)
+                for (int dy = -2; dy <= 2; dy++)
+                    livre.Remove(c + new Vector2Int(dx, dy));
+
+        foreach (Vector2Int c in salas.passagemSecreta)
             for (int dx = -2; dx <= 2; dx++)
                 for (int dy = -2; dy <= 2; dy++)
                     livre.Remove(c + new Vector2Int(dx, dy));
@@ -223,7 +230,7 @@ public static class Decoracao
             // O meio das salas especiais e do comeco fica pro que elas tem (loja, item, o jogador).
             Quarto q = new Quarto
             {
-                sala = sala, planta = salas.chao, livre = livre, chao = chao, usados = usados, pai = grupo,
+                sala = sala, planta = aberto, livre = livre, chao = chao, usados = usados, pai = grupo,
                 longeDoMeio = sala.DeLuta ? 0f : 3f, flutuante = estilo.flutuante,
             };
 
@@ -233,7 +240,7 @@ public static class Decoracao
                 Lancador(q);
 
             if (!estilo.flutuante)
-                NaParedeDeCima(sala, salas.chao, grupo, mundo);
+                NaParedeDeCima(sala, aberto, grupo, mundo);
 
             // As salas especiais ganham a mobilia do Village (loja, tesouro, biblioteca do altar, desafio).
             if (!Mobiliar(q))
@@ -745,7 +752,8 @@ public static class Decoracao
         switch (tipo)
         {
             case TipoDeSala.Loja: return new[] { "Vila/Prateleira" };
-            case TipoDeSala.Tesouro: return new[] { "Vila/Escudos", "Vila/Estandarte" };
+            case TipoDeSala.Tesouro:
+            case TipoDeSala.Secreta: return new[] { "Vila/Escudos", "Vila/Estandarte" };
             case TipoDeSala.Altar: return new[] { "Vila/Quadros", "Vila/Trofeus" };
             case TipoDeSala.Desafio: return new[] { "Vila/Estandarte", "Vila/Escudos" };
             default: return null;
@@ -767,6 +775,7 @@ public static class Decoracao
                 Balcao(q);
                 break;
             case TipoDeSala.Tesouro:
+            case TipoDeSala.Secreta:
                 encostadas = new[] { "Vila/Armadura", "Vila/Cabide", "Vila/Bau", "Vila/BarrilDeArmas", "Vila/Bau" };
                 soltas = new[] { "Vila/Elmo", "Vila/Sacos", "Vila/Elmo" };
                 potes = true;

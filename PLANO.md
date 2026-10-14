@@ -56,8 +56,12 @@ de novo.
 - **Pacotes da série EPIC RPG World** (1.14.0): com o Crypt e o The Depths of the Mountain, a Cripta e o
   último mundo (agora Profundezas) ganharam arte própria, 14 inimigos novos, o chefe Rei Esqueleto, portas,
   armadilhas e decoração. Na 1.17.0, as áreas seguras abertas entre os mundos (Clareira e Ruínas, das
-  demos Grass Land e Ancient Ruins) e as salas especiais mobiliadas com o Village. Próximo: com os pacotes
-  completos, mais áreas seguras e mais mundos (escolher o caminho em dois portais).
+  demos Grass Land e Ancient Ruins) e as salas especiais mobiliadas com o Village. Na 1.18.0: o minimapa
+  (`Tab` abre o mapa inteiro), a sala secreta atrás de uma parede rachada que só a bomba abre, a escolha
+  do caminho (dois portais na Clareira: Catacumbas ou Cripta como mundo 2, cada uma com os inimigos e o
+  chefe dela) e um chefe das Profundezas, o Rei Goblin (com a arte do Goblin Brutamonte, sorteado com o
+  Olho do Abismo). Próximo: com os pacotes completos, mais áreas seguras, mais mundos pra escolher e um
+  chefe com a arte própria dos bichos grandes do Depths.
 - **O que precisava adaptar do jogo antigo** (feito depois da etapa 8): moedas, chaves e bombas, loja,
   itens passivos e ativos com sinergias, as salas especiais virando pedaços da caverna (emboscada,
   desafio, altar, baús especiais, área escura), armadilhas e cenário vivo, temas dos mundos e as flechas

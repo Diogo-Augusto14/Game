@@ -16,18 +16,20 @@ public class AltarDoPortal : MonoBehaviour
     private SpriteRenderer desenho;
     private GeradorDoAndar gerador;
     private Vector2 portal;
+    private int tema = -1;
     private float comecou = -1f;
     private bool abriu;
 
     /// <param name="meio">O meio do desenho.</param>
     /// <param name="portal">Onde o portal abre (o meio do patio do altar).</param>
-    public static AltarDoPortal Criar(Vector2 meio, Transform pai, GeradorDoAndar gerador, Vector2 portal)
+    /// <param name="tema">Pra que tema o portal leva (-1 = o proximo mundo, sem escolha).</param>
+    public static AltarDoPortal Criar(Vector2 meio, Transform pai, GeradorDoAndar gerador, Vector2 portal, int tema = -1)
     {
         Sprite[] quadros = FolhaDeSprites.Cortar(Resources.Load<Texture2D>("Areas/Ruinas/Altar"), new Vector2Int(224, 288), 32f);
 
         if (quadros.Length == 0)
         {
-            gerador.AbrirPortalDoDescanso(portal);
+            gerador.AbrirPortalDoDescanso(portal, tema);
             return null;
         }
 
@@ -39,6 +41,7 @@ public class AltarDoPortal : MonoBehaviour
         a.quadros = quadros;
         a.gerador = gerador;
         a.portal = portal;
+        a.tema = tema;
         a.desenho = obj.AddComponent<SpriteRenderer>();
         a.desenho.sprite = quadros[0];
         a.desenho.sortingOrder = Pedreiro.OrdemDosEnfeites + 1;
@@ -66,7 +69,7 @@ public class AltarDoPortal : MonoBehaviour
         if (!abriu && q >= QuadroDoPortal)
         {
             abriu = true;
-            gerador.AbrirPortalDoDescanso(portal);
+            gerador.AbrirPortalDoDescanso(portal, tema);
         }
     }
 }

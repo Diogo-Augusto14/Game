@@ -105,15 +105,160 @@ public class Pedreiro
     public EstiloDeLadrilhos Estilo => estilo;
 
     /// <summary>
-    /// Monta a caverna como filhos de <paramref name="pai"/>. A planta (<paramref name="celulasDeChao"/>)
-    /// inclui os buracos; quem anda pisa no chao sem os buracos.
+    /// O que o <see cref="Construir"/> montou e precisa pra remendar depois (<see cref="Remendar"/>): os
+    /// mapas de ladrilhos e os colisores separados (os da passagem secreta, que somem quando ela abre).
     /// </summary>
-    public void Construir(Transform pai, HashSet<Vector2Int> celulasDeChao, HashSet<Vector2Int> buracos,
-                          HashSet<Vector2Int> pocas, System.Random sorte)
+    public class Obra
+    {
+        public Transform pai;
+        public Tilemap abismo, chao, paredes, frente;
+        public Transform separados;
+        public HashSet<Vector2Int> buracos;
+        public System.Random sorte;
+    }
+
+    // As camadas de ladrilhos de um pedaco do mundo (-1 = nada).
+    private class Camadas
+    {
+        public Grade grade;
+        public int[,] abismo, chao, sangue, enfeites, paredes, frente;
+    }
+
+    /// <summary>
+    /// Monta a caverna como filhos de <paramref name="pai"/>. A planta (<paramref name="celulasDeChao"/>)
+    /// inclui os buracos; quem anda pisa no chao sem os buracos. Os colisores das celulas em
+    /// <paramref name="separar"/> ficam num grupo so deles (<see cref="Obra.separados"/>).
+    /// </summary>
+    public Obra Construir(Transform pai, HashSet<Vector2Int> celulasDeChao, HashSet<Vector2Int> buracos,
+                          HashSet<Vector2Int> pocas, System.Random sorte, HashSet<Vector2Int> separar = null)
     {
         RectInt planta = Caverna.Limites(celulasDeChao);
         int margem = estilo.flutuante ? MargemDoVazio : Margem;
         RectInt limites = new RectInt(planta.xMin - margem, planta.yMin - margem, planta.width + margem * 2, planta.height + margem * 2);
+        Camadas camadas = Calcular(limites, celulasDeChao, buracos, pocas, sorte);
+        Grade grade = camadas.grade;
+
+        Transform ladrilhos = new GameObject("Ladrilhos").transform;
+        ladrilhos.SetParent(pai, false);
+        ladrilhos.gameObject.AddComponent<Grid>();
+
+        Obra obra = new Obra { pai = pai, buracos = buracos, sorte = sorte };
+        obra.abismo = grade.Pintar(ladrilhos, "Abismo", camadas.abismo, abismo, OrdemDoAbismo);
+        obra.chao = grade.Pintar(ladrilhos, "Chao", camadas.chao, chao, OrdemDoChao);
+        grade.Pintar(ladrilhos, "Sangue", camadas.sangue, sangue, OrdemDoSangue);
+        grade.Pintar(ladrilhos, "Enfeites", camadas.enfeites, enfeites, OrdemDosEnfeites);
+        obra.paredes = grade.Pintar(ladrilhos, "Paredes", camadas.paredes, paredes, OrdemDasParedes);
+        obra.frente = grade.Pintar(ladrilhos, "Paredes da frente", camadas.frente, paredes, OrdemDaFrente);
+
+        // Colisores so onde encosta em quem anda: o resto ninguem alcanca.
+        HashSet<Vector2Int> paredesSolidas = new HashSet<Vector2Int>();
+        HashSet<Vector2Int> buracosSolidos = new HashSet<Vector2Int>();
+        HashSet<Vector2Int> paredesSeparadas = new HashSet<Vector2Int>();
+        HashSet<Vector2Int> buracosSeparados = new HashSet<Vector2Int>();
+
+        for (int x = limites.xMin; x < limites.xMax; x++)
+        {
+            for (int y = limites.yMin; y < limites.yMax; y++)
+            {
+                Vector2Int c = new Vector2Int(x, y);
+
+                if (!EncostaEmQuemAnda(celulasDeChao, buracos, c))
+                    continue;
+
+                bool aParte = separar != null && separar.Contains(c);
+
+                if (!celulasDeChao.Contains(c) && !estilo.flutuante)
+                    (aParte ? paredesSeparadas : paredesSolidas).Add(c);
+                else
+                    (aParte ? buracosSeparados : buracosSolidos).Add(c);
+            }
+        }
+
+        // A beirada das paredes de lado e desenhada um pouco pra dentro do chao: o colisor das paredes
+        // cresce pros lados ate ela (senao meio boneco entra na parede).
+        Colisores(pai, "Colisores das paredes", paredesSolidas, CamadaDaParede, SobraDeLado);
+        Colisores(pai, "Colisores dos buracos", buracosSolidos, Mathf.Max(0, CamadaDoBuraco), 0f);
+
+        if (separar != null)
+        {
+            obra.separados = new GameObject("Colisores separados").transform;
+            obra.separados.SetParent(pai, false);
+            Colisores(obra.separados, "Paredes", paredesSeparadas, CamadaDaParede, SobraDeLado);
+            Colisores(obra.separados, "Buracos", buracosSeparados, Mathf.Max(0, CamadaDoBuraco), 0f);
+        }
+
+        return obra;
+    }
+
+    /// <summary>
+    /// Refaz um pedaco do andar ja construido com a planta nova (<paramref name="celulasDeChao"/>): os
+    /// ladrilhos dentro de <paramref name="janela"/> (em celulas) e os colisores em volta. Serve pra
+    /// passagem secreta: a bomba abre, a parede vira corredor.
+    /// </summary>
+    public void Remendar(Obra obra, HashSet<Vector2Int> celulasDeChao, RectInt janela)
+    {
+        // Um pouco mais que a janela, pras regras de encaixe enxergarem os vizinhos.
+        RectInt limites = new RectInt(janela.xMin - 6, janela.yMin - 6, janela.width + 12, janela.height + 12);
+        Camadas camadas = Calcular(limites, celulasDeChao, obra.buracos, new HashSet<Vector2Int>(), obra.sorte);
+        Grade grade = camadas.grade;
+
+        for (int coluna = 0; coluna < grade.Largura; coluna++)
+        {
+            for (int linha = 0; linha < grade.Altura; linha++)
+            {
+                Vector2Int c = grade.Canto(coluna, linha);
+
+                if (!janela.Contains(c))
+                    continue;
+
+                Vector3Int lugar = new Vector3Int(c.x, c.y, 0);
+                Trocar(obra.abismo, lugar, abismo, camadas.abismo[coluna, linha]);
+                Trocar(obra.chao, lugar, chao, camadas.chao[coluna, linha]);
+                Trocar(obra.paredes, lugar, paredes, camadas.paredes[coluna, linha]);
+                Trocar(obra.frente, lugar, paredes, camadas.frente[coluna, linha]);
+            }
+        }
+
+        // Os colisores: os separados somem e os da volta da passagem aberta nascem (por cima dos que ja
+        // existiam, tanto faz).
+        if (obra.separados != null)
+            Object.Destroy(obra.separados.gameObject);
+
+        HashSet<Vector2Int> novasParedes = new HashSet<Vector2Int>();
+        HashSet<Vector2Int> novosBuracos = new HashSet<Vector2Int>();
+
+        for (int x = janela.xMin - 1; x <= janela.xMax; x++)
+        {
+            for (int y = janela.yMin - 1; y <= janela.yMax; y++)
+            {
+                Vector2Int c = new Vector2Int(x, y);
+
+                if (!EncostaEmQuemAnda(celulasDeChao, obra.buracos, c))
+                    continue;
+
+                if (!celulasDeChao.Contains(c) && !estilo.flutuante)
+                    novasParedes.Add(c);
+                else
+                    novosBuracos.Add(c);
+            }
+        }
+
+        Transform grupo = new GameObject("Colisores da passagem").transform;
+        grupo.SetParent(obra.pai, false);
+        Colisores(grupo, "Paredes", novasParedes, CamadaDaParede, SobraDeLado);
+        Colisores(grupo, "Buracos", novosBuracos, Mathf.Max(0, CamadaDoBuraco), 0f);
+    }
+
+    private static void Trocar(Tilemap mapa, Vector3Int lugar, Folha folha, int numero)
+    {
+        if (mapa != null)
+            mapa.SetTile(lugar, folha.Ladrilho(numero));
+    }
+
+    // Escolhe os ladrilhos de todas as camadas dentro dos limites (em celulas).
+    private Camadas Calcular(RectInt limites, HashSet<Vector2Int> celulasDeChao, HashSet<Vector2Int> buracos,
+                             HashSet<Vector2Int> pocas, System.Random sorte)
+    {
         Grade grade = new Grade(limites);
 
         // Paredes: o topo e escolhido pelos cantos; as regras poem as faces embaixo dele.
@@ -193,41 +338,11 @@ public class Pedreiro
             }
         }
 
-        Transform ladrilhos = new GameObject("Ladrilhos").transform;
-        ladrilhos.SetParent(pai, false);
-        ladrilhos.gameObject.AddComponent<Grid>();
-
-        grade.Pintar(ladrilhos, "Abismo", abismoDaGrade, abismo, OrdemDoAbismo);
-        grade.Pintar(ladrilhos, "Chao", chaoDaGrade, chao, OrdemDoChao);
-        grade.Pintar(ladrilhos, "Sangue", sangueDaGrade, sangue, OrdemDoSangue);
-        grade.Pintar(ladrilhos, "Enfeites", enfeitesDaGrade, enfeites, OrdemDosEnfeites);
-        grade.Pintar(ladrilhos, "Paredes", paredesDaGrade, paredes, OrdemDasParedes);
-        grade.Pintar(ladrilhos, "Paredes da frente", frenteDaGrade, paredes, OrdemDaFrente);
-
-        // Colisores so onde encosta em quem anda: o resto ninguem alcanca.
-        HashSet<Vector2Int> paredesSolidas = new HashSet<Vector2Int>();
-        HashSet<Vector2Int> buracosSolidos = new HashSet<Vector2Int>();
-
-        for (int x = limites.xMin; x < limites.xMax; x++)
+        return new Camadas
         {
-            for (int y = limites.yMin; y < limites.yMax; y++)
-            {
-                Vector2Int c = new Vector2Int(x, y);
-
-                if (!EncostaEmQuemAnda(celulasDeChao, buracos, c))
-                    continue;
-
-                if (!celulasDeChao.Contains(c) && !estilo.flutuante)
-                    paredesSolidas.Add(c);
-                else
-                    buracosSolidos.Add(c);
-            }
-        }
-
-        // A beirada das paredes de lado e desenhada um pouco pra dentro do chao: o colisor das paredes
-        // cresce pros lados ate ela (senao meio boneco entra na parede).
-        Colisores(pai, "Colisores das paredes", paredesSolidas, CamadaDaParede, SobraDeLado);
-        Colisores(pai, "Colisores dos buracos", buracosSolidos, Mathf.Max(0, CamadaDoBuraco), 0f);
+            grade = grade, abismo = abismoDaGrade, chao = chaoDaGrade, sangue = sangueDaGrade,
+            enfeites = enfeitesDaGrade, paredes = paredesDaGrade, frente = frenteDaGrade,
+        };
     }
 
     /// <summary>Onde da pra pisar: chao que nao e buraco.</summary>
@@ -357,7 +472,7 @@ public class Pedreiro
             teste(c) && teste(c + Vector2Int.right) && teste(c + Vector2Int.up) && teste(c + Vector2Int.one);
 
         /// <summary>Poe os ladrilhos num Tilemap novo. O ladrilho (x, y) cobre do ponto (x, y) ao (x + 1, y + 1).</summary>
-        public void Pintar(Transform grid, string nome, int[,] ladrilhos, Folha folha, int ordem)
+        public Tilemap Pintar(Transform grid, string nome, int[,] ladrilhos, Folha folha, int ordem)
         {
             GameObject obj = new GameObject(nome);
             obj.transform.SetParent(grid, false);
@@ -383,6 +498,7 @@ public class Pedreiro
             }
 
             mapa.SetTiles(lugares.ToArray(), pecas.ToArray());
+            return mapa;
         }
     }
 

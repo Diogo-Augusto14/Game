@@ -36,6 +36,9 @@ public class SalaDeLuta : MonoBehaviour
 
     public Vector2 Meio => planta.Meio;
 
+    /// <summary>A sala da planta (o minimapa pinta de vermelho as que ainda tem inimigos).</summary>
+    public SalaDaPlanta Planta => planta;
+
     public static SalaDeLuta Criar(SalaDaPlanta planta, Transform pai, GeradorDoAndar gerador, HashSet<Vector2Int> chao,
                                    int ondasAMais, int porOnda, Sprite[] quadrosDoBau)
     {
