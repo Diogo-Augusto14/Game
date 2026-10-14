@@ -7,7 +7,9 @@ using UnityEngine;
 public static class Loja
 {
     /// <param name="balcao">Com o balcao do jogo antigo (a loja da caverna); a do mercador da area segura nao tem.</param>
-    public static void Criar(Vector2 onde, Transform pai, EstatisticasDoJogador jogador, bool balcao = true)
+    /// <param name="precoVezes">O preco de tudo (o prisioneiro solto vende com desconto).</param>
+    /// <param name="comPlaca">Com a placa "Loja" em cima (o prisioneiro nao tem: ele mesmo fala).</param>
+    public static void Criar(Vector2 onde, Transform pai, EstatisticasDoJogador jogador, bool balcao = true, float precoVezes = 1f, bool comPlaca = true)
     {
         GameObject loja = new GameObject("Loja");
         loja.transform.SetParent(pai, false);
@@ -20,8 +22,30 @@ public static class Loja
             Enfeite(loja.transform, ArteDoAntigo.Caixote, new Vector2(2.6f, 1.3f), 9);
         }
 
+        if (comPlaca)
+            Placa(loja.transform, balcao);
+
+        ItemPassivo item = CatalogoDeItens.Sortear(jogador);
+        Pedestal.Criar(onde + new Vector2(-1.6f, -0.3f), pai, item, Barato(item.Preco, precoVezes));
+
+        Produto[] miudos = { Produto.Coracao, Produto.Chave, Produto.Municao };
+        Produto a = miudos[Random.Range(0, miudos.Length)];
+        Produto b;
+
+        do
+            b = miudos[Random.Range(0, miudos.Length)];
+        while (b == a);
+
+        Pedestal.Criar(onde + new Vector2(0f, -0.3f), pai, null, Barato(Preco(a), precoVezes), 0f, a);
+        Pedestal.Criar(onde + new Vector2(1.6f, -0.3f), pai, null, Barato(Preco(b), precoVezes), 0f, b);
+    }
+
+    private static int Barato(int preco, float vezes) => Mathf.Max(1, Mathf.RoundToInt(preco * vezes));
+
+    private static void Placa(Transform loja, bool balcao)
+    {
         TextMesh placa = new GameObject("Placa").AddComponent<TextMesh>();
-        placa.transform.SetParent(loja.transform, false);
+        placa.transform.SetParent(loja, false);
         placa.transform.localPosition = new Vector3(0f, balcao ? 3.3f : 4.3f, 0f);
         placa.text = "Loja";
         placa.font = FonteDoJogo.Texto;
@@ -35,20 +59,6 @@ public static class Loja
 
         placa.GetComponent<MeshRenderer>().sortingOrder = 30;
         Iluminacao.Brilhar(placa.GetComponent<MeshRenderer>());
-
-        ItemPassivo item = CatalogoDeItens.Sortear(jogador);
-        Pedestal.Criar(onde + new Vector2(-1.6f, -0.3f), pai, item, item.Preco);
-
-        Produto[] miudos = { Produto.Coracao, Produto.Chave, Produto.Municao };
-        Produto a = miudos[Random.Range(0, miudos.Length)];
-        Produto b;
-
-        do
-            b = miudos[Random.Range(0, miudos.Length)];
-        while (b == a);
-
-        Pedestal.Criar(onde + new Vector2(0f, -0.3f), pai, null, Preco(a), 0f, a);
-        Pedestal.Criar(onde + new Vector2(1.6f, -0.3f), pai, null, Preco(b), 0f, b);
     }
 
     private static int Preco(Produto p) => p == Produto.Coracao ? 4 : p == Produto.Municao ? 6 : 5;

@@ -8,12 +8,17 @@ using UnityEngine;
 ///
 /// Dois baus especiais (do jogo antigo) dao um item num pedestal em vez de arma: o trancado (dourado,
 /// gasta uma chave) e o amaldicoado (roxo, custa meio coracao pra abrir).
+///
+/// O bau maldito (vermelho-escuro, tremendo de leve) e um evento: abre de graca e da um item bom (o melhor
+/// de tres sorteados) e uma arma rara ou melhor, mas acorda uma emboscada de duas ondas em volta
+/// (<see cref="Emboscada.Soltar"/>).
 /// </summary>
 public enum TipoDeBau
 {
     Comum,
     Trancado,
     Amaldicoado,
+    Maldito,
 }
 
 [DisallowMultipleComponent]
@@ -36,7 +41,13 @@ public class Bau : Interativo
         tipo = qual;
         desenho.color = qual == TipoDeBau.Trancado ? new Color(1f, 0.85f, 0.4f)
                       : qual == TipoDeBau.Amaldicoado ? new Color(0.75f, 0.45f, 1f)
+                      : qual == TipoDeBau.Maldito ? new Color(0.85f, 0.3f, 0.3f)
                       : Color.white;
+
+        // O maldito brilha vermelho no escuro: da pra ver que e diferente.
+        if (qual == TipoDeBau.Maldito)
+            Iluminacao.Luz(transform, new Vector2(0f, 0.5f), new Color(1f, 0.25f, 0.2f), 2.6f, 0.9f, 0.08f);
+
         return this;
     }
 
@@ -45,6 +56,7 @@ public class Bau : Interativo
     public override string Dica =>
         tipo == TipoDeBau.Trancado ? "abrir o baú trancado (1 chave)"
         : tipo == TipoDeBau.Amaldicoado ? "abrir o baú amaldiçoado (meio coração)"
+        : tipo == TipoDeBau.Maldito ? "abrir o baú maldito (prêmio bom, mas algo vai acordar...)"
         : "abrir o baú";
 
     public static Bau Criar(Sprite[] quadros, Vector2 onde, Transform pai, DadosDaArma[] armas,
@@ -109,6 +121,13 @@ public class Bau : Interativo
         StartCoroutine(Abrir(jogador.GetComponent<ArmaDoJogador>()));
     }
 
+    private void Update()
+    {
+        // O maldito treme de leve enquanto fechado.
+        if (tipo == TipoDeBau.Maldito && !aberto)
+            desenho.transform.localPosition = new Vector3(Mathf.Sin(Time.time * 40f) * 0.03f * (Mathf.Sin(Time.time * 1.7f) > 0.3f ? 1f : 0f), 0.3f, 0f);
+    }
+
     private IEnumerator Abrir(ArmaDoJogador doJogador)
     {
         for (int i = 0; i < quadros.Length; i++)
@@ -118,6 +137,23 @@ public class Bau : Interativo
         }
 
         Vector2 frente = (Vector2)transform.position + Vector2.down * 0.9f;
+
+        // O maldito: o melhor de tres itens, uma arma rara ou melhor, e a emboscada acorda.
+        if (tipo == TipoDeBau.Maldito)
+        {
+            desenho.transform.localPosition = new Vector3(0f, 0.3f, 0f);
+            EstatisticasDoJogador estatisticas = doJogador != null ? doJogador.GetComponent<EstatisticasDoJogador>() : null;
+            Pedestal.Criar(frente + new Vector2(-0.9f, -0.4f), transform.parent, ItemBom(estatisticas));
+            DadosDaArma rara = Sortear(doJogador, Raridade.Rara) ?? Sortear(doJogador);
+
+            if (rara != null)
+                ArmaNoChao.Criar(new ArmaCarregada(rara), frente + new Vector2(0.9f, -0.4f), transform.parent);
+
+            CameraDoJogo.Tremer(0.2f, 0.4f);
+            Sons.Tocar(Som.Rugido, 0.8f);
+            Emboscada.Soltar(transform.position, transform.parent, GeradorDoAndar.Atual, 2);
+            yield break;
+        }
 
         // Os especiais dao um item num pedestal (e o trancado, umas moedas).
         if (tipo != TipoDeBau.Comum)
@@ -143,14 +179,31 @@ public class Bau : Interativo
             CaixaDeMunicao.Criar(caixaDeMunicao, frente + Vector2.right * 0.9f, transform.parent, somDaMunicao);
     }
 
-    // Pelo peso de cada uma neste andar (a raridade conta), sem repetir as que o jogador ja tem (se sobrar alguma).
-    private DadosDaArma Sortear(ArmaDoJogador doJogador)
+    // O melhor (o mais caro) de tres itens sorteados.
+    private static ItemPassivo ItemBom(EstatisticasDoJogador jogador)
+    {
+        ItemPassivo melhor = null;
+
+        for (int i = 0; i < 3; i++)
+        {
+            ItemPassivo item = CatalogoDeItens.Sortear(jogador);
+
+            if (melhor == null || (item != null && item.Preco > melhor.Preco))
+                melhor = item;
+        }
+
+        return melhor;
+    }
+
+    // Pelo peso de cada uma neste andar (a raridade conta), sem repetir as que o jogador ja tem (se sobrar
+    // alguma). Com <paramref name="noMinimo"/>, so dessa raridade pra cima (nula se nao tiver nenhuma).
+    private DadosDaArma Sortear(ArmaDoJogador doJogador, Raridade noMinimo = Raridade.Comum)
     {
         float total = 0f;
         int andar = GeradorDoAndar.AndarAtual;
 
         foreach (DadosDaArma a in armas)
-            if (Serve(a, doJogador, true))
+            if (Serve(a, doJogador, true) && a.raridade >= noMinimo)
                 total += a.PesoNoAndar(andar);
 
         bool semRepetir = total > 0f;
@@ -158,15 +211,18 @@ public class Bau : Interativo
         if (!semRepetir)
         {
             foreach (DadosDaArma a in armas)
-                if (Serve(a, doJogador, false))
+                if (Serve(a, doJogador, false) && a.raridade >= noMinimo)
                     total += a.PesoNoAndar(andar);
         }
+
+        if (total <= 0f)
+            return null;
 
         float ponto = Random.value * total;
 
         foreach (DadosDaArma a in armas)
         {
-            if (!Serve(a, doJogador, semRepetir))
+            if (!Serve(a, doJogador, semRepetir) || a.raridade < noMinimo)
                 continue;
 
             ponto -= a.PesoNoAndar(andar);

@@ -60,7 +60,10 @@ de novo.
   (`Tab` abre o mapa inteiro), a sala secreta atrás de uma parede de ilusão (parece parede, mas dá pra atravessar), a escolha
   do caminho (dois portais na Clareira: Catacumbas ou Cripta como mundo 2, cada uma com os inimigos e o
   chefe dela) e um chefe das Profundezas, o Rei Goblin (com a arte do Goblin Brutamonte, sorteado com o
-  Olho do Abismo). Próximo: com os pacotes completos, mais áreas seguras, mais mundos pra escolher e um
+  Olho do Abismo). Na 1.19.0: campeões (inimigos com aura e um poder extra), cristais que ficam entre
+  partidas e a estátua das melhorias, seis armas novas (lâminas que cortam tiros, bumerangues, raio que
+  pula), o modo maldito (depois de zerar), o desafio do dia (mesmo mapa pra todos, com recorde) e dois
+  eventos (o prisioneiro que vira mercador e o baú maldito com emboscada). Próximo: com os pacotes completos, mais áreas seguras, mais mundos pra escolher e um
   chefe com a arte própria dos bichos grandes do Depths.
 - **O que precisava adaptar do jogo antigo** (feito depois da etapa 8): moedas, chaves e bombas (as bombas
   saíram na 1.18.0, trocadas pelo tiro especial de cada arma, no G, com recarga), loja,

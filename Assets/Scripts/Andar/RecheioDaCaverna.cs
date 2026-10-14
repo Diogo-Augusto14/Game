@@ -4,9 +4,9 @@ using UnityEngine;
 /// <summary>
 /// O que vai no andar alem dos inimigos e das armas (as salas especiais e o cenario vivo do jogo
 /// antigo). Nas salas especiais (<see cref="EncherEspecial"/>): a loja, o altar de sangue, o desafio, o
-/// tesouro (item no pedestal ou bau trancado) e a sala secreta (item de graca, um bau, moedas e uma
-/// chave). Espalhado nas salas de luta (<see cref="Espalhar"/>): bau
-/// amaldicoado, pedra rachada com premio e as armadilhas (serra no trilho, tronco
+/// tesouro (item no pedestal ou bau trancado), a fonte dos desejos, a cela do prisioneiro e a sala secreta
+/// (item de graca, um bau, moedas e uma chave). Espalhado nas salas de luta (<see cref="Espalhar"/>): bau
+/// amaldicoado, bau maldito (com emboscada), pedra rachada com premio e as armadilhas (serra no trilho, tronco
 /// rolante, espinhos), alem de mesas, barris, baratas e velas.
 ///
 /// Cada coisa sai sorteada por andar; as que ocupam lugar saem do chao do mapa de caminhos (os
@@ -34,6 +34,14 @@ public static class RecheioDaCaverna
         {
             Bau.Criar(quadrosDoBau, maldito, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Amaldicoado);
             Ocupar(chao, maldito, 0, 0);
+        }
+
+        // O bau maldito (um evento): premio bom, mas acorda uma emboscada. Do segundo andar em diante.
+        if (quadrosDoBau != null && quadrosDoBau.Length > 0 && andar >= 2 && Random.value < 0.2f
+            && Achar(chao, usados, 2, 2, 10f, out Vector2 doEvento))
+        {
+            Bau.Criar(quadrosDoBau, doEvento, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Maldito);
+            Ocupar(chao, doEvento, 0, 0);
         }
 
         // Pedra rachada (so o tiro especial quebra) guardando um premio.
@@ -193,6 +201,16 @@ public static class RecheioDaCaverna
                 Vela.Criar(meio + new Vector2(-2f, 1f), pai);
                 Vela.Criar(meio + new Vector2(2f, 1f), pai);
                 break;
+
+            case TipoDeSala.Cela:
+            {
+                // O prisioneiro atras do portao, um pouco acima do meio; a loja dele abre embaixo, quando sair.
+                Vector2 cela = meio + Vector2.up * 0.8f;
+                Prisioneiro.Criar(cela, pai);
+                Ocupar(chao, cela + Vector2.up * 0.5f, 1, 1);
+                Ocupar(chao, cela + new Vector2(0f, -2.7f), 2, 0);
+                break;
+            }
 
             case TipoDeSala.Fonte:
                 // A fonte no meio (um pouco pra cima: a arma que ela devolve cai na frente).

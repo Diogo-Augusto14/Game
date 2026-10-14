@@ -587,6 +587,9 @@ public class GeradorDoAndar : MonoBehaviour
 
     private static GeradorDoAndar atual;
 
+    /// <summary>O gerador da cena (o bau maldito pede inimigos a ele).</summary>
+    public static GeradorDoAndar Atual => atual;
+
     /// <summary>O andar de agora (1 sem gerador): a chance das armas raras no bau sobe com ele.</summary>
     public static int AndarAtual => atual != null ? Mathf.Max(1, atual.Andar) : 1;
 
@@ -1176,6 +1179,9 @@ public class GeradorDoAndar : MonoBehaviour
 
         if (Random.value < 0.3f)
             especiais.Add(TipoDeSala.Fonte);
+
+        if (Random.value < 0.22f)
+            especiais.Add(TipoDeSala.Cela);
 
         return especiais;
     }

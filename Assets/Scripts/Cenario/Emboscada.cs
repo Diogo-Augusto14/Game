@@ -5,7 +5,9 @@ using UnityEngine;
 /// <summary>
 /// Uma emboscada (veio das salas especiais do jogo antigo): um monte de caveiras no chao; chegando
 /// perto, ondas de inimigos aparecem em volta. Vencidas as ondas, sai um bau. O desafio e a mesma
-/// coisa, mas o jogador escolhe comecar (E na placa) e as ondas sao mais; o premio e um item.
+/// coisa, mas o jogador escolhe comecar (E na placa) e as ondas sao mais; o premio e um item. O bau
+/// maldito solta uma na hora, sem caveiras e sem premio no fim (<see cref="Soltar"/>): o premio dele ja
+/// saiu do bau.
 /// </summary>
 public class Emboscada : Interativo
 {
@@ -14,6 +16,7 @@ public class Emboscada : Interativo
     private bool comecou;
     private int ondas;
     private Sprite[] quadrosDoBau;
+    private bool semPremio;
 
     public override bool Disponivel => desafio && !comecou;
 
@@ -35,6 +38,24 @@ public class Emboscada : Interativo
         e.desafio = desafio;
         e.ondas = desafio ? 3 : 2;
         e.quadrosDoBau = quadrosDoBau;
+        return e;
+    }
+
+    /// <summary>Uma emboscada que comeca agora, em volta do jogador, sem desenho e sem premio no fim.</summary>
+    public static Emboscada Soltar(Vector2 onde, Transform pai, GeradorDoAndar gerador, int ondas)
+    {
+        if (gerador == null)
+            return null;
+
+        GameObject obj = new GameObject("Emboscada do bau maldito");
+        obj.transform.SetParent(pai, false);
+        obj.transform.position = onde;
+
+        Emboscada e = obj.AddComponent<Emboscada>();
+        e.gerador = gerador;
+        e.ondas = Mathf.Max(1, ondas);
+        e.semPremio = true;
+        e.StartCoroutine(e.Lutar());
         return e;
     }
 
@@ -90,6 +111,12 @@ public class Emboscada : Interativo
         }
 
         Sons.Tocar(Som.Segredo, 0.8f, 0f);
+
+        if (semPremio)
+        {
+            Destroy(gameObject);
+            yield break;
+        }
 
         if (desafio)
         {

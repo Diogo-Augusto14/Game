@@ -23,6 +23,9 @@ public enum TipoDeSala
 
     /// <summary>A Fonte dos Desejos: joga a arma da mao e ela devolve outra, melhor ou pior.</summary>
     Fonte,
+
+    /// <summary>A cela de um prisioneiro: com uma chave, ele sai e vira mercador ali mesmo, com desconto.</summary>
+    Cela,
 }
 
 /// <summary>Uma sala da planta: o retangulo dela, as celulas de chao e as portas.</summary>
@@ -358,7 +361,8 @@ public static class PlantaDeSalas
             case TipoDeSala.Comeco: tamanho = new Vector2Int(clareira.x * 2 + 1, clareira.y * 2 + 1); break;
             case TipoDeSala.Fim: tamanho = new Vector2Int(15, 12); break;
             case TipoDeSala.Luta: tamanho = new Vector2Int(Random.Range(11, 16), Random.Range(9, 13)); break;
-            case TipoDeSala.Desafio: tamanho = new Vector2Int(13, 10); break;
+            case TipoDeSala.Desafio:
+            case TipoDeSala.Cela: tamanho = new Vector2Int(13, 10); break;
             default: tamanho = new Vector2Int(Random.Range(9, 12), Random.Range(7, 10)); break;
         }
 

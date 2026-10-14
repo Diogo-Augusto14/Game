@@ -122,6 +122,7 @@
     <Compile Include="Assets\Scripts\Cenario\FonteDaCura.cs" />
     <Compile Include="Assets\Scripts\Cenario\FonteDosDesejos.cs" />
     <Compile Include="Assets\Scripts\Cenario\EstatuaDosCristais.cs" />
+    <Compile Include="Assets\Scripts\Cenario\Prisioneiro.cs" />
     <Compile Include="Assets\Scripts\Cenario\CaliceDosEspiritos.cs" />
     <Compile Include="Assets\Scripts\Cenario\CriaturaDaSorte.cs" />
     <Compile Include="Assets\Scripts\Cenario\AltarDoPortal.cs" />

@@ -225,6 +225,14 @@ Os do mundo 2 e 3 continuam aparecendo no 4. (O contorno claro em volta dos inim
 | `PiscarAoTomarDano` | Fica branco a cada golpe |
 | `MorteDoInimigo` | Para, deixa de bater nas coisas, toca a morte e some numa nuvem de poeira |
 
+Os **campeões** (`Campeao`, desde a 1.19.0): ao montar as salas, cada inimigo tem uma chance
+(`Partida.ChanceDeCampeao`: 5% no andar 1, sobe 1% por andar até 16%, o dobro no modo maldito; nas
+ondas, metade) de virar campeão: 20% maior, 2,5× a vida, uma aura que pulsa e uma luz da cor do poder,
+e o nome em cima quando acorda. Os poderes: **furioso** (`InimigoAtirador.RitmoExtra` e `MaisTiros`),
+**flamejante** (deixa `ChamaNoChao`, que fere só o jogador), **blindado** (`Vida.Escudo`: um escudo de
+2,2 s a cada 6,5 s), **veloz** (`VelocidadeExtra`) e **estourado** (anel de 12 tiros ao morrer). Chefe
+não vira. Morto, solta 3 moedas, às vezes chave ou coração, e um cristal (`Campeao.Premiar`).
+
 Quem nasce no meio do andar (bolinhas, esqueletos levantados) entra na conta pelo
 `GeradorDoAndar.Registrar`. O golpe tem peso (`Impacto`): o número do dano pula do inimigo
 (`TextoFlutuante`, desliga nas configurações) e o jogo congela uns centésimos nos golpes fortes, nas
@@ -333,6 +341,11 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   gente e tiro como uma parede; rolando, machuca no comprimento todo (três círculos ao longo dele). Mesas (viram de lado no primeiro tiro), barris, caixotes, baratas e velas. Nada nos
   corredores nem na frente das portas; o que ocupa lugar sai do mapa de caminhos. (A emboscada saiu: a
   própria sala de luta já é uma.)
+- **Eventos** (1.19.0): a **cela** (`TipoDeSala.Cela`, 22% dos andares, ícone de chave no mapa) com o
+  `Prisioneiro`: com uma chave o portão da cela sobe, ele dá um cristal e abre uma `Loja` 40% mais barata
+  ali mesmo. O **baú maldito** (`TipoDeBau.Maldito`, 20% dos andares do 2 em diante, vermelho e
+  tremendo): abre de graça, dá o melhor de três itens e uma arma rara ou melhor, e solta uma emboscada de
+  duas ondas em volta (`Emboscada.Soltar`, sem prêmio no fim).
 - **Mundos com arte própria** (1.14.0, `EstiloDeLadrilhos`): Porão (o Old Prison em marrom), Catacumbas
   (o Old Prison), **Cripta** (pacote Crypt: paredes e chão do Crypt, sem buracos, caixões, estátuas,
   cruzes, estandartes e o lançador de fogo na parede) e **Profundezas** (pacote The Depths of the
@@ -435,7 +448,13 @@ Tudo no PlayerPrefs (`Assets/Scripts/Progresso`), como no jogo antigo:
 | `Conquistas` | 17 conquistas; ganhar mostra o `AvisoDeConquista` no canto |
 | `Bestiario` | Nome e "como luta" de cada inimigo e chefe |
 | `TelaDeProgresso` | O botão **Progresso** do menu: abas de estatísticas, conquistas e bestiário |
-| `Salvamento` | A partida salva: no começo de cada andar e no **Salvar e sair** da pausa (herói, andar, vida, armas, números e o caminho). **Continuar** no menu volta pro começo do andar salvo (ou pra área segura, se salvou nela). Morrer, vencer ou jogar de novo apaga |
+| `Salvamento` | A partida salva: no começo de cada andar e no **Salvar e sair** da pausa (herói, andar, vida, armas, números, o caminho e o modo). **Continuar** no menu volta pro começo do andar salvo (ou pra área segura, se salvou nela). Morrer, vencer ou jogar de novo apaga |
+| `Melhorias` | Os **cristais** e as melhorias compradas com eles (desde a 1.19.0): vida, desconto na loja, chaveiro, arsenal (libera as armas com `DadosDaArma.arsenal`) e pólvora (recarga do especial). Comprar é na `EstatuaDosCristais` (começo do andar 1 e áreas seguras), pela `TelaDaEstatua` |
+| `Partida` | O **modo** da partida: normal, **maldito** (liberado ao zerar: inimigos 25% mais rápidos, 25% mais inimigos e uma onda a mais, campeões em dobro; mais sorte, raras mais cedo e cristais em dobro) ou **desafio do dia** (`Semear` põe o `Random` na semente da data UTC e do andar antes de montar cada andar; sem melhorias; recorde do dia por pontos). Escolhido na `TelaDosModos` (botão **Modos de jogo** do menu) |
+
+Os cristais caem dos campeões (1), dos chefes (2 + andar/3), raramente de qualquer inimigo (1,2%), do
+prisioneiro solto e ao zerar (10); tudo em dobro no maldito. Pegar já guarda (`Melhorias.Ganhar`): morrer
+não perde.
 
 ## Criar uma arma
 
@@ -455,14 +474,29 @@ aparecem mais fundo. As armas dos heróis são comuns.
 | Incomum | Tomo das Brasas, Besta de Repetição |
 | Rara | Cajado do Trovão, Arco de Gelo, Arco Venenoso |
 | Épica | Arco Explosivo, Arco Ricochete |
-| Lendária | Tomo Proibido (espiral de brasas roxas), Besta Real (3 virotes que atravessam) |
+| Lendária | Tomo Proibido (espiral de brasas roxas que perseguem), Besta Real (3 virotes que se dividem em 3 ao acertar), Lâmina Real, Cetro do Abismo |
+
+As armas da 1.19.0 e os efeitos novos do `DadosDaArma`:
+
+| Arma | Raridade | Arsenal | O que tem |
+|---|---|---|---|
+| Lâmina Curta | Incomum | - | Corpo a corpo (`golpeNaMao`: balança na mão), `cortaTiros`: o corte apaga os tiros do outro lado que encosta |
+| Bumerangue | Incomum | - | `volta`: freia e volta pra mão; atravessa |
+| Cajado da Tempestade | Épica | 1 | `encadeia` 3: ao acertar, um `Raio` pula pros inimigos perto (até 4,5 unidades), 70% do dano e caindo 15% por salto |
+| Lâmina Real | Lendária | 2 | Corta tiros e `devolveTiros`: o tiro muda de lado e bate 4× |
+| Bumerangue de Prata | Rara | 2 | Dois bumerangues |
+| Cetro do Abismo | Lendária | 3 | Orbes que `persegue`m e `encadeia` 4 |
+
+O Cajado do Trovão também `encadeia` (2). `divideAoAcertar` (a Besta Real) solta o `Fragmento` da arma
+em leque. Com `arsenal` > 0 a arma só sai (baú, chão, fonte) depois desse nível do Arsenal; no desafio
+do dia, todas saem. Os desenhos novos saem do `Ferramentas/Armas/armas_novas.py`.
 
 A **Fonte dos Desejos** (`FonteDosDesejos`): joga nela a arma da mão (`ArmaDoJogador.Largar`) e ela
 devolve outra, de uma raridade sorteada a partir da jogada: 45% uma acima, 35% a mesma (outra arma),
 20% uma abaixo. Uma vez só. Fica na área segura e, às vezes (30%), numa sala só dela no andar
 (`TipoDeSala.Fonte`, com ícone no minimapa).
 
-O **tiro especial** (`G`, desde a 1.18.0): toda arma tem um, feito dela mesma na hora
+O **tiro especial** (botão direito ou `G`, LT no controle; desde a 1.18.0): toda arma tem um, feito dela mesma na hora
 (`DadosDaArma.Especial`, uma cópia com o padrão mudado), sem gastar munição e com recarga
 (`recargaDoEspecial`, guardada por arma na `ArmaCarregada`: trocar de arma não zera). O tipo é o
 `especial` do asset:
