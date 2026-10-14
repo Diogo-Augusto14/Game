@@ -258,7 +258,7 @@ public class ArmaDoJogador : MonoBehaviour
         Vector2 rumo = controles.Mira;
 
         // A arma na mao atira da ponta dela; a do personagem, de perto do corpo.
-        float saida = dados.desenhoNaMao != null ? dados.distanciaDaMao + 0.3f : distanciaDaSaida;
+        float saida = dados.Desenho != null ? dados.distanciaDaMao + 0.3f : distanciaDaSaida;
         Vector2 origem = (Vector2)transform.position + Vector2.up * alturaDaSaida + rumo * saida;
 
         if (!qual.Atualizar(origem, rumo, gameObject, Lado.Jogador))

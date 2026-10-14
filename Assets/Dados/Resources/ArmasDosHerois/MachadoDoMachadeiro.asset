@@ -49,3 +49,4 @@ MonoBehaviour:
   volume: 0.5
   especial: 4
   recargaDoEspecial: 7
+  giroNaMao: -45

@@ -28,6 +28,9 @@ public class DadosDaArma : ScriptableObject
     /// <summary>O desenho da arma solta (no chao, na moldura): o da mao, ou o do chao.</summary>
     public Sprite Desenho => desenhoNaMao != null ? desenhoNaMao : desenhoNoChao;
 
+    [Tooltip("Graus pra girar o desenho na mao ate ele apontar pra direita (o desenho na diagonal: -45)")]
+    public float giroNaMao;
+
     [Tooltip("Distancia do centro do corpo ate a arma, na direcao da mira")]
     [Min(0f)] public float distanciaDaMao = 0.4f;
 

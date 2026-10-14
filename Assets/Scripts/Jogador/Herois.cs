@@ -206,8 +206,10 @@ public static class Herois
 
         if (jogador.TryGetComponent(out AnimacaoDoJogador animacao))
         {
-            animacao.TrocarFolhas(Textura(heroi, "Idle"), Textura(heroi, "Walk"), Textura(heroi, heroi.FolhaDoAtaque),
-                                  Textura(heroi, "Death"), heroi.QuadroDoDisparo);
+            // No jogo, o boneco sem a arma desenhada (a arma aparece so na mao, ArmaNaMao); o retrato do
+            // menu continua com ela.
+            animacao.TrocarFolhas(SemArma(heroi, "Idle"), SemArma(heroi, "Walk"), Textura(heroi, heroi.FolhaDoAtaque),
+                                  SemArma(heroi, "Death"), heroi.QuadroDoDisparo);
         }
 
         DadosDaArma arma = Arma(heroi);
@@ -235,6 +237,10 @@ public static class Herois
     }
 
     private static Texture2D Textura(Heroi heroi, string nome) => Resources.Load<Texture2D>(heroi.Pasta + "/" + nome);
+
+    // A folha sem a arma desenhada (Ferramentas/Personagens/desarmar_herois.py); sem ela, a original.
+    private static Texture2D SemArma(Heroi heroi, string nome) =>
+        Resources.Load<Texture2D>(heroi.Pasta + "/SemArma/" + nome) ?? Textura(heroi, nome);
 
     private static Sprite[] Folha(Heroi heroi, string nome)
     {

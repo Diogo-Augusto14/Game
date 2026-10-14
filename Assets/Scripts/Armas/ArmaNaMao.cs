@@ -1,9 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Desenha a arma que esta na mao (a pistola, a escopeta...), girando pra onde o jogador mira, e da
-/// um coice a cada tiro. A arma do personagem (o arco do Arqueiro) ja esta no desenho dele: com ela,
-/// nada aparece aqui. Some na esquiva e quando o jogador morre.
+/// Desenha a arma que esta na mao, girando pra onde o jogador mira, e da um coice a cada tiro. Vale
+/// pra todas, a do heroi tambem (o boneco do heroi nao tem mais a arma desenhada; ver
+/// Ferramentas/Personagens/desarmar_herois.py). Some na esquiva e quando o jogador morre.
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(ArmaDoJogador))]
@@ -53,7 +53,8 @@ public class ArmaNaMao : MonoBehaviour
     private void LateUpdate()
     {
         DadosDaArma dados = armas.Arma;
-        bool mostrar = dados != null && dados.desenhoNaMao != null && controles != null
+        Sprite desenhoDaArma = dados != null ? dados.Desenho : null;
+        bool mostrar = desenhoDaArma != null && controles != null
                     && (movimento == null || !movimento.Esquivando) && (vida == null || !vida.Morto);
         desenho.enabled = mostrar;
 
@@ -63,11 +64,14 @@ public class ArmaNaMao : MonoBehaviour
         Vector2 mira = controles.Mira;
         coice = Mathf.MoveTowards(coice, 0f, Time.deltaTime * Mathf.Max(0.01f, dados.coice) / voltaDoCoice);
 
-        desenho.sprite = dados.desenhoNaMao;
+        desenho.sprite = desenhoDaArma;
         desenho.flipY = mira.x < 0f;
+
+        // O desenho de chao das armas dos herois e na diagonal: o giro acerta (espelhado, ao contrario).
+        float giro = desenho.flipY ? -dados.giroNaMao : dados.giroNaMao;
         // Mirando pra cima a arma fica atras do corpo; pra baixo e pros lados, na frente.
         desenho.sortingOrder = mira.y > 0.5f ? 9 : 11;
         desenho.transform.localPosition = (Vector3)(mira * (dados.distanciaDaMao - coice)) + new Vector3(0f, alturaDaMao, 0f);
-        desenho.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(mira.y, mira.x) * Mathf.Rad2Deg);
+        desenho.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(mira.y, mira.x) * Mathf.Rad2Deg + giro);
     }
 }

@@ -127,10 +127,9 @@ public class AnimacaoDoJogador : MonoBehaviour
 
     private void Atirou(Vector2 rumo, float intervalo)
     {
-        // Parado ou andando, o arco puxa e solta a cada tiro. O desenho do pacote nao tem "andar atirando"
-        // (o arco do tiro cobre as pernas), entao andando o corpo so da um pulinho a cada passo.
-        // Com outra arma na mao (pistola, escopeta...), o corpo nao puxa o arco: quem mexe e a arma.
-        if (quadrosDoTiro.Length == 0 || (arma != null && arma.Arma != null && arma.Arma.desenhoNaMao != null))
+        // Desde a 1.18.0 o boneco nao tem a arma desenhada: toda arma aparece na mao (ArmaNaMao), e quem
+        // mexe no tiro e ela (o coice). O ataque do corpo so toca se a arma nao tiver desenho nenhum.
+        if (quadrosDoTiro.Length == 0 || (arma != null && arma.Arma != null && arma.Arma.Desenho != null))
             return;
 
         float duracao = Mathf.Min(0.35f, intervalo);
