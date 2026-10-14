@@ -180,7 +180,7 @@ public class HudDoJogo
         float largura = 260 * u;
 
         float linhaDeTexto = 32 * u;
-        Desenho.Texto(new Rect(direita - largura, quadro.y, largura, linhaDeTexto), atual.Dados.nome, medio, Desenho.Claro);
+        Desenho.Texto(new Rect(direita - largura, quadro.y, largura, linhaDeTexto), atual.Dados.nome, medio, Raridades.Cor(atual.Dados.raridade));
 
         string municao;
         Color cor = Desenho.Claro;

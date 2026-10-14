@@ -48,3 +48,4 @@ MonoBehaviour:
   volume: 0.25
   especial: 0
   recargaDoEspecial: 5
+  raridade: 1

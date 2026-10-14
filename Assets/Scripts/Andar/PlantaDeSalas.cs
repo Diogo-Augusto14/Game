@@ -20,6 +20,9 @@ public enum TipoDeSala
 
     /// <summary>Escondida atras de uma parede de ilusao: parece parede, mas quem anda contra ela entra. Tem premio.</summary>
     Secreta,
+
+    /// <summary>A Fonte dos Desejos: joga a arma da mao e ela devolve outra, melhor ou pior.</summary>
+    Fonte,
 }
 
 /// <summary>Uma sala da planta: o retangulo dela, as celulas de chao e as portas.</summary>

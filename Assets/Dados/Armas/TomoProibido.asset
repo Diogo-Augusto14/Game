@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
+  m_Name: TomoProibido
+  m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
+  nome: Tomo Proibido
+  desenhoNaMao: {fileID: 21300000, guid: 58b888b69f0c4845807d26bca7227445, type: 3}
+  distanciaDaMao: 0.35
+  coice: 0.12
+  infinita: 0
+  semPente: 1
+  pente: 6
+  municaoMaxima: 60
+  recarga: 1.4
+  somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
+  pesoNoBau: 0.6
+  desenhoDoTiro: {fileID: 21300000, guid: 61e437e7cd8746b29a032bf092634d77, type: 3}
+  apontarODesenho: 0
+  cor: {r: 0.85, g: 0.5, b: 1, a: 1}
+  raio: 0.1
+  automatica: 0
+  tirosPorSegundo: 1.6
+  velocidade: 15
+  alcance: 8
+  dano: 3
+  empurrao: 5
+  aceleracao: -6
+  curva: 0
+  giroDoDesenho: 0
+  tirosPorDisparo: 8
+  abertura: 7
+  anel: 1
+  dispersao: 4
+  rajada: 3
+  intervaloDaRajada: 0.12
+  giroNaRajada: 15
+  tremor: 0.1
+  som: {fileID: 8300000, guid: 0fe30ac92cdb485fab2d0bf83ec57005, type: 3}
+  volume: 0.35
+  especial: 3
+  recargaDoEspecial: 5
+  raridade: 4

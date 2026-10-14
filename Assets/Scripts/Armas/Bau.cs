@@ -143,14 +143,15 @@ public class Bau : Interativo
             CaixaDeMunicao.Criar(caixaDeMunicao, frente + Vector2.right * 0.9f, transform.parent, somDaMunicao);
     }
 
-    // Pelo peso de cada uma, sem repetir as que o jogador ja tem (se sobrar alguma).
+    // Pelo peso de cada uma neste andar (a raridade conta), sem repetir as que o jogador ja tem (se sobrar alguma).
     private DadosDaArma Sortear(ArmaDoJogador doJogador)
     {
         float total = 0f;
+        int andar = GeradorDoAndar.AndarAtual;
 
         foreach (DadosDaArma a in armas)
             if (Serve(a, doJogador, true))
-                total += a.pesoNoBau;
+                total += a.PesoNoAndar(andar);
 
         bool semRepetir = total > 0f;
 
@@ -158,7 +159,7 @@ public class Bau : Interativo
         {
             foreach (DadosDaArma a in armas)
                 if (Serve(a, doJogador, false))
-                    total += a.pesoNoBau;
+                    total += a.PesoNoAndar(andar);
         }
 
         float ponto = Random.value * total;
@@ -168,7 +169,7 @@ public class Bau : Interativo
             if (!Serve(a, doJogador, semRepetir))
                 continue;
 
-            ponto -= a.pesoNoBau;
+            ponto -= a.PesoNoAndar(andar);
 
             if (ponto <= 0f)
                 return a;

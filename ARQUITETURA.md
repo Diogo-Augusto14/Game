@@ -54,7 +54,7 @@ mudado à mão na cena e no prefab se perde.
 | `Ferramentas/OldPrison` | `importar.py`: tira do pacote Old Prison as folhas e as regras do Tiled que a caverna usa |
 | `Ferramentas/Areas` | `importar.py`: tira das demos Grass Land e Ancient Ruins a arte das áreas seguras (`Resources/Areas`: grama, piso, árvores, arbustos, capim, pedras, ruínas, a fonte, o altar, o cálice, o mercador e a criatura da sorte) e do Village (interiors) a mobília (`Resources/Decoracao/Vila`: armários, estantes, prateleiras, barris, caixotes, mesas, tapetes, castiçais, armaduras, quadros, potes que quebram, o baú) |
 | `Ferramentas/Temas` | `importar.py`: tira dos pacotes Old Prison, Crypt e The Depths of the Mountain a arte da Cripta e das Profundezas (`DadosDosTemas.cs`) e a decoração (`Resources/Decoracao`: as peças do Old Prison em `Prisao/`, caixões, estátuas, cristais, tochas, velas, a chama mágica, a porta grande de madeira, o lançador de fogo) |
-| `Ferramentas/Personagens` | `importar.py`: recorta dos pacotes as folhas dos inimigos e do Rei Esqueleto (em volta do boneco, 32 pixels por unidade) e grava `quadros.json` |
+| `Ferramentas/Personagens` | `importar.py`: recorta dos pacotes as folhas dos inimigos e do Rei Esqueleto (em volta do boneco, 32 pixels por unidade) e grava `quadros.json`. `desarmar_herois.py`: tira a arma do desenho dos heróis (parado, andando e morte, em `SemArma/`): no jogo a arma aparece só na mão |
 | `Pacotes/` | Os pacotes comprados, descompactados (fora do Git deste repositório público; ficam no privado `ThePrettie-Pacotes`, ver `CLAUDE.md`) |
 
 ## As peças do jogador
@@ -68,7 +68,7 @@ Tudo no objeto **Jogador**, cada peça com um trabalho só:
 | `AnimacaoDoJogador` | Parado, andando, atirando e rolando na esquiva. O arco puxa e solta a cada tiro, parado ou andando (andando, o corpo dá um pulinho de 1 pixel a cada passo, porque o desenho do pacote não tem "andar atirando"). O corpo sempre olha pro lado da mira |
 | `RastroDaEsquiva` | As cópias azuladas que ficam pra trás na esquiva |
 | `ArmaDoJogador` | As duas armas: começa só com a do personagem (o arco, infinito). Troca entre elas, atira pra onde mira no ritmo da arma e gasta a munição; sem munição, só o clique. Pegar outra arma ocupa a mão vazia ou troca a da mão (o arco também). Não atira no meio da esquiva. O `G` solta o tiro especial da arma (ver **O tiro especial**) |
-| `ArmaNaMao` | Desenha a arma achada na mão, girando pra mira, com o coice do tiro (com o arco não aparece nada: ele já está no desenho do Arqueiro) |
+| `ArmaNaMao` | Desenha a arma da mão, girando pra mira, com o coice do tiro. Vale pra todas, a do herói também: desde a 1.18.0 o boneco do herói não tem a arma desenhada (as folhas `SemArma/`), e o corpo não toca mais a animação de ataque |
 | `InteracaoDoJogador` | Acha a coisa usável mais perto (arma no chão, baú) e usa no `E` (a dica em cima dela é da interface) |
 | `CursorDaMira` | Troca o cursor por uma mira enquanto o mouse mira; com o controle, o cursor some |
 | `Vida` | 6 de vida; depois de um golpe, 1 segundo sem tomar outro. A esquiva também protege (o `MovimentoDoJogador` é um `IInvulneravel`) |
@@ -443,6 +443,24 @@ Tudo no PlayerPrefs (`Assets/Scripts/Progresso`), como no jogo antigo:
 Inspector (desenho do tiro, ritmo, velocidade, alcance, dano, quantos tiros por disparo, abertura,
 dispersão, tremor, som) e arrastar o asset na `ArmaDoJogador`. Dá pra mexer nos números com o jogo
 rodando.
+
+A **raridade** (`raridade`, desde a 1.18.0): comum, incomum, rara, épica ou lendária. Muda a cor do nome
+no HUD, o brilho da arma no chão (as comuns não brilham) e a chance no baú: o peso de cada uma é o
+`pesoNoBau` vezes um fator do andar (`Raridades.Fator`), então as comuns somem aos poucos e as raras
+aparecem mais fundo. As armas dos heróis são comuns.
+
+| Raridade | Armas |
+|---|---|
+| Comum | Varinha de Faíscas, Machado de Arremesso (e as dos heróis) |
+| Incomum | Tomo das Brasas, Besta de Repetição |
+| Rara | Cajado do Trovão, Arco de Gelo, Arco Venenoso |
+| Épica | Arco Explosivo, Arco Ricochete |
+| Lendária | Tomo Proibido (espiral de brasas roxas), Besta Real (3 virotes que atravessam) |
+
+A **Fonte dos Desejos** (`FonteDosDesejos`): joga nela a arma da mão (`ArmaDoJogador.Largar`) e ela
+devolve outra, de uma raridade sorteada a partir da jogada: 45% uma acima, 35% a mesma (outra arma),
+20% uma abaixo. Uma vez só. Fica na área segura e, às vezes (30%), numa sala só dela no andar
+(`TipoDeSala.Fonte`, com ícone no minimapa).
 
 O **tiro especial** (`G`, desde a 1.18.0): toda arma tem um, feito dela mesma na hora
 (`DadosDaArma.Especial`, uma cópia com o padrão mudado), sem gastar munição e com recarga

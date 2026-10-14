@@ -58,6 +58,13 @@ public class DadosDaArma : ScriptableObject
     [Tooltip("Chance de sair num bau, comparada com as outras armas (0 = nunca)")]
     [Min(0f)] public float pesoNoBau = 1f;
 
+    [Tooltip("Comum, incomum, rara, epica ou lendaria: a cor do nome, o brilho no chao e a chance no bau " +
+             "(as raras saem mais nos andares fundos)")]
+    public Raridade raridade;
+
+    /// <summary>O peso no bau neste andar: as raras ficam mais comuns quanto mais fundo.</summary>
+    public float PesoNoAndar(int andar) => pesoNoBau * Raridades.Fator(raridade, andar);
+
     [Header("O tiro")]
     [Tooltip("O desenho do tiro (flecha, bala...)")]
     public Sprite desenhoDoTiro;
@@ -253,6 +260,61 @@ public class DadosDaArma : ScriptableObject
             float torto = Random.Range(-dispersao, dispersao);
             float a = (angulo + primeiro + passo * i + torto) * Mathf.Deg2Rad;
             Projetil.Disparar(origem, new Vector2(Mathf.Cos(a), Mathf.Sin(a)), this, dono, lado);
+        }
+    }
+}
+
+/// <summary>Quao rara e uma arma (a do heroi e comum).</summary>
+public enum Raridade
+{
+    Comum,
+    Incomum,
+    Rara,
+    Epica,
+    Lendaria,
+}
+
+/// <summary>O nome, a cor e a chance de cada raridade.</summary>
+public static class Raridades
+{
+    public const int Quantas = 5;
+
+    public static string Nome(Raridade r)
+    {
+        switch (r)
+        {
+            case Raridade.Incomum: return "Incomum";
+            case Raridade.Rara: return "Rara";
+            case Raridade.Epica: return "Épica";
+            case Raridade.Lendaria: return "Lendária";
+            default: return "Comum";
+        }
+    }
+
+    public static Color Cor(Raridade r)
+    {
+        switch (r)
+        {
+            case Raridade.Incomum: return new Color(0.45f, 0.9f, 0.4f);
+            case Raridade.Rara: return new Color(0.4f, 0.65f, 1f);
+            case Raridade.Epica: return new Color(0.8f, 0.45f, 1f);
+            case Raridade.Lendaria: return new Color(1f, 0.75f, 0.25f);
+            default: return new Color(0.92f, 0.9f, 0.86f);
+        }
+    }
+
+    /// <summary>Quanto o peso no bau muda neste andar: as comuns somem aos poucos, as raras aparecem.</summary>
+    public static float Fator(Raridade r, int andar)
+    {
+        float fundo = Mathf.Max(0, andar - 1);
+
+        switch (r)
+        {
+            case Raridade.Comum: return Mathf.Max(0.25f, 1.2f - 0.1f * fundo);
+            case Raridade.Incomum: return 1f;
+            case Raridade.Rara: return 0.5f + 0.08f * fundo;
+            case Raridade.Epica: return 0.2f + 0.06f * fundo;
+            default: return 0.05f + 0.04f * fundo;
         }
     }
 }

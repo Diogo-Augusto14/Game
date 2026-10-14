@@ -194,6 +194,12 @@ public static class RecheioDaCaverna
                 Vela.Criar(meio + new Vector2(2f, 1f), pai);
                 break;
 
+            case TipoDeSala.Fonte:
+                // A fonte no meio (um pouco pra cima: a arma que ela devolve cai na frente).
+                FonteDosDesejos.Criar(meio + Vector2.down * 0.5f, pai, gerador.ArmasDoBau);
+                Ocupar(chao, meio + Vector2.up * 1.4f, 1, 1);
+                break;
+
             case TipoDeSala.Secreta:
                 // O premio de quem achou: um item de graca, um bau do lado, moedas e uma chave.
                 Pedestal.Criar(meio, pai, CatalogoDeItens.Sortear(itens));

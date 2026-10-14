@@ -12,6 +12,7 @@ using UnityEngine.Tilemaps;
 ///   o calice dos espiritos (<see cref="CaliceDosEspiritos"/>), que da um coracao e moedas, uma vez;
 ///   a criatura da sorte (<see cref="CriaturaDaSorte"/>), que anda por ali e solta moedas num carinho;
 ///   um bau de graca (o bau do Village) e potes que quebram;
+///   a Fonte dos Desejos (<see cref="FonteDosDesejos"/>), que troca a arma da mao por outra, melhor ou pior;
 ///   e o portal pro proximo mundo: na clareira, no meio de um circulo de pedras; nas ruinas, em cima do
 ///   altar, que acende quando o jogador chega perto (<see cref="AltarDoPortal"/>). Quando da pra escolher
 ///   o caminho (<see cref="GeradorDoAndar.OpcoesDeCaminho"/>), sao dois portais lado a lado, cada um com
@@ -119,6 +120,10 @@ public static class AreaSegura
         lugar.Ocupar(calice, 1.5f);
         CriaturaDaSorte.Criar(new Vector2(5f, -6f), raiz);
         lugar.Ocupar(new Vector2(5f, -6f), 1.5f);
+
+        // A Fonte dos Desejos: joga a arma e ela devolve outra, melhor ou pior.
+        FonteDosDesejos.Criar(new Vector2(-4.5f, -7.5f), raiz, gerador.ArmasDoBau);
+        lugar.Ocupar(new Vector2(-4.5f, -5.8f), 3f);
 
         // Um bau de graca.
         Sprite[] bau = FolhaDeSprites.Cortar(Resources.Load<Texture2D>("Decoracao/Vila/BauAbrindo"), new Vector2Int(192, 192), Pixels);

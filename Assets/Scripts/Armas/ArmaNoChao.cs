@@ -1,8 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Uma arma caida no chao, com a municao que tinha. Flutua de leve; chegando perto, a dica aparece
-/// e interagir pega (a arma que estava no lugar cai aqui). Monte com <see cref="Criar"/>.
+/// Uma arma caida no chao, com a municao que tinha. Flutua de leve, com um brilho da cor da raridade
+/// (as comuns, nenhum); chegando perto, a dica aparece com o nome e a raridade, e interagir pega (a
+/// arma que estava no lugar cai aqui). Monte com <see cref="Criar"/>.
 /// </summary>
 [DisallowMultipleComponent]
 public class ArmaNoChao : Interativo
@@ -16,7 +17,7 @@ public class ArmaNoChao : Interativo
         get
         {
             string municao = arma.Infinita ? "" : $" ({arma.NoPente + arma.Reserva})";
-            return "pegar " + arma.Dados.nome + municao;
+            return "pegar " + arma.Dados.nome + municao + " [" + Raridades.Nome(arma.Dados.raridade) + "]";
         }
     }
 
@@ -32,6 +33,10 @@ public class ArmaNoChao : Interativo
         sprite.sprite = arma.Dados.Desenho;
         sprite.sortingOrder = -99;
         Iluminacao.Brilhar(sprite);
+
+        // O brilho da raridade.
+        if (arma.Dados.raridade != Raridade.Comum)
+            Iluminacao.Luz(obj.transform, Vector2.zero, Raridades.Cor(arma.Dados.raridade), 1.6f + 0.3f * (int)arma.Dados.raridade, 0.9f, 0.05f);
 
         ArmaNoChao noChao = obj.AddComponent<ArmaNoChao>();
         noChao.arma = arma;

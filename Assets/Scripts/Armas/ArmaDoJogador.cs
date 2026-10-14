@@ -58,8 +58,8 @@ public class ArmaDoJogador : MonoBehaviour
     /// <summary>A outra (nula se so tem a do personagem).</summary>
     public ArmaCarregada Outra => maos[1 - naMao];
 
-    /// <summary>Os dados da arma na mao (atalho).</summary>
-    public DadosDaArma Arma => Atual != null ? Atual.Dados : arma;
+    /// <summary>Os dados da arma na mao (atalho; nulo com a mao vazia).</summary>
+    public DadosDaArma Arma => Atual != null ? Atual.Dados : null;
 
     public bool Recarregando => recarregaAte >= 0f;
 
@@ -131,6 +131,29 @@ public class ArmaDoJogador : MonoBehaviour
         maos[naMao] = nova;
         MudarPara(naMao);
         return velha;
+    }
+
+    /// <summary>
+    /// Tira a arma da mao (a Fonte dos Desejos engole ela) e passa pra outra, se tiver. Devolve a que saiu.
+    /// </summary>
+    public ArmaCarregada Largar()
+    {
+        ArmaCarregada saiu = maos[naMao];
+
+        if (saiu == null)
+            return null;
+
+        maos[naMao] = null;
+        rajada.Parar();
+        rajadaEspecial.Parar();
+        recarregaAte = -1f;
+
+        if (maos[1 - naMao] != null)
+            MudarPara(1 - naMao);
+        else
+            AoTrocar?.Invoke();
+
+        return saiu;
     }
 
     private void Update()
