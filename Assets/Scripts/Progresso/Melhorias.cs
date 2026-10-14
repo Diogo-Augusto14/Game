@@ -120,6 +120,10 @@ public static class Melhorias
         GuardarCristais(Cristais - preco);
         PlayerPrefs.SetInt(Prefixo + qual, Nivel(qual) + 1);
         PlayerPrefs.Save();
+
+        if (System.Array.TrueForAll(Todas, d => NoMaximo(d.Qual)))
+            Conquistas.Conquistar(Conquistas.EstatuaCompleta);
+
         return true;
     }
 

@@ -86,6 +86,7 @@ public class Prisioneiro : Interativo
         }
 
         solto = true;
+        Conquistas.Contar("prisioneiros", 5, Conquistas.Libertador);
         Sons.Tocar(Som.Destranca, 0.9f, 0f);
         StartCoroutine(Abrir(jogador.GetComponent<EstatisticasDoJogador>()));
     }

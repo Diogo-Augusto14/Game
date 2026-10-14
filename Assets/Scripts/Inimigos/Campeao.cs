@@ -29,6 +29,10 @@ public enum TipoDeCampeao
 ///
 /// O <see cref="GeradorDoAndar"/> sorteia quem vira campeao ao montar as salas
 /// (<see cref="Partida.ChanceDeCampeao"/>: sobe com o andar e dobra no modo maldito). Chefe nao vira.
+///
+/// O **campeao-chefe** (<see cref="SortearChefe"/>, as vezes na sala do fim): dois poderes juntos, 6 vezes a
+/// vida, maior ainda, e uma barra de vida no alto da tela enquanto esta acordado (<see cref="ChefeAtivo"/>).
+/// Morto, solta o premio em dobro e mais cristais.
 /// </summary>
 [DisallowMultipleComponent]
 public class Campeao : MonoBehaviour
@@ -42,6 +46,8 @@ public class Campeao : MonoBehaviour
     private static DadosDaArma estouro;
 
     private TipoDeCampeao tipo;
+    private TipoDeCampeao? segundo;
+    private bool ehChefe;
     private Vida vida;
     private InimigoAtirador atirador;
     private SpriteRenderer aura;
@@ -53,6 +59,24 @@ public class Campeao : MonoBehaviour
     private bool avisou;
 
     public TipoDeCampeao Tipo => tipo;
+
+    /// <summary>E o campeao-chefe da sala do fim (dois poderes e a barra de vida).</summary>
+    public bool EhChefe => ehChefe;
+
+    /// <summary>O campeao-chefe acordado e vivo agora (a HUD desenha a barra dele), ou nulo.</summary>
+    public static Campeao ChefeAtivo { get; private set; }
+
+    /// <summary>A vida dele (a barra).</summary>
+    public Vida Vida => vida;
+
+    /// <summary>"Campeão-chefe furioso e blindado" (ou o nome do campeao comum).</summary>
+    public string NomeCompleto => ehChefe && segundo.HasValue
+        ? $"Campeão-chefe {Adjetivo(tipo)} e {Adjetivo(segundo.Value)}"
+        : Nome(tipo);
+
+    private bool Tem(TipoDeCampeao t) => tipo == t || segundo == t;
+
+    private static string Adjetivo(TipoDeCampeao t) => Nome(t).Substring("Campeão ".Length);
 
     /// <summary>A cor de cada poder (a aura, a luz e o nome).</summary>
     public static Color Cor(TipoDeCampeao tipo)
@@ -92,21 +116,48 @@ public class Campeao : MonoBehaviour
             tipo = TipoDeCampeao.Blindado;
 
         Campeao c = inimigo.AddComponent<Campeao>();
-        c.Montar(tipo);
+        c.Montar(tipo, null, false);
         return c;
     }
 
-    private void Montar(TipoDeCampeao qual)
+    /// <summary>O campeao-chefe: dois poderes diferentes, sorteados (os de andar e atacar so em quem anda).</summary>
+    public static Campeao SortearChefe(GameObject inimigo)
+    {
+        if (inimigo == null || inimigo.TryGetComponent(out Chefe _) || inimigo.TryGetComponent(out Campeao _))
+            return null;
+
+        bool anda = inimigo.TryGetComponent(out InimigoAtirador _);
+        System.Collections.Generic.List<TipoDeCampeao> podem = new System.Collections.Generic.List<TipoDeCampeao>
+            { TipoDeCampeao.Flamejante, TipoDeCampeao.Blindado, TipoDeCampeao.Estourado };
+
+        if (anda)
+        {
+            podem.Add(TipoDeCampeao.Furioso);
+            podem.Add(TipoDeCampeao.Veloz);
+        }
+
+        TipoDeCampeao a = podem[Random.Range(0, podem.Count)];
+        podem.Remove(a);
+        TipoDeCampeao b = podem[Random.Range(0, podem.Count)];
+
+        Campeao c = inimigo.AddComponent<Campeao>();
+        c.Montar(a, b, true);
+        return c;
+    }
+
+    private void Montar(TipoDeCampeao qual, TipoDeCampeao? outro, bool chefe)
     {
         tipo = qual;
+        segundo = outro;
+        ehChefe = chefe;
         vida = GetComponent<Vida>();
         atirador = GetComponent<InimigoAtirador>();
         Color cor = Cor(tipo);
 
         if (vida != null)
-            vida.MudarMaxima(vida.Maxima * (VidaVezes - 1f));
+            vida.MudarMaxima(vida.Maxima * ((chefe ? 6f : VidaVezes) - 1f));
 
-        transform.localScale *= Tamanho;
+        transform.localScale *= chefe ? 1.45f : Tamanho;
 
         // O corpo puxa um pouco pra cor (a furia e o gelo pintam por cima e devolvem esta).
         SpriteRenderer corpo = null;
@@ -129,7 +180,30 @@ public class Campeao : MonoBehaviour
         aura.sortingOrder = corpo != null ? corpo.sortingOrder - 1 : 0;
         luz = Iluminacao.Luz(transform, Vector2.zero, cor, 2.4f, 0.9f, 0.05f);
 
-        switch (tipo)
+        // O segundo poder do chefe tambem pinta: uma segunda aura, menor, da cor dele.
+        if (segundo.HasValue)
+        {
+            Color cor2 = Cor(segundo.Value);
+            GameObject obj2 = new GameObject("Segunda aura");
+            obj2.transform.SetParent(transform, false);
+            obj2.transform.localScale = Vector3.one * 0.75f;
+            auraDoSegundo = obj2.AddComponent<SpriteRenderer>();
+            auraDoSegundo.sprite = Anel();
+            auraDoSegundo.color = new Color(cor2.r, cor2.g, cor2.b, 0.5f);
+            auraDoSegundo.sortingOrder = aura.sortingOrder;
+        }
+
+        foreach (TipoDeCampeao t in segundo.HasValue ? new[] { tipo, segundo.Value } : new[] { tipo })
+            Poder(t, corpo);
+
+        ultimaChama = transform.position;
+    }
+
+    private SpriteRenderer auraDoSegundo;
+
+    private void Poder(TipoDeCampeao qual, SpriteRenderer corpo)
+    {
+        switch (qual)
         {
             case TipoDeCampeao.Furioso:
                 atirador.RitmoExtra = 1.35f;
@@ -137,7 +211,7 @@ public class Campeao : MonoBehaviour
                 break;
 
             case TipoDeCampeao.Veloz:
-                atirador.VelocidadeExtra = 1.75f;
+                atirador.VelocidadeExtra = ehChefe ? 1.45f : 1.75f;
                 break;
 
             case TipoDeCampeao.Blindado:
@@ -162,14 +236,15 @@ public class Campeao : MonoBehaviour
                     vida.AoMorrer += Estourar;
                 break;
         }
-
-        ultimaChama = transform.position;
     }
 
     private void OnDestroy()
     {
         if (vida != null)
             vida.AoMorrer -= Estourar;
+
+        if (ChefeAtivo == this)
+            ChefeAtivo = null;
     }
 
     private void Update()
@@ -185,7 +260,19 @@ public class Campeao : MonoBehaviour
             if (luz != null)
                 luz.enabled = false;
 
+            if (auraDoSegundo != null)
+                auraDoSegundo.enabled = false;
+
+            if (ChefeAtivo == this)
+                ChefeAtivo = null;
+
             return;
+        }
+
+        if (auraDoSegundo != null)
+        {
+            float p2 = 0.5f + 0.5f * Mathf.Sin(Time.time * 5f + 1.6f);
+            auraDoSegundo.transform.localScale = Vector3.one * (0.75f + 0.12f * p2);
         }
 
         float pulso = 0.5f + 0.5f * Mathf.Sin(Time.time * 5f);
@@ -197,17 +284,23 @@ public class Campeao : MonoBehaviour
         if (!avisou && (atirador == null || atirador.Acordado))
         {
             avisou = true;
-            TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.5f, Nome(tipo), cor, 1.4f);
+            TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.5f, NomeCompleto, cor, 1.4f);
+
+            if (ehChefe)
+            {
+                ChefeAtivo = this;
+                CameraDoJogo.Tremer(0.2f, 0.4f);
+            }
             Sons.Tocar(Som.Campeao, 0.6f);
         }
 
-        if (tipo == TipoDeCampeao.Flamejante && Vector2.Distance(transform.position, ultimaChama) > 0.8f)
+        if (Tem(TipoDeCampeao.Flamejante) && Vector2.Distance(transform.position, ultimaChama) > 0.8f)
         {
             ultimaChama = transform.position;
             ChamaNoChao.Criar(ultimaChama, GeradorDoAndar.Raiz, gameObject);
         }
 
-        if (tipo == TipoDeCampeao.Blindado)
+        if (Tem(TipoDeCampeao.Blindado))
             Escudar();
     }
 
@@ -259,9 +352,22 @@ public class Campeao : MonoBehaviour
         Sons.Tocar(Som.Explosao, 0.5f);
     }
 
-    /// <summary>O premio de um campeao morto: moedas, as vezes chave ou coracao, e um cristal (dois no maldito).</summary>
-    public static void Premiar(Vector2 onde)
+    /// <summary>O premio de um campeao morto (o do chefe: em dobro, um coracao e mais dois cristais).</summary>
+    public void Premiar(Vector2 onde)
     {
+        Premiar(onde, ehChefe);
+    }
+
+    /// <summary>O premio de um campeao morto: moedas, as vezes chave ou coracao, e um cristal (dois no maldito).</summary>
+    public static void Premiar(Vector2 onde, bool chefe)
+    {
+        if (chefe)
+        {
+            Premiar(onde, false);
+            Coletavel.Criar(TipoDeColetavel.Coracao, onde + Vector2.right);
+            Coletavel.Criar(TipoDeColetavel.Cristal, onde + Vector2.up, 2 * Partida.CristaisVezes);
+        }
+
         for (int i = 0; i < 3; i++)
             Coletavel.Criar(TipoDeColetavel.Moeda, onde + Random.insideUnitCircle * 0.5f);
 

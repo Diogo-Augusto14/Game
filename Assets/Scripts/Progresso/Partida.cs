@@ -130,10 +130,16 @@ public static class Partida
 
         int pontos = UltimosPontos;
 
-        if (pontos <= RecordeDoDia(Dia))
+        int anterior = RecordeDoDia(Dia);
+
+        if (pontos <= anterior)
             return false;
 
         BateuORecorde = true;
+
+        // A conquista e por superar uma partida de hoje (a primeira do dia nao conta).
+        if (anterior > 0)
+            Conquistas.Conquistar(Conquistas.MelhorDoDia);
 
         PlayerPrefs.SetInt(Prefixo + "recorde." + Dia, pontos);
         PlayerPrefs.SetString(Prefixo + "resumo." + Dia,

@@ -54,6 +54,8 @@ public class HudDoJogo
 
             if (gerador.ChefeAtual != null)
                 BarraDoChefe(gerador.ChefeAtual, u);
+            else if (Campeao.ChefeAtivo != null)
+                BarraDoCampeao(Campeao.ChefeAtivo, u);
 
         }
     }
@@ -281,6 +283,20 @@ public class HudDoJogo
 
         Desenho.Texto(new Rect(barra.x, barra.y - 30 * u, barra.width, 28 * u), chefe.Nome, nome, chefe.NaFuria ? Desenho.Vermelho : Desenho.Dourado);
         Barra(barra, chefe.Vida.Fracao, chefe.NaFuria ? new Color(1f, 0.4f, 0.15f) : new Color(0.85f, 0.16f, 0.2f));
+    }
+
+    // O campeao-chefe da sala do fim: a mesma barra, menor, na cor do poder principal dele.
+    private void BarraDoCampeao(Campeao campeao, int u)
+    {
+        if (campeao.Vida == null || campeao.Vida.Morto)
+            return;
+
+        float largura = Mathf.Min(Screen.width * 0.5f, 240 * u);
+        Rect barra = new Rect((Screen.width - largura) * 0.5f, 40 * u, largura, 11 * u);
+        GUIStyle nome = Desenho.Estilo(tela.fonteTexto, 18 * u, TextAnchor.LowerCenter);
+        Color cor = Campeao.Cor(campeao.Tipo);
+        Desenho.Texto(new Rect(barra.x - 100 * u, barra.y - 24 * u, barra.width + 200 * u, 22 * u), campeao.NomeCompleto, nome, cor);
+        Barra(barra, campeao.Vida.Fracao, cor);
     }
 
     // A barra dourada do pacote, com o fundo escuro e a parte cheia por dentro.

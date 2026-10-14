@@ -42,11 +42,32 @@ public static class Conquistas
     public static readonly Conquista Especialista = new Conquista("especialista", "Especialista", "Use habilidades 50 vezes.");
     public static readonly Conquista TodosOsHerois = new Conquista("herois", "Companhia Completa", "Libere todos os heróis.");
 
+    // 1.19.0
+    public static readonly Conquista Campeoes = new Conquista("campeoes", "Matador de Campeões", "Derrote 50 campeões (somando as partidas).");
+    public static readonly Conquista Maldito = new Conquista("maldito", "Maldição Quebrada", "Zere o jogo no modo maldito.");
+    public static readonly Conquista MelhorDoDia = new Conquista("recorde-do-dia", "Melhor do Dia", "Bata o seu recorde no desafio do dia.");
+    public static readonly Conquista EstatuaCompleta = new Conquista("estatua", "Devoto da Estátua", "Compre todas as melhorias da estátua dos cristais.");
+    public static readonly Conquista Libertador = new Conquista("libertador", "Libertador", "Solte 5 prisioneiros (somando as partidas).");
+
     public static readonly IReadOnlyList<Conquista> Todas = new[]
     {
         PrimeiroSangue, Cacador, Exterminador, SaidaDoPorao, Persistente, Touro, LuaMinguante, FimDaGuerra,
         Martelada, Descanso, Brasa, LendaDoAbismo, Veterano, Naturalista, Arsenal, Especialista, TodosOsHerois,
+        Campeoes, Maldito, MelhorDoDia, EstatuaCompleta, Libertador,
     };
+
+    /// <summary>
+    /// Soma um num contador que fica entre partidas (campeoes derrotados, prisioneiros soltos) e, chegando
+    /// em <paramref name="alvo"/>, ganha a conquista.
+    /// </summary>
+    public static void Contar(string chave, int alvo, Conquista c)
+    {
+        int n = PlayerPrefs.GetInt(Prefixo + "conta." + chave, 0) + 1;
+        PlayerPrefs.SetInt(Prefixo + "conta." + chave, n);
+
+        if (n >= alvo)
+            Conquistar(c);
+    }
 
     /// <summary>A conquista de vencer este chefe (pelo nome do prefab), ou nula.</summary>
     public static Conquista DoChefe(string id)
@@ -98,5 +119,8 @@ public static class Conquistas
     {
         foreach (Conquista c in Todas)
             PlayerPrefs.DeleteKey(Prefixo + c.Id);
+
+        PlayerPrefs.DeleteKey(Prefixo + "conta.campeoes");
+        PlayerPrefs.DeleteKey(Prefixo + "conta.prisioneiros");
     }
 }

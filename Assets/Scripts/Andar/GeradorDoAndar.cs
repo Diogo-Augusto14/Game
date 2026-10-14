@@ -471,8 +471,11 @@ public class GeradorDoAndar : MonoBehaviour
                 Coletavel.SoltarDoInimigo(ondeMorreuOUltimo, eraOChefe, sorte);
 
                 // O campeao solta mais (moedas e um cristal).
-                if (vida.TryGetComponent(out Campeao _))
-                    Campeao.Premiar(ondeMorreuOUltimo);
+                if (vida.TryGetComponent(out Campeao campeao))
+                {
+                    campeao.Premiar(ondeMorreuOUltimo);
+                    Conquistas.Contar("campeoes", 50, Conquistas.Campeoes);
+                }
 
                 if (eraOChefe)
                 {
@@ -747,6 +750,9 @@ public class GeradorDoAndar : MonoBehaviour
             // Zerar da cristais (o dobro no maldito) e, no desafio do dia, conta o recorde.
             Melhorias.Ganhar(10 * Partida.CristaisVezes);
             Partida.Terminar(Andar, true);
+
+            if (Partida.Maldito)
+                Conquistas.Conquistar(Conquistas.Maldito);
             Progresso.Zerar(Herois.Atual.Nome);
             Salvamento.Apagar();
             TelaDeFimDeJogo.MostrarVitoria(this);
@@ -1285,6 +1291,7 @@ public class GeradorDoAndar : MonoBehaviour
             }
 
             List<Vector2Int> usados = new List<Vector2Int>();
+            List<GameObject> daSala = new List<GameObject>();
 
             for (int tentativa = 0; usados.Count < quantos && tentativa < quantos * 40; tentativa++)
             {
@@ -1306,11 +1313,22 @@ public class GeradorDoAndar : MonoBehaviour
                 if (Random.value < Partida.ChanceDeCampeao(Andar))
                     Campeao.Sortear(novo);
 
+                daSala.Add(novo);
+
                 if (novo.TryGetComponent(out Vida vida))
                 {
                     vivos.Add(vida);
                     luta.Adicionar(vida);
                 }
+            }
+
+            // A sala do fim, do segundo andar em diante, as vezes tem um campeao-chefe (dois poderes e a barra
+            // de vida no alto): um dos que nao viraram campeao, de preferencia quem anda e ataca.
+            if (fim && Andar >= 2 && Random.value < (Partida.Maldito ? 0.6f : 0.35f))
+            {
+                GameObject escolhido = daSala.Find(o => o != null && !o.TryGetComponent(out Campeao _) && o.TryGetComponent(out InimigoAtirador _))
+                                       ?? daSala.Find(o => o != null && !o.TryGetComponent(out Campeao _));
+                Campeao.SortearChefe(escolhido);
             }
         }
     }
