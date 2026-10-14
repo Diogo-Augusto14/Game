@@ -9,7 +9,7 @@ using UnityEngine;
 /// So aparece o que o jogador ja conhece: as salas em que entrou e, apagadas, as vizinhas (as que um
 /// corredor liga a uma sala visitada), com os corredores entre elas. As salas de luta que ainda tem
 /// inimigos ficam vermelhas; as especiais tem o icone delas (loja, tesouro, altar, desafio, a sala do fim
-/// e a secreta, que so aparece depois que a bomba abre a passagem). O portal aberto e o jogador piscam.
+/// e a secreta, que so aparece depois que o jogador acha a parede de ilusao). O portal aberto e o jogador piscam.
 ///
 /// Fica no mesmo objeto do <see cref="GeradorDoAndar"/> (ele poe sozinho) e le a planta dele; na arena
 /// do chefe e na area segura nao tem mapa. Desenhado no OnGUI, em pixels inteiros (<see cref="Desenho"/>).

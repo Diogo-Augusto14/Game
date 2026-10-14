@@ -57,7 +57,7 @@ de novo.
   último mundo (agora Profundezas) ganharam arte própria, 14 inimigos novos, o chefe Rei Esqueleto, portas,
   armadilhas e decoração. Na 1.17.0, as áreas seguras abertas entre os mundos (Clareira e Ruínas, das
   demos Grass Land e Ancient Ruins) e as salas especiais mobiliadas com o Village. Na 1.18.0: o minimapa
-  (`Tab` abre o mapa inteiro), a sala secreta atrás de uma parede rachada que só a bomba abre, a escolha
+  (`Tab` abre o mapa inteiro), a sala secreta atrás de uma parede de ilusão (parece parede, mas dá pra atravessar), a escolha
   do caminho (dois portais na Clareira: Catacumbas ou Cripta como mundo 2, cada uma com os inimigos e o
   chefe dela) e um chefe das Profundezas, o Rei Goblin (com a arte do Goblin Brutamonte, sorteado com o
   Olho do Abismo). Próximo: com os pacotes completos, mais áreas seguras, mais mundos pra escolher e um

@@ -74,7 +74,7 @@ public class GeradorDoAndar : MonoBehaviour
     [Tooltip("Ate quantos passos do jogador os inimigos acham caminho contornando paredes")]
     [SerializeField, Min(1)] private int distanciaDosCaminhos = 40;
 
-    [Tooltip("Chance de um andar de salas ter uma sala secreta (atras de uma parede que so a bomba abre)")]
+    [Tooltip("Chance de um andar de salas ter uma sala secreta (atras de uma parede de ilusao: quem anda contra ela entra)")]
     [SerializeField, Range(0f, 1f)] private float chanceDeSalaSecreta = 0.6f;
 
     [Tooltip("Com esta quantidade de salas (ou inimigos soltos) ou menos, uma seta aponta pra mais perto")]
@@ -183,7 +183,7 @@ public class GeradorDoAndar : MonoBehaviour
 
     private bool escolhaNoDescanso;
 
-    /// <summary>A passagem pra sala secreta deste andar ja foi aberta pela bomba.</summary>
+    /// <summary>A passagem pra sala secreta deste andar ja foi achada (o jogador entrou na parede de ilusao).</summary>
     public bool SegredoAberto { get; private set; }
 
     /// <summary>Onde o portal esta (se ja abriu).</summary>
@@ -1027,7 +1027,7 @@ public class GeradorDoAndar : MonoBehaviour
         Decoracao.Espalhar(Tema + 1, construtor.Estilo, salas, chaoDaCaverna, armadilhas, raiz.transform);
         EspalharInimigos(salas, chaoDaCaverna, AndarNoTema(andar), caverna);
 
-        // A parede que esconde a sala secreta (a bomba abre), e o que tem la dentro apagado ate abrir.
+        // A parede de ilusao que esconde a sala secreta, e o que tem la dentro apagado ate ela se revelar.
         if (salas.secreta != null && salas.passagemSecreta.Count > 0)
         {
             ParedeSecreta.Criar(salas.passagemSecreta, salas.donaDoSegredo, raiz.transform, AbrirSegredo);
@@ -1070,7 +1070,7 @@ public class GeradorDoAndar : MonoBehaviour
         }
     }
 
-    // A bomba abriu a parede da sala secreta: aquele pedaco do andar e refeito com o corredor aberto,
+    // O jogador entrou na parede de ilusao: aquele pedaco do andar e redesenhado com o corredor aberto,
     // e o corredor entra no chao (os inimigos tambem passam). O que estava apagado la dentro acende.
     private void AbrirSegredo()
     {

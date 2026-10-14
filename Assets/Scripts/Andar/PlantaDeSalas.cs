@@ -18,7 +18,7 @@ public enum TipoDeSala
     Altar,
     Desafio,
 
-    /// <summary>Escondida atras de uma parede rachada: so uma bomba abre a passagem. Tem premio.</summary>
+    /// <summary>Escondida atras de uma parede de ilusao: parece parede, mas quem anda contra ela entra. Tem premio.</summary>
     Secreta,
 }
 
@@ -80,8 +80,8 @@ public class PortaDaPlanta
 /// encosta numa sala de luta e a porta dela.
 ///
 /// As vezes ainda tem uma sala secreta (<see cref="TipoDeSala.Secreta"/>) pendurada numa sala qualquer
-/// (menos a do comeco): o corredor ate ela fica fechado por parede (a <see cref="Planta.passagemSecreta"/>),
-/// e so uma bomba encostada nela abre (<see cref="ParedeSecreta"/>).
+/// (menos a do comeco): o corredor ate ela e desenhado como parede (a <see cref="Planta.passagemSecreta"/>),
+/// mas e uma parede de ilusao: quem anda contra ela entra (<see cref="ParedeSecreta"/>).
 /// </summary>
 public static class PlantaDeSalas
 {
@@ -108,8 +108,8 @@ public static class PlantaDeSalas
         public SalaDaPlanta secreta, donaDoSegredo;
 
         /// <summary>
-        /// As celulas que a bomba abre: o corredor ate a sala secreta. Ficam fora do <see cref="chao"/>
-        /// (sao parede ate abrir); a sala secreta em si ja e chao, mas ninguem chega nela.
+        /// As celulas da parede de ilusao: o corredor ate a sala secreta. Ficam fora do <see cref="chao"/>
+        /// (sao desenhadas como parede, mas nao seguram ninguem); a sala secreta em si ja e chao.
         /// </summary>
         public readonly HashSet<Vector2Int> passagemSecreta = new HashSet<Vector2Int>();
 
@@ -231,7 +231,7 @@ public static class PlantaDeSalas
         Caverna.Ajeitar(planta.chao);
 
         // A passagem secreta: o corredor (sem porta) e o que o ajeito abrir em volta dele. Fica fora do
-        // chao: ate a bomba abrir, e parede.
+        // chao: e desenhada como parede ate o jogador entrar nela.
         if (planta.secreta != null)
         {
             HashSet<Vector2Int> corredor = new HashSet<Vector2Int>();
