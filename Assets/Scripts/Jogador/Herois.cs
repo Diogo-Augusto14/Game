@@ -33,6 +33,9 @@ public static class Herois
         public string FolhaDoAtaque = "Attack01";
         public int QuadroDoDisparo = 3;
 
+        /// <summary>Pixels por unidade das folhas (quadros de 100 x 100). Os do Tiny RPG sao 20; o Mineiro, 40.</summary>
+        public float Pixels = 20f;
+
         public TipoDeHabilidade Habilidade;
         public string NomeDaHabilidade;
         public float Recarga = 10f;
@@ -71,6 +74,14 @@ public static class Herois
 
     public static readonly Heroi[] Todos =
     {
+        // O heroi principal (1.21.0, feito no PixelLab): um cavaleiro que perdeu tudo e virou mineiro.
+        new Heroi
+        {
+            Nome = "Mineiro", Pasta = "Personagens/Herois/Mineiro", Pixels = 40f,
+            Descricao = "Um cavaleiro que perdeu tudo e virou mineiro. Arremessa picaretas que giram.",
+            Vida = 8, Velocidade = 5.2f, Arma = "PicaretaDoMineiro", QuadroDoDisparo = 3,
+            Habilidade = TipoDeHabilidade.Furia, NomeDaHabilidade = "Fúria", Recarga = 16f,
+        },
         new Heroi
         {
             Nome = "Arqueiro", Pasta = "Personagens/Herois/Arqueiro",
@@ -211,7 +222,7 @@ public static class Herois
             // No jogo, o boneco sem a arma desenhada (a arma aparece so na mao, ArmaNaMao); o retrato do
             // menu continua com ela.
             animacao.TrocarFolhas(SemArma(heroi, "Idle"), SemArma(heroi, "Walk"), Textura(heroi, heroi.FolhaDoAtaque),
-                                  SemArma(heroi, "Death"), heroi.QuadroDoDisparo);
+                                  SemArma(heroi, "Death"), heroi.QuadroDoDisparo, heroi.Pixels);
         }
 
         DadosDaArma arma = Arma(heroi);
@@ -253,7 +264,7 @@ public static class Herois
 
         if (!folhas.TryGetValue(caminho, out Sprite[] quadros) || quadros.Length == 0 || quadros[0] == null)
         {
-            quadros = FolhaDeSprites.Cortar(Textura(heroi, nome), new Vector2Int(100, 100), 20f);
+            quadros = FolhaDeSprites.Cortar(Textura(heroi, nome), new Vector2Int(100, 100), heroi.Pixels);
             folhas[caminho] = quadros;
         }
 

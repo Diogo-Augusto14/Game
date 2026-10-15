@@ -816,4 +816,7 @@ T = [
     ("Espada de Osso", "Bone Sword"),
     ("Lâmina Crescente", "Crescent Blade"),
     ("Espada Flamejante", "Flaming Sword"),
+    ("Mineiro", "Miner"),
+    ("Picareta do Mineiro", "Miner's Pickaxe"),
+    ("Um cavaleiro que perdeu tudo e virou mineiro. Arremessa picaretas que giram.", "A knight who lost everything and became a miner. Throws spinning pickaxes."),
 ]

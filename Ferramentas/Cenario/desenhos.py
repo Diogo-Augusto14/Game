@@ -290,3 +290,23 @@ fogueira()
 planta().save(os.path.join(SAIDA, "Planta.png"))
 reliquia().save(os.path.join(SAIDA, "Reliquia.png"))
 print("acampamento ok")
+
+
+# ---------------- 1.21.0: a picareta do mineiro (a arma do heroi principal), 16 x 16 na diagonal
+def picareta():
+    im = Image.new("RGBA", (16, 16))
+    d = ImageDraw.Draw(im)
+    # O cabo de madeira, do canto de baixo a esquerda ate o meio da cabeca.
+    d.line([(2, 14), (10, 6)], fill=(122, 78, 44, 255), width=2)
+    d.line([(2, 13), (9, 6)], fill=(160, 108, 62, 255))
+    # A cabeca de ferro: um arco com as duas pontas (uma pra cada lado).
+    d.line([(5, 2), (8, 4), (10, 6), (12, 8), (14, 11)], fill=(150, 156, 170, 255), width=2)
+    d.line([(5, 2), (8, 3), (11, 6), (14, 10)], fill=(205, 212, 225, 255))
+    d.point((4, 1), fill=(230, 236, 245, 255))
+    d.point((14, 12), fill=(230, 236, 245, 255))
+    d.rectangle([9, 5, 11, 7], fill=(90, 92, 104, 255))
+    return contornar(im)
+
+
+picareta().save(os.path.join(RAIZ, "..", "Armas", "Picareta.png"))
+print("picareta ok")

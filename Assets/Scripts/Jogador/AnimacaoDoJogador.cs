@@ -81,11 +81,13 @@ public class AnimacaoDoJogador : MonoBehaviour
     }
 
     /// <summary>Troca o boneco (cada heroi tem as suas folhas e o quadro em que o tiro sai).</summary>
-    public void TrocarFolhas(Texture2D novoParado, Texture2D novoAndando, Texture2D novoAtaque, Texture2D novaMorte, int quadro)
+    public void TrocarFolhas(Texture2D novoParado, Texture2D novoAndando, Texture2D novoAtaque, Texture2D novaMorte, int quadro,
+                             float pixels = 20f)
     {
         if (novoParado == null)
             return;
 
+        pixelsPorUnidade = pixels;
         parado = novoParado;
         andando = novoAndando != null ? novoAndando : novoParado;
         ataque = novoAtaque;
