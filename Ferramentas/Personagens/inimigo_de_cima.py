@@ -1,7 +1,7 @@
 """Monta as folhas de um inimigo visto de cima (1.22.0), feito no PixelLab no estilo do Aventureiro
-(o Goblin da Clava e o Esqueleto Guerreiro).
+(Goblin da Clava, Esqueleto Guerreiro, Bruxo, Orc e Esqueleto Arqueiro).
 
-Entrada: uma pasta com os quadros baixados do PixelLab, <animacao>/<direcao>/<n>.png (48 x 48), com
+Entrada: uma pasta com os quadros baixados do PixelLab, <animacao>/<direcao>/<n>.png, com
 animacao em parado, andar, ataque, morte e direcao em east, south, north (o tamanho do quadro e o do andar); e, se tiver, rotacao/<direcao>.png
 (o boneco parado, usado como parado de um quadro so quando falta a animacao daquele rumo). Os quadros sao
 enfileirados em folhas do mesmo tamanho em Assets/Arte/Resources/Personagens/<Pasta>:
@@ -45,6 +45,9 @@ ESCOLHAS = {
     "Bruxo": {("ataque", "east"): [0, 1, 1, 4, 4, 0]},
     # Orc: no golpe de lado o machado some no quadro 4.
     "Orc": {("ataque", "east"): [0, 1, 2, 3, 5, 6]},
+    # Arqueiro: o ataque (fireball) poe fogo nos ultimos quadros; ficam os de puxar o arco.
+    "EsqueletoArqueiro": {("ataque", "east"): [0, 1, 2, 4, 4, 1], ("ataque", "south"): [0, 1, 2, 2, 2, 0],
+                          ("ataque", "north"): [0, 1, 2, 3, 3, 0]},
 }
 ESCOLHA = {}
 

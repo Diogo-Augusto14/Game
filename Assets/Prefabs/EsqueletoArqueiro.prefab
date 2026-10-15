@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 1202257257439246519}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -449,12 +449,21 @@ MonoBehaviour:
   andando: {fileID: 2800000, guid: addceb5dea794a50b555e671c5e1611e, type: 3}
   ataque: {fileID: 2800000, guid: b3af6022eab9425cb8ceb16e1183b65c, type: 3}
   morte: {fileID: 2800000, guid: be052d55e3f04a7aab88c34834279d7c, type: 3}
-  tamanhoDoQuadro: {x: 100, y: 100}
-  pixelsPorUnidade: 20
+  tamanhoDoQuadro: {x: 64, y: 64}
+  pixelsPorUnidade: 36
   quadrosPorSegundoParado: 8
   quadrosPorSegundoAndando: 10
   quadrosPorSegundoNaMorte: 12
-  quadroDoDisparo: 6
+  quadroDoDisparo: 3
+  paradoDeCima:
+  - {fileID: 2800000, guid: 00589ebb1a9349919edbf8d23f4e3977, type: 3}
+  - {fileID: 2800000, guid: 5e6cc26f67a24cc591ff9ccf3f9af512, type: 3}
+  andandoDeCima:
+  - {fileID: 2800000, guid: 5bca7cc1a2c94378a3486644fe4f966d, type: 3}
+  - {fileID: 2800000, guid: 5e2b2426019449ca98ec17bc24e48219, type: 3}
+  ataqueDeCima:
+  - {fileID: 2800000, guid: 8f7e0968a82a44f3acfab47c2b665f2e, type: 3}
+  - {fileID: 2800000, guid: 03e7023ea4d64490a3b33a342f86e378, type: 3}
   velocidadeParaAndar: 0.3
 --- !u!114 &139983340517835236
 MonoBehaviour:
