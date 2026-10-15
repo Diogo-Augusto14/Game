@@ -79,7 +79,7 @@ public static class Herois
         {
             Nome = "Mineiro", Pasta = "Personagens/Herois/Mineiro", Pixels = 40f,
             Descricao = "Um cavaleiro que perdeu tudo e virou mineiro. Arremessa picaretas que giram.",
-            Vida = 8, Velocidade = 5.2f, Arma = "PicaretaDoMineiro", QuadroDoDisparo = 3,
+            Vida = 8, Velocidade = 5.2f, Arma = "PicaretaDoMineiro", QuadroDoDisparo = 6,
             Habilidade = TipoDeHabilidade.Furia, NomeDaHabilidade = "Fúria", Recarga = 16f,
         },
         new Heroi
