@@ -37,6 +37,7 @@ MonoBehaviour:
   curva: 0
   atravessa: 1
   giroDoDesenho: 0
+  golpeNaMao: 100
   tirosPorDisparo: 1
   abertura: 10
   anel: 0
