@@ -48,12 +48,16 @@ public static class Conquistas
     public static readonly Conquista MelhorDoDia = new Conquista("recorde-do-dia", "Melhor do Dia", "Bata o seu recorde no desafio do dia.");
     public static readonly Conquista EstatuaCompleta = new Conquista("estatua", "Devoto da Estátua", "Compre todas as melhorias da estátua dos cristais.");
     public static readonly Conquista Libertador = new Conquista("libertador", "Libertador", "Solte 5 prisioneiros (somando as partidas).");
+    public static readonly Conquista Ferreiro = new Conquista("ferreiro", "Mão de Ferro", "Forje armas no ferreiro 10 vezes (somando as partidas).");
+    public static readonly Conquista Mimico = new Conquista("mimico", "Não Me Engana", "Derrote um baú mímico.");
+    public static readonly Conquista Apostador = new Conquista("apostador", "Sorte Grande", "Ganhe 3 apostas seguidas do apostador.");
 
     public static readonly IReadOnlyList<Conquista> Todas = new[]
     {
         PrimeiroSangue, Cacador, Exterminador, SaidaDoPorao, Persistente, Touro, LuaMinguante, FimDaGuerra,
         Martelada, Descanso, Brasa, LendaDoAbismo, Veterano, Naturalista, Arsenal, Especialista, TodosOsHerois,
         Campeoes, Maldito, MelhorDoDia, EstatuaCompleta, Libertador,
+        Ferreiro, Mimico, Apostador,
     };
 
     /// <summary>

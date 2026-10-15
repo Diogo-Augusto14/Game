@@ -133,6 +133,10 @@ public static class AreaSegura
         FonteDosDesejos.Criar(new Vector2(-4.5f, -7.5f), raiz, gerador.ArmasDoBau);
         lugar.Ocupar(new Vector2(-4.5f, -5.8f), 3f);
 
+        // O ferreiro e a bigorna (forja a arma da mao, pagando moedas).
+        Ferreiro.Criar(new Vector2(-11f, -4.5f), raiz);
+        lugar.Ocupar(new Vector2(-10.4f, -4.3f), 2.2f);
+
         // Um bau de graca.
         Sprite[] bau = FolhaDeSprites.Cortar(Resources.Load<Texture2D>("Decoracao/Vila/BauAbrindo"), new Vector2Int(192, 192), Pixels);
 

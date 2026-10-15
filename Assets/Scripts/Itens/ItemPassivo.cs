@@ -128,6 +128,12 @@ public static class CatalogoDeItens
         P("Barril de Pólvora", "Tiro especial mais forte", 340, "O tiro especial (botão direito) causa 50% mais dano e recarrega 30% mais rápido.",
           e => e.PolvoraVezes *= 1.5f, 10),
         P("Carne Assada", "Cura a cada andar", 486, "Ao limpar um andar de inimigos, recupera meio coração.", e => e.CuraAoLimpar += 1f),
+        P("Lâmina Larga", "Corte maior nas lâminas", 9001, "O corte das lâminas fica 50% maior e bate 25% mais forte. Os outros tiros ficam um pouco maiores.",
+          e => { e.CorteVezes *= 1.5f; e.CorteDanoVezes *= 1.25f; e.TamanhoVezes *= 1.1f; }),
+        P("Corda Encantada", "Bumerangue volta duas vezes", 9002, "O bumerangue, depois de voltar, sai de novo e volta mais uma vez. Os outros tiros vão 15% mais longe.",
+          e => { e.VoltasExtras += 1; e.AlcanceVezes *= 1.15f; }),
+        P("Bobina de Cobre", "Raio pula mais longe", 9003, "Os raios pulam 60% mais longe e uma vez a mais. Com as outras armas, às vezes um raio salta de quem você acerta.",
+          e => { e.AlcanceDoRaioVezes *= 1.6f; e.SaltosExtras += 1; e.ChanceDeRaio = Mathf.Max(e.ChanceDeRaio, 0.15f); }),
         P("Pacto de Sangue", "Poder por um preço", 289, "Seus tiros causam 60% mais dano, mas você perde um coração de vida máxima.",
           e => { e.DanoVezes *= 1.6f; e.MudarVidaMaxima(-2f); }),
         A("Espiral do Tempo", "Ativo: o tempo se arrasta", 720, "Ativo (R): por 6 segundos os inimigos andam bem devagar.", TipoDeAtivo.EspiralDoTempo, 18),
@@ -182,5 +188,10 @@ public static class Sinergias
         S("Brasa da Fúria", "Pacto de Sangue", "Ira Sangrenta", "A fúria fica muito mais forte", e => e.BrasaVezes = 2.2f),
         S("Bolsa do Mercador", "Saco de Moedas", "Tesouro do Mercador", "Loja ainda mais barata e moedas", e => { e.Desconto *= 0.8f; e.Bolsa?.Ganhar(10, 0); }),
         S("Olho de Falcão", "Ponta de Chumbo", "Balista", "Tiros rápidos que atravessam", e => { e.VelocidadeDoTiroVezes *= 1.3f; e.Atravessa = true; }),
+        S("Bobina de Cobre", "Óleo Ardente", "Tempestade Viva", "Raios pulam mais duas vezes e saem muito mais", e => { e.SaltosExtras += 2; e.ChanceDeRaio = Mathf.Max(e.ChanceDeRaio, 0.35f); }),
+        S("Corda Encantada", "Bússola Maldita", "Retorno Certeiro", "O bumerangue vai e volta mais uma vez e bate mais forte", e => { e.VoltasExtras += 1; e.DanoVezes *= 1.1f; }),
+        S("Lâmina Larga", "Elixir da Pressa", "Dança das Lâminas", "Toda lâmina devolve os tiros que corta", e => e.LaminasDevolvem = true),
+        S("Lâmina Larga", "Corda Encantada", "Lâmina Giratória", "O bumerangue corta os tiros no caminho", e => e.BumerangueCorta = true),
+        S("Bobina de Cobre", "Corda Encantada", "Bumerangue Elétrico", "Raios saltam de quem o bumerangue acerta", e => { e.ChanceDeRaio = Mathf.Max(e.ChanceDeRaio, 0.3f); e.SaltosExtras += 1; }),
     };
 }

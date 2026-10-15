@@ -4,7 +4,8 @@ sfx.py). Nao precisa do Freedoom.
   ambiente_wav/Base_<Mundo>.wav   o fundo que toca em loop em cada mundo (emenda sem corte)
   ambiente_wav/<Evento>_<n>.wav   o que acontece de vez em quando, longe: gota, corrente, rangido, gemido,
                                   vento, pedrinhas
-  sfx_wav/<Som>.wav               Escudo, Raio, Bumerangue, CorteDeTiro, PortaoDaCela, Campeao, Cristal
+  sfx_wav/<Som>.wav               Escudo, Raio, Bumerangue, CorteDeTiro, PortaoDaCela, Campeao, Cristal;
+                                  na 1.20.0: Bigorna, Dados, Mimico
 
 Rodar: python3 ambiente.py   (depois converter pra OGG, ver LEIAME.md)
 """
@@ -213,6 +214,35 @@ def efeitos():
     for k, f in enumerate((1568, 1175, 932)):
         x = em(x, modal([f, f * 2.76, f * 5.4], [0.3, 0.15, 0.08], [0.6, 0.2, 0.08], 0.5, 151 + k), k * 0.07)
     R['Cristal'] = (reverb(x, 0.9, 0.35), -6)
+
+    # 1.20.0 - A bigorna do ferreiro: duas marteladas de ferro (a segunda mais forte) e faiscas.
+    x = vazio(1.1)
+    for k, (quando, forca) in enumerate(((0.0, 0.6), (0.28, 1.0))):
+        golpe = modal([880, 1410, 2290, 3170, 4650], [0.5, 0.35, 0.25, 0.18, 0.1], [0.8, 0.6, 0.4, 0.25, 0.15], 0.7, 161 + k)
+        x = em(x, golpe * forca, quando)
+        x = em(x, baque(140, 70, 0.08, 0.02, 0.4, 0.3, 165 + k) * forca, quando)
+    rng = np.random.default_rng(171)
+    for k in range(9):
+        x = em(x, clique_metal(rng.uniform(4000, 7000), 171 + k, 0.01, 0.15), 0.3 + rng.uniform(0, 0.3))
+    R['Bigorna'] = (reverb(x, 0.6, 0.25), -4)
+
+    # 1.20.0 - Os dados rolando no pano da mesa: batidinhas de osso cada vez mais perto, e param.
+    x = vazio(0.8)
+    rng = np.random.default_rng(181)
+    tt = 0.0
+    for k in range(10):
+        tt += 0.035 + 0.012 * k
+        tom = rng.uniform(1700, 2600)
+        x = em(x, modal([tom, tom * 1.9], [0.04, 0.025], [0.5, 0.2], 0.08, 181 + k) * (1 - k / 14), tt)
+    x = em(x, passa_banda(ruido(int(0.5 * SR), 195), 500, 2500) * decai(0.5, 0.2) * 0.08, 0.0)
+    R['Dados'] = (reverb(x, 0.4, 0.15), -7)
+
+    # 1.20.0 - O mimico mordendo: tampa de madeira batendo com forca e um rosnado molhado.
+    dur = 0.55
+    n = int(dur * SR)
+    tampa = em(baque(180, 90, 0.12, 0.01, 1.0, 0.4, 201), passa_banda(ruido(int(0.06 * SR), 202), 600, 3000) * decai(0.06, 0.015) * 0.7, 0)
+    rosnado = passa_banda(ruido(n, 203), 120, 600) * (1 + 0.6 * lfo(n, 31)) * sino(dur, 1.0) * 0.5
+    R['Mimico'] = (reverb(em(rosnado, tampa, 0.05), 0.4, 0.2), -4)
     return R
 
 

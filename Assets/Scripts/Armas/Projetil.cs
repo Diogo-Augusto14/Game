@@ -39,6 +39,15 @@ public class Projetil : MonoBehaviour
     private bool explode;
     private int quiques;
 
+    // Os itens das armas novas (1.20.0): o bumerangue que sai de novo, o raio mais longe, as laminas.
+    private int voltasExtras;
+    private Vector2 rumoDoLancamento;
+    private float velocidadeDoLancamento, alcanceDoLancamento;
+    private int saltosExtras;
+    private float alcanceDoRaio = Raio.Alcance;
+    private float chanceDeRaio;
+    private bool cortaTiros, devolveTiros;
+
     /// <summary>Multiplica o dano deste tiro (a furia do Machadeiro dobra).</summary>
     public float MultiplicadorDeDano { get => multiplicadorDeDano; set => multiplicadorDeDano = value; }
     private bool acabou;
@@ -95,6 +104,8 @@ public class Projetil : MonoBehaviour
         projetil.persegue = arma.persegue;
         projetil.explode = arma.efeito == EfeitoDoTiro.Explode;
         projetil.quiques = arma.efeito == EfeitoDoTiro.Quica ? 3 : 0;
+        projetil.cortaTiros = arma.cortaTiros;
+        projetil.devolveTiros = arma.devolveTiros;
 
         // A furia do Machadeiro: os tiros dele batem em dobro enquanto dura.
         if (lado == Lado.Jogador && dono != null && dono.TryGetComponent(out HabilidadeDoHeroi habilidade))
@@ -116,9 +127,29 @@ public class Projetil : MonoBehaviour
             projetil.atravessa |= itens.Atravessa;
             projetil.persegue |= itens.Persegue;
             projetil.explode |= itens.ExplodeAoAcertar;
+
+            // A Lamina Larga: o corte fica maior e bate mais.
+            if (arma.cortaTiros)
+            {
+                projetil.raio *= itens.CorteVezes;
+                colisor.radius = projetil.raio;
+                obj.transform.localScale *= itens.CorteVezes;
+                projetil.multiplicadorDeDano *= itens.CorteDanoVezes;
+            }
+
+            // A Corda Encantada (o bumerangue sai de novo), a Bobina de Cobre (o raio) e as sinergias das laminas.
+            projetil.voltasExtras = arma.volta ? itens.VoltasExtras : 0;
+            projetil.saltosExtras = itens.SaltosExtras;
+            projetil.alcanceDoRaio = Raio.Alcance * itens.AlcanceDoRaioVezes;
+            projetil.chanceDeRaio = itens.ChanceDeRaio;
+            projetil.cortaTiros |= arma.volta && itens.BumerangueCorta;
+            projetil.devolveTiros |= itens.LaminasDevolvem;
             rb.linearVelocity = rumo * projetil.velocidade;
         }
 
+        projetil.rumoDoLancamento = rumo;
+        projetil.velocidadeDoLancamento = projetil.velocidade;
+        projetil.alcanceDoLancamento = projetil.alcance;
         return projetil;
     }
 
@@ -152,7 +183,11 @@ public class Projetil : MonoBehaviour
 
             if (ate.magnitude < 0.7f)
             {
-                Sumir();
+                if (voltasExtras > 0)
+                    Relancar();
+                else
+                    Sumir();
+
                 return;
             }
 
@@ -164,7 +199,7 @@ public class Projetil : MonoBehaviour
             Perseguir();
 
         // As laminas: o corte apaga (ou devolve) os tiros do outro lado que encosta.
-        if (arma.cortaTiros)
+        if (cortaTiros)
             Cortar();
 
         // Freia ou acelera (sem parar de vez: tiro parado no ar so confunde) e faz a curva.
@@ -260,7 +295,9 @@ public class Projetil : MonoBehaviour
             return;
 
         if (arma.encadeia > 0)
-            Raio.Encadear(vida, arma.dano * multiplicadorDeDano * 0.7f, arma.encadeia, dono, lado, arma.cor);
+            Raio.Encadear(vida, arma.dano * multiplicadorDeDano * 0.7f, arma.encadeia + saltosExtras, dono, lado, arma.cor, alcanceDoRaio);
+        else if (chanceDeRaio > 0f && Random.value < chanceDeRaio)
+            Raio.Encadear(vida, arma.dano * multiplicadorDeDano * 0.5f, 1 + saltosExtras, dono, lado, new Color(0.6f, 0.85f, 1f), alcanceDoRaio);
 
         if (arma.divideAoAcertar > 0)
             Dividir(vida);
@@ -300,6 +337,22 @@ public class Projetil : MonoBehaviour
         }
     }
 
+    // A Corda Encantada: o bumerangue chegou na mao e sai de novo, pra onde o jogador mira agora.
+    private void Relancar()
+    {
+        voltasExtras--;
+        voltando = false;
+        rumo = dono != null && dono.TryGetComponent(out ControlesDoJogador controles) && controles.Mira.sqrMagnitude > 0.01f
+            ? controles.Mira.normalized : rumoDoLancamento;
+        velocidade = velocidadeDoLancamento;
+        aceleracao = -Mathf.Abs(aceleracao);
+        alcance = alcanceDoLancamento;
+        percorrido = 0f;
+        acertados?.Clear();
+        corpo.linearVelocity = rumo * velocidade;
+        Sons.Tocar(Som.Bumerangue, 0.4f);
+    }
+
     // Procura tiros do outro lado encostando no corte.
     private void Cortar()
     {
@@ -310,7 +363,7 @@ public class Projetil : MonoBehaviour
 
             Sons.Tocar(Som.CorteDeTiro, 0.55f);
 
-            if (arma.devolveTiros)
+            if (devolveTiros)
                 outro.Devolver(dono, lado, rumo);
             else
             {

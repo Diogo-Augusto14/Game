@@ -45,6 +45,21 @@ public class EstatisticasDoJogador : MonoBehaviour, IBloqueioDeDano
     public float PolvoraVezes = 1f;
     public float CuraAoLimpar;
 
+    // ---------------- os das armas novas (1.20.0) ----------------
+    /// <summary>A Lamina Larga: o corte das laminas fica maior e bate mais forte.</summary>
+    public float CorteVezes = 1f;
+    public float CorteDanoVezes = 1f;
+    /// <summary>A Corda Encantada: quantas vezes a mais o bumerangue sai de novo depois de voltar.</summary>
+    public int VoltasExtras;
+    /// <summary>A Bobina de Cobre: o raio pula mais longe e mais vezes; os outros tiros, as vezes, soltam um raio.</summary>
+    public float AlcanceDoRaioVezes = 1f;
+    public int SaltosExtras;
+    public float ChanceDeRaio;
+    /// <summary>Danca das Laminas: toda lamina devolve os tiros que corta (como a Lamina Real).</summary>
+    public bool LaminasDevolvem;
+    /// <summary>Lamina Giratoria: o bumerangue tambem corta os tiros que encosta.</summary>
+    public bool BumerangueCorta;
+
     private Vida vida;
     private MovimentoDoJogador movimento;
     private bool escudoPronto = true;

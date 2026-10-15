@@ -312,7 +312,8 @@ public class Minimapa : MonoBehaviour
         (TipoDeSala tipo, string nome)[] legenda =
         {
             (TipoDeSala.Loja, "Loja"), (TipoDeSala.Tesouro, "Tesouro"), (TipoDeSala.Altar, "Altar"),
-            (TipoDeSala.Desafio, "Desafio"), (TipoDeSala.Fim, "Sala do fim"), (TipoDeSala.Fonte, "Fonte"), (TipoDeSala.Cela, "Cela"), (TipoDeSala.Secreta, "Secreta"),
+            (TipoDeSala.Desafio, "Desafio"), (TipoDeSala.Fim, "Sala do fim"), (TipoDeSala.Fonte, "Fonte"), (TipoDeSala.Cela, "Cela"),
+            (TipoDeSala.Ferreiro, "Ferreiro"), (TipoDeSala.Apostas, "Apostas"), (TipoDeSala.Secreta, "Secreta"),
         };
         float lado = 16 * u, passo = 0f;
 
@@ -395,6 +396,8 @@ public class Minimapa : MonoBehaviour
             case TipoDeSala.Secreta: numero = 335; break;
             case TipoDeSala.Fonte: numero = 123; break;
             case TipoDeSala.Cela: numero = 179; break;
+            case TipoDeSala.Ferreiro: numero = 993; break;
+            case TipoDeSala.Apostas: numero = 668; break;
             default: return null;
         }
 

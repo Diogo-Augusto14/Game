@@ -39,7 +39,7 @@ public class TelaDoJogo : MonoBehaviour
     public static bool MenuAberto =>
         TelaDeInicio.Aberta || TelaDePausa.Aberta || TelaDeFimDeJogo.Atual != null || TelaDeOpcoes.Aberta
         || TelaDeNovidades.Ocupada || TransicaoDeTela.Ocupada || TelaDeProgresso.Aberta || Minimapa.Aberto
-        || TelaDosModos.Aberta || TelaDaEstatua.Aberta;
+        || TelaDosModos.Aberta || TelaDaEstatua.Aberta || TelaDasApostas.Aberta;
 
     private void Awake()
     {

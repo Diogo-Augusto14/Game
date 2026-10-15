@@ -86,6 +86,18 @@ public class ArmaCarregada
         Reserva = UnityEngine.Mathf.Max(0, reserva);
     }
 
+    /// <summary>Passa a municao e a recarga do especial de outra (a arma forjada continua de onde estava).</summary>
+    public void CopiarDe(ArmaCarregada outra)
+    {
+        if (outra == null)
+            return;
+
+        NoPente = outra.NoPente;
+        Reserva = outra.Reserva;
+        especialProntoEm = outra.especialProntoEm;
+        recargaDoEspecial = outra.recargaDoEspecial;
+    }
+
     public int Ganhar(int quanto)
     {
         int entra = UnityEngine.Mathf.Min(quanto, Falta);

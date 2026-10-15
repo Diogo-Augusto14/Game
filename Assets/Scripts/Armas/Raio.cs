@@ -15,23 +15,24 @@ public class Raio : MonoBehaviour
     private static Sprite branco;
 
     /// <summary>Comeca a corrente a partir de <paramref name="primeiro"/> (que ja levou o golpe do tiro).</summary>
-    public static void Encadear(Vida primeiro, float dano, int saltos, GameObject dono, Lado lado, Color cor)
+    /// <param name="alcance">A distancia maxima de cada salto (a Bobina de Cobre aumenta).</param>
+    public static void Encadear(Vida primeiro, float dano, int saltos, GameObject dono, Lado lado, Color cor, float alcance = Alcance)
     {
         if (primeiro == null || saltos <= 0 || dano <= 0f)
             return;
 
         Raio r = new GameObject("Raio").AddComponent<Raio>();
-        r.StartCoroutine(r.Pular(primeiro, dano, saltos, dono, lado, Color.Lerp(cor, Color.white, 0.4f)));
+        r.StartCoroutine(r.Pular(primeiro, dano, saltos, dono, lado, Color.Lerp(cor, Color.white, 0.4f), alcance));
     }
 
-    private IEnumerator Pular(Vida de, float dano, int saltos, GameObject dono, Lado lado, Color cor)
+    private IEnumerator Pular(Vida de, float dano, int saltos, GameObject dono, Lado lado, Color cor, float alcance)
     {
         HashSet<Vida> ja = new HashSet<Vida> { de };
         Vector2 ponto = de.transform.position;
 
         for (int i = 0; i < saltos; i++)
         {
-            Vida alvo = MaisPerto(ponto, ja, lado);
+            Vida alvo = MaisPerto(ponto, ja, lado, alcance);
 
             if (alvo == null)
                 break;
@@ -51,10 +52,10 @@ public class Raio : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private static Vida MaisPerto(Vector2 de, HashSet<Vida> ja, Lado lado)
+    private static Vida MaisPerto(Vector2 de, HashSet<Vida> ja, Lado lado, float alcance)
     {
         Vida melhor = null;
-        float menor = Alcance * Alcance;
+        float menor = alcance * alcance;
 
         foreach (Vida v in GeradorDoAndar.Vivos)
         {

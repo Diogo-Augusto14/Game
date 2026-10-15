@@ -64,6 +64,9 @@ public enum Som
     PortaoDaCela,
     Campeao,
     Cristal,
+    Bigorna,
+    Dados,
+    Mimico,
 }
 
 /// <summary>

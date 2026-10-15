@@ -212,6 +212,29 @@ public static class RecheioDaCaverna
                 break;
             }
 
+            case TipoDeSala.Ferreiro:
+            {
+                // O ferreiro um pouco a esquerda do meio, a bigorna do lado dele; velas no fundo.
+                Vector2 pe = meio + new Vector2(-0.7f, 0.6f);
+                Ferreiro.Criar(pe, pai);
+                Ocupar(chao, pe, 1, 1);
+                Ocupar(chao, pe + Vector2.right * 1.3f, 1, 1);
+                Vela.Criar(meio + new Vector2(-2.6f, 1.6f), pai);
+                Vela.Criar(meio + new Vector2(2.6f, 1.6f), pai);
+                break;
+            }
+
+            case TipoDeSala.Apostas:
+            {
+                // O apostador atras da mesa, no meio; o jogador senta do outro lado.
+                Vector2 mesa = meio + Vector2.up * 0.4f;
+                Apostador.Criar(mesa, pai);
+                Ocupar(chao, mesa + Vector2.up * 0.6f, 1, 1);
+                Vela.Criar(meio + new Vector2(-2.4f, 1.4f), pai);
+                Vela.Criar(meio + new Vector2(2.4f, 1.4f), pai);
+                break;
+            }
+
             case TipoDeSala.Fonte:
                 // A fonte no meio (um pouco pra cima: a arma que ela devolve cai na frente).
                 FonteDosDesejos.Criar(meio + Vector2.down * 0.5f, pai, gerador.ArmasDoBau);
@@ -261,7 +284,7 @@ public static class RecheioDaCaverna
         }
         else if (quadrosDoBau != null && quadrosDoBau.Length > 0)
         {
-            Bau.Criar(quadrosDoBau, onde, pai, gerador.ArmasDoBau, null, null, null);
+            Bau.Criar(quadrosDoBau, onde, pai, gerador.ArmasDoBau, null, null, null).TalvezMimico(gerador.Andar);
         }
         else
         {

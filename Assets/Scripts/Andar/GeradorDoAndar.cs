@@ -1205,6 +1205,12 @@ public class GeradorDoAndar : MonoBehaviour
         if (Random.value < 0.22f)
             especiais.Add(TipoDeSala.Cela);
 
+        if (Random.value < 0.25f)
+            especiais.Add(TipoDeSala.Ferreiro);
+
+        if (Random.value < 0.2f)
+            especiais.Add(TipoDeSala.Apostas);
+
         return especiais;
     }
 
@@ -1402,7 +1408,7 @@ public class GeradorDoAndar : MonoBehaviour
             if (i < bausPorAndar)
             {
                 // A celula do bau sai do mapa de caminhos (e o mesmo conjunto): os inimigos contornam.
-                Bau.Criar(quadrosDoBau, lugar, pai, armas, caixaDeMunicao, somDoBau, somDaMunicao);
+                Bau.Criar(quadrosDoBau, lugar, pai, armas, caixaDeMunicao, somDoBau, somDaMunicao).TalvezMimico(andar);
                 chaoDaCaverna.Remove(MapaDeCaminhos.Celula(lugar));
             }
             else

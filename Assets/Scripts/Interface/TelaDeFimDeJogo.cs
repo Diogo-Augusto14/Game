@@ -384,10 +384,10 @@ public class TelaDeFimDeJogo : MonoBehaviour
         if (armas == null || armas.Atual == null)
             return $"<color=#aaaaaa>{Idioma.T("nenhuma")}</color>";
 
-        string lista = $"<color=#FFD966>{Idioma.T(armas.Atual.Dados.nome)}</color>";
+        string lista = $"<color=#FFD966>{armas.Atual.Dados.NomeNaTela}</color>";
 
         if (armas.Outra != null)
-            lista += $"   <color=#cccccc>{Idioma.T(armas.Outra.Dados.nome)}</color>";
+            lista += $"   <color=#cccccc>{armas.Outra.Dados.NomeNaTela}</color>";
 
         return lista;
     }

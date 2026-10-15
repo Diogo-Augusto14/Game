@@ -84,6 +84,7 @@ public static class Bestiario
         new Ficha("GoblinDaClava", "Goblin da Clava", "Clavadas em leque; ferido, entra em fúria."),
         new Ficha("GoblinAssassino", "Goblin Assassino", "Rápido: três arrancadas com as adagas."),
         new Ficha("PoteMimico", "Pote Mímico", "Parece um pote; acorda cuspindo um leque roxo."),
+        new Ficha("MimicoDoBau", "Baú Mímico", "Parece um baú; pula mordendo e cospe um leque de moedas."),
         new Ficha("Minotauro", "Minotauro", "Investidas triplas, pisão e cortes.", true),
         new Ficha("LobisomemAlfa", "Lobisomem Alfa", "Botes em sequência, garras e uivo que chama cães.", true),
         new Ficha("SenhorDaGuerra", "Senhor da Guerra", "Machadada, machados que voltam e grito de guerra.", true),

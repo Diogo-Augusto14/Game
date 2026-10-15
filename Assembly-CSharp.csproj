@@ -126,6 +126,10 @@
     <Compile Include="Assets\Scripts\Cenario\FonteDosDesejos.cs" />
     <Compile Include="Assets\Scripts\Cenario\EstatuaDosCristais.cs" />
     <Compile Include="Assets\Scripts\Cenario\Prisioneiro.cs" />
+    <Compile Include="Assets\Scripts\Cenario\Ferreiro.cs" />
+    <Compile Include="Assets\Scripts\Cenario\Apostador.cs" />
+    <Compile Include="Assets\Scripts\Interface\TelaDasApostas.cs" />
+    <Compile Include="Assets\Scripts\Inimigos\MimicoDoBau.cs" />
     <Compile Include="Assets\Scripts\Cenario\CaliceDosEspiritos.cs" />
     <Compile Include="Assets\Scripts\Cenario\CriaturaDaSorte.cs" />
     <Compile Include="Assets\Scripts\Cenario\AltarDoPortal.cs" />

@@ -26,6 +26,12 @@ public enum TipoDeSala
 
     /// <summary>A cela de um prisioneiro: com uma chave, ele sai e vira mercador ali mesmo, com desconto.</summary>
     Cela,
+
+    /// <summary>O ferreiro: pagando moedas, forja a arma da mao (mais dano, uma raridade acima).</summary>
+    Ferreiro,
+
+    /// <summary>O apostador: joga dados valendo moedas (dobra ou perde).</summary>
+    Apostas,
 }
 
 /// <summary>Uma sala da planta: o retangulo dela, as celulas de chao e as portas.</summary>

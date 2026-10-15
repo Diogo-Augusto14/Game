@@ -12,6 +12,10 @@ using UnityEngine;
 /// O bau maldito (vermelho-escuro, tremendo de leve) e um evento: abre de graca e da um item bom (o melhor
 /// de tres sorteados) e uma arma rara ou melhor, mas acorda uma emboscada de duas ondas em volta
 /// (<see cref="Emboscada.Soltar"/>).
+///
+/// O bau mimico: as vezes (do andar 2 em diante) um bau comum espalhado pela caverna e um monstro
+/// (<see cref="TalvezMimico"/>). Parece igual; o que entrega e uma tremidinha de vez em quando, mais
+/// vezes com o jogador perto. Tentando abrir, ele acorda (<see cref="MimicoDoBau"/>).
 /// </summary>
 public enum TipoDeBau
 {
@@ -34,6 +38,20 @@ public class Bau : Interativo
     private AudioClip somDaMunicao;
     private bool aberto;
     private TipoDeBau tipo;
+    private bool mimico;
+    private float proximaTremida;
+    private Transform jogador;
+
+    /// <summary>A chance de um bau espalhado pela caverna ser um mimico (do andar 2 em diante).</summary>
+    public static float ChanceDeMimico(int andar) => andar < 2 ? 0f : Mathf.Min(0.2f, 0.08f + 0.015f * andar);
+
+    /// <summary>Sorteia se este bau (comum) e um mimico.</summary>
+    public Bau TalvezMimico(int andar)
+    {
+        mimico = tipo == TipoDeBau.Comum && Random.value < ChanceDeMimico(andar);
+        proximaTremida = Time.time + Random.Range(2f, 5f);
+        return this;
+    }
 
     /// <summary>Vira bau trancado ou amaldicoado (logo depois do <see cref="Criar"/>).</summary>
     public Bau ComoTipo(TipoDeBau qual)
@@ -115,6 +133,12 @@ public class Bau : Interativo
 
         aberto = true;
 
+        if (mimico)
+        {
+            StartCoroutine(Acordar());
+            return;
+        }
+
         if (somAbrindo != null && jogador.TryGetComponent(out AudioSource audioSource))
             audioSource.PlayOneShot(somAbrindo, 0.7f);
 
@@ -126,6 +150,46 @@ public class Bau : Interativo
         // O maldito treme de leve enquanto fechado.
         if (tipo == TipoDeBau.Maldito && !aberto)
             desenho.transform.localPosition = new Vector3(Mathf.Sin(Time.time * 40f) * 0.03f * (Mathf.Sin(Time.time * 1.7f) > 0.3f ? 1f : 0f), 0.3f, 0f);
+
+        // O mimico da uma tremidinha (um pulinho torto) de vez em quando; com o jogador perto, mais vezes.
+        if (mimico && !aberto && Time.time >= proximaTremida)
+        {
+            if (jogador == null)
+            {
+                GameObject j = GameObject.FindWithTag("Player");
+                jogador = j != null ? j.transform : null;
+            }
+
+            bool perto = jogador != null && Vector2.Distance(jogador.position, transform.position) < 4f;
+            proximaTremida = Time.time + (perto ? Random.Range(1.2f, 2.5f) : Random.Range(3f, 6f));
+            StartCoroutine(Tremer(0.22f, 0.05f));
+        }
+    }
+
+    private IEnumerator Tremer(float duracao, float forca)
+    {
+        for (float t = 0f; t < duracao; t += Time.deltaTime)
+        {
+            float k = 1f - t / duracao;
+            desenho.transform.localPosition = new Vector3(Mathf.Sin(t * 70f) * forca * k, 0.3f + Mathf.Abs(Mathf.Sin(t * 25f)) * forca * k, 0f);
+            desenho.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(t * 55f) * 4f * k);
+            yield return null;
+        }
+
+        desenho.transform.localPosition = new Vector3(0f, 0.3f, 0f);
+        desenho.transform.localRotation = Quaternion.identity;
+    }
+
+    // Era um mimico: a tampa abre um pouco, ele treme forte e pula pra cima do jogador.
+    private IEnumerator Acordar()
+    {
+        desenho.sprite = quadros.Length > 4 ? quadros[4] : desenho.sprite;
+        Sons.Tocar(Som.Mimico, 1f, 0f);
+        CameraDoJogo.Tremer(0.12f, 0.3f);
+        TextoFlutuante.Mostrar(transform.position + Vector3.up * 1.4f, "É um mímico!", new Color(1f, 0.4f, 0.35f), 1.6f).Pular(1.6f);
+        yield return Tremer(0.45f, 0.1f);
+        MimicoDoBau.Criar(transform.position, transform.parent, armas);
+        Destroy(gameObject);
     }
 
     private IEnumerator Abrir(ArmaDoJogador doJogador)
@@ -197,8 +261,14 @@ public class Bau : Interativo
 
     // Pelo peso de cada uma neste andar (a raridade conta), sem repetir as que o jogador ja tem (se sobrar
     // alguma). Com <paramref name="noMinimo"/>, so dessa raridade pra cima (nula se nao tiver nenhuma).
-    private DadosDaArma Sortear(ArmaDoJogador doJogador, Raridade noMinimo = Raridade.Comum)
+    private DadosDaArma Sortear(ArmaDoJogador doJogador, Raridade noMinimo = Raridade.Comum) => Sortear(armas, doJogador, noMinimo);
+
+    /// <summary>Uma arma das <paramref name="armas"/>, como o bau sorteia (o mimico usa pro premio dele).</summary>
+    public static DadosDaArma Sortear(DadosDaArma[] armas, ArmaDoJogador doJogador, Raridade noMinimo = Raridade.Comum)
     {
+        if (armas == null)
+            return null;
+
         float total = 0f;
         int andar = GeradorDoAndar.AndarAtual;
 
@@ -242,6 +312,6 @@ public class Bau : Interativo
         if (!semRepetir || doJogador == null)
             return true;
 
-        return (doJogador.Atual == null || doJogador.Atual.Dados != a) && (doJogador.Outra == null || doJogador.Outra.Dados != a);
+        return (doJogador.Atual == null || doJogador.Atual.Dados.Origem != a) && (doJogador.Outra == null || doJogador.Outra.Dados.Origem != a);
     }
 }

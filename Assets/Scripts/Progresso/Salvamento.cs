@@ -50,6 +50,7 @@ public static class Salvamento
                 PlayerPrefs.SetString(Prefixo + "arma" + i, arma != null ? arma.Dados.name : "");
                 PlayerPrefs.SetInt(Prefixo + "pente" + i, arma != null ? arma.NoPente : 0);
                 PlayerPrefs.SetInt(Prefixo + "reserva" + i, arma != null ? arma.Reserva : 0);
+                PlayerPrefs.SetInt(Prefixo + "forja" + i, arma != null ? arma.Dados.forja : 0);
             }
 
             PlayerPrefs.SetInt(Prefixo + "naMao", armas.NaMao);
@@ -147,6 +148,8 @@ public static class Salvamento
         if (dados == null)
             return null;
 
+        // A forja do ferreiro volta junto.
+        dados = dados.Forjada(PlayerPrefs.GetInt(Prefixo + "forja" + i, 0));
         ArmaCarregada arma = new ArmaCarregada(dados);
         arma.Definir(PlayerPrefs.GetInt(Prefixo + "pente" + i, 0), PlayerPrefs.GetInt(Prefixo + "reserva" + i, 0));
         return arma;
@@ -155,7 +158,7 @@ public static class Salvamento
     public static void Apagar()
     {
         foreach (string chave in new[] { "existe", "heroi", "andar", "descanso", "caminho", "modo", "dia", "vida", "inimigos", "chefes", "tempo", "naMao",
-                                         "arma0", "arma1", "pente0", "pente1", "reserva0", "reserva1",
+                                         "arma0", "arma1", "pente0", "pente1", "reserva0", "reserva1", "forja0", "forja1",
                                          "moedas", "chaves", "bombas", "itens", "ativo", "carga" })
             PlayerPrefs.DeleteKey(Prefixo + chave);
 

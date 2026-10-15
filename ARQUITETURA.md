@@ -509,6 +509,28 @@ devolve outra, de uma raridade sorteada a partir da jogada: 45% uma acima, 35% a
 20% uma abaixo. Uma vez só. Fica na área segura e, às vezes (30%), numa sala só dela no andar
 (`TipoDeSala.Fonte`, com ícone no minimapa).
 
+O **ferreiro** (`Ferreiro`, 1.20.0): forja a arma da mão pagando moedas (`ArmaDoJogador.Forjar`). A
+forjada é uma cópia (`DadosDaArma.Forjada(nivel)`, guardada na original) com `forja` 1 a 3
+(`ForjaMaxima`), +30% de dano por nível e uma raridade acima por nível; `Origem` devolve o asset de
+verdade (o baú e a fonte comparam por ele) e `NomeNaTela` mostra "Nome +2". O salvamento guarda a forja
+de cada mão. Preço: 15/25/35/50/70 pela raridade + 10 por forja, com o desconto da loja. Fica na área
+segura e, às vezes (25%), numa sala só dele (`TipoDeSala.Ferreiro`).
+
+O **apostador** (`Apostador`, `TelaDasApostas`, 1.20.0, `TipoDeSala.Apostas`, 20% dos andares): aposta de
+5, 10 ou 20 moedas, 2d6 contra 2d6; ganhou, volta em dobro; empate, volta igual. 5 apostas por mesa.
+
+O **baú mímico** (`Bau.TalvezMimico`, `MimicoDoBau`, 1.20.0): os baús espalhados pela caverna (e o da
+pedra rachada), do andar 2 em diante, têm 8% a 20% de chance de ser um mímico. Parado, só treme de vez em
+quando; ao abrir, vira um inimigo feito no código (`Vida`, `DanoAoEncostar`, `MorteDoInimigo`) que pula
+mordendo e cospe um leque de moedas, e morto solta uma arma incomum ou melhor. A arte (o baú da prisão
+com dentes, olhos e língua), a bigorna, a mesa e os dados saem do `Ferramentas/Cenario/desenhos.py`.
+
+Os itens das armas novas (1.20.0): **Lâmina Larga** (`CorteVezes`: o corte das armas com `cortaTiros`
+fica maior e mais forte), **Corda Encantada** (`VoltasExtras`: o `Projetil` do bumerangue, ao chegar na
+mão, sai de novo pra mira) e **Bobina de Cobre** (`AlcanceDoRaioVezes`, `SaltosExtras`, `ChanceDeRaio`:
+`Raio.Encadear` recebe o alcance), com as sinergias Tempestade Viva, Retorno Certeiro, Dança das Lâminas
+(`LaminasDevolvem`), Lâmina Giratória (`BumerangueCorta`) e Bumerangue Elétrico.
+
 O **tiro especial** (botão direito ou `G`, LT no controle; desde a 1.18.0): toda arma tem um, feito dela mesma na hora
 (`DadosDaArma.Especial`, uma cópia com o padrão mudado), sem gastar munição e com recarga
 (`recargaDoEspecial`, guardada por arma na `ArmaCarregada`: trocar de arma não zera). O tipo é o

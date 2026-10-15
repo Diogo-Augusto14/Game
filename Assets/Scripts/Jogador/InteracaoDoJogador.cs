@@ -48,7 +48,7 @@ public class InteracaoDoJogador : MonoBehaviour
             DicasDaPrimeiraVez.Mostrar("arma");
 
         // A tela da estatua acabou de fechar com o B (que tambem e o interagir no controle): nao reabre.
-        if (perto != null && controles.Interagiu && !TelaDaEstatua.Ocupada)
+        if (perto != null && controles.Interagiu && !TelaDaEstatua.Ocupada && !TelaDasApostas.Ocupada)
             perto.Usar(gameObject);
     }
 }

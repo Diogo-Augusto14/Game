@@ -160,6 +160,52 @@ public class DadosDaArma : ScriptableObject
     [System.NonSerialized] public bool ehEspecial;
 
     [System.NonSerialized] private DadosDaArma especialPronto;
+
+    // ---------------- a forja (o ferreiro) ----------------
+    /// <summary>Quantas vezes o ferreiro melhorou esta arma (no maximo <see cref="ForjaMaxima"/>).</summary>
+    public const int ForjaMaxima = 3;
+
+    [System.NonSerialized] private DadosDaArma origem;
+    [System.NonSerialized] private DadosDaArma[] forjadas;
+
+    /// <summary>O nivel da forja desta copia (0 = a arma do asset).</summary>
+    [System.NonSerialized] public int forja;
+
+    /// <summary>A arma do asset (a de uma copia forjada; a propria, se nao e copia).</summary>
+    public DadosDaArma Origem => origem != null ? origem : this;
+
+    /// <summary>
+    /// A arma forjada no nivel pedido (o ferreiro): a cada nivel, 30% mais dano e uma raridade acima (ate a
+    /// lendaria). E uma copia guardada na arma do asset, com o mesmo nome de arquivo (o salvamento guarda o
+    /// nome e o nivel).
+    /// </summary>
+    public DadosDaArma Forjada(int nivel)
+    {
+        DadosDaArma dono = Origem;
+        nivel = Mathf.Clamp(nivel, 0, ForjaMaxima);
+
+        if (nivel == 0)
+            return dono;
+
+        if (dono.forjadas == null)
+            dono.forjadas = new DadosDaArma[ForjaMaxima + 1];
+
+        if (dono.forjadas[nivel] == null)
+        {
+            DadosDaArma f = Instantiate(dono);
+            f.name = dono.name;
+            f.origem = dono;
+            f.forja = nivel;
+            f.dano = dono.dano * (1f + 0.3f * nivel);
+            f.raridade = (Raridade)Mathf.Min((int)dono.raridade + nivel, (int)Raridade.Lendaria);
+            dono.forjadas[nivel] = f;
+        }
+
+        return dono.forjadas[nivel];
+    }
+
+    /// <summary>O nome que aparece (no idioma do jogo), com o "+2" da forja.</summary>
+    public string NomeNaTela => Idioma.T(nome) + (forja > 0 ? " +" + forja : "");
     [System.NonSerialized] private DadosDaArma fragmentoPronto;
 
     /// <summary>

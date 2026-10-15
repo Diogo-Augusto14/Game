@@ -185,7 +185,7 @@ public class HudDoJogo
         float largura = 260 * u;
 
         float linhaDeTexto = 32 * u;
-        Desenho.Texto(new Rect(direita - largura, quadro.y, largura, linhaDeTexto), Idioma.T(atual.Dados.nome), medio, Raridades.Cor(atual.Dados.raridade));
+        Desenho.Texto(new Rect(direita - largura, quadro.y, largura, linhaDeTexto), atual.Dados.NomeNaTela, medio, Raridades.Cor(atual.Dados.raridade));
 
         string municao;
         Color cor = Desenho.Claro;
@@ -246,7 +246,7 @@ public class HudDoJogo
         {
             GUIStyle outra = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerRight);
             Desenho.Texto(new Rect(Screen.width - m - largura, quadro.y - 48 * u, largura, 24 * u),
-                          "Q  " + Idioma.T(armas.Outra.Dados.nome), outra, Desenho.Apagado);
+                          "Q  " + armas.Outra.Dados.NomeNaTela, outra, Desenho.Apagado);
         }
     }
 

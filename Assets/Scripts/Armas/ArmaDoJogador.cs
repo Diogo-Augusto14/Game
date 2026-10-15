@@ -134,6 +134,24 @@ public class ArmaDoJogador : MonoBehaviour
     }
 
     /// <summary>
+    /// O ferreiro melhora a arma da mao: ela vira a copia forjada um nivel acima, com a mesma municao.
+    /// False sem arma ou ja no maximo.
+    /// </summary>
+    public bool Forjar()
+    {
+        ArmaCarregada velha = Atual;
+
+        if (velha == null || velha.Dados.forja >= DadosDaArma.ForjaMaxima)
+            return false;
+
+        ArmaCarregada nova = new ArmaCarregada(velha.Dados.Forjada(velha.Dados.forja + 1));
+        nova.CopiarDe(velha);
+        maos[naMao] = nova;
+        AoTrocar?.Invoke();
+        return true;
+    }
+
+    /// <summary>
     /// Tira a arma da mao (a Fonte dos Desejos engole ela) e passa pra outra, se tiver. Devolve a que saiu.
     /// </summary>
     public ArmaCarregada Largar()
