@@ -49,11 +49,10 @@ ESCOLHAS = {
     "Bruxo": {("ataque", "east"): [0, 1, 1, 4, 4, 0], ("ataque", "north"): [0, 1, 1, 4, 4, 5]},
     # Orc: no golpe de lado o machado some no quadro 4.
     "Orc": {("ataque", "east"): [0, 1, 2, 3, 5, 6]},
-    # Arqueiro: o ataque (fireball) poe fogo nos ultimos quadros; ficam os de puxar o arco.
-    # Geleia: no quadro 7 da morte a poca some (so o osso e a moeda).
-    "Geleia": {("morte", "east"): [0, 1, 2, 3, 4, 5, 6, 8]},
-    "EsqueletoArqueiro": {("ataque", "east"): [0, 1, 2, 4, 4, 1], ("ataque", "south"): [0, 1, 2, 2, 2, 0],
-                          ("ataque", "north"): [0, 1, 2, 3, 3, 0]},
+    # Arqueiro (refeito): o ataque e o lead-jab do skeleton-v3 (levanta o arco, puxa e solta, 3 quadros), com
+    # o puxar segurado um pouco; a flecha sai no quadro 3.
+    "EsqueletoArqueiro": {("ataque", "east"): [0, 1, 1, 2, 2, 0], ("ataque", "south"): [0, 1, 1, 2, 2, 0],
+                          ("ataque", "north"): [0, 1, 1, 2, 2, 0]},
 }
 ESCOLHA = {}
 
