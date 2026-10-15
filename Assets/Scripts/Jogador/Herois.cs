@@ -6,7 +6,7 @@ using UnityEngine;
 /// (vieram do jogo antigo). Cada um tem vida, velocidade, as folhas de animacao, a arma do comeco
 /// (infinita, e que tambem pode ser trocada) e uma habilidade (<see cref="HabilidadeDoHeroi"/>, tecla F).
 ///
-/// O Aventureiro, o Mineiro e o Arqueiro comecam livres; os outros se liberam vencendo chefes e zerando o jogo (<see cref="Progresso"/>).
+/// O Aventureiro e o Arqueiro comecam livres; os outros se liberam vencendo chefes e zerando o jogo (<see cref="Progresso"/>).
 /// <see cref="Aplicar"/> poe o heroi no jogador. A escolha fica salva entre partidas.
 /// </summary>
 public static class Herois
@@ -33,7 +33,7 @@ public static class Herois
         public string FolhaDoAtaque = "Attack01";
         public int QuadroDoDisparo = 3;
 
-        /// <summary>Pixels por unidade das folhas (quadros de 100 x 100). Os do Tiny RPG sao 20; o Mineiro, 40.</summary>
+        /// <summary>Pixels por unidade das folhas (quadros de 100 x 100). Os do Tiny RPG sao 20; o Aventureiro, 32.</summary>
         public float Pixels = 20f;
 
         /// <summary>
@@ -88,14 +88,6 @@ public static class Herois
             Descricao = "Rápido e de espada na mão. Cortes que atravessam os inimigos.",
             Vida = 6, Velocidade = 5.8f, Arma = "EspadaDoAventureiro", QuadroDoDisparo = 1,
             Habilidade = TipoDeHabilidade.Redemoinho, NomeDaHabilidade = "Redemoinho", Recarga = 10f,
-        },
-        // O heroi principal (1.21.0, feito no PixelLab): um cavaleiro que perdeu tudo e virou mineiro.
-        new Heroi
-        {
-            Nome = "Mineiro", Pasta = "Personagens/Herois/Mineiro", Pixels = 40f,
-            Descricao = "Um cavaleiro que perdeu tudo e virou mineiro. Arremessa picaretas que giram.",
-            Vida = 8, Velocidade = 5.2f, Arma = "PicaretaDoMineiro", QuadroDoDisparo = 6,
-            Habilidade = TipoDeHabilidade.Furia, NomeDaHabilidade = "Fúria", Recarga = 16f,
         },
         new Heroi
         {

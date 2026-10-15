@@ -36,14 +36,17 @@ RUMOS = {"east": "", "south": "_Frente", "north": "_Costas"}
 
 # Quadros escolhidos, por inimigo (o que o PixelLab estragou fica de fora).
 ESCOLHAS = {
-    # Goblin: no golpe de lado a clava some nos quadros 4 e 5.
-    "GoblinDaClava": {("ataque", "east"): [0, 1, 2, 3, 3, 6]},
+    # Goblin: no golpe de lado a clava some nos quadros 4 e 5 e sai borrada no 0; de frente e de costas o
+    # quadro 4 sai amassado.
+    "GoblinDaClava": {("ataque", "east"): [1, 1, 2, 3, 3, 6], ("ataque", "south"): [0, 1, 2, 3, 5, 5, 6],
+                      ("ataque", "north"): [0, 1, 2, 3, 5, 5, 6]},
     # Esqueleto (refeito no plano pago, tudo no skeleton-v3): no golpe de lado a espada some em dois quadros
     # (ficam os que tem ela: levanta e desce, com o golpe no quadro 4 como nos outros rumos), e no parado
     # de frente o ultimo quadro abaixa a espada.
     "EsqueletoGuerreiro": {("ataque", "east"): [1, 1, 2, 2, 5, 6], ("parado", "south"): [0, 1, 2, 3, 4, 5, 6]},
-    # Bruxo: no ataque de lado (fireball) dois quadros saem borrados e no ultimo ele some.
-    "Bruxo": {("ataque", "east"): [0, 1, 1, 4, 4, 0]},
+    # Bruxo: no ataque de lado (fireball) dois quadros saem borrados e no ultimo ele some; de costas dois
+    # quadros viram uma nuvem de fogo e fumaca em cima do corpo.
+    "Bruxo": {("ataque", "east"): [0, 1, 1, 4, 4, 0], ("ataque", "north"): [0, 1, 1, 4, 4, 5]},
     # Orc: no golpe de lado o machado some no quadro 4.
     "Orc": {("ataque", "east"): [0, 1, 2, 3, 5, 6]},
     # Arqueiro: o ataque (fireball) poe fogo nos ultimos quadros; ficam os de puxar o arco.
