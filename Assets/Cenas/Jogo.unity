@@ -824,6 +824,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 353c224251bd42fbbb9b767754e0f6b6, type: 2}
   - {fileID: 11400000, guid: 7b4e93e68b2b4718a68ee4a4e533e05f, type: 2}
   - {fileID: 11400000, guid: 464b38ac96ce4b5394a0e68b1737949a, type: 2}
+  - {fileID: 11400000, guid: 7844f496112d46c98ff4b14d3e349496, type: 2}
+  - {fileID: 11400000, guid: 425a68aa0edb48a9b02b000b6c033578, type: 2}
+  - {fileID: 11400000, guid: e9e5f8dfd6cd4f0fbfdd2242d908f6d5, type: 2}
+  - {fileID: 11400000, guid: 2483368e499f42f9ac05dfd1372a45e3, type: 2}
+  - {fileID: 11400000, guid: 7f9db5e6b11248e19137846012583c48, type: 2}
+  - {fileID: 11400000, guid: ae17d1a610154239b9cf7bac7fadb26a, type: 2}
   bausPorAndar: 1
   armasNoChaoPorAndar: 1
   bauNoComeco: 0

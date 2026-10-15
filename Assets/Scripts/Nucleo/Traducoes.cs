@@ -718,5 +718,11 @@ public static class Traducoes
         { "Volta com moedas que a gente conversa.", "Come back with coins and we'll talk." },
         { "Cuidado com os baús que tremem. Não pergunta como eu sei.", "Watch out for chests that twitch. Don't ask how I know." },
         { "Lâmina do Abismo", "Abyss Blade" },
+        { "Espada de Obsidiana", "Obsidian Sword" },
+        { "Espada Rubra", "Crimson Sword" },
+        { "Espada Rúnica", "Runic Sword" },
+        { "Espada de Osso", "Bone Sword" },
+        { "Lâmina Crescente", "Crescent Blade" },
+        { "Espada Flamejante", "Flaming Sword" },
     };
 }
