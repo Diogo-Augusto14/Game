@@ -6,7 +6,7 @@ using UnityEngine;
 /// itens comeca trancada e nao sai de bau, loja, pedestal, fonte nem mimico ate ser liberada, e ai fica
 /// liberada pra sempre. Dois jeitos de liberar:
 ///
-///   as plantas (<see cref="Plantas"/>): tres por mundo. Caem do chefe do mundo, as vezes de um campeao, e
+///   as plantas (<see cref="Plantas"/>): tres ou quatro por mundo. Caem do chefe do mundo, as vezes de um campeao, e
 ///   podem ser o premio de uma sala (o pergaminho azul em cima da porta). Pegou, aprendeu
 ///   (<see cref="PlantaNoChao"/>). A primeira planta da vida sai na sala do fim do andar 1;
 ///   as conquistas (<see cref="PorConquista"/>): cada uma dessas libera um item.
@@ -43,7 +43,7 @@ public static class Desbloqueios
     public static readonly Planta[] Plantas =
     {
         Arma("ArcoDeGelo", "Arco de Gelo", 1), Arma("ArcoVenenoso", "Arco Venenoso", 1), Item("Corda Encantada", 1),
-        Arma("ArcoExplosivo", "Arco Explosivo", 2), Item("Bobina de Cobre", 2), Item("Elmo de Duas Faces", 2),
+        Arma("ArcoExplosivo", "Arco Explosivo", 2), Arma("LaminaDoAbismo", "Lâmina do Abismo", 2), Item("Bobina de Cobre", 2), Item("Elmo de Duas Faces", 2),
         Arma("ArcoRicochete", "Arco Ricochete", 3), Arma("TomoProibido", "Tomo Proibido", 3), Item("Brasa da Fúria", 3),
         Arma("BestaReal", "Besta Real", 4), Item("Runa Tríplice", 4), Item("Cometa de Fogo", 4),
     };

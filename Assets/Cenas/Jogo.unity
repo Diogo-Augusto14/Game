@@ -823,6 +823,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 731b652032a64484babc65788068bff6, type: 2}
   - {fileID: 11400000, guid: 353c224251bd42fbbb9b767754e0f6b6, type: 2}
   - {fileID: 11400000, guid: 7b4e93e68b2b4718a68ee4a4e533e05f, type: 2}
+  - {fileID: 11400000, guid: 464b38ac96ce4b5394a0e68b1737949a, type: 2}
   bausPorAndar: 1
   armasNoChaoPorAndar: 1
   bauNoComeco: 0

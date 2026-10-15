@@ -717,5 +717,6 @@ public static class Traducoes
         { "Escolhe bem a porta. Ou não. Eu me divirto do mesmo jeito.", "Choose your door well. Or don't. I have fun either way." },
         { "Volta com moedas que a gente conversa.", "Come back with coins and we'll talk." },
         { "Cuidado com os baús que tremem. Não pergunta como eu sei.", "Watch out for chests that twitch. Don't ask how I know." },
+        { "Lâmina do Abismo", "Abyss Blade" },
     };
 }
