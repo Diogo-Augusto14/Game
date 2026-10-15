@@ -2,7 +2,9 @@ using UnityEngine;
 
 /// <summary>
 /// O desenho do jogador: parado, andando, atirando, rolando na esquiva e morrendo. O corpo sempre olha pro
-/// lado da mira (espelhado), como no Gungeon, mesmo andando de costas.
+/// lado da mira (espelhado), como no Gungeon, mesmo andando de costas. O heroi visto de cima (1.22.0,
+/// <see cref="TrocarDirecoes"/>) tem tambem as folhas de frente, de costas e da esquerda, e olha pra
+/// direcao da mira sem espelhar.
 ///
 /// Cada animacao e uma folha (tira de quadros lado a lado, ver <see cref="FolhaDeSprites"/>). Pra
 /// trocar o boneco: arrastar as folhas novas aqui e acertar o tamanho do quadro.
@@ -56,6 +58,13 @@ public class AnimacaoDoJogador : MonoBehaviour
     private Sprite[] quadrosDoTiro;
     private Sprite[] quadrosMorte;
 
+    // O heroi visto de cima: as folhas de frente, de costas e da esquerda (nulas = so a de lado, espelhada).
+    private Texture2D[] paradoDeCima, andandoDeCima;
+
+    // Os quadros por rumo: 0 direita, 1 baixo (de frente), 2 cima (de costas), 3 esquerda.
+    private Sprite[][] paradoPorRumo, andandoPorRumo;
+    private int rumo;
+
     private ControlesDoJogador controles;
     private MovimentoDoJogador movimento;
     private ArmaDoJogador arma;
@@ -93,8 +102,50 @@ public class AnimacaoDoJogador : MonoBehaviour
         ataque = novoAtaque;
         morte = novaMorte;
         quadroDoDisparo = quadro;
+        paradoDeCima = andandoDeCima = null;
         tocando = null;
         Cortar();
+    }
+
+    /// <summary>
+    /// O heroi visto de cima: as folhas de frente, de costas e da esquerda (nessa ordem), parado e
+    /// andando. Chamar depois de <see cref="TrocarFolhas"/> (que volta pro boneco so de lado).
+    /// </summary>
+    public void TrocarDirecoes(Texture2D[] novoParado, Texture2D[] novoAndando)
+    {
+        paradoDeCima = novoParado;
+        andandoDeCima = novoAndando;
+        tocando = null;
+        Cortar();
+    }
+
+    private bool DeCima => paradoDeCima != null;
+
+    private Sprite[][] PorRumo(Sprite[] deLado, Texture2D[] outras)
+    {
+        Sprite[][] porRumo = { deLado, deLado, deLado, deLado };
+
+        for (int i = 0; outras != null && i < outras.Length && i < 3; i++)
+        {
+            Sprite[] quadros = FolhaDeSprites.Cortar(outras[i], tamanhoDoQuadro, pixelsPorUnidade);
+
+            if (quadros.Length > 0)
+                porRumo[i + 1] = quadros;
+        }
+
+        return porRumo;
+    }
+
+    // Os quadros parados ou andando de um mesmo jeito em outro rumo: virar continua o passo de onde estava.
+    private Sprite[][] Familia(Sprite[] quadros)
+    {
+        if (quadros == null)
+            return null;
+
+        if (System.Array.IndexOf(paradoPorRumo, quadros) >= 0)
+            return paradoPorRumo;
+
+        return System.Array.IndexOf(andandoPorRumo, quadros) >= 0 ? andandoPorRumo : null;
     }
 
     private void Cortar()
@@ -111,6 +162,9 @@ public class AnimacaoDoJogador : MonoBehaviour
 
         if (quadrosAndando.Length == 0)
             quadrosAndando = quadrosParado;
+
+        paradoPorRumo = PorRumo(quadrosParado, paradoDeCima);
+        andandoPorRumo = PorRumo(quadrosAndando, andandoDeCima);
 
         Tocar(quadrosParado, quadrosPorSegundoParado, false);
     }
@@ -152,17 +206,31 @@ public class AnimacaoDoJogador : MonoBehaviour
             return;
         }
 
-        // Olha pro lado da mira.
-        if (controles != null && Mathf.Abs(controles.Mira.x) > 0.05f)
+        // Olha pro lado da mira (o visto de cima, pra direcao dela: frente, costas ou um lado).
+        if (controles != null && DeCima)
+        {
+            Vector2 mira = controles.Mira;
+
+            if (mira.sqrMagnitude > 0.0025f)
+                rumo = Mathf.Abs(mira.y) > Mathf.Abs(mira.x) ? (mira.y < 0f ? 1 : 2) : (mira.x < 0f ? 3 : 0);
+
+            corpo.flipX = false;
+        }
+        else if (controles != null && Mathf.Abs(controles.Mira.x) > 0.05f)
+        {
             corpo.flipX = controles.Mira.x < 0f;
+        }
+
+        Sprite[] parados = paradoPorRumo[rumo];
+        Sprite[] andandos = andandoPorRumo[rumo];
 
         bool esquivando = movimento != null && movimento.Esquivando;
         bool atirando = Time.time < atirandoAte;
 
         if (esquivando)
-            Tocar(quadrosAndando, quadrosPorSegundoAndando * 2f, false);
+            Tocar(andandos, quadrosPorSegundoAndando * 2f, false);
         else if (!atirando)
-            Tocar(Andando ? quadrosAndando : quadrosParado, Andando ? quadrosPorSegundoAndando : quadrosPorSegundoParado, false);
+            Tocar(Andando ? andandos : parados, Andando ? quadrosPorSegundoAndando : quadrosPorSegundoParado, false);
 
         // Andando e atirando: um pulinho de pixel inteiro a cada passo, pra nao parecer que desliza.
         float pulinho = 0f;
@@ -211,9 +279,10 @@ public class AnimacaoDoJogador : MonoBehaviour
         if (quadros == null || quadros.Length == 0)
             return;
 
-        // A mesma animacao em loop continua de onde esta; so recomeca se mudou.
-        if (quadros == tocando && !umaVez && !soUmaVez)
+        // A mesma animacao em loop (ou ela em outro rumo) continua de onde esta; so recomeca se mudou.
+        if (!umaVez && !soUmaVez && (quadros == tocando || (Familia(quadros) != null && Familia(quadros) == Familia(tocando))))
         {
+            tocando = quadros;
             quadrosPorSegundo = novoRitmo;
             return;
         }

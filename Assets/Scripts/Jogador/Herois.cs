@@ -6,7 +6,7 @@ using UnityEngine;
 /// (vieram do jogo antigo). Cada um tem vida, velocidade, as folhas de animacao, a arma do comeco
 /// (infinita, e que tambem pode ser trocada) e uma habilidade (<see cref="HabilidadeDoHeroi"/>, tecla F).
 ///
-/// O Arqueiro comeca livre; os outros se liberam vencendo chefes e zerando o jogo (<see cref="Progresso"/>).
+/// O Aventureiro, o Mineiro e o Arqueiro comecam livres; os outros se liberam vencendo chefes e zerando o jogo (<see cref="Progresso"/>).
 /// <see cref="Aplicar"/> poe o heroi no jogador. A escolha fica salva entre partidas.
 /// </summary>
 public static class Herois
@@ -35,6 +35,12 @@ public static class Herois
 
         /// <summary>Pixels por unidade das folhas (quadros de 100 x 100). Os do Tiny RPG sao 20; o Mineiro, 40.</summary>
         public float Pixels = 20f;
+
+        /// <summary>
+        /// Visto de cima (1.22.0): alem das folhas de lado, tem Idle_Baixo, Idle_Cima, Idle_Esquerda e o
+        /// mesmo pro Walk, e olha pra direcao da mira (ver <see cref="AnimacaoDoJogador.TrocarDirecoes"/>).
+        /// </summary>
+        public bool DeCima;
 
         public TipoDeHabilidade Habilidade;
         public string NomeDaHabilidade;
@@ -74,6 +80,14 @@ public static class Herois
 
     public static readonly Heroi[] Todos =
     {
+        // Visto de cima (1.22.0), do pacote "Adventurer 2D Top-Down" do Mattz Art (a versao gratis, por enquanto).
+        new Heroi
+        {
+            Nome = "Aventureiro", Pasta = "Personagens/Herois/Aventureiro", Pixels = 32f, DeCima = true,
+            Descricao = "Rápido e de espada na mão. Cortes que atravessam os inimigos.",
+            Vida = 6, Velocidade = 5.8f, Arma = "EspadaDoAventureiro", QuadroDoDisparo = 1,
+            Habilidade = TipoDeHabilidade.Redemoinho, NomeDaHabilidade = "Redemoinho", Recarga = 10f,
+        },
         // O heroi principal (1.21.0, feito no PixelLab): um cavaleiro que perdeu tudo e virou mineiro.
         new Heroi
         {
@@ -195,8 +209,8 @@ public static class Herois
     public static DadosDaArma Arma(Heroi heroi) =>
         heroi != null && !string.IsNullOrEmpty(heroi.Arma) ? Resources.Load<DadosDaArma>("ArmasDosHerois/" + heroi.Arma) : null;
 
-    /// <summary>Os quadros do heroi parado (o retrato).</summary>
-    public static Sprite[] Parado(Heroi heroi) => Folha(heroi, "Idle");
+    /// <summary>Os quadros do heroi parado (o retrato; o visto de cima, de frente).</summary>
+    public static Sprite[] Parado(Heroi heroi) => Folha(heroi, heroi != null && heroi.DeCima ? "Idle_Baixo" : "Idle");
 
     /// <summary>Os quadros do heroi caindo (a tela do fim, quando morre).</summary>
     public static Sprite[] Morte(Heroi heroi) => Folha(heroi, "Death");
@@ -223,6 +237,9 @@ public static class Herois
             // menu continua com ela.
             animacao.TrocarFolhas(SemArma(heroi, "Idle"), SemArma(heroi, "Walk"), Textura(heroi, heroi.FolhaDoAtaque),
                                   SemArma(heroi, "Death"), heroi.QuadroDoDisparo, heroi.Pixels);
+
+            if (heroi.DeCima)
+                animacao.TrocarDirecoes(Direcoes(heroi, "Idle"), Direcoes(heroi, "Walk"));
         }
 
         DadosDaArma arma = Arma(heroi);
@@ -250,6 +267,10 @@ public static class Herois
     }
 
     private static Texture2D Textura(Heroi heroi, string nome) => Resources.Load<Texture2D>(heroi.Pasta + "/" + nome);
+
+    // As folhas de frente, de costas e da esquerda do heroi visto de cima.
+    private static Texture2D[] Direcoes(Heroi heroi, string nome) =>
+        new[] { Textura(heroi, nome + "_Baixo"), Textura(heroi, nome + "_Cima"), Textura(heroi, nome + "_Esquerda") };
 
     // A folha sem a arma desenhada (Ferramentas/Personagens/desarmar_herois.py); sem ela, a original.
     private static Texture2D SemArma(Heroi heroi, string nome) =>

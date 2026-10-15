@@ -1,6 +1,6 @@
 """
-Importa dos pacotes da serie EPIC RPG World (descompactados em Pacotes/, ver Pacotes/LEIAME.md no
-repositorio privado ThePrettie-Pacotes) a arte dos mundos que nao sao o Old Prison:
+Importa dos pacotes da serie EPIC RPG World (descompactados em Pacotes/, fora do
+repositorio) a arte dos mundos que nao sao o Old Prison:
 
   Cripta       (pacote Crypt)
     Assets/Arte/Resources/Temas/Cripta/Paredes.png   as paredes do pacote (wall-1)

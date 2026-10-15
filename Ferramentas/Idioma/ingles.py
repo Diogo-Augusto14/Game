@@ -819,4 +819,7 @@ T = [
     ("Mineiro", "Miner"),
     ("Picareta do Mineiro", "Miner's Pickaxe"),
     ("Um cavaleiro que perdeu tudo e virou mineiro. Arremessa picaretas que giram.", "A knight who lost everything and became a miner. Throws spinning pickaxes."),
+    ("Aventureiro", "Adventurer"),
+    ("Espada do Aventureiro", "Adventurer's Sword"),
+    ("Rápido e de espada na mão. Cortes que atravessam os inimigos.", "Fast, sword in hand. Slashes that cut through enemies."),
 ]

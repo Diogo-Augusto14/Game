@@ -55,7 +55,7 @@ mudado à mão na cena e no prefab se perde.
 | `Ferramentas/Areas` | `importar.py`: tira das demos Grass Land e Ancient Ruins a arte das áreas seguras (`Resources/Areas`: grama, piso, árvores, arbustos, capim, pedras, ruínas, a fonte, o altar, o cálice, o mercador e a criatura da sorte) e do Village (interiors) a mobília (`Resources/Decoracao/Vila`: armários, estantes, prateleiras, barris, caixotes, mesas, tapetes, castiçais, armaduras, quadros, potes que quebram, o baú) |
 | `Ferramentas/Temas` | `importar.py`: tira dos pacotes Old Prison, Crypt e The Depths of the Mountain a arte da Cripta e das Profundezas (`DadosDosTemas.cs`) e a decoração (`Resources/Decoracao`: as peças do Old Prison em `Prisao/`, caixões, estátuas, cristais, tochas, velas, a chama mágica, a porta grande de madeira, o lançador de fogo) |
 | `Ferramentas/Personagens` | `importar.py`: recorta dos pacotes as folhas dos inimigos e do Rei Esqueleto (em volta do boneco, 32 pixels por unidade) e grava `quadros.json`. `desarmar_herois.py`: tira a arma do desenho dos heróis (parado, andando e morte, em `SemArma/`): no jogo a arma aparece só na mão |
-| `Pacotes/` | Os pacotes comprados, descompactados (fora do Git deste repositório público; ficam no privado `ThePrettie-Pacotes`, ver `CLAUDE.md`) |
+| `Pacotes/` | Os pacotes comprados, descompactados (fora do Git deste repositório público, ver `CLAUDE.md`) |
 
 ## As peças do jogador
 
