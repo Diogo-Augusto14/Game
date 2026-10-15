@@ -39,6 +39,7 @@ public static class Herois
         /// <summary>
         /// Visto de cima (1.22.0): alem das folhas de lado, tem Idle_Baixo, Idle_Cima, Idle_Esquerda e o
         /// mesmo pro Walk, e olha pra direcao da mira (ver <see cref="AnimacaoDoJogador.TrocarDirecoes"/>).
+        /// Se tiver Dash e Hurt (e as de cada rumo), a esquiva e o dano sao desenhados.
         /// </summary>
         public bool DeCima;
 
@@ -80,7 +81,7 @@ public static class Herois
 
     public static readonly Heroi[] Todos =
     {
-        // Visto de cima (1.22.0), do pacote "Adventurer 2D Top-Down" do Mattz Art (a versao gratis, por enquanto).
+        // Visto de cima (1.22.0), do pacote "Adventurer 2D Top-Down" do Mattz Art.
         new Heroi
         {
             Nome = "Aventureiro", Pasta = "Personagens/Herois/Aventureiro", Pixels = 32f, DeCima = true,
@@ -239,7 +240,7 @@ public static class Herois
                                   SemArma(heroi, "Death"), heroi.QuadroDoDisparo, heroi.Pixels);
 
             if (heroi.DeCima)
-                animacao.TrocarDirecoes(Direcoes(heroi, "Idle"), Direcoes(heroi, "Walk"));
+                animacao.TrocarDirecoes(Direcoes(heroi, "Idle"), Direcoes(heroi, "Walk"), Todas(heroi, "Dash"), Todas(heroi, "Hurt"));
         }
 
         DadosDaArma arma = Arma(heroi);
@@ -271,6 +272,13 @@ public static class Herois
     // As folhas de frente, de costas e da esquerda do heroi visto de cima.
     private static Texture2D[] Direcoes(Heroi heroi, string nome) =>
         new[] { Textura(heroi, nome + "_Baixo"), Textura(heroi, nome + "_Cima"), Textura(heroi, nome + "_Esquerda") };
+
+    // A de lado e as outras tres (a esquiva e o dano); nulo se o heroi nao tem.
+    private static Texture2D[] Todas(Heroi heroi, string nome)
+    {
+        Texture2D deLado = Textura(heroi, nome);
+        return deLado != null ? new[] { deLado, Textura(heroi, nome + "_Baixo"), Textura(heroi, nome + "_Cima"), Textura(heroi, nome + "_Esquerda") } : null;
+    }
 
     // A folha sem a arma desenhada (Ferramentas/Personagens/desarmar_herois.py); sem ela, a original.
     private static Texture2D SemArma(Heroi heroi, string nome) =>

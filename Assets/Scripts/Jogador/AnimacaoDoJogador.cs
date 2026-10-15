@@ -4,7 +4,8 @@ using UnityEngine;
 /// O desenho do jogador: parado, andando, atirando, rolando na esquiva e morrendo. O corpo sempre olha pro
 /// lado da mira (espelhado), como no Gungeon, mesmo andando de costas. O heroi visto de cima (1.22.0,
 /// <see cref="TrocarDirecoes"/>) tem tambem as folhas de frente, de costas e da esquerda, e olha pra
-/// direcao da mira sem espelhar.
+/// direcao da mira sem espelhar. Ele pode ter ainda a esquiva desenhada (no lugar do giro) e o dano (toca
+/// quando apanha).
 ///
 /// Cada animacao e uma folha (tira de quadros lado a lado, ver <see cref="FolhaDeSprites"/>). Pra
 /// trocar o boneco: arrastar as folhas novas aqui e acertar o tamanho do quadro.
@@ -61,9 +62,13 @@ public class AnimacaoDoJogador : MonoBehaviour
     // O heroi visto de cima: as folhas de frente, de costas e da esquerda (nulas = so a de lado, espelhada).
     private Texture2D[] paradoDeCima, andandoDeCima;
 
+    // A esquiva e o dano do visto de cima: as quatro folhas (lado, frente, costas, esquerda). Nulas = nao tem.
+    private Texture2D[] esquivaDeCima, danoDeCima;
+
     // Os quadros por rumo: 0 direita, 1 baixo (de frente), 2 cima (de costas), 3 esquerda.
-    private Sprite[][] paradoPorRumo, andandoPorRumo;
+    private Sprite[][] paradoPorRumo, andandoPorRumo, esquivaPorRumo, danoPorRumo;
     private int rumo;
+    private float machucadoAte;
 
     private ControlesDoJogador controles;
     private MovimentoDoJogador movimento;
@@ -102,24 +107,39 @@ public class AnimacaoDoJogador : MonoBehaviour
         ataque = novoAtaque;
         morte = novaMorte;
         quadroDoDisparo = quadro;
-        paradoDeCima = andandoDeCima = null;
+        paradoDeCima = andandoDeCima = esquivaDeCima = danoDeCima = null;
         tocando = null;
         Cortar();
     }
 
     /// <summary>
-    /// O heroi visto de cima: as folhas de frente, de costas e da esquerda (nessa ordem), parado e
-    /// andando. Chamar depois de <see cref="TrocarFolhas"/> (que volta pro boneco so de lado).
+    /// O heroi visto de cima: parado e andando, as folhas de frente, de costas e da esquerda (nessa
+    /// ordem); a esquiva e o dano, as quatro (de lado, frente, costas e esquerda), ou nulas. Chamar depois
+    /// de <see cref="TrocarFolhas"/> (que volta pro boneco so de lado).
     /// </summary>
-    public void TrocarDirecoes(Texture2D[] novoParado, Texture2D[] novoAndando)
+    public void TrocarDirecoes(Texture2D[] novoParado, Texture2D[] novoAndando, Texture2D[] novaEsquiva = null, Texture2D[] novoDano = null)
     {
         paradoDeCima = novoParado;
         andandoDeCima = novoAndando;
+        esquivaDeCima = novaEsquiva;
+        danoDeCima = novoDano;
         tocando = null;
         Cortar();
     }
 
     private bool DeCima => paradoDeCima != null;
+
+    // As quatro folhas (lado, frente, costas, esquerda); nulo se nao tem a de lado.
+    private Sprite[][] Todas(Texture2D[] folhas)
+    {
+        if (folhas == null || folhas.Length == 0)
+            return null;
+
+        Sprite[] deLado = FolhaDeSprites.Cortar(folhas[0], tamanhoDoQuadro, pixelsPorUnidade);
+        Texture2D[] outras = new Texture2D[folhas.Length - 1];
+        System.Array.Copy(folhas, 1, outras, 0, outras.Length);
+        return deLado.Length > 0 ? PorRumo(deLado, outras) : null;
+    }
 
     private Sprite[][] PorRumo(Sprite[] deLado, Texture2D[] outras)
     {
@@ -165,6 +185,8 @@ public class AnimacaoDoJogador : MonoBehaviour
 
         paradoPorRumo = PorRumo(quadrosParado, paradoDeCima);
         andandoPorRumo = PorRumo(quadrosAndando, andandoDeCima);
+        esquivaPorRumo = Todas(esquivaDeCima);
+        danoPorRumo = Todas(danoDeCima);
 
         Tocar(quadrosParado, quadrosPorSegundoParado, false);
     }
@@ -173,12 +195,29 @@ public class AnimacaoDoJogador : MonoBehaviour
     {
         if (arma != null)
             arma.AoAtirar += Atirou;
+
+        if (vida != null)
+            vida.AoTomarDano += Apanhou;
     }
 
     private void OnDisable()
     {
         if (arma != null)
             arma.AoAtirar -= Atirou;
+
+        if (vida != null)
+            vida.AoTomarDano -= Apanhou;
+    }
+
+    // Apanhou: o dano desenhado, uma vez (so quem tem, o heroi visto de cima).
+    private void Apanhou(Dano dano)
+    {
+        if (danoPorRumo == null || (vida != null && vida.Morto))
+            return;
+
+        Sprite[] quadros = danoPorRumo[rumo];
+        Tocar(quadros, quadrosPorSegundoAndando, true);
+        machucadoAte = Time.time + quadros.Length / quadrosPorSegundoAndando;
     }
 
     private void Atirou(Vector2 rumo, float intervalo)
@@ -226,6 +265,28 @@ public class AnimacaoDoJogador : MonoBehaviour
 
         bool esquivando = movimento != null && movimento.Esquivando;
         bool atirando = Time.time < atirandoAte;
+
+        // A esquiva desenhada (o visto de cima): pro lado em que vai, do comeco ao fim da esquiva, sem girar.
+        if (esquivando && esquivaPorRumo != null && !movimento.Investindo)
+        {
+            Vector2 vai = movimento.RumoDaEsquiva;
+            int lado = Mathf.Abs(vai.y) > Mathf.Abs(vai.x) ? (vai.y < 0f ? 1 : 2) : (vai.x < 0f ? 3 : 0);
+            Sprite[] quadros = esquivaPorRumo[lado];
+            corpo.flipX = false;
+            corpo.transform.localPosition = Vector3.zero;
+            corpo.transform.localRotation = Quaternion.identity;
+            corpo.sprite = quadros[Mathf.Min(quadros.Length - 1, Mathf.FloorToInt(movimento.ProgressoDaEsquiva * quadros.Length))];
+            tocando = null;
+            return;
+        }
+
+        if (Time.time < machucadoAte && !esquivando)
+        {
+            corpo.transform.localPosition = Vector3.zero;
+            corpo.transform.localRotation = Quaternion.identity;
+            MostrarQuadro();
+            return;
+        }
 
         if (esquivando)
             Tocar(andandos, quadrosPorSegundoAndando * 2f, false);
