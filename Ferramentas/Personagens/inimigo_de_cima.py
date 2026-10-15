@@ -41,9 +41,9 @@ ESCOLHAS = {
     "GoblinDaClava": {("ataque", "east"): [1, 1, 2, 3, 3, 6], ("ataque", "south"): [0, 1, 2, 3, 5, 5, 6],
                       ("ataque", "north"): [0, 1, 2, 3, 5, 5, 6]},
     # Esqueleto (refeito no plano pago, tudo no skeleton-v3): no golpe de lado a espada some em dois quadros
-    # (ficam os que tem ela: levanta e desce, com o golpe no quadro 4 como nos outros rumos), e no parado
-    # de frente o ultimo quadro abaixa a espada.
-    "EsqueletoGuerreiro": {("ataque", "east"): [1, 1, 2, 2, 5, 6], ("parado", "south"): [0, 1, 2, 3, 4, 5, 6]},
+    # (ficam os que tem ela: levanta e desce, com o golpe no quadro 4 como nos outros rumos), e no golpe de
+    # frente o quadro 0 sai transparente e o 5 borrado.
+    "EsqueletoGuerreiro": {("ataque", "east"): [1, 1, 2, 2, 5, 6], ("ataque", "south"): [1, 1, 2, 3, 4, 6]},
     # Bruxo: no ataque de lado (fireball) dois quadros saem borrados e no ultimo ele some; de costas dois
     # quadros viram uma nuvem de fogo e fumaca em cima do corpo.
     "Bruxo": {("ataque", "east"): [0, 1, 1, 4, 4, 0], ("ataque", "north"): [0, 1, 1, 4, 4, 5]},
