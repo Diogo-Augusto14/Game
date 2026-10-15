@@ -228,9 +228,16 @@ public class SalaDeLuta : MonoBehaviour
         return melhor;
     }
 
-    // O premio da sala, no meio dela (ou do lado, se o jogador estiver em cima).
+    /// <summary>A chance de uma sala de luta dar premio ao ser limpa (a sala do fim sempre da).</summary>
+    public const float ChanceDePremio = 0.35f;
+
+    // O premio da sala, no meio dela (ou do lado, se o jogador estiver em cima). So as vezes: premio
+    // toda hora cansava (a sala do fim sempre da, e mais).
     private void Premio()
     {
+        if (planta.tipo != TipoDeSala.Fim && Random.value >= ChanceDePremio)
+            return;
+
         Vector2 onde = planta.Meio;
 
         if (lugares.Count > 0 && !lugares.Contains(MapaDeCaminhos.Celula(onde)))
