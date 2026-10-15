@@ -33,10 +33,10 @@ QUADRO = 48
 NOMES = {"parado": "Idle", "andar": "Walk", "ataque": "Attack01", "morte": "Death"}
 RUMOS = {"east": "", "south": "_Frente", "north": "_Costas"}
 
-# Quadros escolhidos, por inimigo. Goblin: no parado de lado o PixelLab vira a cara pra camera no fim (vai
-# e volta nos primeiros), e no ataque de frente um quadro saiu com um borrao branco.
+# Quadros escolhidos, por inimigo (o que o PixelLab estragou fica de fora).
 ESCOLHAS = {
-    "GoblinDaClava": {("parado", "east"): [0, 1, 2, 3, 2, 1], ("ataque", "south"): [0, 1, 2, 3, 4, 5, 7, 8]},
+    # Goblin: no golpe de lado a clava some nos quadros 4 e 5.
+    "GoblinDaClava": {("ataque", "east"): [0, 1, 2, 3, 3, 6]},
     # Esqueleto (refeito no plano pago, tudo no skeleton-v3): no golpe de lado a espada some em dois quadros
     # (ficam os que tem ela: levanta e desce, com o golpe no quadro 4 como nos outros rumos), e no parado
     # de frente o ultimo quadro abaixa a espada.
