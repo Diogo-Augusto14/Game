@@ -2,9 +2,9 @@
 (o Goblin da Clava e o Esqueleto Guerreiro).
 
 Entrada: uma pasta com os quadros baixados do PixelLab, <animacao>/<direcao>/<n>.png (48 x 48), com
-animacao em parado, andar, ataque, morte e direcao em east, south, north; e, se tiver, rotacao/<direcao>.png
+animacao em parado, andar, ataque, morte e direcao em east, south, north (o tamanho do quadro e o do andar); e, se tiver, rotacao/<direcao>.png
 (o boneco parado, usado como parado de um quadro so quando falta a animacao daquele rumo). Os quadros sao
-enfileirados em folhas de 48 x 48 em Assets/Arte/Resources/Personagens/<Pasta>:
+enfileirados em folhas do mesmo tamanho em Assets/Arte/Resources/Personagens/<Pasta>:
 
   Idle, Walk, Attack01, Death (de lado; o jogo espelha pra esquerda)
   Idle_Frente, Idle_Costas, Walk_Frente, Walk_Costas, Attack01_Frente, Attack01_Costas
@@ -29,9 +29,10 @@ RUMOS = {"east": "", "south": "_Frente", "north": "_Costas"}
 # e volta nos primeiros), e no ataque de frente um quadro saiu com um borrao branco.
 ESCOLHAS = {
     "GoblinDaClava": {("parado", "east"): [0, 1, 2, 3, 2, 1], ("ataque", "south"): [0, 1, 2, 3, 4, 5, 7, 8]},
-    # Esqueleto: no meio do golpe de lado ele vira pra camera (fica o comeco e a volta), e o parado de
-    # lado vai abaixando a espada (vai e volta nos primeiros).
-    "EsqueletoGuerreiro": {("ataque", "east"): [0, 1, 2, 3, 8], ("parado", "east"): [0, 1, 2, 1]},
+    # Esqueleto (refeito no plano pago, tudo no skeleton-v3): no golpe de lado a espada some em dois quadros
+    # (ficam os que tem ela: levanta e desce, com o golpe no quadro 4 como nos outros rumos), e no parado
+    # de frente o ultimo quadro abaixa a espada.
+    "EsqueletoGuerreiro": {("ataque", "east"): [1, 1, 2, 2, 5, 6], ("parado", "south"): [0, 1, 2, 3, 4, 5, 6]},
 }
 ESCOLHA = {}
 
@@ -50,6 +51,9 @@ def carregar(entrada, animacao, rumo):
 
 def no_quadro(q):
     """O quadro no tamanho do jogo, centrado (o PixelLab as vezes devolve a tela maior)."""
+    if q.width >= QUADRO and q.height >= QUADRO:
+        return q.crop(((q.width - QUADRO) // 2, (q.height - QUADRO) // 2, (q.width + QUADRO) // 2, (q.height + QUADRO) // 2))
+
     if q.size == (QUADRO, QUADRO):
         return q
 
@@ -74,8 +78,10 @@ def rotacao(entrada, rumo):
 
 
 def main():
-    global SAIDA, ESCOLHA
+    global SAIDA, ESCOLHA, QUADRO
     entrada, pasta = sys.argv[1], sys.argv[2]
+    # O tamanho do quadro e o das animacoes (o PixelLab aumenta a tela pra caber a arma: 64 vira 80).
+    QUADRO = max(q.width for q in carregar(entrada, "andar", "east") or [Image.new("RGBA", (QUADRO, QUADRO))])
     SAIDA = os.path.join(PERSONAGENS, pasta)
     ESCOLHA = ESCOLHAS.get(pasta, {})
 
