@@ -36,10 +36,11 @@ RUMOS = {"east": "", "south": "_Frente", "north": "_Costas"}
 
 # Quadros escolhidos, por inimigo (o que o PixelLab estragou fica de fora).
 ESCOLHAS = {
-    # Goblin: no golpe de lado a clava some nos quadros 4 e 5 e sai borrada no 0; de frente e de costas o
-    # quadro 4 sai amassado.
-    "GoblinDaClava": {("ataque", "east"): [1, 1, 2, 3, 3, 6], ("ataque", "south"): [0, 1, 2, 3, 5, 5, 6],
-                      ("ataque", "north"): [0, 1, 2, 3, 5, 5, 6]},
+    # Goblin (1.22.2, refeito com o original do pacote The Depths of the Mountain de referencia): no golpe de
+    # lado a clava vai pra tras no quadro 4; de frente ela deforma nos quadros 0, 1 e 3; de costas e na morte
+    # o PixelLab desenha uma clava a mais (quadro 3 do golpe, 2 e 3 da morte). O golpe fica no quadro 4.
+    "GoblinDaClava": {("ataque", "east"): [0, 1, 2, 3, 5, 5, 6], ("ataque", "south"): [6, 2, 2, 2, 4, 5, 6],
+                      ("ataque", "north"): [6, 1, 2, 2, 4, 5, 6], ("morte", "east"): [0, 1, 1, 4, 5, 6, 6]},
     # Esqueleto (refeito no plano pago, tudo no skeleton-v3): no golpe de lado a espada some em dois quadros
     # (ficam os que tem ela: levanta e desce, com o golpe no quadro 4 como nos outros rumos), e no golpe de
     # frente o quadro 0 sai transparente e o 5 borrado.
