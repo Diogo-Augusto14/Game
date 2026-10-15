@@ -24,6 +24,7 @@ public class Pedestal : Interativo
     private SpriteRenderer icone;
     private Vector3 baseDoIcone;
     private float fase;
+    private Pedestal[] irmaos;
 
     public override float Alcance => 1.3f;
 
@@ -65,6 +66,16 @@ public class Pedestal : Interativo
         return pedestal;
     }
 
+    /// <summary>Os pedestais viram uma escolha: pegou um, os outros somem (o tesouro).</summary>
+    public static void Escolha(params Pedestal[] grupo)
+    {
+        foreach (Pedestal p in grupo)
+        {
+            if (p != null)
+                p.irmaos = grupo;
+        }
+    }
+
     // O nome no idioma do jogo.
     private string Nome
     {
@@ -101,6 +112,9 @@ public class Pedestal : Interativo
 
             if (custoEmVida > 0f)
                 return Idioma.F("dar {0} coração por {1}{2}", (custoEmVida / 2f).ToString("0.#"), Nome, resumo);
+
+            if (irmaos != null)
+                return Idioma.F("pegar {0}{1} (escolha um: o outro some)", Nome, resumo);
 
             return Idioma.F("pegar {0}{1}", Nome, resumo);
         }
@@ -182,6 +196,21 @@ public class Pedestal : Interativo
 
     private void Dar(GameObject jogador, Bolsa bolsa, Vida vida)
     {
+        // Era uma escolha: os outros somem numa nuvenzinha.
+        if (irmaos != null)
+        {
+            foreach (Pedestal outro in irmaos)
+            {
+                if (outro == null || outro == this)
+                    continue;
+
+                EfeitoDeFolha.Tocar(ArteDoAntigo.ExplosaoPequena, outro.transform.position, 24f, 25);
+                Destroy(outro.gameObject);
+            }
+
+            irmaos = null;
+        }
+
         switch (produto)
         {
             case Produto.Coracao:

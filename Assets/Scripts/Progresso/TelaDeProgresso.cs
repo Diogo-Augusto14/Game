@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// A tela de progresso, aberta pelo menu inicial: tres abas com o que fica salvo entre
-/// partidas (<see cref="Registro"/>, <see cref="Conquistas"/>, <see cref="Bestiario"/>).
+/// A tela de progresso, aberta pelo menu inicial: quatro abas com o que fica salvo entre
+/// partidas (<see cref="Registro"/>, <see cref="Conquistas"/>, <see cref="Desbloqueios"/>, <see cref="Bestiario"/>).
 ///
 ///   A/D ou Esquerda/Direita  troca a aba       W/S ou Cima/Baixo  troca a pagina
 ///   Esc                      volta
@@ -16,9 +16,9 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class TelaDeProgresso : MonoBehaviour
 {
-    private enum Aba { Estatisticas, Conquistas, Bestiario }
+    private enum Aba { Estatisticas, Conquistas, Desbloqueios, Bestiario }
 
-    private static readonly string[] NomesDasAbas = { "Estatísticas", "Conquistas", "Bestiário" };
+    private static readonly string[] NomesDasAbas = { "Estatísticas", "Conquistas", "Desbloqueios", "Bestiário" };
 
     private const int LinhasPorPagina = 9;
     private const float AlturaDaLinha = 50f;
@@ -37,7 +37,7 @@ public class TelaDeProgresso : MonoBehaviour
     private int pagina;
     private int quadroQueAbriu;
 
-    private readonly Text[] abas = new Text[3];
+    private readonly Text[] abas = new Text[4];
     private readonly Text[] esquerda = new Text[LinhasPorPagina];
     private readonly Text[] direita = new Text[LinhasPorPagina];
     private Text rodapeDaPagina;
@@ -73,10 +73,10 @@ public class TelaDeProgresso : MonoBehaviour
 
         for (int i = 0; i < abas.Length; i++)
         {
-            abas[i] = TelaSimples.Texto(transform, "Aba " + NomesDasAbas[i], 40, CorNormal, 280f, NomesDasAbas[i]);
+            abas[i] = TelaSimples.Texto(transform, "Aba " + NomesDasAbas[i], 36, CorNormal, 280f, NomesDasAbas[i]);
             RectTransform rt = abas[i].rectTransform;
-            rt.sizeDelta = new Vector2(420f, 60f);
-            rt.anchoredPosition = new Vector2((i - 1) * 440f, 280f);
+            rt.sizeDelta = new Vector2(340f, 60f);
+            rt.anchoredPosition = new Vector2((i - 1.5f) * 350f, 280f);
         }
 
         for (int i = 0; i < LinhasPorPagina; i++)
@@ -141,7 +141,7 @@ public class TelaDeProgresso : MonoBehaviour
 
     private void TrocarAba(int passo)
     {
-        aba = (Aba)(((int)aba + passo + 3) % 3);
+        aba = (Aba)(((int)aba + passo + NomesDasAbas.Length) % NomesDasAbas.Length);
         pagina = 0;
         Sons.Tocar(Som.Menu, 0.6f);
         Atualizar();
@@ -217,6 +217,7 @@ public class TelaDeProgresso : MonoBehaviour
         switch (aba)
         {
             case Aba.Conquistas: return LinhasDasConquistas();
+            case Aba.Desbloqueios: return LinhasDosDesbloqueios();
             case Aba.Bestiario: return LinhasDoBestiario();
             default: return LinhasDasEstatisticas();
         }
@@ -241,6 +242,7 @@ public class TelaDeProgresso : MonoBehaviour
             Numero("Habilidades usadas", Registro.HabilidadesUsadas.ToString()),
             Numero("Inimigos conhecidos", Idioma.F("{0} de {1}", Registro.TiposVistos, Bestiario.Todas.Count)),
             Numero("Conquistas", Idioma.F("{0} de {1}", Conquistas.Quantas, Conquistas.Todas.Count)),
+            Numero("Plantas", Idioma.F("{0} de {1}", Desbloqueios.Aprendidas, Desbloqueios.Plantas.Length)),
             Numero("Quem mais te matou", carrasco != null
                 ? $"{Idioma.T(Bestiario.Nome(carrasco))} ({Registro.MortesPor(carrasco)}x)"
                 : "ninguém, ainda"),
@@ -263,6 +265,28 @@ public class TelaDeProgresso : MonoBehaviour
         {
             bool tem = Conquistas.Tem(c);
             linhas.Add(new LinhaDaTela((tem ? "• " : "  ") + Idioma.T(c.Nome), c.ComoGanhar, tem ? CorEscolhida : CorApagada));
+        }
+
+        return linhas;
+    }
+
+    // As plantas (de cada mundo) e os itens que as conquistas liberam: o que ja saiu e como liberar o resto.
+    private static List<LinhaDaTela> LinhasDosDesbloqueios()
+    {
+        List<LinhaDaTela> linhas = new List<LinhaDaTela>();
+
+        foreach (Desbloqueios.Planta p in Desbloqueios.Plantas)
+        {
+            bool tem = Desbloqueios.Aprendida(p);
+            string como = tem ? (p.EhArma ? "Arma liberada" : "Item liberado") : Idioma.F("Planta do mundo {0}", p.Mundo);
+            linhas.Add(new LinhaDaTela((tem ? "• " : "  ") + Idioma.T(p.Nome), como, tem ? CorEscolhida : CorApagada));
+        }
+
+        foreach (KeyValuePair<string, Conquistas.Conquista> par in Desbloqueios.PorConquista)
+        {
+            bool tem = Conquistas.Tem(par.Value);
+            string como = tem ? "Item liberado" : Idioma.F("Conquista: {0}", Idioma.T(par.Value.Nome));
+            linhas.Add(new LinhaDaTela((tem ? "• " : "  ") + Idioma.T(par.Key), como, tem ? CorEscolhida : CorApagada));
         }
 
         return linhas;

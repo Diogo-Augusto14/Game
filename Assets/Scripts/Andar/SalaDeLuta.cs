@@ -6,7 +6,8 @@ using UnityEngine;
 /// Uma sala de luta do andar (o ritmo das salas do jogo antigo, na planta nova): os inimigos dormem
 /// la dentro ate o jogador entrar. Entrou, as grades fecham (<see cref="PortaDaSala"/>), todo mundo
 /// acorda, e so abre com todos mortos. Algumas salas tem uma segunda onda, que sai do chao quando a
-/// primeira acaba. Limpou, cai o premio da sala (moedas, as vezes chave, coracao ou um bau).
+/// primeira acaba. Limpou, cai o premio da sala: ele e sorteado ao montar o andar e aparece em cima das
+/// portas (e no mapa) antes de entrar, como no Hades (<see cref="PremioDaSala"/>); algumas salas nao dao nada.
 ///
 /// Quem nasce no meio da luta (o esqueleto do Necromante, as bolinhas da Bolha) entra na conta da
 /// sala fechada (<see cref="Adotar"/>).
@@ -24,6 +25,11 @@ public class SalaDeLuta : MonoBehaviour
     private int ondasAMais;
     private int porOnda;
     private bool vindoOnda;
+    private readonly List<Transform> placas = new List<Transform>();
+    private readonly List<Vector3> baseDasPlacas = new List<Vector3>();
+
+    /// <summary>O premio desta sala (o que as portas mostram).</summary>
+    public PremioDaSala Premio { get; private set; }
 
     /// <summary>A sala fechada agora (nula fora de luta).</summary>
     public static SalaDeLuta Fechada { get; private set; }
@@ -61,8 +67,56 @@ public class SalaDeLuta : MonoBehaviour
         foreach (PortaDaPlanta porta in planta.portas)
             sala.portas.Add(PortaDaSala.Criar(porta, obj.transform));
 
+        // O premio da sala, ja sorteado, em cima de cada porta (do lado de fora).
+        sala.Premio = gerador != null ? PremiosDasSalas.Sortear(planta.tipo == TipoDeSala.Fim, gerador.Andar, gerador.Mundo) : PremioDaSala.Nenhum;
+
+        if (sala.Premio != PremioDaSala.Nenhum)
+        {
+            foreach (PortaDaPlanta porta in planta.portas)
+            {
+                Transform placa = Placa(porta, sala.Premio, obj.transform);
+                sala.placas.Add(placa);
+                sala.baseDasPlacas.Add(placa.localPosition);
+            }
+        }
+
         todas.Add(sala);
         return sala;
+    }
+
+    /// <summary>A sala de luta desta sala da planta (nula se nao e de luta).</summary>
+    public static SalaDeLuta DaPlanta(SalaDaPlanta planta)
+    {
+        foreach (SalaDeLuta sala in todas)
+        {
+            if (sala.planta == planta)
+                return sala;
+        }
+
+        return null;
+    }
+
+    // O icone do premio boiando em cima da porta, no corredor (do lado de fora da sala), com uma luzinha.
+    private static Transform Placa(PortaDaPlanta porta, PremioDaSala premio, Transform pai)
+    {
+        Vector2 meio = Vector2.zero;
+
+        foreach (Vector2Int c in porta.celulas)
+            meio += c;
+
+        meio /= Mathf.Max(1, porta.celulas.Count);
+
+        GameObject obj = new GameObject("Premio da sala");
+        obj.transform.SetParent(pai, false);
+        obj.transform.position = meio - (Vector2)porta.paraDentro * 2.2f + Vector2.up * 0.3f;
+        obj.transform.localScale = Vector3.one * 1.5f;
+
+        SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
+        sr.sprite = PremiosDasSalas.Icone(premio);
+        sr.sortingOrder = 40;
+        Iluminacao.Brilhar(sr);
+        Iluminacao.Luz(obj.transform, Vector2.zero, PremiosDasSalas.Cor(premio), 1.6f, 0.7f, 0.05f);
+        return obj.transform;
     }
 
     /// <summary>Um inimigo desta sala (dorme ate o jogador entrar).</summary>
@@ -96,6 +150,19 @@ public class SalaDeLuta : MonoBehaviour
     {
         if (Limpa)
             return;
+
+        // Os icones do premio boiam devagar em cima das portas.
+        for (int i = 0; i < placas.Count; i++)
+        {
+            if (placas[i] == null)
+                continue;
+
+            placas[i].localPosition = baseDasPlacas[i] + Vector3.up * (0.12f * Mathf.Sin(Time.time * 2.4f + i));
+
+            // Chegou perto da primeira porta com premio: o que e o icone.
+            if (jogador != null && Vector2.Distance(jogador.position, placas[i].position) < 4.5f)
+                DicasDaPrimeiraVez.Mostrar("premio");
+        }
 
         inimigos.RemoveAll(v => v == null || v.Morto);
 
@@ -198,7 +265,16 @@ public class SalaDeLuta : MonoBehaviour
         if (estavaFechada && portas.Count > 0)
             Sons.Tocar(Som.PortaAbre);
 
-        Premio();
+        // As placas somem: o premio cai no meio da sala.
+        foreach (Transform placa in placas)
+        {
+            if (placa != null)
+                Destroy(placa.gameObject);
+        }
+
+        placas.Clear();
+        baseDasPlacas.Clear();
+        SoltarPremio();
 
         if (gerador != null)
             gerador.SalaLimpa(this, planta.tipo == TipoDeSala.Fim);
@@ -228,14 +304,10 @@ public class SalaDeLuta : MonoBehaviour
         return melhor;
     }
 
-    /// <summary>A chance de uma sala de luta dar premio ao ser limpa (a sala do fim sempre da).</summary>
-    public const float ChanceDePremio = 0.35f;
-
-    // O premio da sala, no meio dela (ou do lado, se o jogador estiver em cima). So as vezes: premio
-    // toda hora cansava (a sala do fim sempre da, e mais).
-    private void Premio()
+    // O premio da sala (o que as portas mostravam), no meio dela (ou do lado, se o jogador estiver em cima).
+    private void SoltarPremio()
     {
-        if (planta.tipo != TipoDeSala.Fim && Random.value >= ChanceDePremio)
+        if (Premio == PremioDaSala.Nenhum)
             return;
 
         Vector2 onde = planta.Meio;
@@ -246,17 +318,8 @@ public class SalaDeLuta : MonoBehaviour
         if (jogador != null && Vector2.Distance(jogador.position, onde) < 1.5f)
             onde += Vector2.right * 2f;
 
-        int moedas = planta.tipo == TipoDeSala.Fim ? Random.Range(5, 8) : Random.Range(2, 5);
-
-        for (int i = 0; i < moedas; i++)
-            Coletavel.Criar(TipoDeColetavel.Moeda, onde + Random.insideUnitCircle * 0.6f);
-
-        float sorte = Random.value;
-
-        if (sorte < 0.22f)
-            Coletavel.Criar(TipoDeColetavel.Chave, onde);
-        else if (sorte < 0.45f)
-            Coletavel.Criar(TipoDeColetavel.Coracao, onde);
+        PremiosDasSalas.Soltar(Premio, planta.tipo == TipoDeSala.Fim, onde, transform,
+                               gerador != null ? gerador.Andar : 1, gerador != null ? gerador.Mundo : 1);
     }
 
     // Um lugar livre da sala, longe do jogador.

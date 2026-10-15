@@ -84,8 +84,11 @@ public class GeradorDoAndar : MonoBehaviour
     [Tooltip("As armas que saem dos baus (sorteadas pelo peso de cada uma)")]
     [SerializeField] private DadosDaArma[] armas;
 
-    [Tooltip("Chance de o andar ter o bau dele (um so, ou nenhum). Arma so sai de bau")]
+    [Tooltip("Chance de o andar ter o bau dele (um so, ou nenhum). Arma so sai de bau. No andar 1 sempre tem")]
     [SerializeField, Range(0f, 1f)] private float chanceDeBau = 0.5f;
+
+    /// <summary>A chance de um campeao soltar uma planta do mundo (ver <see cref="Desbloqueios"/>).</summary>
+    public const float ChanceDePlantaNoCampeao = 0.12f;
 
     [Tooltip("No primeiro andar, um bau ja na clareira do comeco")]
     [SerializeField] private bool bauNoComeco;
@@ -471,17 +474,22 @@ public class GeradorDoAndar : MonoBehaviour
                 float sorte = (Jogador != null && Jogador.TryGetComponent(out EstatisticasDoJogador itens) ? itens.Sorte : 1f) * Partida.SorteVezes;
                 Coletavel.SoltarDoInimigo(ondeMorreuOUltimo, eraOChefe, sorte);
 
-                // O campeao solta mais (moedas e um cristal).
+                // O campeao solta mais (moedas e um cristal) e, as vezes, uma planta do mundo.
                 if (vida.TryGetComponent(out Campeao campeao))
                 {
                     campeao.Premiar(ondeMorreuOUltimo);
                     Conquistas.Contar("campeoes", 50, Conquistas.Campeoes);
+
+                    if (Random.value < ChanceDePlantaNoCampeao)
+                        Desbloqueios.Soltar(ondeMorreuOUltimo + Vector2.left, Mundo);
                 }
 
+                // O chefe do mundo sempre solta uma planta do mundo (se ainda tiver alguma pra achar).
                 if (eraOChefe)
                 {
                     ResumoDaPartida.ContarChefe();
                     Progresso.VencerMundo(Mundo);
+                    Desbloqueios.Soltar(ondeMorreuOUltimo + Vector2.down * 1.5f, Mundo);
                 }
 
                 if (caixaDeMunicao != null && Random.value < chanceDeMunicao)
@@ -1041,7 +1049,7 @@ public class GeradorDoAndar : MonoBehaviour
         Pedreiro construtor = PedreiroDoMundo();
         bool comSegredo = !construtor.Estilo.flutuante && Random.value < chanceDeSalaSecreta;
         PlantaDeSalas.Planta salas = PlantaDeSalas.Montar(salasNoCaminho + (caverna - 1) / Mathf.Max(1, andaresPorSalaAMais),
-                                                          lutasDoLado + (caverna - 1) / 4, SortearEspeciais(), clareira, comSegredo);
+                                                          lutasDoLado + (caverna - 1) / 4, SortearEspeciais(andar), ClareiraDoAndar(andar), comSegredo);
         HashSet<Vector2Int> planta = salas.chao;
         this.planta = salas;
         pedreiroDoAndar = construtor;
@@ -1090,13 +1098,9 @@ public class GeradorDoAndar : MonoBehaviour
 
         EspalharArmas(chaoDaCaverna, proibido, andar);
 
-        // No comeco da partida, a estatua dos cristais na sala do comeco (no desafio do dia as melhorias nao valem).
-        if (andar == 1 && !Partida.Diario)
-        {
-            Vector2 estatua = new Vector2(3f, 1.5f);
-            EstatuaDosCristais.Criar(estatua, raiz.transform);
-            chaoDaCaverna.Remove(MapaDeCaminhos.Celula(estatua));
-        }
+        // O andar 1 comeca no acampamento: a fogueira, a estatua dos cristais e o pessoal pra conversar.
+        if (andar == 1)
+            Acampamento.Montar(raiz.transform, chaoDaCaverna);
         HashSet<Vector2Int> armadilhas = RecheioDaCaverna.Espalhar(this, planta, chaoDaCaverna, proibido, raiz.transform, andar, Tema + 1, quadrosDoBau);
         Decoracao.Espalhar(Tema + 1, construtor.Estilo, salas, chaoDaCaverna, armadilhas, raiz.transform);
         EspalharInimigos(salas, chaoDaCaverna, AndarNoTema(andar), caverna);
@@ -1180,15 +1184,20 @@ public class GeradorDoAndar : MonoBehaviour
             chaoDoAndar.UnionWith(planta.passagemSecreta);
     }
 
+    // A sala do comeco: no andar 1 e o acampamento, maior (cabe a fogueira e o pessoal).
+    private Vector2Int ClareiraDoAndar(int andar) =>
+        andar == 1 ? new Vector2Int(Mathf.Max(clareira.x, 7), Mathf.Max(clareira.y, 5)) : clareira;
+
     // As salas especiais do andar (cada uma sorteada).
-    private static List<TipoDeSala> SortearEspeciais()
+    private static List<TipoDeSala> SortearEspeciais(int andar)
     {
         List<TipoDeSala> especiais = new List<TipoDeSala>();
 
         if (Random.value < 0.65f)
             especiais.Add(TipoDeSala.Loja);
 
-        if (Random.value < 0.5f)
+        // O andar 1 sempre tem o tesouro (forca cedo, como no Isaac).
+        if (andar <= 1 || Random.value < 0.5f)
             especiais.Add(TipoDeSala.Tesouro);
 
         if (Random.value < 0.25f)
@@ -1387,10 +1396,10 @@ public class GeradorDoAndar : MonoBehaviour
             usados.Add(comeco);
         }
 
-        // Um bau por andar, e nem sempre tem (arma so sai de bau). Quando tem, as vezes e um especial:
-        // o maldito (do andar 2 em diante: premio bom e emboscada), o amaldicoado (item por meio coracao)
-        // ou um mimico.
-        if (bauNoComeco && andar == 1 || lugares.Count == 0 || Random.value >= chanceDeBau)
+        // Um bau por andar, e nem sempre tem (arma so sai de bau); no andar 1 sempre tem, e e comum (forca
+        // cedo). Do andar 2 em diante, as vezes e um especial: o maldito (premio bom e emboscada), o
+        // amaldicoado (item por meio coracao) ou um mimico.
+        if (bauNoComeco && andar == 1 || lugares.Count == 0 || (andar > 1 && Random.value >= chanceDeBau))
             return;
 
         Vector2 lugar = Vector2.zero;
@@ -1412,7 +1421,7 @@ public class GeradorDoAndar : MonoBehaviour
 
         if (andar >= 2 && especial < 0.2f)
             bau.ComoTipo(TipoDeBau.Maldito);
-        else if (especial < 0.35f)
+        else if (andar >= 2 && especial < 0.35f)
             bau.ComoTipo(TipoDeBau.Amaldicoado);
         else
             bau.TalvezMimico(andar);

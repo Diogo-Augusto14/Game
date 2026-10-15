@@ -27,6 +27,18 @@ public static class Bestiario
     /// <summary>Todos, na ordem do bestiario: os comuns primeiro (mundo a mundo), os chefes no fim.</summary>
     public static IReadOnlyList<Ficha> Todas => fichas ?? (fichas = Montar());
 
+    /// <summary>O inimigo e um chefe (o acampamento comenta diferente).</summary>
+    public static bool EhChefe(string id)
+    {
+        foreach (Ficha f in Todas)
+        {
+            if (f.Id == id)
+                return f.Chefe;
+        }
+
+        return false;
+    }
+
     public static string Nome(string id)
     {
         foreach (Ficha f in Todas)

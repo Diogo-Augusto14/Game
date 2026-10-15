@@ -55,7 +55,8 @@ public class DicasDaPrimeiraVez : MonoBehaviour
     /// <summary>Esquece as dicas vistas (aparecem de novo).</summary>
     public static void Apagar()
     {
-        foreach (string d in new[] { "mover", "especial", "esquiva", "sala", "parede", "cristal", "campeao", "arma", "portal", "descanso", "estatua", "mapa" })
+        foreach (string d in new[] { "mover", "especial", "esquiva", "sala", "parede", "cristal", "campeao", "arma", "portal", "descanso", "estatua", "mapa",
+                                     "premio", "planta", "acampamento" })
             PlayerPrefs.DeleteKey(Prefixo + d);
 
         vistas.Clear();
@@ -80,6 +81,9 @@ public class DicasDaPrimeiraVez : MonoBehaviour
             case "descanso": return "Área segura: sem inimigos. Loja, fontes e a estátua dos cristais.";
             case "estatua": return "A estátua troca cristais por melhorias que valem para sempre.";
             case "mapa": return pad ? "Select abre o mapa do andar." : "Tab abre o mapa do andar.";
+            case "premio": return "O ícone em cima da porta é o prêmio daquela sala. Escolha por onde ir.";
+            case "planta": return "Plantas liberam armas e itens para sempre. Veja em Progresso, na aba Desbloqueios.";
+            case "acampamento": return pad ? "O acampamento: B conversa com o pessoal. Os cristais vão na estátua." : "O acampamento: E conversa com o pessoal. Os cristais vão na estátua.";
             default: return "";
         }
     }

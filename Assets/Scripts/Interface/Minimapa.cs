@@ -344,12 +344,20 @@ public class Minimapa : MonoBehaviour
         foreach (SalaDaPlanta sala in vistas)
         {
             Sprite desenho = Icone(sala.tipo);
+            Color cor = visitadas.Contains(sala) ? Color.white : new Color(1f, 1f, 1f, 0.6f);
+            Vector2 p = NaTela(sala.Meio, origem, escala);
 
             if (desenho != null)
+                Desenho.Sprite(new Rect(p.x - icone * 0.5f, p.y - icone * 0.5f, icone, icone), desenho, cor);
+
+            // O premio das salas de luta que ainda nao foram limpas (o mesmo das portas): da pra escolher o caminho.
+            SalaDeLuta luta = sala.DeLuta ? SalaDeLuta.DaPlanta(sala) : null;
+
+            if (luta != null && !luta.Limpa && luta.Premio != PremioDaSala.Nenhum)
             {
-                Vector2 p = NaTela(sala.Meio, origem, escala);
-                Desenho.Sprite(new Rect(p.x - icone * 0.5f, p.y - icone * 0.5f, icone, icone), desenho,
-                               visitadas.Contains(sala) ? Color.white : new Color(1f, 1f, 1f, 0.6f));
+                float lado = icone * 0.8f;
+                float x = p.x - lado * 0.5f + (desenho != null ? icone * 0.7f : 0f);
+                Desenho.Sprite(new Rect(x, p.y - lado * 0.5f, lado, lado), PremiosDasSalas.Icone(luta.Premio), cor);
             }
         }
 

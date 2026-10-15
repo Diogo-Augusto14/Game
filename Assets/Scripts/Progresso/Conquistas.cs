@@ -116,6 +116,7 @@ public static class Conquistas
         PlayerPrefs.SetInt(Prefixo + c.Id, 1);
         PlayerPrefs.Save();
         AvisoDeConquista.Mostrar(Idioma.F("Conquista: {0}", Idioma.T(c.Nome)), c.ComoGanhar);
+        Desbloqueios.AoConquistar(c);
         Debug.Log($"[Conquistas] {c.Nome}");
     }
 
@@ -126,5 +127,7 @@ public static class Conquistas
 
         PlayerPrefs.DeleteKey(Prefixo + "conta.campeoes");
         PlayerPrefs.DeleteKey(Prefixo + "conta.prisioneiros");
+        PlayerPrefs.DeleteKey(Prefixo + "conta.forjas");
+        Desbloqueios.Apagar();
     }
 }

@@ -100,6 +100,7 @@ public static class Registro
     // ---------------- avisos ----------------
     public static void ComecouPartida()
     {
+        Desbloqueios.ComecouPartida();
         Somar("partidas");
         Salvar();
     }
@@ -177,6 +178,9 @@ public static class Registro
         if (id != null)
             Somar("matou." + id);
 
+        // O pessoal do acampamento comenta na proxima.
+        Falas.GuardarFim(false, GeradorDoAndar.AndarAtual, id);
+
         if (Mortes >= 5)
             Conquistas.Conquistar(Conquistas.Persistente);
 
@@ -185,6 +189,7 @@ public static class Registro
 
     public static void Venceu()
     {
+        Falas.GuardarFim(true, GeradorDoAndar.AndarAtual, null);
         GuardarTempo();
         Salvar();
     }
@@ -205,6 +210,7 @@ public static class Registro
         }
 
         Conquistas.Apagar();
+        Falas.Apagar();
         Salvar();
     }
 

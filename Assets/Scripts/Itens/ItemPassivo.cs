@@ -71,15 +71,27 @@ public static class CatalogoDeItens
         return null;
     }
 
-    /// <summary>Um item que o jogador ainda nao tem (ativos so se <paramref name="comAtivos"/>).</summary>
+    /// <summary>
+    /// Um item liberado (<see cref="Desbloqueios"/>) que o jogador ainda nao tem (ativos so se
+    /// <paramref name="comAtivos"/>). Sem nenhum assim, um liberado qualquer.
+    /// </summary>
     public static ItemPassivo Sortear(EstatisticasDoJogador jogador, bool comAtivos = true)
     {
         List<ItemPassivo> possiveis = new List<ItemPassivo>();
 
         foreach (ItemPassivo item in Todos)
         {
-            if ((comAtivos || !item.EhAtivo) && (jogador == null || !jogador.Tem(item)))
+            if ((comAtivos || !item.EhAtivo) && (jogador == null || !jogador.Tem(item)) && Desbloqueios.Liberado(item))
                 possiveis.Add(item);
+        }
+
+        if (possiveis.Count == 0)
+        {
+            foreach (ItemPassivo item in Todos)
+            {
+                if (Desbloqueios.Liberado(item))
+                    possiveis.Add(item);
+            }
         }
 
         if (possiveis.Count == 0)

@@ -142,7 +142,7 @@ public static class Melhorias
     /// do dia, todas saem).
     /// </summary>
     public static bool Liberada(DadosDaArma arma) =>
-        arma != null && (arma.arsenal <= 0 || Partida.Diario || Nivel(Melhoria.Arsenal) >= arma.arsenal);
+        arma != null && (arma.arsenal <= 0 || Partida.Diario || Nivel(Melhoria.Arsenal) >= arma.arsenal) && Desbloqueios.Liberada(arma);
 
     /// <summary>
     /// Uma partida nova comecou (nao o "Continuar"): a chave e as moedas do Chaveiro. A vida a mais entra

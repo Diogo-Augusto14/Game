@@ -221,3 +221,72 @@ def bobina_de_cobre():
 for numero, desenho in ((9001, lamina_larga), (9002, corda_encantada), (9003, bobina_de_cobre)):
     desenho().save(os.path.join(RAIZ, "Icones", f"fb{numero}.png"))
 print("icones ok")
+
+
+# ---------------- 1.21.0: a fogueira do acampamento, a planta e a reliquia (Cenario/)
+def fogueira():
+    """Seis quadros de 32 x 40 (pivo no pe): lenha cruzada, pedras em volta e a chama tremendo."""
+    import math
+    quadros = 6
+    folha = Image.new("RGBA", (32 * quadros, 40))
+    for q in range(quadros):
+        im = Image.new("RGBA", (32, 40))
+        d = ImageDraw.Draw(im)
+        # Pedras em volta e a lenha cruzada.
+        for x, y in ((4, 35), (9, 37), (16, 38), (23, 37), (28, 35)):
+            d.ellipse([x - 3, y - 2, x + 2, y + 2], fill=(84, 80, 88, 255), outline=(46, 42, 50, 255))
+        d.polygon([(6, 33), (9, 30), (26, 35), (23, 38)], fill=(110, 70, 42, 255))
+        d.polygon([(26, 33), (23, 30), (6, 35), (9, 38)], fill=(92, 58, 36, 255))
+        d.ellipse([22, 34, 26, 38], fill=(150, 104, 66, 255))
+        d.ellipse([6, 34, 10, 38], fill=(150, 104, 66, 255))
+        # A chama: tres camadas que balancam (cada quadro um pouco diferente).
+        f = q / quadros * 2 * math.pi
+        for camada, (cor, larg, alt) in enumerate((((200, 50, 30, 255), 9, 24), ((255, 140, 40, 255), 6, 18), ((255, 230, 120, 255), 3, 11))):
+            topo_x = 16 + 2.2 * math.sin(f + camada)
+            topo_y = 32 - alt - 2 * math.sin(f * 2 + camada)
+            d.polygon([(16 - larg, 32), (16 - larg * 0.6, 32 - alt * 0.45), (topo_x, topo_y),
+                       (16 + larg * 0.6, 32 - alt * 0.5), (16 + larg, 32)], fill=cor)
+        # Duas faiscas subindo.
+        for k in range(2):
+            y = int(10 - ((q * 3 + k * 7) % 12))
+            x = int(12 + k * 8 + 2 * math.sin(f + k))
+            if y > 0:
+                d.point((x, y), fill=(255, 210, 120, 255))
+        folha.paste(im, (q * 32, 0))
+    folha.save(os.path.join(SAIDA, "Fogueira.png"))
+
+
+def planta():
+    """A planta (de arma ou item): um pergaminho azul enrolado com um desenho branco, 24 x 24."""
+    im = Image.new("RGBA", (24, 24))
+    d = ImageDraw.Draw(im)
+    d.rectangle([4, 5, 19, 18], fill=(52, 96, 170, 255))
+    for y in (8, 11, 14):
+        d.line([(6, y), (17, y)], fill=(90, 140, 210, 255))
+    d.line([(8, 7), (15, 16)], fill=(235, 240, 255, 255))
+    d.line([(8, 16), (15, 7)], fill=(235, 240, 255, 255))
+    d.ellipse([10, 10, 13, 13], outline=(235, 240, 255, 255))
+    for y in (3, 18):
+        d.rounded_rectangle([3, y, 20, y + 3], radius=1, fill=(196, 170, 120, 255))
+        d.line([(4, y + 1), (19, y + 1)], fill=(230, 210, 160, 255))
+    return contornar(im)
+
+
+def reliquia():
+    """O icone do premio "item": um amuleto dourado com uma pedra vermelha, 24 x 24."""
+    im = Image.new("RGBA", (24, 24))
+    d = ImageDraw.Draw(im)
+    d.arc([7, 1, 16, 10], 180, 360, fill=(214, 168, 60, 255), width=2)
+    d.ellipse([4, 6, 19, 21], fill=(214, 168, 60, 255))
+    d.ellipse([6, 8, 17, 19], fill=(150, 104, 30, 255))
+    d.ellipse([8, 10, 15, 17], fill=(200, 40, 50, 255))
+    d.point((10, 12), fill=(255, 190, 190, 255))
+    d.point((19, 5), fill=(255, 245, 200, 255))
+    d.point((3, 17), fill=(255, 245, 200, 255))
+    return contornar(im)
+
+
+fogueira()
+planta().save(os.path.join(SAIDA, "Planta.png"))
+reliquia().save(os.path.join(SAIDA, "Reliquia.png"))
+print("acampamento ok")

@@ -25,10 +25,18 @@ public class Ferreiro : Interativo
     private Transform jogador;
     private Vector2 bigorna;
     private bool trabalhando;
+    private bool soConversa;
 
     public override float Alcance => 2.4f;
 
-    public override bool Disponivel => !trabalhando && ArmaNaMao() != null;
+    public override bool Disponivel => !soConversa && !trabalhando && ArmaNaMao() != null;
+
+    /// <summary>O ferreiro do acampamento: nao forja, so conversa (ver <see cref="Falante"/>).</summary>
+    public Ferreiro SoConversa()
+    {
+        soConversa = true;
+        return this;
+    }
 
     public override string Dica
     {

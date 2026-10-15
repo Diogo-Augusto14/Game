@@ -93,7 +93,7 @@ a cura da Carne Assada). Tudo fica no objeto
 | Script | O que faz |
 |---|---|
 | `PlantaDeSalas` | Monta a planta: a sala do começo no centro, um caminho de salas de luta até a do fim (maior), salas do lado (mais lutas e as especiais: loja, tesouro, altar, desafio) e às vezes um atalho entre duas lutas vizinhas. As salas ficam numa grade (19 × 18 de um meio ao outro); cada uma é um retângulo com cantos cortados, nichos e, nas grandes, pilares. Corredores de 3, e a ponta encostada em cada sala de luta é a porta dela. Às vezes, uma **sala secreta** pendurada numa sala qualquer (menos a do começo): o corredor até ela fica de fora do chão (a `passagemSecreta`): é desenhado como parede, mas é uma parede de ilusão |
-| `SalaDeLuta` | Uma sala de luta: os inimigos dormem em grupos (um bicho principal por grupo, às vezes outro no meio) até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem mais uma onda saindo do chão (a sala do fim sempre tem uma, e duas do 4º andar de salas em diante). Limpou: abre e, só às vezes (`ChanceDePremio`, 35%, desde a 1.20.1), solta moedas e talvez chave ou coração; a do fim sempre dá, mais moedas, e abre o portal. Baú, desde a 1.20.1, é um só por andar e só metade das vezes (`GeradorDoAndar.EspalharArmas`, `chanceDeBau`): às vezes é o maldito, o amaldiçoado ou um mímico; arma só sai de baú (nada de arma largada no chão) |
+| `SalaDeLuta` | Uma sala de luta: os inimigos dormem em grupos (um bicho principal por grupo, às vezes outro no meio) até o jogador entrar (ver pela porta não acorda; levar tiro sim). Entrou, fecha as portas e acorda todo mundo; às vezes vem mais uma onda saindo do chão (a sala do fim sempre tem uma, e duas do 4º andar de salas em diante). Limpou: abre e solta o **prêmio da sala** (`PremioDaSala`, desde a 1.21.0), que já vem sorteado ao montar o andar e aparece boiando em cima das portas, do lado de fora, e no minimapa, como no Hades: nenhum (uma parte das salas), moedas, coração, chave, cristal, item ou planta; a do fim sempre dá (mais) e abre o portal (`PremiosDasSalas`). Baú, desde a 1.20.1, é um só por andar e só metade das vezes (`GeradorDoAndar.EspalharArmas`, `chanceDeBau`): às vezes é o maldito, o amaldiçoado ou um mímico; arma só sai de baú (nada de arma largada no chão) |
 | `PortaDaSala` | A porta da sala de luta: o portão de caveira do Old Prison nas quatro paredes (um arco de pedra da largura do corredor, sempre ali; as duas folhas fecham e abrem pra dentro da sala). Em cima e embaixo, de frente (embaixo, todo dentro do corredor, e a câmera vê a caveira, o lado de fora); nos lados, deitado, como as portas do Isaac. Quem está atrás do arco vê através dele. No Porão, o portão recolorido de marrom (`Temas/Porao/PortaoDeCaveira`, feito pelo `Ferramentas/Temas/recolorir_porao.py`). Fechada, é parede (camada `Wall`): segura gente e tiro |
 | `Caverna` | As ferramentas da planta: ajeita pras paredes do Old Prison e escolhe os buracos e as poças (o cavar com "andarilhos", da caverna antiga, ficou aí sem uso) |
 | `Pedreiro` | Transforma a planta em mundo com a arte do Old Prison, em Tilemaps: abismo, chão, sangue, enfeites e paredes, mais os colisores das paredes (camada `Wall`) e dos buracos (camada `Buraco`), só onde encostam no chão. A passagem secreta é desenhada como parede, mas os colisores são feitos com ela aberta; o `Remendar` redesenha aquele pedaço quando ela se revela |
@@ -116,7 +116,7 @@ no (0, 0). A lista **Andares** do objeto Andar diz a ordem da partida; hoje são
 | 6 | **Coração da Prisão** (o Golem, o chefe final) |
 
 O primeiro andar tem 4 salas de luta (3 no caminho, contando a do fim, e 1 do lado) com 4 a 6 inimigos
-cada (a do fim, 2 a mais), mais as especiais sorteadas (loja 65%, tesouro 50%, altar 25%, desafio 25%).
+cada (a do fim, 2 a mais), mais as especiais sorteadas (loja 65%, tesouro 50% e sempre no andar 1, altar 25%, desafio 25%, fonte 30%, cela 22%, ferreiro 25%, apostas 20%). O tesouro (desde a 1.21.0) mostra dois itens: pegou um, o outro some (`Pedestal.Escolha`).
 Uma sala a mais no caminho a cada 3 andares de salas, uma do lado a cada 4, e meio inimigo a mais por
 sala a cada andar. Depois do último andar, a partida acaba em vitória e recomeça.
 
@@ -347,7 +347,7 @@ Do jogo antigo, adaptado pra caverna (`Assets/Scripts/Itens` e `Assets/Scripts/C
   derrotando inimigos. Saem em pedestais: baú trancado e amaldiçoado, desafio, altar de sangue (paga com
   vida), loja (paga com moedas), tesouro e o prêmio do chefe.
 - **Recheio** (`RecheioDaCaverna`): as salas especiais ganham o que são (loja, altar, desafio, tesouro
-  com item no pedestal ou baú trancado). Nas salas de luta saem baú amaldiçoado, pedra rachada com
+  com dois itens pra escolher um). Nas salas de luta saem pedra rachada com
   prêmio e área escura, e as armadilhas: serra no trilho, tronco rolante e espinhos (ferem o jogador e
   os inimigos). O tronco fica parado encostado numa parede e, de tempos em tempos, atravessa a sala até a
   parede da frente (o caminho dele vai de parede a parede, nunca passa por porta nem buraco). Parado, segura
@@ -459,6 +459,8 @@ Tudo no PlayerPrefs (`Assets/Scripts/Progresso`), como no jogo antigo:
 | `Progresso` | Mundos vencidos, vitórias e com quem zerou: o que libera os heróis (e avisa quando libera) |
 | `Registro` | Estatísticas de todas as partidas e o bestiário (visto, derrotados, quem mais te matou) |
 | `Conquistas` | 17 conquistas; ganhar mostra o `AvisoDeConquista` no canto |
+| `Desbloqueios`, `PlantaNoChao` | O que vai sendo liberado (1.21.0, como no Dead Cells e no Isaac): 6 armas e 6 itens começam trancados e só saem depois de achar a **planta** deles (3 por mundo; caem do chefe do mundo, às vezes de um campeão, e podem ser prêmio de sala; a primeira da vida sai na sala do fim do andar 1), e 12 itens são liberados por **conquistas** (`PorConquista`). `Melhorias.Liberada` (armas) e `CatalogoDeItens.Sortear` (itens) perguntam. No desafio do dia tudo vale. A aba **Desbloqueios** da `TelaDeProgresso` mostra tudo |
+| `Acampamento`, `Fogueira`, `Falante`, `Falas`, `Conversa` | O **acampamento** (1.21.0): a sala do começo do andar 1, maior (15 x 11), com a fogueira, a estátua dos cristais e três pessoas pra conversar (Bento, o mercador; Mestre Ferraz, o ferreiro, que ali não forja; o Apostador, sem apostas). Cada conversa comenta a última partida (`Falas.GuardarFim`, chamado pelo `Registro` ao morrer ou zerar) e conta o próximo pedaço da história, um por partida, liberado pela profundidade alcançada, plantas e vitórias. Os textos ficam todos no `Falas.cs` |
 | `Bestiario` | Nome e "como luta" de cada inimigo e chefe |
 | `TelaDeProgresso` | O botão **Progresso** do menu: abas de estatísticas, conquistas e bestiário |
 | `Salvamento` | A partida salva: no começo de cada andar e no **Salvar e sair** da pausa (herói, andar, vida, armas, números, o caminho e o modo). **Continuar** no menu volta pro começo do andar salvo (ou pra área segura, se salvou nela). Morrer, vencer ou jogar de novo apaga |

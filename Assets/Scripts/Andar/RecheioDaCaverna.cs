@@ -168,15 +168,21 @@ public static class RecheioDaCaverna
                 break;
 
             case TipoDeSala.Tesouro:
-                // Um item no pedestal (o bau e um so por andar, e fica nas salas de luta).
-                Pedestal.Criar(meio, pai, CatalogoDeItens.Sortear(itens));
+            {
+                // Dois itens: pega um, o outro some (a escolha e o premio). O bau e um so por andar.
+                ItemPassivo um = CatalogoDeItens.Sortear(itens), outro = CatalogoDeItens.Sortear(itens);
 
-                Ocupar(chao, meio, 0, 0);
+                for (int i = 0; i < 8 && outro == um; i++)
+                    outro = CatalogoDeItens.Sortear(itens);
+
+                Pedestal.Escolha(Pedestal.Criar(meio + Vector2.left * 1.3f, pai, um), Pedestal.Criar(meio + Vector2.right * 1.3f, pai, outro));
+                Ocupar(chao, meio, 2, 0);
 
                 // Velas em volta, pra sala parecer especial.
-                Vela.Criar(meio + new Vector2(-2f, 1f), pai);
-                Vela.Criar(meio + new Vector2(2f, 1f), pai);
+                Vela.Criar(meio + new Vector2(-2.6f, 1f), pai);
+                Vela.Criar(meio + new Vector2(2.6f, 1f), pai);
                 break;
+            }
 
             case TipoDeSala.Cela:
             {
