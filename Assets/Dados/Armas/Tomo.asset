@@ -24,7 +24,7 @@ MonoBehaviour:
   somDaRecarga: {fileID: 8300000, guid: ae428946c7394354a7cbc3382be6b91e, type: 3}
   pesoNoBau: 1
   desenhoDoTiro: {fileID: 21300000, guid: 61e437e7cd8746b29a032bf092634d77, type: 3}
-  apontarODesenho: 0
+  apontarODesenho: 1
   cor: {r: 1, g: 1, b: 1, a: 1}
   raio: 0.1
   automatica: 0
