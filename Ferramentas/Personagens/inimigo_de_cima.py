@@ -9,7 +9,8 @@ enfileirados em folhas do mesmo tamanho em Assets/Arte/Resources/Personagens/<Pa
   Idle, Walk, Attack01, Death (de lado; o jogo espelha pra esquerda)
   Idle_Frente, Idle_Costas, Walk_Frente, Walk_Costas, Attack01_Frente, Attack01_Costas
 
-Falta um rumo? Usa a rotacao (no parado) ou o de lado.
+Falta um rumo? Usa a rotacao (no parado) ou o de lado. Bicho sem nenhuma animacao de frente ou de costas (a
+Gosma, desenhada como objeto) fica so de lado: nao ganha as folhas _Frente e _Costas e o jogo so espelha.
 
 Com o prefab, tambem acerta ele: cria os .meta das folhas novas, liga as de frente e de costas
 (paradoDeCima, andandoDeCima, ataqueDeCima), troca o tamanho do quadro, os pixels por unidade e o quadro
@@ -129,7 +130,7 @@ class Prefab:
         assert self.texto.count(antes) == 1, antes
         self.texto = self.texto.replace(antes, depois)
 
-    def aplicar(self, chao, pixels, golpe, pasta):
+    def aplicar(self, chao, pixels, golpe, pasta, de_cima=True):
         y = chao + (pe(os.path.join(pasta, "Idle.png"), (QUADRO, QUADRO)) - QUADRO / 2) / pixels
         p = self.posicao
         self.texto = self.texto[:p.start(4)] + str(round(y, 3)) + self.texto[p.end(4):]
@@ -140,7 +141,7 @@ class Prefab:
         self.texto = re.sub(r"  (paradoDeCima|andandoDeCima|ataqueDeCima):(?:\r?\n  - \{[^}]*\})*\r?\n", "", self.texto)
         listas = ""
 
-        for campo, nome in (("paradoDeCima", "Idle"), ("andandoDeCima", "Walk"), ("ataqueDeCima", "Attack01")):
+        for campo, nome in (("paradoDeCima", "Idle"), ("andandoDeCima", "Walk"), ("ataqueDeCima", "Attack01")) if de_cima else ():
             listas += f"  {campo}:" + self.nl
             for sufixo in ("_Frente", "_Costas"):
                 listas += f"  - {{fileID: 2800000, guid: {guid(os.path.join(pasta, nome + sufixo + '.png'))}, type: 3}}" + self.nl
@@ -164,6 +165,7 @@ def main():
     ESCOLHA = ESCOLHAS.get(pasta, {})
     prefab = Prefab(sys.argv[3]) if len(sys.argv) > 3 else None
     chao = prefab.pe_no_chao(os.path.join(SAIDA, "Idle.png")) if prefab else 0
+    de_cima = any(os.path.isdir(os.path.join(entrada, a, r)) for a in NOMES for r in ("south", "north"))
 
     for animacao, nome in NOMES.items():
         de_lado = carregar(entrada, animacao, "east") or (rotacao(entrada, "east") if animacao == "parado" else [])
@@ -178,12 +180,12 @@ def main():
             continue
 
         for rumo, sufixo in RUMOS.items():
-            if sufixo:
+            if sufixo and de_cima:
                 parado = rotacao(entrada, rumo) if animacao == "parado" else []
                 salvar(carregar(entrada, animacao, rumo) or parado or de_lado, nome + sufixo)
 
     if prefab:
-        prefab.aplicar(chao, float(sys.argv[4]), int(sys.argv[5]), SAIDA)
+        prefab.aplicar(chao, float(sys.argv[4]), int(sys.argv[5]), SAIDA, de_cima)
 
 
 if __name__ == "__main__":
