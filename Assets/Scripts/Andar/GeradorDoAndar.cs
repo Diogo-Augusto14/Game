@@ -81,13 +81,11 @@ public class GeradorDoAndar : MonoBehaviour
     [SerializeField, Min(0)] private int setaQuandoFaltarem = 3;
 
     [Header("Armas")]
-    [Tooltip("As armas que saem dos baus e aparecem no chao (sorteadas pelo peso de cada uma)")]
+    [Tooltip("As armas que saem dos baus (sorteadas pelo peso de cada uma)")]
     [SerializeField] private DadosDaArma[] armas;
 
-    [SerializeField, Min(0)] private int bausPorAndar = 3;
-
-    [Tooltip("Armas largadas no chao das salas, por andar")]
-    [SerializeField, Min(0)] private int armasNoChaoPorAndar = 1;
+    [Tooltip("Chance de o andar ter o bau dele (um so, ou nenhum). Arma so sai de bau")]
+    [SerializeField, Range(0f, 1f)] private float chanceDeBau = 0.5f;
 
     [Tooltip("No primeiro andar, um bau ja na clareira do comeco")]
     [SerializeField] private bool bauNoComeco;
@@ -1274,7 +1272,7 @@ public class GeradorDoAndar : MonoBehaviour
                 ondas = 0;
             }
 
-            SalaDeLuta luta = SalaDeLuta.Criar(sala, pai, this, chaoDaCaverna, ondas, porOnda, quadrosDoBau);
+            SalaDeLuta luta = SalaDeLuta.Criar(sala, pai, this, chaoDaCaverna, ondas, porOnda);
 
             // Lugares dentro da sala, longe das portas, com chao em volta e um pouco separados.
             List<Vector2Int> lugares = new List<Vector2Int>();
@@ -1389,36 +1387,35 @@ public class GeradorDoAndar : MonoBehaviour
             usados.Add(comeco);
         }
 
-        for (int i = 0; i < bausPorAndar + armasNoChaoPorAndar && lugares.Count > 0; i++)
+        // Um bau por andar, e nem sempre tem (arma so sai de bau). Quando tem, as vezes e um especial:
+        // o maldito (do andar 2 em diante: premio bom e emboscada), o amaldicoado (item por meio coracao)
+        // ou um mimico.
+        if (bauNoComeco && andar == 1 || lugares.Count == 0 || Random.value >= chanceDeBau)
+            return;
+
+        Vector2 lugar = Vector2.zero;
+        bool achou = false;
+
+        for (int tentativa = 0; tentativa < 40 && !achou; tentativa++)
         {
-            Vector2 lugar = Vector2.zero;
-            bool achou = false;
-
-            for (int tentativa = 0; tentativa < 40 && !achou; tentativa++)
-            {
-                lugar = lugares[Random.Range(0, lugares.Count)];
-                achou = usados.TrueForAll(u => Vector2.Distance(u, lugar) >= 8f);
-            }
-
-            if (!achou)
-                continue;
-
-            usados.Add(lugar);
-
-            if (i < bausPorAndar)
-            {
-                // A celula do bau sai do mapa de caminhos (e o mesmo conjunto): os inimigos contornam.
-                Bau.Criar(quadrosDoBau, lugar, pai, armas, caixaDeMunicao, somDoBau, somDaMunicao).TalvezMimico(andar);
-                chaoDaCaverna.Remove(MapaDeCaminhos.Celula(lugar));
-            }
-            else
-            {
-                DadosDaArma sorteada = armas[Random.Range(0, armas.Length)];
-
-                if (sorteada != null && sorteada.desenhoNaMao != null && Melhorias.Liberada(sorteada))
-                    ArmaNoChao.Criar(new ArmaCarregada(sorteada), lugar, pai);
-            }
+            lugar = lugares[Random.Range(0, lugares.Count)];
+            achou = usados.TrueForAll(u => Vector2.Distance(u, lugar) >= 8f);
         }
+
+        if (!achou)
+            return;
+
+        // A celula do bau sai do mapa de caminhos (e o mesmo conjunto): os inimigos contornam.
+        Bau bau = Bau.Criar(quadrosDoBau, lugar, pai, armas, caixaDeMunicao, somDoBau, somDaMunicao);
+        chaoDaCaverna.Remove(MapaDeCaminhos.Celula(lugar));
+        float especial = Random.value;
+
+        if (andar >= 2 && especial < 0.2f)
+            bau.ComoTipo(TipoDeBau.Maldito);
+        else if (especial < 0.35f)
+            bau.ComoTipo(TipoDeBau.Amaldicoado);
+        else
+            bau.TalvezMimico(andar);
     }
 
     private static bool CercadaDeChao(HashSet<Vector2Int> chaoDaCaverna, Vector2Int c)

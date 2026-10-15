@@ -29,20 +29,7 @@ public static class RecheioDaCaverna
         Proibido = proibido;
         Reservado = new HashSet<Vector2Int>();
 
-        if (quadrosDoBau != null && quadrosDoBau.Length > 0 && Random.value < 0.25f
-            && Achar(chao, usados, 1, 1, 10f, out Vector2 maldito))
-        {
-            Bau.Criar(quadrosDoBau, maldito, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Amaldicoado);
-            Ocupar(chao, maldito, 0, 0);
-        }
-
-        // O bau maldito (um evento): premio bom, mas acorda uma emboscada. Do segundo andar em diante.
-        if (quadrosDoBau != null && quadrosDoBau.Length > 0 && andar >= 2 && Random.value < 0.2f
-            && Achar(chao, usados, 2, 2, 10f, out Vector2 doEvento))
-        {
-            Bau.Criar(quadrosDoBau, doEvento, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Maldito);
-            Ocupar(chao, doEvento, 0, 0);
-        }
+        // (O bau amaldicoado e o maldito agora sao o bau do andar: ver GeradorDoAndar.EspalharArmas.)
 
         // Pedra rachada (so o tiro especial quebra) guardando um premio.
         int pedras = Random.Range(1, 3);
@@ -159,7 +146,6 @@ public static class RecheioDaCaverna
         GameObject jogador = GameObject.FindWithTag("Player");
         EstatisticasDoJogador itens = jogador != null ? jogador.GetComponent<EstatisticasDoJogador>() : null;
         Vector2 meio = MapaDeCaminhos.Celula(sala.Meio);
-        bool temBau = quadrosDoBau != null && quadrosDoBau.Length > 0;
 
         switch (sala.tipo)
         {
@@ -182,18 +168,8 @@ public static class RecheioDaCaverna
                 break;
 
             case TipoDeSala.Tesouro:
-                // Um item no pedestal, ou um bau trancado (a chave vale a pena) com moedas em volta.
-                if (!temBau || Random.value < 0.6f)
-                {
-                    Pedestal.Criar(meio, pai, CatalogoDeItens.Sortear(itens));
-                }
-                else
-                {
-                    Bau.Criar(quadrosDoBau, meio, pai, gerador.ArmasDoBau, null, null, null).ComoTipo(TipoDeBau.Trancado);
-
-                    for (int i = 0; i < 3; i++)
-                        Coletavel.Criar(TipoDeColetavel.Moeda, meio + Vector2.down * 1.2f + Random.insideUnitCircle * 0.8f);
-                }
+                // Um item no pedestal (o bau e um so por andar, e fica nas salas de luta).
+                Pedestal.Criar(meio, pai, CatalogoDeItens.Sortear(itens));
 
                 Ocupar(chao, meio, 0, 0);
 
@@ -242,18 +218,12 @@ public static class RecheioDaCaverna
                 break;
 
             case TipoDeSala.Secreta:
-                // O premio de quem achou: um item de graca, um bau do lado, moedas e uma chave.
+                // O premio de quem achou: um item de graca, moedas, uma chave e um coracao.
                 Pedestal.Criar(meio, pai, CatalogoDeItens.Sortear(itens));
                 Ocupar(chao, meio, 0, 0);
+                Coletavel.Criar(TipoDeColetavel.Coracao, meio + Vector2.right * 2.5f);
 
-                if (temBau)
-                {
-                    Vector2 bau = meio + Vector2.right * 2.5f;
-                    Bau.Criar(quadrosDoBau, bau, pai, gerador.ArmasDoBau, null, null, null);
-                    Ocupar(chao, bau, 0, 0);
-                }
-
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < 8; i++)
                     Coletavel.Criar(TipoDeColetavel.Moeda, meio + Vector2.down * 1.5f + Random.insideUnitCircle * 1f);
 
                 Coletavel.Criar(TipoDeColetavel.Chave, meio + Vector2.left * 2.5f);
@@ -267,7 +237,7 @@ public static class RecheioDaCaverna
     private static HashSet<Vector2Int> Proibido;
     private static HashSet<Vector2Int> Reservado;
 
-    // O premio da pedra rachada: moedas, ou chave e coracao, ou um bau.
+    // O premio da pedra rachada: moedas, ou chave e coracao, ou um item.
     private static void Premio(Vector2 onde, Transform pai, GeradorDoAndar gerador, Sprite[] quadrosDoBau, EstatisticasDoJogador itens)
     {
         float sorte = Random.value;
@@ -281,10 +251,6 @@ public static class RecheioDaCaverna
         {
             Coletavel.Criar(TipoDeColetavel.Chave, onde);
             Coletavel.Criar(TipoDeColetavel.Coracao, onde);
-        }
-        else if (quadrosDoBau != null && quadrosDoBau.Length > 0)
-        {
-            Bau.Criar(quadrosDoBau, onde, pai, gerador.ArmasDoBau, null, null, null).TalvezMimico(gerador.Andar);
         }
         else
         {

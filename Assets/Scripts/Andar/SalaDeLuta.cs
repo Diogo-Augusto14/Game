@@ -17,7 +17,6 @@ public class SalaDeLuta : MonoBehaviour
 
     private SalaDaPlanta planta;
     private GeradorDoAndar gerador;
-    private Sprite[] quadrosDoBau;
     private readonly List<Vida> inimigos = new List<Vida>();
     private readonly List<PortaDaSala> portas = new List<PortaDaSala>();
     private List<Vector2Int> lugares;
@@ -40,7 +39,7 @@ public class SalaDeLuta : MonoBehaviour
     public SalaDaPlanta Planta => planta;
 
     public static SalaDeLuta Criar(SalaDaPlanta planta, Transform pai, GeradorDoAndar gerador, HashSet<Vector2Int> chao,
-                                   int ondasAMais, int porOnda, Sprite[] quadrosDoBau)
+                                   int ondasAMais, int porOnda)
     {
         GameObject obj = new GameObject(planta.tipo == TipoDeSala.Fim ? "Sala do fim" : "Sala de luta");
         obj.transform.SetParent(pai, false);
@@ -51,7 +50,6 @@ public class SalaDeLuta : MonoBehaviour
         sala.gerador = gerador;
         sala.ondasAMais = ondasAMais;
         sala.porOnda = porOnda;
-        sala.quadrosDoBau = quadrosDoBau;
         sala.lugares = new List<Vector2Int>();
 
         foreach (Vector2Int c in planta.celulas)
@@ -241,7 +239,7 @@ public class SalaDeLuta : MonoBehaviour
         if (jogador != null && Vector2.Distance(jogador.position, onde) < 1.5f)
             onde += Vector2.right * 2f;
 
-        int moedas = Random.Range(2, 5);
+        int moedas = planta.tipo == TipoDeSala.Fim ? Random.Range(5, 8) : Random.Range(2, 5);
 
         for (int i = 0; i < moedas; i++)
             Coletavel.Criar(TipoDeColetavel.Moeda, onde + Random.insideUnitCircle * 0.6f);
@@ -252,18 +250,6 @@ public class SalaDeLuta : MonoBehaviour
             Coletavel.Criar(TipoDeColetavel.Chave, onde);
         else if (sorte < 0.45f)
             Coletavel.Criar(TipoDeColetavel.Coracao, onde);
-
-        // As vezes um bau (sempre na sala do fim).
-        if (quadrosDoBau != null && quadrosDoBau.Length > 0 && gerador != null
-            && (planta.tipo == TipoDeSala.Fim || Random.value < 0.12f))
-        {
-            Vector2 doBau = onde + Vector2.up * 1.5f;
-
-            if (!lugares.Contains(MapaDeCaminhos.Celula(doBau)))
-                doBau = onde;
-
-            Bau.Criar(quadrosDoBau, doBau, transform, gerador.ArmasDoBau, null, null, null);
-        }
     }
 
     // Um lugar livre da sala, longe do jogador.
