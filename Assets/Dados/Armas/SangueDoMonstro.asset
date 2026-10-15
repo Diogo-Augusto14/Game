@@ -23,7 +23,7 @@ MonoBehaviour:
   somDaRecarga: {fileID: 0}
   pesoNoBau: 0
   desenhoDoTiro: {fileID: 21300000, guid: 9264f98c510b4bbca7b22d9133e548b3, type: 3}
-  apontarODesenho: 0
+  apontarODesenho: 1
   cor: {r: 1, g: 1, b: 1, a: 1}
   raio: 0.12
   automatica: 0
