@@ -8,6 +8,9 @@ using UnityEngine;
 /// O ataque toca no ritmo do preparo (do <see cref="InimigoAtirador"/> ou do <see cref="Chefe"/>): o
 /// quadro do disparo chega bem na hora em que a bala sai. Quem tem mais de um ataque (os chefes) poe
 /// as outras folhas em <see cref="outrosAtaques"/>.
+///
+/// O bicho visto de cima (1.22.0) tem tambem as folhas de frente e de costas (<see cref="paradoDeCima"/> e
+/// as outras): olhando mais pra cima ou pra baixo usa elas; pros lados, a de lado (espelhada pra esquerda).
 /// </summary>
 [DisallowMultipleComponent]
 public class AnimacaoDoInimigo : MonoBehaviour
@@ -42,6 +45,11 @@ public class AnimacaoDoInimigo : MonoBehaviour
     [Tooltip("Mais ataques (os chefes): o 1 e o primeiro daqui, o 2 o segundo...")]
     [SerializeField] private OutroAtaque[] outrosAtaques;
 
+    [Header("Visto de cima: frente e costas (vazio = so de lado)")]
+    [SerializeField] private Texture2D[] paradoDeCima;
+    [SerializeField] private Texture2D[] andandoDeCima;
+    [SerializeField] private Texture2D[] ataqueDeCima;
+
     [Tooltip("Abaixo desta velocidade conta como parado")]
     [SerializeField, Min(0f)] private float velocidadeParaAndar = 0.3f;
 
@@ -49,6 +57,10 @@ public class AnimacaoDoInimigo : MonoBehaviour
     private Sprite[] quadrosAndando;
     private Sprite[] quadrosAtaque;
     private Sprite[] quadrosMorte;
+
+    // Por rumo: 0 de lado, 1 de frente, 2 de costas.
+    private Sprite[][] paradoPorRumo, andandoPorRumo, ataquePorRumo;
+    private int rumo;
 
     private IAnimavel inimigo;
     private Sprite[][] quadrosDosOutros;
@@ -79,7 +91,40 @@ public class AnimacaoDoInimigo : MonoBehaviour
         if (quadrosAndando.Length == 0)
             quadrosAndando = quadrosParado;
 
+        paradoPorRumo = PorRumo(quadrosParado, paradoDeCima);
+        andandoPorRumo = PorRumo(quadrosAndando, andandoDeCima);
+        ataquePorRumo = PorRumo(quadrosAtaque, ataqueDeCima);
+
         Tocar(quadrosParado, quadrosPorSegundoParado, false);
+    }
+
+    private Sprite[][] PorRumo(Sprite[] deLado, Texture2D[] outras)
+    {
+        Sprite[][] porRumo = { deLado, deLado, deLado };
+
+        for (int i = 0; outras != null && i < outras.Length && i < 2; i++)
+        {
+            Sprite[] quadros = FolhaDeSprites.Cortar(outras[i], tamanhoDoQuadro, pixelsPorUnidade);
+
+            if (quadros.Length > 0)
+                porRumo[i + 1] = quadros;
+        }
+
+        return porRumo;
+    }
+
+    private bool DeCima => paradoDeCima != null && paradoDeCima.Length > 0;
+
+    // Parado ou andando em outro rumo: virar continua o passo de onde estava.
+    private Sprite[][] Familia(Sprite[] quadros)
+    {
+        if (quadros == null)
+            return null;
+
+        if (System.Array.IndexOf(paradoPorRumo, quadros) >= 0)
+            return paradoPorRumo;
+
+        return System.Array.IndexOf(andandoPorRumo, quadros) >= 0 ? andandoPorRumo : null;
     }
 
     private void OnEnable()
@@ -96,7 +141,7 @@ public class AnimacaoDoInimigo : MonoBehaviour
 
     private void Atacou(int qual, float ateOGolpe)
     {
-        Sprite[] quadros = quadrosAtaque;
+        Sprite[] quadros = ataquePorRumo[rumo];
         int golpe = quadroDoDisparo;
 
         if (qual > 0 && qual <= quadrosDosOutros.Length && quadrosDosOutros[qual - 1].Length > 0)
@@ -127,13 +172,20 @@ public class AnimacaoDoInimigo : MonoBehaviour
         }
         else
         {
-            if (inimigo != null && Mathf.Abs(inimigo.OlhandoPara.x) > 0.05f)
-                corpo.flipX = inimigo.OlhandoPara.x < 0f;
+            Vector2 olhando = inimigo != null ? inimigo.OlhandoPara : Vector2.zero;
+
+            if (DeCima && olhando.sqrMagnitude > 0.0025f)
+                rumo = Mathf.Abs(olhando.y) > Mathf.Abs(olhando.x) ? (olhando.y < 0f ? 1 : 2) : 0;
+
+            if (rumo != 0)
+                corpo.flipX = false;
+            else if (Mathf.Abs(olhando.x) > 0.05f)
+                corpo.flipX = olhando.x < 0f;
 
             if (Time.time >= atacandoAte)
             {
                 bool andandoAgora = inimigo != null && inimigo.Velocidade.magnitude > velocidadeParaAndar;
-                Tocar(andandoAgora ? quadrosAndando : quadrosParado,
+                Tocar(andandoAgora ? andandoPorRumo[rumo] : paradoPorRumo[rumo],
                       andandoAgora ? quadrosPorSegundoAndando : quadrosPorSegundoParado, false);
             }
         }
@@ -149,8 +201,9 @@ public class AnimacaoDoInimigo : MonoBehaviour
             return;
 
         // A mesma animacao em loop continua de onde esta; so recomeca se mudou.
-        if (quadros == tocando && !umaVez && !soUmaVez)
+        if (!umaVez && !soUmaVez && (quadros == tocando || (Familia(quadros) != null && Familia(quadros) == Familia(tocando))))
         {
+            tocando = quadros;
             quadrosPorSegundo = novoRitmo;
             return;
         }
