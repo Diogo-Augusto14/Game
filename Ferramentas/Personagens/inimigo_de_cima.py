@@ -41,6 +41,8 @@ ESCOLHAS = {
     # (ficam os que tem ela: levanta e desce, com o golpe no quadro 4 como nos outros rumos), e no parado
     # de frente o ultimo quadro abaixa a espada.
     "EsqueletoGuerreiro": {("ataque", "east"): [1, 1, 2, 2, 5, 6], ("parado", "south"): [0, 1, 2, 3, 4, 5, 6]},
+    # Bruxo: no ataque de lado (fireball) dois quadros saem borrados e no ultimo ele some.
+    "Bruxo": {("ataque", "east"): [0, 1, 1, 4, 4, 0]},
 }
 ESCOLHA = {}
 
