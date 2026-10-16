@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 464713394790349379}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.125, z: 0}
+  m_LocalPosition: {x: 0, y: 0.143, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -450,8 +450,8 @@ MonoBehaviour:
   andando: {fileID: 2800000, guid: d6aa255914fc4e39b863994c226f1f00, type: 3}
   ataque: {fileID: 2800000, guid: 29ad5d75ab654ab38ec1b114f2abed57, type: 3}
   morte: {fileID: 2800000, guid: cf05ad9d81954ba084466130790d7c36, type: 3}
-  tamanhoDoQuadro: {x: 80, y: 80}
-  pixelsPorUnidade: 40
+  tamanhoDoQuadro: {x: 96, y: 96}
+  pixelsPorUnidade: 42
   quadrosPorSegundoParado: 8
   quadrosPorSegundoAndando: 10
   quadrosPorSegundoNaMorte: 12

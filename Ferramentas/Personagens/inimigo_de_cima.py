@@ -41,17 +41,23 @@ ESCOLHAS = {
     # o PixelLab desenha uma clava a mais (quadro 3 do golpe, 2 e 3 da morte). O golpe fica no quadro 4.
     "GoblinDaClava": {("ataque", "east"): [0, 1, 2, 3, 5, 5, 6], ("ataque", "south"): [6, 2, 2, 2, 4, 5, 6],
                       ("ataque", "north"): [6, 1, 2, 2, 4, 5, 6], ("morte", "east"): [0, 1, 1, 4, 5, 6, 6]},
-    # Esqueleto (refeito no plano pago, tudo no skeleton-v3): no golpe de lado a espada some em dois quadros
-    # (ficam os que tem ela: levanta e desce, com o golpe no quadro 4 como nos outros rumos), e no golpe de
-    # frente o quadro 0 sai transparente e o 5 borrado.
-    "EsqueletoGuerreiro": {("ataque", "east"): [1, 1, 2, 2, 5, 6], ("ataque", "south"): [1, 1, 2, 3, 4, 6]},
-    # Bruxo: no ataque de lado (fireball) dois quadros saem borrados e no ultimo ele some; de costas dois
-    # quadros viram uma nuvem de fogo e fumaca em cima do corpo.
-    "Bruxo": {("ataque", "east"): [0, 1, 1, 4, 4, 0], ("ataque", "north"): [0, 1, 1, 4, 4, 5]},
-    # Orc: no golpe de lado o machado some no quadro 4.
-    "Orc": {("ataque", "east"): [0, 1, 2, 3, 5, 6]},
-    # Arqueiro (refeito): o ataque e o lead-jab do skeleton-v3 (levanta o arco, puxa e solta, 3 quadros), com
-    # o puxar segurado um pouco; a flecha sai no quadro 3.
+    # Esqueleto (1.22.2, com o Esqueleto Escudeiro do Old Prison de referencia): de lado o golpe de cima pra
+    # baixo esconde a espada atras do corpo (dos dois lados), entao de lado ele da uma estocada (o lead-jab,
+    # 3 quadros); de costas o quadro 4 do golpe sai com a cabeca solta; na morte o ultimo quadro volta a
+    # ficar de pe. O golpe fica no quadro 4.
+    "EsqueletoGuerreiro": {("ataque", "east"): [0, 0, 1, 1, 2, 2, 0], ("ataque", "south"): [0, 1, 2, 3, 4, 5, 6],
+                           ("ataque", "north"): [0, 1, 2, 3, 5, 5, 6], ("morte", "east"): [0, 1, 2, 3, 4, 5, 5]},
+    # Bruxo (1.22.2, com o Esqueleto Mago do Old Prison de referencia): de frente e de costas o cajado some no
+    # meio do fireball; fica o quadro em que o fogo sai, no 4.
+    "Bruxo": {("ataque", "east"): [0, 1, 2, 3, 4, 5], ("ataque", "south"): [0, 1, 1, 1, 4, 1],
+              ("ataque", "north"): [0, 1, 1, 1, 5, 1]},
+    # Orc (1.22.2, com o Goblin Brutamonte do The Depths of the Mountain de referencia): o golpe de lado foi
+    # feito olhando pra esquerda (o machado fica na mao da frente) e espelhado; no quadro 4 ele se abaixa e o
+    # machado some. O golpe fica no quadro 4.
+    "Orc": {("ataque", "east"): [0, 1, 2, 3, 5, 5, 6]},
+    # Arqueiro (1.22.2, com o Esqueleto da Prisao do Old Prison de referencia): o ataque e o lead-jab do
+    # skeleton-v3 (levanta o arco, puxa e solta, 3 quadros), com o puxar segurado um pouco; a flecha sai no
+    # quadro 3.
     "EsqueletoArqueiro": {("ataque", "east"): [0, 1, 1, 2, 2, 0], ("ataque", "south"): [0, 1, 1, 2, 2, 0],
                           ("ataque", "north"): [0, 1, 1, 2, 2, 0]},
 }
@@ -164,10 +170,12 @@ def rotacao(entrada, rumo):
 def main():
     global SAIDA, ESCOLHA, QUADRO
     entrada, pasta = sys.argv[1], sys.argv[2]
-    # O tamanho do quadro e o das animacoes (o PixelLab aumenta a tela pra caber a arma: 64 vira 80).
-    QUADRO = max(q.width for q in carregar(entrada, "andar", "east") or [Image.new("RGBA", (QUADRO, QUADRO))])
-    SAIDA = os.path.join(PERSONAGENS, pasta)
+    # O tamanho do quadro e o maior das animacoes (o PixelLab aumenta a tela pra caber a arma: 64 vira 80
+    # ou 96, e nem sempre igual em todo rumo); os menores ficam no meio dele.
     ESCOLHA = ESCOLHAS.get(pasta, {})
+    todos = [q for a in NOMES for r in RUMOS for q in carregar(entrada, a, r)]
+    QUADRO = max(q.width for q in todos or [Image.new("RGBA", (QUADRO, QUADRO))])
+    SAIDA = os.path.join(PERSONAGENS, pasta)
     prefab = Prefab(sys.argv[3]) if len(sys.argv) > 3 else None
     chao = prefab.pe_no_chao(os.path.join(SAIDA, "Idle.png")) if prefab else 0
     de_cima = any(os.path.isdir(os.path.join(entrada, a, r)) for a in NOMES for r in ("south", "north"))
