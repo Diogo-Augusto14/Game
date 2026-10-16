@@ -1,5 +1,7 @@
-"""Monta as folhas de um inimigo visto de cima (1.22.0), feito no PixelLab no estilo do Aventureiro
-(Goblin da Clava, Esqueleto Guerreiro, Bruxo, Orc e Esqueleto Arqueiro).
+"""Monta as folhas de um inimigo visto de cima (1.22.0), feito no PixelLab. Desde a 1.22.2 cada um e feito
+com um monstro dos pacotes EPIC RPG World (Old Prison, Crypt, The Depths of the Mountain) de referencia:
+Goblin da Clava, Esqueleto Guerreiro, Esqueleto Arqueiro, Bruxo e Orc (personagens) e Gosma, Geleia e
+Morceguinho (objetos, so de lado).
 
 Entrada: uma pasta com os quadros baixados do PixelLab, <animacao>/<direcao>/<n>.png, com
 animacao em parado, andar, ataque, morte e direcao em east, south, north (o tamanho do quadro e o do andar); e, se tiver, rotacao/<direcao>.png
@@ -54,7 +56,13 @@ ESCOLHAS = {
     # Orc (1.22.2, com o Goblin Brutamonte do The Depths of the Mountain de referencia): o golpe de lado foi
     # feito olhando pra esquerda (o machado fica na mao da frente) e espelhado; no quadro 4 ele se abaixa e o
     # machado some. O golpe fica no quadro 4.
-    "Orc": {("ataque", "east"): [0, 1, 2, 3, 5, 5, 6]},
+    "Orc": {("ataque", "east"): [0, 1, 2, 3, 5, 5, 6], ("ataque", "north"): [0, 1, 2, 3, 5, 5, 6]},
+    # Geleia (1.22.2, objeto com o Pote Mimico de referencia): no ataque ela pisca e faz cara de boba nos
+    # quadros 1, 4, 7 e 8; o cuspe sai no 5 (posicao 4).
+    "Geleia": {("ataque", "east"): [0, 0, 2, 3, 5, 6, 0]},
+    # Morceguinho (1.22.2, objeto com a Aranha da Crypt de referencia): o quadro 0 de cada animacao e o
+    # desenho base, com uma barrinha de sombra embaixo; fica de fora. A mordida e o quadro 5 (posicao 4).
+    "Morceguinho": {(a, "east"): list(range(1, 9)) for a in ("parado", "andar", "ataque", "morte")},
     # Arqueiro (1.22.2, com o Esqueleto da Prisao do Old Prison de referencia): o ataque e o lead-jab do
     # skeleton-v3 (levanta o arco, puxa e solta, 3 quadros), com o puxar segurado um pouco; a flecha sai no
     # quadro 3.
