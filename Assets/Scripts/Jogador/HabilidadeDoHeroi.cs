@@ -14,6 +14,7 @@ public enum TipoDeHabilidade
     Furia,
     Meteoro,
     Cura,
+    Mare,
 }
 
 /// <summary>
@@ -253,6 +254,43 @@ public class HabilidadeDoHeroi : MonoBehaviour
                 vida.Curar(2f);
                 Tocar("Cura", 0.7f);
                 TextoFlutuante.Mostrar(transform.position + Vector3.up * 0.9f, "+1 coração", new Color(0.5f, 1f, 0.55f), 1.2f).Pular(1.2f);
+                break;
+            }
+
+            case TipoDeHabilidade.Mare:
+            {
+                // A onda da Solenne: apaga os tiros inimigos em volta, empurra longe quem esta perto e solta
+                // dois aneis das gotas da arma dela.
+                const float alcance = 3.2f;
+                Tocar("Respingo", 0.8f);
+                CameraDoJogo.Tremer(0.15f, 0.2f);
+                HashSet<Vida> molhados = new HashSet<Vida>();
+
+                foreach (Collider2D c in Physics2D.OverlapCircleAll(transform.position, alcance))
+                {
+                    if (c == null)
+                        continue;
+
+                    if (c.TryGetComponent(out Projetil tiro))
+                    {
+                        if (tiro.Lado != Lado.Jogador)
+                            tiro.Sumir();
+
+                        continue;
+                    }
+
+                    Vida dele = c.GetComponentInParent<Vida>();
+
+                    if (dele != null && dele.Lado != Lado.Jogador && molhados.Add(dele))
+                        dele.ReceberDano(new Dano(8f, (Vector2)dele.transform.position - (Vector2)transform.position, 12f, gameObject));
+                }
+
+                DadosDaArma anel = Copia(16, true, 0f, 1.2f);
+                anel.Disparar(Centro, Mira, gameObject, Lado.Jogador);
+                TocarArma();
+                yield return new WaitForSeconds(0.2f);
+                anel.Disparar(Centro, Mira, gameObject, Lado.Jogador, 11.25f);
+                TocarArma();
                 break;
             }
         }

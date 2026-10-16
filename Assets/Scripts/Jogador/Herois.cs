@@ -2,11 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Os herois que da pra escolher no menu inicial (<see cref="TelaDeInicio"/>), os nove do Tiny RPG
-/// (vieram do jogo antigo). Cada um tem vida, velocidade, as folhas de animacao, a arma do comeco
-/// (infinita, e que tambem pode ser trocada) e uma habilidade (<see cref="HabilidadeDoHeroi"/>, tecla F).
+/// Os herois que da pra escolher no menu inicial (<see cref="TelaDeInicio"/>): os nove do Tiny RPG
+/// (vieram do jogo antigo), o Aventureiro e a Solenne (vistos de cima). Cada um tem vida, velocidade,
+/// as folhas de animacao, a arma do comeco (infinita, e que tambem pode ser trocada) e uma habilidade
+/// (<see cref="HabilidadeDoHeroi"/>, tecla F).
 ///
-/// O Aventureiro e o Arqueiro comecam livres; os outros se liberam vencendo chefes e zerando o jogo (<see cref="Progresso"/>).
+/// O Aventureiro, o Arqueiro e a Solenne comecam livres; os outros se liberam vencendo chefes e zerando
+/// o jogo (<see cref="Progresso"/>).
 /// <see cref="Aplicar"/> poe o heroi no jogador. A escolha fica salva entre partidas.
 /// </summary>
 public static class Herois
@@ -151,6 +153,15 @@ public static class Herois
             Descricao = "O que mais aguenta, e é o mais lento.",
             Vida = 12, Velocidade = 4f, Arma = "EspadaSagrada", QuadroDoDisparo = 4,
             Habilidade = TipoDeHabilidade.AnelDeCortes, NomeDaHabilidade = "Anel sagrado", Recarga = 10f,
+        },
+        // Visto de cima (1.22.3), feita no PixelLab (Ferramentas/Personagens/solenne.py). Fica no fim da
+        // lista pra nao mudar o numero salvo dos outros.
+        new Heroi
+        {
+            Nome = "Solenne", Pasta = "Personagens/Herois/Solenne", Pixels = 46f, DeCima = true,
+            Descricao = "Pequena e ágil, com um poder misterioso ligado à água.",
+            Vida = 6, Velocidade = 6.1f, Arma = "OrbeDaSolenne", QuadroDoDisparo = 0,
+            Habilidade = TipoDeHabilidade.Mare, NomeDaHabilidade = "Maré", Recarga = 9f,
         },
     };
 

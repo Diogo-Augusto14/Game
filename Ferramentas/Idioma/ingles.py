@@ -819,4 +819,7 @@ T = [
     ("Aventureiro", "Adventurer"),
     ("Espada do Aventureiro", "Adventurer's Sword"),
     ("Rápido e de espada na mão. Cortes que atravessam os inimigos.", "Fast, sword in hand. Slashes that cut through enemies."),
+    ("Orbe de Água", "Water Orb"),
+    ("Pequena e ágil, com um poder misterioso ligado à água.", "Small and nimble, with a mysterious power tied to water."),
+    ("Maré", "Tide"),
 ]
