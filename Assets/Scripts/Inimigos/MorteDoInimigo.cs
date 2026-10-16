@@ -22,9 +22,9 @@ public class MorteDoInimigo : MonoBehaviour
 
     [SerializeField] private Vector2Int tamanhoDoQuadroDoEfeito = new Vector2Int(64, 64);
 
-    [SerializeField, Min(1f)] private float pixelsPorUnidadeDoEfeito = 20f;
+    [SerializeField, Min(1f)] private float pixelsPorUnidadeDoEfeito = 36f;
 
-    [SerializeField, Min(1f)] private float quadrosPorSegundoDoEfeito = 20f;
+    [SerializeField, Min(1f)] private float quadrosPorSegundoDoEfeito = 14f;
 
     [Tooltip("Onde o efeito aparece, em relacao ao centro do corpo")]
     [SerializeField] private Vector2 alturaDoEfeito = new Vector2(0f, -0.2f);

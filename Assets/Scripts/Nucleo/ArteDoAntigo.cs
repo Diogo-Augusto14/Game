@@ -108,7 +108,8 @@ public static class ArteDoAntigo
     public static Sprite[] Explosao(float raio) =>
         Linha("TinySwords/Explosao", 192, 9, new RectInt(0, 0, 192, 192), new Vector2(96f, 94f), 105f / Mathf.Max(0.1f, raio * 2f));
 
-    public static Sprite[] ExplosaoPequena => Linha("Efeitos/ExplosaoPequena", 192, 8, new RectInt(58, 56, 74, 72), new Vector2(95f, 92f), 60f);
+    // O impacto (1.22.3, feito no gerador de efeitos do PixelLab): 8 quadros de 64, no meio do quadro.
+    public static Sprite[] ExplosaoPequena => Linha("Efeitos/ExplosaoPequena", 64, 8, new RectInt(0, 0, 64, 64), new Vector2(32f, 32f), 36f);
 
     public static Sprite[] Chave => Linha("Masmorra/ChaveDourada", 16, 8, new RectInt(0, 0, 16, 16), new Vector2(8f, 8f), 22f);
 

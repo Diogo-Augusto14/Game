@@ -610,8 +610,8 @@ MonoBehaviour:
   desbotar: 0.2
   efeito: {fileID: 2800000, guid: 74388f22867f4782873b899910d5587e, type: 3}
   tamanhoDoQuadroDoEfeito: {x: 64, y: 64}
-  pixelsPorUnidadeDoEfeito: 20
-  quadrosPorSegundoDoEfeito: 20
+  pixelsPorUnidadeDoEfeito: 36
+  quadrosPorSegundoDoEfeito: 14
   alturaDoEfeito: {x: 0, y: -0.2}
 --- !u!114 &772866110605446414
 MonoBehaviour:

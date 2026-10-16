@@ -103,13 +103,13 @@ public class ParedeSecreta : MonoBehaviour
         if (poeira == null)
             return;
 
-        EfeitoDeFolha fio = EfeitoDeFolha.Tocar(poeira, new Vector2Int(64, 64), 20f, c + new Vector2(Random.Range(-0.35f, 0.35f), 0.4f), 10f);
+        EfeitoDeFolha fio = EfeitoDeFolha.Tocar(poeira, new Vector2Int(64, 64), 36f, c + new Vector2(Random.Range(-0.35f, 0.35f), 0.4f), 10f);
 
         DicasDaPrimeiraVez.Mostrar("parede");
 
         if (fio != null)
         {
-            fio.transform.localScale = Vector3.one * 0.45f;
+            fio.transform.localScale = Vector3.one * 0.8f;
 
             if (fio.TryGetComponent(out SpriteRenderer sr))
                 sr.color = new Color(1f, 0.95f, 0.85f, 0.7f);
@@ -127,7 +127,7 @@ public class ParedeSecreta : MonoBehaviour
         if (poeira != null)
         {
             foreach (Vector2 c in boca)
-                EfeitoDeFolha.Tocar(poeira, new Vector2Int(64, 64), 20f, c + Random.insideUnitCircle * 0.3f, 18f);
+                EfeitoDeFolha.Tocar(poeira, new Vector2Int(64, 64), 36f, c + Random.insideUnitCircle * 0.3f, 18f);
         }
 
         aoRevelar?.Invoke();
