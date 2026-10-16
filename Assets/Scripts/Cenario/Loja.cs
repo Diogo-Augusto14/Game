@@ -28,7 +28,10 @@ public static class Loja
         ItemPassivo item = CatalogoDeItens.Sortear(jogador);
         Pedestal.Criar(onde + new Vector2(-1.6f, -0.3f), pai, item, Barato(item.Preco, precoVezes));
 
-        Produto[] miudos = { Produto.Coracao, Produto.Chave, Produto.Municao };
+        // Municao so pra quem tem arma que gasta (com a espada infinita a vaga ficava inutil).
+        Produto[] miudos = UsaMunicao(jogador)
+            ? new[] { Produto.Coracao, Produto.Chave, Produto.Municao }
+            : new[] { Produto.Coracao, Produto.Chave };
         Produto a = miudos[Random.Range(0, miudos.Length)];
         Produto b;
 
@@ -41,6 +44,25 @@ public static class Loja
     }
 
     private static int Barato(int preco, float vezes) => Mathf.Max(1, Mathf.RoundToInt(preco * vezes));
+
+    private static bool UsaMunicao(EstatisticasDoJogador jogador)
+    {
+        ArmaDoJogador armas = jogador != null ? jogador.GetComponent<ArmaDoJogador>() : null;
+
+        // Sem saber (jogador nao achado), oferece como antes.
+        if (armas == null)
+            return true;
+
+        for (int i = 0; i < 2; i++)
+        {
+            ArmaCarregada arma = armas.Mao(i);
+
+            if (arma != null && !arma.Infinita)
+                return true;
+        }
+
+        return false;
+    }
 
     private static void Placa(Transform loja, bool balcao)
     {

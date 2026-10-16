@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f903d29a84c249eb942e7c4bd9624175, type: 3}
   m_Name: BestaDeRepeticao
   m_EditorClassIdentifier: Assembly-CSharp::DadosDaArma
-  nome: Besta de Repeticao
+  nome: Besta de Repetição
   desenhoNaMao: {fileID: 21300000, guid: ce734a1331df491396e44a07525d9e29, type: 3}
   distanciaDaMao: 0.4
   coice: 0.05

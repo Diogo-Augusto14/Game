@@ -289,11 +289,11 @@ public class GeradorDoAndar : MonoBehaviour
         }
 
         // O heroi escolhido (vida, velocidade, boneco, arma e habilidade): no "tentar de novo" ja e ele.
-        // E a luz dele: fraca, so o bastante pra ver em volta no andar escuro.
+        // E a luz dele: o bastante pra ver quem vem (1.22.2: os inimigos atiravam de dentro do escuro).
         if (jogador != null)
         {
             Herois.Aplicar(jogador, Herois.Atual);
-            Iluminacao.Luz(jogador.transform, new Vector2(0f, 0.2f), Iluminacao.Heroi, 4.5f, 0.85f, 0.03f);
+            Iluminacao.Luz(jogador.transform, new Vector2(0f, 0.2f), Iluminacao.Heroi, 5.5f, 0.9f, 0.03f);
         }
 
         // "Tentar de novo" e uma partida nova no mesmo modo (o desafio do dia repete o mapa de hoje).
@@ -635,8 +635,9 @@ public class GeradorDoAndar : MonoBehaviour
     // Prison original), a Cripta (pacote Crypt) e as Profundezas (pacote The Depths of the Mountain).
     private static readonly string[] NomesDosMundos = { "Porão", "Catacumbas", "Cripta", "Profundezas" };
 
-    // A luz ambiente de cada mundo (o resto vem das tochas, das velas e do heroi) e o tom dela.
-    private static readonly float[] LuzDosMundos = { 0.16f, 0.14f, 0.12f, 0.12f };
+    // A luz ambiente de cada mundo (o resto vem das tochas, das velas e do heroi) e o tom dela. Mais clara
+    // desde a 1.22.2: no escuro de antes os inimigos sumiam fora da luz do heroi.
+    private static readonly float[] LuzDosMundos = { 0.26f, 0.22f, 0.19f, 0.19f };
     private static readonly Color[] CorDosMundos =
     {
         new Color(1f, 0.85f, 0.7f), new Color(0.75f, 0.85f, 1f), new Color(0.7f, 0.95f, 1f), new Color(0.75f, 1f, 0.85f),

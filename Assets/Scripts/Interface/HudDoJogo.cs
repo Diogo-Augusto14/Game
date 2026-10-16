@@ -322,7 +322,10 @@ public class HudDoJogo
 
         Vector3 naTela = cam.WorldToScreenPoint(coisa.transform.position + Vector3.up * 0.9f);
         GUIStyle estilo = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerCenter);
-        float largura = 300 * u;
-        Desenho.Texto(new Rect(naTela.x - largura * 0.5f, Screen.height - naTela.y - 22 * u, largura, 20 * u), "E  " + Idioma.T(coisa.Dica), estilo, Desenho.Claro);
+        string texto = "E  " + Idioma.T(coisa.Dica);
+        // A caixa na largura do texto (a dica do ferreiro e longa) e sem sair da tela.
+        float largura = Mathf.Min(Screen.width, Mathf.Max(300 * u, estilo.CalcSize(new GUIContent(texto)).x + 8 * u));
+        float x = Mathf.Clamp(naTela.x - largura * 0.5f, 0f, Screen.width - largura);
+        Desenho.Texto(new Rect(x, Screen.height - naTela.y - 22 * u, largura, 20 * u), texto, estilo, Desenho.Claro);
     }
 }
