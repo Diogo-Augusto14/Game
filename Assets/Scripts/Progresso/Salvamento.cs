@@ -2,9 +2,11 @@ using UnityEngine;
 
 /// <summary>
 /// A partida salva, pro "Continuar" do menu inicial (veio do jogo antigo). Salva sozinho no comeco de
-/// cada andar, e tambem pelo "Salvar e sair" da pausa: o heroi, o andar, a vida, as duas armas (com
-/// a municao), os numeros da partida e o caminho (o tema de cada mundo). Continuar recomeca o andar
-/// salvo do comeco; salvo na area segura, volta pra ela (a escolha do caminho ainda nao foi feita).
+/// cada andar (e de cada area segura): o heroi, o andar, a vida, as duas armas (com a municao), a bolsa,
+/// os itens, os numeros da partida e o caminho (o tema de cada mundo). Continuar recomeca o andar salvo
+/// do comeco, com o que o jogador tinha ao chegar nele; salvo na area segura, volta pra ela (a escolha
+/// do caminho ainda nao foi feita). O "Salvar e sair" da pausa so sai, sem gravar o meio do andar (ate a
+/// 1.22.3 gravava, e sair e voltar montava o andar de novo com premios novos).
 ///
 /// Morrer, vencer ou comecar uma partida nova apaga o salvo. Fica no PlayerPrefs.
 /// </summary>
@@ -14,12 +16,12 @@ public static class Salvamento
 
     public static bool Existe => PlayerPrefs.GetInt(Prefixo + "existe", 0) == 1;
 
-    /// <summary>"Andar 4 com o Soldado" (ou "Área segura com o Soldado"), pro botao do menu.</summary>
+    /// <summary>"Andar 4 com o Soldado" (ou "Área segura com o Soldado"), do lado do botao "Continuar" do menu.</summary>
     public static string Resumo => Existe
         ? (PlayerPrefs.GetInt(Prefixo + "descanso", 0) == 1 ? Idioma.T("Área segura") : Idioma.F("Andar {0}", PlayerPrefs.GetInt(Prefixo + "andar", 1)))
           + " " + Idioma.F("com o {0}", Idioma.T(PlayerPrefs.GetString(Prefixo + "heroi", "?")))
-          + (PlayerPrefs.GetInt(Prefixo + "modo", 0) == (int)ModoDeJogo.Maldito ? " (maldito)"
-             : PlayerPrefs.GetInt(Prefixo + "modo", 0) == (int)ModoDeJogo.Diario ? " (desafio do dia)" : "")
+          + (PlayerPrefs.GetInt(Prefixo + "modo", 0) == (int)ModoDeJogo.Maldito ? " " + Idioma.T("(maldito)")
+             : PlayerPrefs.GetInt(Prefixo + "modo", 0) == (int)ModoDeJogo.Diario ? " " + Idioma.T("(desafio do dia)") : "")
         : "";
 
     public static void Salvar(GeradorDoAndar andar, GameObject jogador)

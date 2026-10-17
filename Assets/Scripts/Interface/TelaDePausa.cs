@@ -3,18 +3,21 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Esc pausa o jogo: congela tudo e abre o menu de pausa com o andar, as armas e os
-/// botoes Continuar, Reiniciar partida, Configuracoes, Menu principal e Sair do jogo.
+/// botoes Continuar, Salvar e sair, Reiniciar partida, Configuracoes e Sair do jogo.
 ///
 ///   W/S ou Cima/Baixo  escolhe        Enter  aperta        mouse  escolhe e clica
-///   atalhos: Esc continuar   R reiniciar   O configuracoes   Q menu principal
-///            M musica        N efeitos
+///   atalhos: Esc continuar   O configuracoes   M musica   N efeitos
 ///
-/// No controle: cruz escolhe, A aperta; Start (ou B) continua, Select reinicia, X
-/// configuracoes, Y menu, LB e RB o som.
+/// No controle: cruz escolhe, A aperta; Start (ou B) continua, X configuracoes, LB e RB o som.
 ///
-/// Salvar e sair guarda a partida (o "Continuar" do menu volta pro comeco deste andar) e vai pro menu.
-/// Reiniciar comeca uma partida nova do andar 1 com o mesmo heroi. Menu principal volta pro menu
-/// inicial sem salvar (o comeco de cada andar ja fica salvo sozinho).
+/// Salvar e sair volta pro menu com a partida guardada do jeito que estava ao chegar neste andar (o
+/// comeco de cada andar fica salvo sozinho): o "Continuar" recomeca o andar com o que o jogador tinha ao
+/// chegar, como no Gungeon. Reiniciar comeca uma partida nova do andar 1 com o mesmo heroi.
+///
+/// O que abandona a partida (Salvar e sair, Reiniciar, Sair do jogo) pede dois apertos: o primeiro troca o
+/// botao por "Aperte de novo pra...", o segundo faz; escolher outro botao (ou esperar) desarma. E nao tem
+/// atalho: ate a 1.22.3, R reiniciava e Q ia pro menu na hora, e no jogo o R e o item, o Q troca a arma
+/// (no controle, Select abria o mapa e reiniciava aqui; Y trocava a arma e saia).
 ///
 /// Fica no mesmo objeto do <see cref="GeradorDoAndar"/> (ele poe sozinho). Nao abre por cima do
 /// menu inicial, da tela de fim de jogo, da troca de andar nem com o jogador morto. M e N tambem
@@ -26,6 +29,9 @@ public class TelaDePausa : MonoBehaviour
 {
     private const float TempoDeAbrir = 0.18f;
 
+    // Segundos que o botao fica pedindo o segundo aperto.
+    private const float TempoParaConfirmar = 3f;
+
     private GeradorDoAndar andar;
     private Vida vidaDoJogador;
     private GameObject tela;
@@ -36,6 +42,12 @@ public class TelaDePausa : MonoBehaviour
     private Text resumo;
     private Text itens;
     private float abriu;
+
+    // Os botoes que abandonam a partida e o que esta pedindo o segundo aperto agora (-1 = nenhum).
+    private int botaoSalvar, botaoReiniciar, botaoSair;
+    private int armado = -1;
+    private string rotuloArmado;
+    private float armadoEm;
 
     public bool Pausado => tela != null;
 
@@ -78,7 +90,13 @@ public class TelaDePausa : MonoBehaviour
 
         // O atalho pode ter fechado a pausa (Continuar) neste quadro.
         if (Pausado)
+        {
             menu.Atualizar();
+
+            // Escolheu outro botao (ou demorou): o que pedia o segundo aperto volta ao normal.
+            if (armado >= 0 && (menu.Escolhido != armado || Time.unscaledTime - armadoEm > TempoParaConfirmar))
+                Desarmar();
+        }
     }
 
     private void LerAtalhos()
@@ -90,22 +108,15 @@ public class TelaDePausa : MonoBehaviour
         if (mudou)
             Atualizar();
 
+        // Sem atalho pro que abandona a partida (reiniciar, sair): so pelos botoes, com dois apertos.
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P)
             || Controle.Apertou(BotaoDoControle.Start) || Controle.Apertou(BotaoDoControle.B))
         {
             Continuar();
         }
-        else if (Input.GetKeyDown(KeyCode.R) || Controle.Apertou(BotaoDoControle.Select))
-        {
-            Reiniciar();
-        }
         else if (Input.GetKeyDown(KeyCode.O) || Controle.Apertou(BotaoDoControle.X))
         {
             AbrirOpcoes();
-        }
-        else if (Input.GetKeyDown(KeyCode.Q) || Controle.Apertou(BotaoDoControle.Y))
-        {
-            IrAoMenu();
         }
     }
 
@@ -139,13 +150,14 @@ public class TelaDePausa : MonoBehaviour
         itens = TelaSimples.Texto(pai, "Itens", 24, Color.white, 218f, "");
         itens.rectTransform.sizeDelta = new Vector2(880f, 64f);
 
+        // Sem o "Menu principal" (tinha ate a 1.22.3): o Salvar e sair faz o mesmo (o comeco do andar ja fica salvo).
         menu = new MenuDeBotoes(pai, 0f, new Vector2(520f, 66f), 32) { IntervaloDaEntrada = 0.03f };
-        menu.Adicionar("Continuar", 150f, Continuar, "[Esc] || [Pad Start]");
-        menu.Adicionar("Salvar e sair", 76f, SalvarESair);
-        menu.Adicionar("Reiniciar partida", 2f, Reiniciar, "[R] || [Pad Select]");
-        menu.Adicionar("Configurações", -72f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
-        menu.Adicionar("Menu principal", -146f, IrAoMenu, "[Q] || [Pad Y]");
-        menu.Adicionar("Sair do jogo", -220f, TelaDeInicio.SairDoJogo, null, IconeDoBotao.Sair, perigo: true);
+        armado = -1;
+        menu.Adicionar("Continuar", 113f, Continuar, "[Esc] || [Pad Start]");
+        botaoSalvar = menu.Adicionar("Salvar e sair", 39f, PedirSalvarESair);
+        botaoReiniciar = menu.Adicionar("Reiniciar partida", -35f, PedirReiniciar);
+        menu.Adicionar("Configurações", -109f, AbrirOpcoes, "[O] || [Pad X]", IconeDoBotao.Configuracoes);
+        botaoSair = menu.Adicionar("Sair do jogo", -183f, PedirSairDoJogo, null, IconeDoBotao.Sair, perigo: true);
 
         opcoes = TelaSimples.LinhaDeTeclas(pai, "Som", -310f, "", 26, new Color(1f, 0.85f, 0.4f));
         TelaSimples.LinhaDeTeclas(tela.transform, "Navegar", -470f,
@@ -179,6 +191,43 @@ public class TelaDePausa : MonoBehaviour
         TelaSimples.TravarJogador(andar.Jogador, false);
     }
 
+    // Os tres botoes que abandonam a partida: o primeiro aperto so pede confirmacao.
+    private void PedirSalvarESair() => Confirmar(botaoSalvar, "Salvar e sair", "Aperte de novo pra sair", SalvarESair);
+
+    private void PedirReiniciar() => Confirmar(botaoReiniciar, "Reiniciar partida", "Aperte de novo pra reiniciar", Reiniciar);
+
+    private void PedirSairDoJogo() => Confirmar(botaoSair, "Sair do jogo", "Aperte de novo pra fechar o jogo", TelaDeInicio.SairDoJogo);
+
+    // Primeiro aperto: o botao vira o pedido (e muda de cor) e da um aviso; segundo aperto no mesmo botao: faz.
+    private void Confirmar(int botao, string rotulo, string pedido, System.Action acao)
+    {
+        if (armado == botao)
+        {
+            Desarmar();
+            acao();
+            return;
+        }
+
+        Desarmar();
+        armado = botao;
+        rotuloArmado = rotulo;
+        armadoEm = Time.unscaledTime;
+        menu.TrocarRotulo(botao, pedido);
+        menu.Apagar(botao, true);
+        Sons.Tocar(Som.MenuNegado, 0.7f, 0f);
+    }
+
+    private void Desarmar()
+    {
+        if (armado >= 0 && menu != null)
+        {
+            menu.TrocarRotulo(armado, rotuloArmado);
+            menu.Apagar(armado, false);
+        }
+
+        armado = -1;
+    }
+
     private static void Reiniciar()
     {
         Sons.Tocar(Som.MenuConfirmar, 1f, 0f);
@@ -199,17 +248,15 @@ public class TelaDePausa : MonoBehaviour
         }
     });
 
-    /// <summary>Salva a partida (o andar recomeca do comeco no "Continuar") e volta pro menu inicial.</summary>
-    private void SalvarESair()
+    /// <summary>
+    /// Volta pro menu inicial com a partida guardada como estava ao chegar neste andar: o comeco de cada
+    /// andar ja fica salvo sozinho, e aqui nao grava de novo. Ate a 1.22.3 gravava o meio do andar, e o
+    /// "Continuar" montava o andar de novo com premios novos: saindo e voltando, itens, moedas e cristais sem
+    /// fim (a fonte e o calice da area segura tambem).
+    /// </summary>
+    private static void SalvarESair()
     {
-        Salvamento.Salvar(andar, andar.Jogador != null ? andar.Jogador.gameObject : null);
-        AvisoDeConquista.Mostrar("Partida salva", "No menu, \"Continuar\" volta pro começo deste andar.");
-        IrAoMenu();
-    }
-
-    /// <summary>Volta pro menu inicial (sem salvar: a partida volta do ultimo andar salvo).</summary>
-    private static void IrAoMenu()
-    {
+        AvisoDeConquista.Mostrar("Partida salva", "\"Continuar\" volta pro começo deste andar, com o que você tinha ao chegar nele.");
         Sons.Tocar(Som.MenuFechar, 1f, 0f);
         TelaDeInicio.VoltarAoMenu();
     }

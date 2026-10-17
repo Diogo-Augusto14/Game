@@ -163,9 +163,9 @@ Duas partes:
 
 | Tela | O que tem |
 |---|---|
-| `TelaDeInicio` | Título na faixa cor de sangue, cinzas e brasas subindo no fundo, o herói (retrato animado, descrição, números; as setas aparecem quando tiver mais de um), Jogar, Configurações e Sair do jogo, os controles com o desenho das teclas, os créditos e a versão. Só na primeira vez: "tentar de novo" vai direto pro jogo |
+| `TelaDeInicio` | Título na faixa cor de sangue, cinzas e brasas subindo no fundo, o herói (retrato animado, descrição, números; as setas aparecem quando tiver mais de um), Jogar, Continuar (com a partida salva, e do lado da tecla qual é: "Andar 4 com o Soldado"), Configurações e Sair do jogo, os controles com o desenho das teclas, os créditos e a versão. Só na primeira vez: "tentar de novo" vai direto pro jogo |
 | `TelaDeOpcoes` | Volume da música e dos efeitos (barras), tela cheia, resolução e tremor da tela, tudo salvo (`Opcoes`) |
-| `TelaDePausa` | `Esc`, `P` ou `Start`: o andar, as armas, Continuar, Reiniciar partida, Configurações, Menu principal e Sair do jogo |
+| `TelaDePausa` | `Esc`, `P` ou `Start`: o andar, as armas, Continuar, Salvar e sair, Reiniciar partida, Configurações e Sair do jogo. O que abandona a partida (Salvar e sair, Reiniciar, Sair do jogo) pede dois apertos ("Aperte de novo pra...") e não tem atalho: até a 1.22.3, R reiniciava e Q ia pro menu na hora, e no jogo eles são o item e a troca de arma |
 | `TelaDeFimDeJogo` | Morreu (clarão vermelho) ou venceu (dourado): câmera lenta, o retrato do herói caindo ou parado, o resumo (herói, andar, tempo, inimigos e chefes derrotados, armas) e Tentar de novo, Menu principal, Sair do jogo |
 | `TelaDeNovidades` | Na primeira vez que abre uma versão nova, as novidades dela (as notas do lançador) |
 
@@ -465,7 +465,7 @@ Tudo no PlayerPrefs (`Assets/Scripts/Progresso`), como no jogo antigo:
 | `Acampamento`, `Fogueira`, `Falante`, `Falas`, `Conversa` | O **acampamento** (1.21.0): a sala do começo do andar 1, maior (15 x 11), com a fogueira, a estátua dos cristais e três pessoas pra conversar (Bento, o mercador; Mestre Ferraz, o ferreiro, que ali não forja; o Apostador, sem apostas). Cada conversa comenta a última partida (`Falas.GuardarFim`, chamado pelo `Registro` ao morrer ou zerar) e conta o próximo pedaço da história, um por partida, liberado pela profundidade alcançada, plantas e vitórias. Os textos ficam todos no `Falas.cs` |
 | `Bestiario` | Nome e "como luta" de cada inimigo e chefe |
 | `TelaDeProgresso` | O botão **Progresso** do menu: abas de estatísticas, conquistas e bestiário |
-| `Salvamento` | A partida salva: no começo de cada andar e no **Salvar e sair** da pausa (herói, andar, vida, armas, números, o caminho e o modo). **Continuar** no menu volta pro começo do andar salvo (ou pra área segura, se salvou nela). Morrer, vencer ou jogar de novo apaga |
+| `Salvamento` | A partida salva: só no começo de cada andar e de cada área segura (herói, andar, vida, armas, bolsa, itens, números, o caminho e o modo). **Continuar** no menu volta pro começo do andar salvo, com o que tinha ao chegar nele (ou pra área segura, se salvou nela), como no Gungeon; o **Salvar e sair** da pausa só sai. Até a 1.22.3 ele gravava o meio do andar, e sair e voltar montava o andar de novo com prêmios novos (itens, moedas e cristais sem fim). Morrer, vencer ou jogar de novo apaga |
 | `Melhorias` | Os **cristais** e as melhorias compradas com eles (desde a 1.19.0): vida, desconto na loja, chaveiro, arsenal (libera as armas com `DadosDaArma.arsenal`) e pólvora (recarga do especial). Comprar é na `EstatuaDosCristais` (começo do andar 1 e áreas seguras), pela `TelaDaEstatua` |
 | `Partida` | O **modo** da partida: normal, **maldito** (liberado ao zerar: inimigos 25% mais rápidos, 25% mais inimigos e uma onda a mais, campeões em dobro; mais sorte, raras mais cedo e cristais em dobro) ou **desafio do dia** (`Semear` põe o `Random` na semente da data UTC e do andar antes de montar cada andar; sem melhorias; recorde do dia por pontos). Escolhido na `TelaDosModos` (botão **Modos de jogo** do menu) |
 

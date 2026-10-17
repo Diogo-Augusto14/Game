@@ -157,8 +157,12 @@ public class TelaDeInicio : MonoBehaviour
 
         botaoJogar = menu.Adicionar(RotuloDoJogar, y, Jogar, "[Enter] || [Pad A]");
 
+        // Do lado da tecla, qual partida o Continuar retoma ("Andar 4 com o Soldado").
         if (temSalvo)
-            menu.Adicionar("Continuar", y -= passo, ContinuarPartida, "[C] || [Pad Y]");
+        {
+            string qual = Salvamento.Resumo;
+            menu.Adicionar("Continuar", y -= passo, ContinuarPartida, "[C] " + qual + " || [Pad Y] " + qual);
+        }
 
         menu.Adicionar("Modos de jogo", y -= passo, AbrirModos, "[J]");
         menu.Adicionar("Progresso", y -= passo, AbrirProgresso, "[P] || [Pad B]");

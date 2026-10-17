@@ -868,7 +868,6 @@ GameObject:
   - component: {fileID: 2046001002}
   - component: {fileID: 2046001003}
   - component: {fileID: 2046001004}
-  - component: {fileID: 1825411373}
   m_Layer: 0
   m_Name: Interface
   m_TagString: Untagged
