@@ -209,17 +209,17 @@
  },
  "Assassino": {
   "quadro": [
-   112,
+   94,
    60
   ],
   "pes": 14.0,
-  "golpe": 0,
+  "golpe": 3,
   "altura": 43,
   "quadros": {
-   "Idle": 20,
-   "Walk": 12,
-   "Attack01": 18,
-   "Death": 24
+   "Idle": 10,
+   "Walk": 6,
+   "Attack01": 9,
+   "Death": 12
   },
   "espelhado": false
  },

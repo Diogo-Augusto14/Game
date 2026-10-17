@@ -43,7 +43,7 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Interface` | O HUD, o minimapa, o menu inicial, a pausa, os controles e o fim da partida |
 | `Assets/Scripts/Nucleo` | Peças pequenas usadas por todo lado (cortar folha de animação, efeito que toca uma vez) |
 | `Assets/Shaders` | `Silhueta`: pinta o desenho de uma cor só (o branco do golpe) |
-| `Assets/Editor` | Montar a cena e o Play pela cena do jogo. Em `Testes/`, os testes automáticos (Window ▸ General ▸ Test Runner, aba EditMode): toda folha de animação dos prefabs e dos heróis dá pelo menos um quadro, e nenhuma imagem passa do tamanho máximo da importação (a Unity encolheria e o corte sairia errado) |
+| `Assets/Editor` | Montar a cena e o Play pela cena do jogo. Em `Testes/`, os testes automáticos (Window ▸ General ▸ Test Runner, aba EditMode): toda folha de animação dos prefabs e dos heróis dá pelo menos um quadro, nenhuma imagem passa do tamanho máximo da importação (a Unity encolheria e o corte sairia errado), nenhum desenho atravessa a emenda entre dois quadros e, parado ou andando, nenhum bicho pula de lado (é o que acontece quando o quadro do corte é menor que o desenhado) |
 | `Assets/Prefabs` | Jogador, os 31 inimigos, os 7 chefes e o Boneco de treino |
 | `Assets/Dados/Resources/ArmasDosHerois` | A arma do começo de cada herói (o arco do Arqueiro, a espada do Cavaleiro...) |
 | `Assets/Dados/Armas` | Os assets das armas: as do personagem e do Bruxo (`ArcoDoArqueiro`, `MagiaDoBruxo`) as achadas (`Varinha`, `Tomo`, `BestaDeRepeticao`, `Cajado`, `Machado`) e as dos inimigos (`FlechaDoEsqueleto`, `AnelDoNecromante`, `EspiralDoOlho`, `GotasDaGosma`) |

@@ -454,12 +454,12 @@ MonoBehaviour:
   andando: {fileID: 2800000, guid: 58278044afbb4d0a9457a0c7acc2b8f2, type: 3}
   ataque: {fileID: 2800000, guid: 95bd391b10424c6aa6dc69a1e4556abc, type: 3}
   morte: {fileID: 2800000, guid: 56d9e0d8030648f6bf1e767fa5b6226f, type: 3}
-  tamanhoDoQuadro: {x: 112, y: 60}
+  tamanhoDoQuadro: {x: 94, y: 60}
   pixelsPorUnidade: 32
   quadrosPorSegundoParado: 8
   quadrosPorSegundoAndando: 10
   quadrosPorSegundoNaMorte: 12
-  quadroDoDisparo: 8
+  quadroDoDisparo: 3
   velocidadeParaAndar: 0.3
 --- !u!114 &995984316216856026
 MonoBehaviour:

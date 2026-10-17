@@ -52,7 +52,8 @@ INIMIGOS = {
                                         'Attack01': OP + 'Skeleton 1/with shield/Skeleton 1 - animations-atk 1.png', 'Death': OP + 'Skeleton 1/with shield/Skeleton 1 - animations-death.png'}),
     'EsqueletoMago': ((220, 220), {'Idle': OP + 'Mage Skeleton/Mage Skeleton no shield/Mage Skeleton - animations-idle.png', 'Walk': OP + 'Mage Skeleton/Mage Skeleton no shield/Mage Skeleton - animations-walk.png',
                                    'Attack01': OP + 'Mage Skeleton/Mage Skeleton no shield/Mage Skeleton - animations-atk2.png', 'Death': OP + 'Mage Skeleton/Mage Skeleton no shield/Mage Skeleton - animations-death.png'}),
-    'Assassino': ((110, 96), {'Idle': OP + 'Assassin like enemy/Assassin like enemy - animations-idle.png', 'Walk': OP + 'Assassin like enemy/Assassin like enemy - animations-run.png',
+    # O quadro do Assassino no pacote e 220 x 96 (ate a 1.22.3 estava 110 e cada quadro do jogo saia com meio bicho).
+    'Assassino': ((220, 96), {'Idle': OP + 'Assassin like enemy/Assassin like enemy - animations-idle.png', 'Walk': OP + 'Assassin like enemy/Assassin like enemy - animations-run.png',
                               'Attack01': OP + 'Assassin like enemy/Assassin like enemy - animations-atk1.png', 'Death': OP + 'Assassin like enemy/Assassin like enemy - animations-death.png'}),
     # Chefe: o Rei Esqueleto (o chefe do pacote The Depths of the Mountain)
     'ReiEsqueleto': ((351, 207), {'Idle': DP + 'Boss/boss anims-idle.png', 'Walk': DP + 'Boss/boss anims-walk.png',
