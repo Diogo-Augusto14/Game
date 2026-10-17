@@ -171,6 +171,7 @@ public class GeradorDoAndar : MonoBehaviour
     private Pedreiro pedreiroDoAndar;
     private readonly List<Saida> outrasSaidas = new List<Saida>();
     private ClimaDoAndar clima;
+    private BonecoDeTreino boneco;
     private readonly List<Renderer> desenhosEscondidos = new List<Renderer>();
     private readonly List<Behaviour> pecasEscondidas = new List<Behaviour>();
 
@@ -839,7 +840,19 @@ public class GeradorDoAndar : MonoBehaviour
         clima.Mudar(Tema, true);
         DicasDaPrimeiraVez.Mostrar("descanso");
         DicasDaPrimeiraVez.Mostrar("estatua");
+        AjeitarBonecoDeTreino();
         AoComecarAndar?.Invoke();
+    }
+
+    // O boneco de treino e um objeto da cena, no acampamento do andar 1. Fica so la: antes ele continuava no
+    // mesmo ponto em todo andar, ate no meio da arena do chefe, segurando os tiros do jogador.
+    private void AjeitarBonecoDeTreino()
+    {
+        if (boneco == null)
+            boneco = FindAnyObjectByType<BonecoDeTreino>(FindObjectsInactive.Include);
+
+        if (boneco != null)
+            boneco.gameObject.SetActive(Andar == 1 && !descansando && chefe == null);
     }
 
     // De volta ao comeco do lugar, que fica sempre no centro do mundo.
@@ -1001,6 +1014,7 @@ public class GeradorDoAndar : MonoBehaviour
 
         // O som de fundo, a poeira e a nevoa do mundo.
         clima.Mudar(Tema, false);
+        AjeitarBonecoDeTreino();
         AoComecarAndar?.Invoke();
     }
 

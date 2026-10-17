@@ -267,6 +267,7 @@ public class AnimacaoDoJogador : MonoBehaviour
         bool atirando = Time.time < atirandoAte;
 
         // A esquiva desenhada (o visto de cima): pro lado em que vai, do comeco ao fim da esquiva, sem girar.
+        // Ela corta o dano que estava tocando: sem isso, a esquiva acabava antes do dano e sobrava nada pra mostrar.
         if (esquivando && esquivaPorRumo != null && !movimento.Investindo)
         {
             Vector2 vai = movimento.RumoDaEsquiva;
@@ -277,6 +278,7 @@ public class AnimacaoDoJogador : MonoBehaviour
             corpo.transform.localRotation = Quaternion.identity;
             corpo.sprite = quadros[Mathf.Min(quadros.Length - 1, Mathf.FloorToInt(movimento.ProgressoDaEsquiva * quadros.Length))];
             tocando = null;
+            machucadoAte = 0f;
             return;
         }
 
@@ -330,6 +332,11 @@ public class AnimacaoDoJogador : MonoBehaviour
 
     private void MostrarQuadro()
     {
+        // Nada tocando (a esquiva desenhada acabou de soltar, ou o heroi morreu no meio dela sem folha de
+        // morte): fica no desenho que ja esta.
+        if (tocando == null || tocando.Length == 0)
+            return;
+
         int quadro = Mathf.FloorToInt((Time.time - comecou) * quadrosPorSegundo);
         quadro = soUmaVez ? Mathf.Min(quadro, tocando.Length - 1) : quadro % tocando.Length;
         corpo.sprite = tocando[quadro];

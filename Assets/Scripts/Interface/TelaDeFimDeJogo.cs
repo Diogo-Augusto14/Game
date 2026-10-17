@@ -226,7 +226,10 @@ public class TelaDeFimDeJogo : MonoBehaviour
         // Dragon Regalia: faixa atras do titulo (rosa na vitoria, azul na morte) e moldura
         // dourada no resumo. Criadas antes dos textos: ficam atras deles.
         yDoTitulo = 335f;
-        TelaSimples.Painel(pai, "Painel do resumo", ArteDaInterface.MolduraGrande, 40f, new Vector2(1200f, 390f));
+
+        // O painel desce ate abaixo da linha dos cristais (antes ela ficava em cima da borda de baixo). A
+        // borda desenhada fica uns 40 pra dentro do retangulo: o de baixo vai ate -205 pra borda passar a -165.
+        TelaSimples.Painel(pai, "Painel do resumo", ArteDaInterface.MolduraGrande, 15f, new Vector2(1200f, 440f));
         TelaSimples.Faixa(pai, "Faixa do titulo", vitoria ? ArteDaInterface.FaixaRosa : ArteDaInterface.FaixaAzul, yDoTitulo, 900f);
         titulo = TelaSimples.Titulo(pai, "Titulo", 140, vitoria ? new Color(1f, 0.9f, 0.4f) : new Color(1f, 0.32f, 0.3f),
                                     yDoTitulo, vitoria ? "Você venceu!" : "Você morreu");

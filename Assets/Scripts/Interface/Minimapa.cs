@@ -271,12 +271,22 @@ public class Minimapa : MonoBehaviour
         Pequeno();
     }
 
+    /// <summary>Onde fica o mapa pequeno, em pixels da tela: no canto de cima a direita, embaixo do andar.</summary>
+    public static Rect CaixaPequena
+    {
+        get
+        {
+            int u = Desenho.U;
+            float m = 8 * u;
+            return new Rect(Screen.width - m - 116 * u, m + 62 * u, 116 * u, 84 * u);
+        }
+    }
+
     // No canto, embaixo do andar: um pedaco do mapa em volta do jogador.
     private void Pequeno()
     {
         int u = Desenho.U;
-        float m = 8 * u;
-        Rect caixa = new Rect(Screen.width - m - 116 * u, m + 62 * u, 116 * u, 84 * u);
+        Rect caixa = CaixaPequena;
         Desenho.Cor(caixa, Fundo);
         Contorno(caixa, u, new Color(0.6f, 0.58f, 0.66f, 0.6f));
 

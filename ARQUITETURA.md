@@ -10,7 +10,7 @@ cena aberta (menu **Jogo ▸ Play sempre pela cena do jogo**, marcado = ligado).
 
 A cena é feita de objetos de verdade, editáveis no Inspector: o **Jogador** (um prefab, em
 `Assets/Prefabs/Jogador.prefab`), a **Main Camera**, a **Luz global**, o **Andar** (que cava a caverna
-ao dar Play e espalha os Bruxos, um prefab) e o **Boneco de treino** (prefab), na clareira do começo. Também tem a **Interface** (o HUD e os menus). O menu
+ao dar Play e espalha os Bruxos, um prefab) e o **Boneco de treino** (prefab), no acampamento do andar 1. Também tem a **Interface** (o HUD e os menus). O menu
 **Jogo ▸ Montar a cena do zero** (`Assets/Editor/MontarJogo.cs`) refaz tudo como no começo: o que foi
 mudado à mão na cena e no prefab se perde.
 
@@ -43,7 +43,7 @@ mudado à mão na cena e no prefab se perde.
 | `Assets/Scripts/Interface` | O HUD, o minimapa, o menu inicial, a pausa, os controles e o fim da partida |
 | `Assets/Scripts/Nucleo` | Peças pequenas usadas por todo lado (cortar folha de animação, efeito que toca uma vez) |
 | `Assets/Shaders` | `Silhueta`: pinta o desenho de uma cor só (o branco do golpe) |
-| `Assets/Editor` | Montar a cena e o Play pela cena do jogo |
+| `Assets/Editor` | Montar a cena e o Play pela cena do jogo. Em `Testes/`, os testes automáticos (Window ▸ General ▸ Test Runner, aba EditMode): toda folha de animação dos prefabs e dos heróis dá pelo menos um quadro, e nenhuma imagem passa do tamanho máximo da importação (a Unity encolheria e o corte sairia errado) |
 | `Assets/Prefabs` | Jogador, os 31 inimigos, os 7 chefes e o Boneco de treino |
 | `Assets/Dados/Resources/ArmasDosHerois` | A arma do começo de cada herói (o arco do Arqueiro, a espada do Cavaleiro...) |
 | `Assets/Dados/Armas` | Os assets das armas: as do personagem e do Bruxo (`ArcoDoArqueiro`, `MagiaDoBruxo`) as achadas (`Varinha`, `Tomo`, `BestaDeRepeticao`, `Cajado`, `Machado`) e as dos inimigos (`FlechaDoEsqueleto`, `AnelDoNecromante`, `EspiralDoOlho`, `GotasDaGosma`) |
@@ -101,7 +101,7 @@ a cura da Carne Assada). Tudo fica no objeto
 | `Automapa` | As regras de encaixe do Tiled ("automapping"): pega os ladrilhos escolhidos pelos cantos e põe as faces de tijolo, os encontros e as variações, igual o Tiled faz |
 | `DadosDoOldPrison` | As tabelas de cantos e as regras do pacote, já convertidas (gerado pela ferramenta; não editar à mão) |
 | `GeradorDoAndar` | Monta o andar, põe os inimigos em cada sala de luta, conta quantos faltam, abre a saída quando a sala do fim fica limpa (ou o último morre) e troca de andar. Na tela: o nome do andar, o contador e, quando faltam 2 salas ou menos (fora de luta), uma seta na beirada apontando pra mais perto |
-| `Saida` | O vórtice: abre na sala do fim quando ela fica limpa (no chefe, onde ele morreu) e, pisado, leva pro próximo andar. Na área segura pode levar pra um tema (a escolha do caminho): fica da cor dele, com o nome em cima |
+| `Saida` | O vórtice: abre na sala do fim quando ela fica limpa (no chefe, onde ele morreu) e, pisado, leva pro próximo andar. Na área segura pode levar pra um tema (a escolha do caminho): fica da cor dele, com o nome embaixo (em cima, ele caía debaixo do texto da HUD) |
 | `Arena` | A planta do andar do chefe: um salão oval com quatro pilares, no mesmo formato da caverna (o `Pedreiro` constrói igual) |
 | `MapaDeCaminhos` | O caminho de qualquer ponto da caverna até o jogador, contornando paredes, buracos e baús (os inimigos usam quando não dá pra ir reto) |
 
@@ -276,9 +276,11 @@ quantos passos está dele (uma busca que espalha como água, até 40 passos). Pr
 inimigo vai pra vizinha com menos passos; na diagonal, só se as duas vizinhas retas forem chão (senão
 raspa na quina). O mapa só é refeito quando o jogador muda de célula.
 
-O **Boneco de treino** (`Assets/Prefabs/BonecoDeTreino.prefab`), na clareira onde o jogador começa, serve
+O **Boneco de treino** (`Assets/Prefabs/BonecoDeTreino.prefab`), no acampamento do andar 1, serve
 pra testar as armas: a vida dele é imortal, ele pisca e balança na estaca pro lado do golpe
-(`BonecoDeTreino`), e nunca sai do lugar.
+(`BonecoDeTreino`), e nunca sai do lugar. É um objeto da cena; o `GeradorDoAndar` liga ele só no andar 1
+(até a 1.22.3 ele ficava no mesmo ponto em todo andar, inclusive no meio da arena do chefe, segurando os
+tiros).
 
 ## Chefes
 
@@ -458,7 +460,7 @@ Tudo no PlayerPrefs (`Assets/Scripts/Progresso`), como no jogo antigo:
 |---|---|
 | `Progresso` | Mundos vencidos, vitórias e com quem zerou: o que libera os heróis (e avisa quando libera) |
 | `Registro` | Estatísticas de todas as partidas e o bestiário (visto, derrotados, quem mais te matou) |
-| `Conquistas` | 17 conquistas; ganhar mostra o `AvisoDeConquista` no canto |
+| `Conquistas` | 17 conquistas; ganhar mostra o `AvisoDeConquista`, que entra pela direita embaixo do minimapa (no canto de cima ficam o andar e os inimigos da HUD) |
 | `Desbloqueios`, `PlantaNoChao` | O que vai sendo liberado (1.21.0, como no Dead Cells e no Isaac): 7 armas e 6 itens começam trancados e só saem depois de achar a **planta** deles (3 por mundo; caem do chefe do mundo, às vezes de um campeão, e podem ser prêmio de sala; a primeira da vida sai na sala do fim do andar 1), e 12 itens são liberados por **conquistas** (`PorConquista`). `Melhorias.Liberada` (armas) e `CatalogoDeItens.Sortear` (itens) perguntam. No desafio do dia tudo vale. A aba **Desbloqueios** da `TelaDeProgresso` mostra tudo |
 | `Acampamento`, `Fogueira`, `Falante`, `Falas`, `Conversa` | O **acampamento** (1.21.0): a sala do começo do andar 1, maior (15 x 11), com a fogueira, a estátua dos cristais e três pessoas pra conversar (Bento, o mercador; Mestre Ferraz, o ferreiro, que ali não forja; o Apostador, sem apostas). Cada conversa comenta a última partida (`Falas.GuardarFim`, chamado pelo `Registro` ao morrer ou zerar) e conta o próximo pedaço da história, um por partida, liberado pela profundidade alcançada, plantas e vitórias. Os textos ficam todos no `Falas.cs` |
 | `Bestiario` | Nome e "como luta" de cada inimigo e chefe |

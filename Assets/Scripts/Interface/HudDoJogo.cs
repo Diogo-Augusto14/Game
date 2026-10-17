@@ -18,6 +18,12 @@ public class HudDoJogo
 {
     private readonly TelaDoJogo tela;
 
+    /// <summary>
+    /// Onde comeca, em pixels da tela a partir de cima, o bloco da arma no canto de baixo a direita (a outra
+    /// arma, o especial e a moldura). A dica da primeira vez fica em cima dele. 0 enquanto nao desenhou.
+    /// </summary>
+    public static float TopoDaArma { get; private set; }
+
     public HudDoJogo(TelaDoJogo tela)
     {
         this.tela = tela;
@@ -96,7 +102,8 @@ public class HudDoJogo
         float y = m + (tela.coracao != null ? tela.coracao.height : 16) * u + 4 * u;
         GUIStyle estilo = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.UpperLeft);
         bool pronta = habilidade.Pronta;
-        Desenho.Texto(new Rect(m, y, 300 * u, 22 * u), "F  " + Idioma.T(habilidade.Nome), estilo, pronta ? Desenho.Dourado : Desenho.Apagado);
+        Desenho.Texto(new Rect(m, y, 300 * u, 22 * u), (Controle.EmUso ? "X" : "F") + "  " + Idioma.T(habilidade.Nome), estilo,
+                      pronta ? Desenho.Dourado : Desenho.Apagado);
 
         Rect barra = new Rect(m, y + 22 * u, 80 * u, 13 * u);
         Barra(barra, habilidade.Carga, pronta ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
@@ -124,7 +131,8 @@ public class HudDoJogo
             Desenho.Sprite(icone, ativo.Item.Desenho, ativo.Pronto ? Color.white : new Color(0.55f, 0.55f, 0.6f));
             Barra(new Rect(icone.xMax + 4 * u, y + 2 * u, 50 * u, 11 * u), ativo.Fracao, ativo.Pronto ? Desenho.Dourado : new Color(0.55f, 0.6f, 0.75f));
             GUIStyle tecla = Desenho.Estilo(tela.fonteTexto, 14 * u, TextAnchor.MiddleLeft);
-            Desenho.Texto(new Rect(icone.xMax + 58 * u, y - 2 * u, 30 * u, 20 * u), "R", tecla, ativo.Pronto ? Desenho.Dourado : Desenho.Apagado);
+            Desenho.Texto(new Rect(icone.xMax + 58 * u, y - 2 * u, 30 * u, 20 * u), Controle.EmUso ? "RS" : "R", tecla,
+                          ativo.Pronto ? Desenho.Dourado : Desenho.Apagado);
         }
     }
 
@@ -164,6 +172,9 @@ public class HudDoJogo
         Texture2D moldura = tela.molduraPequena;
         float lado = (moldura != null ? moldura.width : 72) * u;
         Rect quadro = new Rect(Screen.width - m - lado, Screen.height - m - lado, lado, lado);
+
+        // O topo do bloco conta com a linha da outra arma mesmo sem ela: a dica nao pula ao pegar a segunda.
+        TopoDaArma = quadro.y - 48 * u;
 
         // A arma na moldura, no maior tamanho inteiro que cabe.
         if (moldura != null)
@@ -246,7 +257,7 @@ public class HudDoJogo
         {
             GUIStyle outra = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerRight);
             Desenho.Texto(new Rect(Screen.width - m - largura, quadro.y - 48 * u, largura, 24 * u),
-                          "Q  " + armas.Outra.Dados.NomeNaTela, outra, Desenho.Apagado);
+                          (Controle.EmUso ? "Y" : "Q") + "  " + armas.Outra.Dados.NomeNaTela, outra, Desenho.Apagado);
         }
     }
 
@@ -322,7 +333,7 @@ public class HudDoJogo
 
         Vector3 naTela = cam.WorldToScreenPoint(coisa.transform.position + Vector3.up * 0.9f);
         GUIStyle estilo = Desenho.Estilo(tela.fonteTexto, 16 * u, TextAnchor.LowerCenter);
-        string texto = "E  " + Idioma.T(coisa.Dica);
+        string texto = (Controle.EmUso ? "B" : "E") + "  " + Idioma.T(coisa.Dica);
         // A caixa na largura do texto (a dica do ferreiro e longa) e sem sair da tela.
         float largura = Mathf.Min(Screen.width, Mathf.Max(300 * u, estilo.CalcSize(new GUIContent(texto)).x + 8 * u));
         float x = Mathf.Clamp(naTela.x - largura * 0.5f, 0f, Screen.width - largura);

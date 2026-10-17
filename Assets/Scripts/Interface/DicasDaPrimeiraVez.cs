@@ -145,7 +145,15 @@ public class DicasDaPrimeiraVez : MonoBehaviour
         GUIStyle estilo = Desenho.Estilo(FonteDoJogo.Texto, 18 * u, TextAnchor.MiddleCenter);
         float largura = Mathf.Min(Screen.width - 40 * u, Desenho.Largura(texto, estilo) + 40 * u);
         float altura = 34 * u;
-        Rect caixa = new Rect((Screen.width - largura) * 0.5f, Screen.height - 120 * u - (1f - a) * 10 * u, largura, altura);
+
+        // Em cima do bloco da arma da HUD (canto de baixo a direita): mais embaixo, a caixa larga cobria a
+        // linha do tiro especial quando o nome dele era comprido.
+        float baseDaCaixa = Screen.height - 86 * u;
+
+        if (HudDoJogo.TopoDaArma > 0f)
+            baseDaCaixa = Mathf.Min(baseDaCaixa, HudDoJogo.TopoDaArma - 8 * u);
+
+        Rect caixa = new Rect((Screen.width - largura) * 0.5f, baseDaCaixa - altura - (1f - a) * 10 * u, largura, altura);
 
         Desenho.Cor(caixa, new Color(0.04f, 0.03f, 0.04f, 0.8f * a));
         Desenho.Cor(new Rect(caixa.x, caixa.y, caixa.width, 2 * u), new Color(0.55f, 0.2f, 0.12f, 0.9f * a));

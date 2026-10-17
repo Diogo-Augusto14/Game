@@ -3,10 +3,11 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// O aviso de conquista (e de heroi liberado): uma plaquinha que desce no canto de cima a direita
-/// (o titulo e, embaixo, como ganhou), fica uns segundos e sobe de volta. Varias juntas
-/// fazem fila. Canvas proprio, por cima da HUD e das telas; anda em tempo real (aparece
-/// mesmo com o jogo congelado na tela de vitoria).
+/// O aviso de conquista (e de heroi liberado): uma plaquinha (o titulo e, embaixo, como ganhou) que entra
+/// pela direita, fica uns segundos e sai de volta. Com o jogo na tela ela fica embaixo do minimapa, porque o
+/// canto de cima e do andar e dos inimigos da HUD (o OnGUI desenha por cima e os dois ficavam ilegiveis);
+/// com um menu aberto a HUD some e ela fica no canto. Varias juntas fazem fila. Canvas proprio; anda em
+/// tempo real (aparece mesmo com o jogo congelado na tela de vitoria).
 /// </summary>
 [DisallowMultipleComponent]
 public class AvisoDeConquista : MonoBehaviour
@@ -112,16 +113,26 @@ public class AvisoDeConquista : MonoBehaviour
         float t = agora - desde;
         float total = Entrada * 2f + NaTela;
 
-        // Desce, fica, sobe.
+        // Entra pela direita, fica, sai.
         float dentro = t < Entrada ? TelaSimples.Freando(t / Entrada)
                      : t > total - Entrada ? 1f - TelaSimples.Freando((t - (total - Entrada)) / Entrada)
                      : 1f;
-        placa.anchoredPosition = new Vector2(-24f, Mathf.Lerp(Altura + 20f, -24f, dentro));
+        placa.anchoredPosition = new Vector2(Mathf.Lerp(Largura + 40f, -24f, dentro), -Topo());
 
         if (t < total)
             return;
 
         placa.gameObject.SetActive(false);
         desde = -1f;
+    }
+
+    // A distancia do topo, nas unidades do canvas (1080 de altura): embaixo do minimapa durante o jogo.
+    private static float Topo()
+    {
+        if (TelaDoJogo.MenuAberto)
+            return 24f;
+
+        float pixels = Minimapa.CaixaPequena.yMax + 8 * Desenho.U;
+        return pixels * 1080f / Mathf.Max(1, Screen.height);
     }
 }

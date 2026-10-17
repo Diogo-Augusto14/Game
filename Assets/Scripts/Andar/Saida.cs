@@ -4,7 +4,7 @@ using UnityEngine;
 /// O vortice da saida: abre onde morreu o ultimo inimigo do andar, gira no chao e, quando o jogador
 /// pisa nele, leva pro proximo andar (o <see cref="GeradorDoAndar"/> cuida da troca).
 /// Na area segura, um portal pode levar pra um tema (a escolha do caminho): ele fica da cor do tema,
-/// com o nome em cima. Monte com <see cref="Criar"/>.
+/// com o nome embaixo. Monte com <see cref="Criar"/>.
 /// </summary>
 [DisallowMultipleComponent]
 public class Saida : MonoBehaviour
@@ -57,12 +57,14 @@ public class Saida : MonoBehaviour
         return saida;
     }
 
-    // O nome do mundo em cima do portal e, embaixo dele, o que tem la (fora da escala do vortice).
+    // O nome do mundo embaixo do portal e, embaixo do nome, o que tem la (fora da escala do vortice). Fica
+    // embaixo porque o jogador chega por baixo: em cima, perto da beirada da tela, a placa caia debaixo do
+    // texto da HUD ("Escolha um dos portais").
     private static void Placa(Transform portal, string nome, string resumo, Color cor)
     {
         GameObject placa = new GameObject("Placa");
         placa.transform.SetParent(portal.parent, false);
-        placa.transform.position = portal.position + new Vector3(0f, 1.9f, 0f);
+        placa.transform.position = portal.position + new Vector3(0f, -1.45f, 0f);
         Texto(placa.transform, nome, 0.1f, new Color(Mathf.Lerp(cor.r, 1f, 0.5f), Mathf.Lerp(cor.g, 1f, 0.5f), Mathf.Lerp(cor.b, 1f, 0.5f)), 0f);
 
         if (!string.IsNullOrEmpty(resumo))
